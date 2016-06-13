@@ -52,13 +52,94 @@ SET FOREIGN_KEY_CHECKS=0;
   `name` VARCHAR(255) NULL,
   `x_location` FLOAT NULL,
   `y_location` FLOAT NULL,
-  `device_num` INT NULL,
-  `alert_num` INT NULL,
-  `create_date` DATETIME NULL
+  `device_num` INT NULL DEFAULT 0,
+  `create_date` DATETIME NULL,
   `company_id` INT NULL,
-
+  PRIMARY KEY (`id`)
   );
 
+  drop table if exists buildings_daily;
+  create table `buildings_daily`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `build_id` INT NULL,
+  `start_time` DATETIME NULL,
+  `end_time` DATETIME NULL,
+  `alert_num` INT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists floors;
+  create table `floors` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `floor_num` INT NULL,
+  `name` VARCHAR(255) NULL,
+  `build_id` INT NOT NULL,
+  `device_num` INT NULL DEFAULT 0,
+  `create_date` DATETIME NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists floors_daily;
+  create table `floors_daily`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `floor_id` INT NULL,
+  `start_time` DATETIME NULL,
+  `end_time` DATETIME NULL,
+  `alert_num` INT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists room;
+  create table `room`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `floor_id` INT NULL,
+  `x_location` FLOAT NULL,
+  `y_location` FLOAT NULL,
+  `device_num` INT NULL DEFAULT 0,
+  `create_date` DATETIME NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists room_daily;
+  create table `room_daily`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `room_id` INT NOT NULL,
+  `start_time` DATETIME NULL,
+  `end_time` DATETIME NULL,
+  `alert_num` INT NULL DEFAULT 0,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists inspect_type;
+  create table `inspect_type` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists device_type;
+  create table `device_type`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists device_inspect;
+  create table `device_inspect`(
+  `id` INT NOT NULL,
+  `device_type_id` INT NULL,
+  `inspect_type_id` INT NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  drop table if exists device;
+  create table `device`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `device_type_id` INT NULL,
+
+  );
 
 
 
