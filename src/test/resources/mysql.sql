@@ -1,6 +1,6 @@
 SET FOREIGN_KEY_CHECKS=0;
 
---ÓÃ»§ÐÅÏ¢
+--ï¿½Ã»ï¿½ï¿½ï¿½Ï¢
   drop table if exists users;
   create table `users`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -8,14 +8,27 @@ SET FOREIGN_KEY_CHECKS=0;
   `password` VARCHAR(500) NULL,
   `user_name` VARCHAR(255) NULL,
   `mobile` VARCHAR(255) NULL,
+  `telephone` VARCHAR(255) NULL,
   `head_icon` VARCHAR(255) NULL,
   `create_date` DATETIME NULL,
   `gender` VARCHAR(255) NULL,
   `email` VARCHAR(255) NULL,
+  `company_id` INT NULL,
+  `department` VARCHAR(255) NULL,
+  `job` VARCHAR(255) NULL,
   PRIMARY KEY (`id`)
   );
 
---ÓÃ»§µÄ½ÇÉ«ÐÅÏ¢
+--ï¿½ï¿½É«È¨ï¿½ï¿½
+  drop table if exists role_authority;
+  create table `role_authority`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
+  );
+
+
+--ï¿½Ã»ï¿½ï¿½Ä½ï¿½É«ï¿½ï¿½Ï¢
   drop table if exists roles;
   create table `roles`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -25,15 +38,9 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---½ÇÉ«È¨ÏÞ
-  drop table if exists role_authority;
-  create table `role_authority`(
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NULL,
-  PRIMARY KEY (`id`)
-  );
+  ALTER TABLE `roles` ADD CONSTRAINT `roles_1` FOREIGN KEY (`role_auth_id`) REFERENCES `role_authority` (`id`);
 
---ÆóÒµ¹ÜÀíÔ±°ó¶¨µÄ¹«Ë¾ÐÅÏ¢
+--ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½Ô±ï¿½ó¶¨µÄ¹ï¿½Ë¾ï¿½ï¿½Ï¢
   drop table if exists company;
   create table `company`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -50,6 +57,9 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `company` ADD CONSTRAINT `company_1` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `company` ADD CONSTRAINT `company_2` FOREIGN KEY (`business_user_id`) REFERENCES `users` (`id`);
+
   drop table if exists buildings;
   create table `buildings`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -62,6 +72,8 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `buildings` ADD CONSTRAINT `buildings_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`id`);
+
   drop table if exists buildings_daily;
   create table `buildings_daily`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -71,6 +83,8 @@ SET FOREIGN_KEY_CHECKS=0;
   `alert_num` INT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
   );
+
+  ALTER TABLE `buildings_daily` ADD CONSTRAINT `buildings_daily_1` FOREIGN KEY (`build_id`) REFERENCES `buildings` (`id`);
 
   drop table if exists floors;
   create table `floors` (
@@ -83,6 +97,8 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `floors` ADD CONSTRAINT `floors_1` FOREIGN KEY (`build_id`) REFERENCES `buildings` (`id`);
+
   drop table if exists floors_daily;
   create table `floors_daily`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -92,6 +108,8 @@ SET FOREIGN_KEY_CHECKS=0;
   `alert_num` INT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
   );
+
+  ALTER TABLE `floors_daily` ADD CONSTRAINT `floors_daily_1` FOREIGN KEY (`floor_id`) REFERENCES `floors` (`id`);
 
   drop table if exists room;
   create table `room`(
@@ -105,7 +123,9 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---·¿¼äÄÚÉè±¸Ã¿ÌìµÄ±¨¾¯ÊýÁ¿ÐÅÏ¢
+  ALTER TABLE `room` ADD CONSTRAINT `room_1` FOREIGN KEY (`floor_id`) REFERENCES `floors` (`id`);
+
+--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸Ã¿ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
   drop table if exists room_daily;
   create table `room_daily`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -116,15 +136,18 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---¼à²âµÄÀàÐÍ
+  ALTER TABLE `room_daily` ADD CONSTRAINT `room_daily_1` FOREIGN KEY (`room_id`) REFERENCES `room` (`id`);
+
+--ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   drop table if exists inspect_type;
   create table `inspect_type` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(255) NULL,
+  `code` VARCHAR(255) NULL,
   PRIMARY KEY (`id`)
   );
 
---Éè±¸µÄÀàÐÍ
+--ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   drop table if exists device_type;
   create table `device_type`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -133,37 +156,50 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---Éè±¸µÄ¼ì²âÏîÅÐ¶¨
-  drop table if exists device_inspect;
-  create table `device_inspect`(
+--ï¿½è±¸ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+  drop table if exists device_type_inspect;
+  create table `device_type_inspect`(
   `id` INT NOT NULL,
   `device_type_id` INT NULL,
   `inspect_type_id` INT NULL,
   PRIMARY KEY (`id`)
   );
 
---¼à¿ØÖÕ¶Ë
+  ALTER TABLE `device_type_inspect` ADD CONSTRAINT `device_type_inspect_1` FOREIGN KEY (`device_type_id`) REFERENCES `device_type` (`id`);
+  ALTER TABLE `device_type_inspect` ADD CONSTRAINT `device_type_inspect_2` FOREIGN KEY (`inspect_type_id`) REFERENCES `inspect_type` (`id`);
+
+
+--ï¿½ï¿½ï¿½ï¿½Õ¶ï¿½
   drop table if exists monitor_device;
   create table `monitor_device`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `number` VARCHAR(255) NULL,
+  `battery_status`  VARCHAR(255) NULL,
+  `online_status` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
   );
 
---Éè±¸ÐÅÏ¢
+--ï¿½è±¸ï¿½ï¿½Ï¢
   drop table if exists device;
   create table `device`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `number` VARCHAR(255) NULL,
   `name` VARCHAR(255) NULL,
-  `device_type_id` INT NULL,
+  `type_id` INT NULL,
   `create_date` DATETIME NULL,
   `creator` VARCHAR(255) NULL,
   `purchase_date` DATETIME NULL,
   `photo` VARCHAR(255) NULL,
   `manager_user_id` INT NULL,
-  
-
+  `alert_num` INT NULL DEFAULT 0,
+  `maintain_rule` VARCHAR(1000) NULL,
+  `maintain_date` DATETIME NULL,
+  `maintain_alert_days` INT NULL,
+  PRIMARY KEY (`id`)
   );
+
+  ALTER TABLE `device` ADD CONSTRAINT `device_1` FOREIGN KEY (`type_id`) REFERENCES `device_type` (`id`);
+  ALTER TABLE `device` ADD CONSTRAINT `device_2` FOREIGN KEY (`manager_user_id`) REFERENCES `users` (`id`);
 
   drop table if exists file;
   create table `file`(
@@ -175,6 +211,42 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  drop table if exists device_file;
+  create table `device_file` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `file_id` INT NULL,
+  PRIMARY KEY (`id`)
+  );
 
+  ALTER TABLE `device_file` ADD CONSTRAINT `device_file_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `device_file` ADD CONSTRAINT `device_file_2` FOREIGN KEY (`file_id`) REFERENCES `file` (`id`);
+
+  drop table if exists device_inspect;
+  create table `device_inspect` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `inspect_type_id` INT NULL,
+  `standard` INT NULL,
+  `low_alert` INT NULL,
+  `high_alert` INT NULL,
+  `low_alert_minutes` INT NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  ALTER TABLE `device_inspect` ADD CONSTRAINT `device_inspect_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `device_inspect` ADD CONSTRAINT `device_inspect_2` FOREIGN KEY (`inspect_type_id`) REFERENCES `inspect_type` (`id`);
+
+  drop table if exists inspect_data;
+  create table `inspect_data`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `device_inspect_id` INT NULL,
+  `result` INT NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  ALTER TABLE `inspect_data` ADD CONSTRAINT `inspect_data_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `inspect_data` ADD CONSTRAINT `inspect_data_2` FOREIGN KEY (`device_inspect_id`) REFERENCES `device_inspect` (`id`);
 
 SET FOREIGN_KEY_CHECKS=1;
