@@ -1,6 +1,5 @@
 SET FOREIGN_KEY_CHECKS=0;
 
---�û���Ϣ
   drop table if exists users;
   create table `users`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -19,7 +18,6 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---��ɫȨ��
   drop table if exists role_authority;
   create table `role_authority`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -27,8 +25,6 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
-
---�û��Ľ�ɫ��Ϣ
   drop table if exists roles;
   create table `roles`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -40,7 +36,6 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `roles` ADD CONSTRAINT `roles_1` FOREIGN KEY (`role_auth_id`) REFERENCES `role_authority` (`id`);
 
---��ҵ����Ա�󶨵Ĺ�˾��Ϣ
   drop table if exists company;
   create table `company`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -125,7 +120,6 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `room` ADD CONSTRAINT `room_1` FOREIGN KEY (`floor_id`) REFERENCES `floors` (`id`);
 
---�������豸ÿ��ı���������Ϣ
   drop table if exists room_daily;
   create table `room_daily`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -138,7 +132,6 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `room_daily` ADD CONSTRAINT `room_daily_1` FOREIGN KEY (`room_id`) REFERENCES `room` (`id`);
 
---��������
   drop table if exists inspect_type;
   create table `inspect_type` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -147,7 +140,6 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---�豸������
   drop table if exists device_type;
   create table `device_type`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -156,7 +148,6 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---�豸�ļ�����ж�
   drop table if exists device_type_inspect;
   create table `device_type_inspect`(
   `id` INT NOT NULL,
@@ -169,7 +160,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_type_inspect` ADD CONSTRAINT `device_type_inspect_2` FOREIGN KEY (`inspect_type_id`) REFERENCES `inspect_type` (`id`);
 
 
---����ն�
   drop table if exists monitor_device;
   create table `monitor_device`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -179,7 +169,6 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
---�豸��Ϣ
   drop table if exists device;
   create table `device`(
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -248,5 +237,14 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `inspect_data` ADD CONSTRAINT `inspect_data_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
   ALTER TABLE `inspect_data` ADD CONSTRAINT `inspect_data_2` FOREIGN KEY (`device_inspect_id`) REFERENCES `device_inspect` (`id`);
+
+  drop table if exists device_floor;
+  create table `device_floor`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `floor_num` INT NULL,
+  `` VARCHAR(255)
+  );
+
 
 SET FOREIGN_KEY_CHECKS=1;
