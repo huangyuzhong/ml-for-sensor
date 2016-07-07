@@ -243,8 +243,13 @@ SET FOREIGN_KEY_CHECKS=0;
   `id` INT NOT NULL AUTO_INCREMENT,
   `device_id` INT NULL,
   `floor_num` INT NULL,
-  `` VARCHAR(255)
+  `user_id` INT NULL,
+  `subject_name` VARCHAR(255) NULL,
+  `subject_num` INT NULL,
+  PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `device_floor` ADD CONSTRAINT `device_floor_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `device_floor` ADD CONSTRAINT `device_floor_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 SET FOREIGN_KEY_CHECKS=1;
