@@ -4,6 +4,7 @@ import com.device.inspect.common.model.charater.User;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/7.
@@ -11,13 +12,6 @@ import java.util.Date;
 @Entity
 @Table(name = "")
 public class Company {
-//    `id` INT NOT NULL AUTO_INCREMENT,
-//    `name` VARCHAR(255) NULL,
-//    `address` VARCHAR(255) NULL,
-//    `manager_user_id` INT NOT NULL,
-//            `business_user_id` INT NULL,
-//    `email` VARCHAR(255) NULL,
-//    `telephone` VARCHAR(255) NULL,
 
     private Integer id;
     private String name;
@@ -30,6 +24,7 @@ public class Company {
     private Date signDate;
     private Date contractEndDate;
     private String background;
+    private List<Building> buildings;
 
     @Id
     @GeneratedValue()
@@ -129,5 +124,14 @@ public class Company {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    @OneToMany(mappedBy = "company")
+    public List<Building> getBuildings() {
+        return buildings;
+    }
+
+    public void setBuildings(List<Building> buildings) {
+        this.buildings = buildings;
     }
 }

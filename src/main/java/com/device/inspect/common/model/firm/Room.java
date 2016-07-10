@@ -4,16 +4,17 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
- * Created by Administrator on 2016/7/7.
+ * Created by Administrator on 2016/7/8.
  */
 @Entity
-@Table(name = "floors")
-public class Floor {
+@Table(name = "room")
+public class Room {
 
     private Integer id;
-    private Integer num;
     private String name;
-    private Building build;
+    private Floor floor;
+    private Float xPoint;
+    private Float yPoint;
     private Integer deviceNum;
     private Date createDate;
 
@@ -27,15 +28,6 @@ public class Floor {
         this.id = id;
     }
 
-    public Integer getNum() {
-        return num;
-    }
-
-    public void setNum(Integer num) {
-        this.num = num;
-    }
-
-    @Column(name = "floor_num")
     public String getName() {
         return name;
     }
@@ -45,13 +37,31 @@ public class Floor {
     }
 
     @ManyToOne()
-    @JoinColumn(name = "build_id")
-    public Building getBuild() {
-        return build;
+    @JoinColumn(name = "floor_id")
+    public Floor getFloor() {
+        return floor;
     }
 
-    public void setBuild(Building build) {
-        this.build = build;
+    public void setFloor(Floor floor) {
+        this.floor = floor;
+    }
+
+    @Column(name = "x_location")
+    public Float getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(Float xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    @Column(name = "y_location")
+    public Float getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(Float yPoint) {
+        this.yPoint = yPoint;
     }
 
     @Column(name = "device_num")

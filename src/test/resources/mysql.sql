@@ -193,6 +193,7 @@ SET FOREIGN_KEY_CHECKS=0;
   drop table if exists file;
   create table `file`(
   `id` INT NOT NULL AUTO_INCREMENT,
+  `url` VARCHAR(255) NULL,
   `type` VARCHAR(255) NULL,
   `description` VARCHAR(500) NULL,
   `enable` INT NULL DEFAULT 0,
@@ -216,9 +217,11 @@ SET FOREIGN_KEY_CHECKS=0;
   `id` INT NOT NULL AUTO_INCREMENT,
   `device_id` INT NULL,
   `inspect_type_id` INT NULL,
-  `standard` INT NULL,
-  `low_alert` INT NULL,
-  `high_alert` INT NULL,
+  `standard` FLOAT NULL,
+  `low_up_alert` FLOAT NULL,
+  `low_down_alert` FLOAT NULL,
+  `high_up_alert` FLOAT NULL,
+  `high_down_alert` FLOAT NULL,
   `low_alert_minutes` INT NULL,
   PRIMARY KEY (`id`)
   );
@@ -251,5 +254,17 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `device_floor` ADD CONSTRAINT `device_floor_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
   ALTER TABLE `device_floor` ADD CONSTRAINT `device_floor_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+  drop table if exists monitor_version;
+  create table `monitor_version`(
+  `id` INT NOT NULL,
+  `version` VARCHAR(255) NULL,
+  `url` VARCHAR(255) NULL,
+  `name` VARCHAR(255) NULL,
+  `description` VARCHAR(255) NULL,
+  `create_date` DATETIME NULL,
+  PRIMARY KEY (`id`)
+  );
+
 
 SET FOREIGN_KEY_CHECKS=1;
