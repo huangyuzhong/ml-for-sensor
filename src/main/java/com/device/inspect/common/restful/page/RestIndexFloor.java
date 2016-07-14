@@ -1,8 +1,12 @@
 package com.device.inspect.common.restful.page;
 
+import com.device.inspect.common.model.firm.Building;
+import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,9 +19,16 @@ public class RestIndexFloor {
     private Integer alertNum;
     private List<RestFloor> floors;
 
-    public RestIndexFloor(List<RestFloor> floors){
-        super();
-        this
+    public RestIndexFloor(@NotNull Building building){
+        devcieNum = 0;
+        alertNum = 0 ;
+        if(null!= building.getFloorList()&&building.getFloorList().size()>0){
+            floors = new ArrayList<RestFloor>();
+            for (Floor floor:building.getFloorList()){
+                devcieNum += building.getDeviceNum();
+                floors.add(new RestFloor(floor));
+            }
+        }
     }
 
     public Integer getDevcieNum() {

@@ -2,6 +2,7 @@ package com.device.inspect.common.model.firm;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/7.
@@ -16,6 +17,7 @@ public class Floor {
     private Building build;
     private Integer deviceNum;
     private Date createDate;
+    private List<Room> roomList;
 
     @Id
     @GeneratedValue()
@@ -70,5 +72,14 @@ public class Floor {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @OneToMany(mappedBy = "floor")
+    public List<Room> getRoomList() {
+        return roomList;
+    }
+
+    public void setRoomList(List<Room> roomList) {
+        this.roomList = roomList;
     }
 }

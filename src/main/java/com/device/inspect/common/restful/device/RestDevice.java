@@ -1,33 +1,46 @@
-package com.device.inspect.common.model.device;
+package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.DeviceType;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
- * Created by Administrator on 2016/7/8.
+ * Created by Administrator on 2016/7/12.
  */
-@Entity
-@Table(name = "device")
-public class Device {
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class RestDevice {
     private Integer id;
     private String code;
     private String name;
-    private DeviceType deviceType;
+    private RestDeviceType deviceType;
     private Date createDate;
     private String creator;
     private Date purchase;
     private String photo;
-    private User manager;
+//    private User manager;
     private Integer alterNum;
     private String maintain;
     private Date maintainDate;
     private Integer maintainAlterDays;
 
-    @Id
-    @GeneratedValue()
+    public RestDevice(@NotNull Device device) {
+        this.id = device.getId();
+        this.code = device.getCode();
+        this.deviceType = null==device.getDeviceType()?null:new RestDeviceType(device.getDeviceType());
+        this.createDate = device.getCreateDate();
+        this.creator = device.getCreator();
+        this.purchase = device.getPurchase();
+        this.photo = device.getPhoto();
+        this.alterNum = device.getAlterNum();
+        this.maintain = device.getMaintain();
+        this.maintainDate = device.getMaintainDate();
+        this.maintainAlterDays = device.getMaintainAlterDays();
+    }
+
     public Integer getId() {
         return id;
     }
@@ -52,17 +65,14 @@ public class Device {
         this.name = name;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "type_id")
-    public DeviceType getDeviceType() {
+    public RestDeviceType getDeviceType() {
         return deviceType;
     }
 
-    public void setDeviceType(DeviceType deviceType) {
+    public void setDeviceType(RestDeviceType deviceType) {
         this.deviceType = deviceType;
     }
 
-    @Column(name = "create_date")
     public Date getCreateDate() {
         return createDate;
     }
@@ -79,7 +89,6 @@ public class Device {
         this.creator = creator;
     }
 
-    @Column(name = "purchase_date")
     public Date getPurchase() {
         return purchase;
     }
@@ -96,17 +105,6 @@ public class Device {
         this.photo = photo;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "manager_user_id")
-    public User getManager() {
-        return manager;
-    }
-
-    public void setManager(User manager) {
-        this.manager = manager;
-    }
-
-    @Column(name = "alert_num")
     public Integer getAlterNum() {
         return alterNum;
     }
@@ -115,7 +113,6 @@ public class Device {
         this.alterNum = alterNum;
     }
 
-    @Column(name = "maintain_rule")
     public String getMaintain() {
         return maintain;
     }
@@ -124,7 +121,6 @@ public class Device {
         this.maintain = maintain;
     }
 
-    @Column(name = "maintain_date")
     public Date getMaintainDate() {
         return maintainDate;
     }
@@ -133,7 +129,6 @@ public class Device {
         this.maintainDate = maintainDate;
     }
 
-    @Column(name = "maintain_alert_days")
     public Integer getMaintainAlterDays() {
         return maintainAlterDays;
     }

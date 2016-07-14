@@ -2,6 +2,7 @@ package com.device.inspect.common.model.firm;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/7.
@@ -17,6 +18,7 @@ public class Building {
     private Integer deviceNum;
     private Date createDate;
     private Company company;
+    private List<Floor> floorList;
 
     @Id
     @GeneratedValue()
@@ -80,5 +82,14 @@ public class Building {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    @OneToMany(mappedBy = "build")
+    public List<Floor> getFloorList() {
+        return floorList;
+    }
+
+    public void setFloorList(List<Floor> floorList) {
+        this.floorList = floorList;
     }
 }

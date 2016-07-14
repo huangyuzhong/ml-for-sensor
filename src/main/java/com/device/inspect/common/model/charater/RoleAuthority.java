@@ -1,7 +1,6 @@
 package com.device.inspect.common.model.charater;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * Created by Administrator on 2016/7/7.
@@ -11,7 +10,10 @@ import javax.persistence.Table;
 public class RoleAuthority {
     private Integer id;
     private String name;
+    private Integer child;
 
+    @Id
+    @GeneratedValue()
     public Integer getId() {
         return id;
     }
@@ -26,5 +28,14 @@ public class RoleAuthority {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Column(name = "child_id")
+    public Integer getChild() {
+        return child;
+    }
+
+    public void setChild(Integer child) {
+        this.child = child;
     }
 }

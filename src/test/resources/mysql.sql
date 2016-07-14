@@ -18,23 +18,25 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
-  drop table if exists role_authority;
-  create table `role_authority`(
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NULL,
-  PRIMARY KEY (`id`)
-  );
-
   drop table if exists roles;
   create table `roles`(
   `id` INT NOT NULL AUTO_INCREMENT,
-  `user_name` VARCHAR(255) NULL,
-  `role_name` VARCHAR(255) NULL,
+  `user_id` VARCHAR(255) NULL,
+  `authority` VARCHAR(255) NULL,
   `role_auth_id` INT NULL,
   PRIMARY KEY (`id`)
   );
 
-  ALTER TABLE `roles` ADD CONSTRAINT `roles_1` FOREIGN KEY (`role_auth_id`) REFERENCES `role_authority` (`id`);
+  drop table if exists role_authority;
+  create table `role_authority`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `child_id` INT NULL,
+  PRIMARY KEY (`id`)
+  );
+
+--  ALTER TABLE `roles` ADD CONSTRAINT `roles_users_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `roles` ADD CONSTRAINT `roles_2` FOREIGN KEY (`role_auth_id`) REFERENCES `role_authority` (`id`);
 
   drop table if exists company;
   create table `company`(
@@ -172,7 +174,7 @@ SET FOREIGN_KEY_CHECKS=0;
   drop table if exists device;
   create table `device`(
   `id` INT NOT NULL AUTO_INCREMENT,
-  `number` VARCHAR(255) NULL,
+  `code` VARCHAR(255) NULL,
   `name` VARCHAR(255) NULL,
   `type_id` INT NULL,
   `create_date` DATETIME NULL,

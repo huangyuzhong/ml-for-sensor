@@ -1,5 +1,7 @@
 package com.device.inspect.common.model.charater;
 
+import org.springframework.security.core.GrantedAuthority;
+
 import javax.persistence.*;
 
 /**
@@ -7,12 +9,12 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "roles")
-public class Role {
+public class Role implements GrantedAuthority {
 
     private Integer id;
-    private String userName;
-    private String roleName;
-    private RoleAuthority authority;
+    private User user;
+    private String authority;
+    private RoleAuthority roleAuthority;
 
     @Id
     @GeneratedValue()
@@ -24,31 +26,32 @@ public class Role {
         this.id = id;
     }
 
-    @Column(name = "user_name")
-    public String getUserName() {
-        return userName;
+    @ManyToOne()
+    @JoinColumn(name = "user_id")
+    public User getUser() {
+        return user;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    @Column(name = "role_name")
-    public String getRoleName() {
-        return roleName;
+    @Override
+    public String getAuthority() {
+        return authority;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
+    public void setAuthority(String authority) {
+        this.authority = authority;
     }
 
     @ManyToOne()
     @JoinColumn(name = "role_auth_id")
-    public RoleAuthority getAuthority() {
-        return authority;
+    public RoleAuthority getRoleAuthority() {
+        return roleAuthority;
     }
 
-    public void setAuthority(RoleAuthority authority) {
-        this.authority = authority;
+    public void setRoleAuthority(RoleAuthority roleAuthority) {
+        this.roleAuthority = roleAuthority;
     }
 }
