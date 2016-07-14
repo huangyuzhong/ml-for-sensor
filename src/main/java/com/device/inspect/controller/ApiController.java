@@ -24,7 +24,7 @@ public class ApiController {
     @Autowired
     private DeviceRepository deviceRepository;
 
-    @RequestMapping(value = "/buildings")
+    @RequestMapping(value = "/firm/buildings")
     public RestResponse getBuildings(Principal principal){
         User user = userRepository.findByName(principal.getName());
         if (null == user&&null == user.getCompany()){
