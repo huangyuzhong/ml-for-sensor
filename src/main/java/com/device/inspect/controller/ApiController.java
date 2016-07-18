@@ -91,7 +91,7 @@ public class ApiController {
         if (null == principal || null ==principal.getName())
             return new RestResponse("not login!",1005,null);
         User user = userRepository.findByName(principal.getName());
-        if (null == user&&null == user.getCompany()){
+        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
             return new RestResponse("user's information correct!",1005,null);
         }
 
@@ -108,6 +108,8 @@ public class ApiController {
             requestParam.remove("start");
         }
 
+        requestParam.put("authorityId",user.getRole().getRoleAuthority().getChild().toString());
+        requestParam.put("companyId",user.getCompany().getId().toString());
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
