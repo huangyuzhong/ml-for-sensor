@@ -15,7 +15,7 @@ public class RestUser {
 
     private Integer id;
     private String name;
-    private String password;
+//    private String password;
     private String userName;
     private String mobile;
     private String telephone;
@@ -29,7 +29,7 @@ public class RestUser {
     public RestUser(@NotNull User user){
         this.id = user.getId();
         this.name = user.getName();
-        this.password = user.getPassword();
+//        this.password = user.getPassword();
         this.userName = user.getUserName();
         this.mobile = user.getMobile();
         this.telephone = user.getTelephone();
@@ -59,13 +59,13 @@ public class RestUser {
         this.name = name;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
+//    public String getPassword() {
+//        return password;
+//    }
+//
+//    public void setPassword(String password) {
+//        this.password = password;
+//    }
 
     public String getUserName() {
         return userName;
