@@ -14,17 +14,25 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexUser {
-    private Integer id;
+    private Integer userId;
     private List<RestUser> userList;
 
-    public RestIndexUser(@NotNull Company company){
-        this.id=company.getId();
-        if (null!=company.getManager()){
+    public RestIndexUser(User user, List<User> users){
+        this.userId=user.getId();
+        if (null!=users&&users.size()>0) {
             userList = new ArrayList<RestUser>();
-            for (User user:company.getManager()){
-
+            for (User userForEach : users) {
+                userList.add(new RestUser(userForEach));
             }
         }
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public List<RestUser> getUserList() {
@@ -33,14 +41,5 @@ public class RestIndexUser {
 
     public void setUserList(List<RestUser> userList) {
         this.userList = userList;
-    }
-
-    public Integer getId() {
-
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 }

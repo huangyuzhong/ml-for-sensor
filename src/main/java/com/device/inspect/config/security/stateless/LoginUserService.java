@@ -34,15 +34,17 @@ public class LoginUserService {
         if (!String.valueOf(user.getPassword()).equals(verify))
             throw new UsernameNotFoundException("user's password isn't correct!");
         
-        Set<Role> roles = roleRepository.findByUserId(user.getId());
+        Role role = roleRepository.findByUserId(user.getId());
 
         List<Role> newRoles = new ArrayList<>(roleNames.size());
+        if (null != role&&roleNames.contains(role.getAuthority()))
+            newRoles.add(role);
 
-        for(Role role:roles) {
-            if(roleNames.contains(role.getAuthority())) {
-                newRoles.add(role);
-            }
-        }
+//        for(Role role:roles) {
+//            if(roleNames.contains(role.getAuthority())) {
+//                newRoles.add(role);
+//            }
+//        }
 //        if(newRoles.size() == 0) {
 //            throw new UsernameNotFoundException("user not have correct role");
 //        }
