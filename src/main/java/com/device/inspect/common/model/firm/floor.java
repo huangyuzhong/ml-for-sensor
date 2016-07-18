@@ -29,6 +29,7 @@ public class Floor {
         this.id = id;
     }
 
+    @Column(name = "floor_num")
     public Integer getNum() {
         return num;
     }
@@ -37,7 +38,6 @@ public class Floor {
         this.num = num;
     }
 
-    @Column(name = "floor_num")
     public String getName() {
         return name;
     }

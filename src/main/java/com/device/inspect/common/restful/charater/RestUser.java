@@ -41,6 +41,8 @@ public class RestUser {
         this.job = user.getJob();
     }
 
+
+
     public Integer getId() {
         return id;
     }

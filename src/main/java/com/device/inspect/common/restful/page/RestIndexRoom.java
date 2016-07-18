@@ -29,4 +29,30 @@ public class RestIndexRoom {
             }
         }
     }
+
+    public List<RestRoom> getRoomList() {
+        return roomList;
+    }
+
+    public void setRoomList(List<RestRoom> roomList) {
+        this.roomList = roomList;
+    }
+
+    public Integer getAlertNum() {
+
+        return alertNum;
+    }
+
+    public void setAlertNum(Integer alertNum) {
+        this.alertNum = alertNum;
+    }
+
+    public Integer getDeviceNum() {
+
+        return deviceNum;
+    }
+
+    public void setDeviceNum(Integer deviceNum) {
+        this.deviceNum = deviceNum;
+    }
 }
