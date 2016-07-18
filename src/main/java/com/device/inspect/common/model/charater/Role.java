@@ -45,7 +45,7 @@ public class Role implements GrantedAuthority {
         this.authority = authority;
     }
 
-    @ManyToOne()
+    @OneToOne()
     @JoinColumn(name = "role_auth_id")
     public RoleAuthority getRoleAuthority() {
         return roleAuthority;

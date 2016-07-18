@@ -25,6 +25,7 @@ public class User {
     private String department;
     private String job;
     private Company company;
+    private Role role;
 
     @Id
     @GeneratedValue()
@@ -135,5 +136,14 @@ public class User {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    @OneToOne(mappedBy = "user")
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }
