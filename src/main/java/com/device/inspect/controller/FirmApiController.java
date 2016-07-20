@@ -3,6 +3,7 @@ package com.device.inspect.controller;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.model.firm.Room;
@@ -10,24 +11,20 @@ import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
+import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.FloorRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
-import com.device.inspect.common.restful.page.RestIndexBuilding;
-import com.device.inspect.common.restful.page.RestIndexFloor;
-import com.device.inspect.common.restful.page.RestIndexRoom;
-import com.device.inspect.common.restful.page.RestIndexUser;
+import com.device.inspect.common.restful.device.RestDevice;
+import com.device.inspect.common.restful.page.*;
 import com.mysql.jdbc.V1toV2StatementInterceptorAdapter;
 import netscape.security.UserTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import java.security.Principal;
@@ -37,14 +34,17 @@ import java.util.*;
  * Created by Administrator on 2016/7/12.
  */
 @RestController
-@RequestMapping(value = "/api/rest")
-public class ApiController {
+@RequestMapping(value = "/api/rest/firm")
+public class FirmApiController {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private DeviceRepository deviceRepository;
+
+    @Autowired
+    private BuildingRepository buildingRepository;
 
     @Autowired
     private FloorRepository floorRepository;
@@ -58,7 +58,15 @@ public class ApiController {
     @Autowired
     private EntityManager entityManager;
 
-    @RequestMapping(value = "/firm/buildings")
+    @RequestMapping(value = "/person/info/{userId}")
+    public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
+        User user = userRepository.findOne(userId);
+        if (null==user)
+            return new RestResponse("user not found!",1005,null);
+        return new RestResponse(new RestUser(user));
+    }
+
+    @RequestMapping(value = "/buildings")
     public RestResponse getBuildings(Principal principal){
         User user = userRepository.findByName(principal.getName());
         if (null == user&&null == user.getCompany()){
@@ -68,25 +76,45 @@ public class ApiController {
     }
 
 
-     @RequestMapping(value = "/firm/rooms",method = RequestMethod.GET)
-     public RestResponse getRooms(Principal principal,@RequestParam Integer floorId) {
-         Floor floor = floorRepository.findOne(floorId);
-         if (null == floor && null == floor.getName()) {
+     @RequestMapping(value = "/floors",method = RequestMethod.GET)
+     public RestResponse getFloors(Principal principal,@RequestParam Integer buildId) {
+         Building build = buildingRepository.findOne(buildId);
+//         Floor floor = floorRepository.findOne(floorId);
+         if (null == build && null ==build.getId()) {
              return new RestResponse("floors information correct!", 1005, null);
          }
-         return new RestResponse(new RestIndexRoom(floor));
+         return new RestResponse(new RestIndexFloor(build));
      }
 
-    @RequestMapping(value = "/room/device",method = RequestMethod.GET)
-    public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId){
-        Room room = roomRepository.findOne(roomId);
-        if (null == room&&null ==room.getFloor()){
+    @RequestMapping(value = "/rooms",method = RequestMethod.GET)
+    public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId){
+        Floor floor = floorRepository.findOne(floorId);
+        if (null == floor&&null ==floor.getId()){
             return  new RestResponse("rooms information correct!",1005,null);
         }
-        return new RestResponse(room);
+        return new RestResponse(new RestIndexRoom(floor));
     }
 
-    @RequestMapping(value = "/my/employees",method = RequestMethod.GET)
+
+    @RequestMapping(value = "/devices",method = RequestMethod.GET)
+    public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId){
+        Room room = roomRepository.findOne(roomId);
+        if (null == room&&null ==room.getId()){
+            return  new RestResponse("devices information correct!",1005,null);
+        }
+        return new RestResponse(new RestIndexDevice(room));
+    }
+
+    @RequestMapping(value = "/device",method = RequestMethod.GET)
+    public  RestResponse getDevice(Principal principal,@RequestParam Integer deviceId){
+        Device device = deviceRepository.findOne(deviceId);
+        if (null == device|| null ==device.getId()){
+            return  new RestResponse("device information correct!",1005,null);
+        }
+        return new RestResponse(new RestDevice(device));
+    }
+
+    @RequestMapping(value = "/employees",method = RequestMethod.GET)
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
         if (null == principal || null ==principal.getName())
             return new RestResponse("not login!",1005,null);

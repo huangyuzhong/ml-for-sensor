@@ -1,7 +1,10 @@
 package com.device.inspect.common.model.firm;
 
+import com.device.inspect.common.model.device.Device;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -17,6 +20,7 @@ public class Room {
     private Float yPoint;
     private Integer deviceNum;
     private Date createDate;
+    private List<Device> deviceList;
 
     @Id
     @GeneratedValue()
@@ -80,5 +84,14 @@ public class Room {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @OneToMany(mappedBy = "room")
+    public List<Device> getDeviceList() {
+        return deviceList;
+    }
+
+    public void setDeviceList(List<Device> deviceList) {
+        this.deviceList = deviceList;
     }
 }

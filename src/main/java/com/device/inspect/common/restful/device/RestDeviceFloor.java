@@ -1,17 +1,17 @@
-package com.device.inspect.common.model.device;
+package com.device.inspect.common.restful.device;
 
-import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.DeviceFloor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 
 /**
- * Created by Administrator on 2016/7/8.
+ * Created by Administrator on 2016/7/20.
  */
-@Entity
-@Table(name = "device_floor")
-public class DeviceFloor {
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class RestDeviceFloor {
     private Integer id;
-    private Device device;
     private Integer floorNum;
     private String scientist;
     private String name;
@@ -19,8 +19,16 @@ public class DeviceFloor {
     private String mobile;
     private String email;
 
-    @Id
-    @GeneratedValue()
+    public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
+        this.id = deviceFloor.getId();
+        this.floorNum = deviceFloor.getFloorNum();
+        this.scientist = deviceFloor.getScientist();
+        this.name = deviceFloor.getName();
+        this.num = deviceFloor.getNum();
+        this.mobile = deviceFloor.getMobile();
+        this.email = deviceFloor.getEmail();
+    }
+
     public Integer getId() {
         return id;
     }
@@ -29,17 +37,6 @@ public class DeviceFloor {
         this.id = id;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "device_id")
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
-        this.device = device;
-    }
-
-    @Column(name = "floor_num")
     public Integer getFloorNum() {
         return floorNum;
     }
@@ -48,7 +45,6 @@ public class DeviceFloor {
         this.floorNum = floorNum;
     }
 
-
     public String getScientist() {
         return scientist;
     }
@@ -56,7 +52,7 @@ public class DeviceFloor {
     public void setScientist(String scientist) {
         this.scientist = scientist;
     }
-    @Column(name = "subject_name")
+
     public String getName() {
         return name;
     }
@@ -65,7 +61,6 @@ public class DeviceFloor {
         this.name = name;
     }
 
-    @Column(name = "subject_num")
     public Integer getNum() {
         return num;
     }
@@ -74,7 +69,6 @@ public class DeviceFloor {
         this.num = num;
     }
 
-    @Column(name = "scientist_mobile")
     public String getMobile() {
         return mobile;
     }
@@ -83,7 +77,6 @@ public class DeviceFloor {
         this.mobile = mobile;
     }
 
-    @Column(name = "scientist_email")
     public String getEmail() {
         return email;
     }

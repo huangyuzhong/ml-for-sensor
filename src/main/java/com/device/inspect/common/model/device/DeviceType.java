@@ -1,6 +1,7 @@
 package com.device.inspect.common.model.device;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -12,6 +13,7 @@ public class DeviceType {
     private Integer id;
     private String name;
     private String logo;
+    private List<DeviceTypeInspect> deviceTypeInspectList;
 
     @Id
     @GeneratedValue()
@@ -38,5 +40,14 @@ public class DeviceType {
 
     public void setLogo(String logo) {
         this.logo = logo;
+    }
+
+    @OneToMany(mappedBy = "deviceType")
+    public List<DeviceTypeInspect> getDeviceTypeInspectList() {
+        return deviceTypeInspectList;
+    }
+
+    public void setDeviceTypeInspectList(List<DeviceTypeInspect> deviceTypeInspectList) {
+        this.deviceTypeInspectList = deviceTypeInspectList;
     }
 }

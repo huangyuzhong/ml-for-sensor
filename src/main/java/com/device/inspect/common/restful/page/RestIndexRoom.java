@@ -14,11 +14,13 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexRoom {
+    private Integer id;
     private Integer deviceNum;
     private Integer alertNum;
     private List<RestRoom> roomList;
 
     public RestIndexRoom(@NotNull Floor floor) {
+        this.id = floor.getId();
         deviceNum = 0;
         alertNum = 0;
         if (null!=floor.getRoomList()&&floor.getRoomList().size()>0){
@@ -28,6 +30,14 @@ public class RestIndexRoom {
                 roomList.add(new RestRoom(room));
             }
         }
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public List<RestRoom> getRoomList() {

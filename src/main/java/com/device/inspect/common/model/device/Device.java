@@ -1,9 +1,11 @@
 package com.device.inspect.common.model.device;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.firm.Room;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -25,6 +27,11 @@ public class Device {
     private String maintain;
     private Date maintainDate;
     private Integer maintainAlterDays;
+    private Room room;
+    private MonitorDevice monitorDevice;
+    private List<DeviceFloor> deviceFloorList;
+    private List<DeviceFile> deviceFileList;
+    private List<DeviceInspect> deviceInspectList;
 
     @Id
     @GeneratedValue()
@@ -140,5 +147,51 @@ public class Device {
 
     public void setMaintainAlterDays(Integer maintainAlterDays) {
         this.maintainAlterDays = maintainAlterDays;
+    }
+
+    @ManyToOne()
+    @JoinColumn(name = "room_id")
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+    @OneToOne(mappedBy = "device")
+    public MonitorDevice getMonitorDevice() {
+        return monitorDevice;
+    }
+
+    public void setMonitorDevice(MonitorDevice monitorDevice) {
+        this.monitorDevice = monitorDevice;
+    }
+
+    @OneToMany(mappedBy = "device")
+    public List<DeviceFloor> getDeviceFloorList() {
+        return deviceFloorList;
+    }
+
+    public void setDeviceFloorList(List<DeviceFloor> deviceFloorList) {
+        this.deviceFloorList = deviceFloorList;
+    }
+
+    @OneToMany(mappedBy = "device")
+    public List<DeviceFile> getDeviceFileList() {
+        return deviceFileList;
+    }
+
+    public void setDeviceFileList(List<DeviceFile> deviceFileList) {
+        this.deviceFileList = deviceFileList;
+    }
+
+    @OneToMany(mappedBy = "device")
+    public List<DeviceInspect> getDeviceInspectList() {
+        return deviceInspectList;
+    }
+
+    public void setDeviceInspectList(List<DeviceInspect> deviceInspectList) {
+        this.deviceInspectList = deviceInspectList;
     }
 }

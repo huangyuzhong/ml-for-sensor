@@ -269,4 +269,15 @@ SET FOREIGN_KEY_CHECKS=0;
   );
 
 
+  ALTER TABLE `device` ADD `room_id` INT NULL;
+  ALTER TABLE `monitor_device` ADD `device_id` INT NULL;
+
+  ALTER TABLE `device_floor` DROP FOREIGN kEY `device_floor_2`;
+  ALTER TABLE `device_floor` DROP `user_id`;
+  ALTER TABLE `device_floor` ADD `scientist` VARCHAR(255);
+  ALTER TABLE `device_floor` ADD `scientist_mobile` VARCHAR(255);
+  ALTER TABLE `device_floor` ADD `scientist_email` VARCHAR(255);
+
+  ALTER TABLE `inspect_data` ADD `create_date` DATETIME NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

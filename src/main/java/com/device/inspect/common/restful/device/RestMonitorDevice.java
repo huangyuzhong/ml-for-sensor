@@ -1,22 +1,28 @@
-package com.device.inspect.common.model.device;
+package com.device.inspect.common.restful.device;
 
-import javax.persistence.*;
+import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.MonitorDevice;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * Created by Administrator on 2016/7/8.
+ * Created by Administrator on 2016/7/20.
  */
-@Entity
-@Table(name = "monitor_device")
-public class MonitorDevice {
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class RestMonitorDevice {
     private Integer id;
     private Integer number;
     private String battery;
     private String online;
-    private Device device;
 
-    @Id
-    @GeneratedValue()
+    public RestMonitorDevice(@NotNull MonitorDevice monitorDevice) {
+        this.id = monitorDevice.getId();
+        this.number = monitorDevice.getNumber();
+        this.battery =  monitorDevice.getBattery();
+        this.online = monitorDevice.getOnline();
+    }
+
     public Integer getId() {
         return id;
     }
@@ -33,7 +39,6 @@ public class MonitorDevice {
         this.number = number;
     }
 
-    @Column(name = "battery_status")
     public String getBattery() {
         return battery;
     }
@@ -42,22 +47,11 @@ public class MonitorDevice {
         this.battery = battery;
     }
 
-    @Column(name = "online_status")
     public String getOnline() {
         return online;
     }
 
     public void setOnline(String online) {
         this.online = online;
-    }
-
-    @OneToOne()
-    @JoinColumn(name = "device_id")
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
-        this.device = device;
     }
 }

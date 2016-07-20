@@ -14,12 +14,13 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexFloor {
-
+    private  Integer id;
     private Integer devcieNum;
     private Integer alertNum;
     private List<RestFloor> floors;
 
     public RestIndexFloor(@NotNull Building building){
+        this.id = building.getId();
         devcieNum = 0;
         alertNum = 0 ;
         if(null!= building.getFloorList()&&building.getFloorList().size()>0){
@@ -53,5 +54,13 @@ public class RestIndexFloor {
 
     public void setFloors(List<RestFloor> floors) {
         this.floors = floors;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }
