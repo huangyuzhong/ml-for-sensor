@@ -1,11 +1,9 @@
 package com.device.inspect.controller;
 
-import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.firm.Building;
-import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.query.charater.DeviceQuery;
@@ -15,7 +13,6 @@ import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.DeviceTypeRepository;
 import com.device.inspect.common.repository.firm.BuildingRepository;
-import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.FloorRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
@@ -23,13 +20,10 @@ import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.page.*;
-import com.mysql.jdbc.V1toV2StatementInterceptorAdapter;
-import netscape.security.UserTarget;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-
 import javax.persistence.EntityManager;
 import java.security.Principal;
 import java.util.*;
