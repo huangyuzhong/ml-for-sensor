@@ -2,6 +2,7 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.restful.charater.RestUser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -22,7 +23,7 @@ public class RestDevice {
     private String creator;
     private Date purchase;
     private String photo;
-    private User manager;
+    private RestUser manager;
     private Integer alterNum;
     private String maintain;
     private Date maintainDate;
@@ -39,7 +40,7 @@ public class RestDevice {
         this.createDate = device.getCreateDate();
         this.creator = device.getCreator();
         this.purchase = device.getPurchase();
-        this.manager = device.getManager();
+        this.manager = null==device.getManager()?null:new RestUser(device.getManager());
         this.photo = device.getPhoto();
         this.alterNum = device.getAlterNum();
         this.maintain = device.getMaintain();
@@ -163,11 +164,11 @@ public class RestDevice {
         this.maintainAlterDays = maintainAlterDays;
     }
 
-    public User getManager() {
+    public RestUser getManager() {
         return manager;
     }
 
-    public void setManager(User manager) {
+    public void setManager(RestUser manager) {
         this.manager = manager;
     }
 

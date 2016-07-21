@@ -17,7 +17,6 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexDevice {
     private Integer id;
-    private Integer uid;
     private Integer alterNum;
     private List<RestDevice> deviceList;
 
@@ -31,11 +30,6 @@ public class RestIndexDevice {
             }
         }
     }
-
-    public  RestIndexDevice(@NotNull User user){
-        this.uid = user.getId();
-    }
-
 
     public Integer getId() {
         return id;
