@@ -19,27 +19,33 @@ public class DeviceQuery extends Querier<Device> {
     public DeviceQuery(EntityManager entityManager) {
         super(entityManager, Device.class);
 
-        queryFilterMap.put("deviceCode", new DeviceQueryFilter() {
+        queryFilterMap.put("code", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("deviceCode"), object);
+                return cb.equal(deviceRoot.get("code"), object);
             }
         });
 
-        queryFilterMap.put("deviceName", new DeviceQueryFilter() {
+        queryFilterMap.put("name", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("deviceName"),object);
+                return cb.equal(deviceRoot.get("name"),object);
             }
         });
 
-        queryFilterMap.put("deviceType", new DeviceQueryFilter() {
+        queryFilterMap.put("typeId", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("device_type").get("device_type_inspect").get("id"), object);
+                return cb.equal(deviceRoot.get("deviceType").get("id"), object);
             }
         });
 
+        queryFilterMap.put("userId", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("manager").get("id"),object);
+            }
+        });
 
     }
 

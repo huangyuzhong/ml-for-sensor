@@ -13,7 +13,7 @@ import javax.persistence.criteria.Root;
  */
 public  abstract class DeviceQueryFilter implements QueryFilter<Device> {
     @Override
-    public abstract Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> rootObject) ;
+    public abstract Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) ;
 
 
 }

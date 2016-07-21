@@ -3,14 +3,17 @@ package com.device.inspect.controller;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
+import com.device.inspect.common.repository.device.DeviceTypeRepository;
 import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.FloorRepository;
@@ -18,6 +21,7 @@ import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
+import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.page.*;
 import com.mysql.jdbc.V1toV2StatementInterceptorAdapter;
 import netscape.security.UserTarget;
@@ -58,6 +62,9 @@ public class FirmApiController {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private DeviceTypeRepository deviceTypeRepository;
+
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
         User user = userRepository.findOne(userId);
@@ -65,6 +72,16 @@ public class FirmApiController {
             return new RestResponse("user not found!",1005,null);
         return new RestResponse(new RestUser(user));
     }
+
+    @RequestMapping(value = "/person/mine/info")
+    public RestResponse getMyMessage(Principal principal){
+        User user = userRepository.findByName(principal.getName());
+        if (null == user)
+            return new RestResponse("user not found!",1005,null);
+        return new RestResponse(new RestUser(user));
+    }
+
+
 
     @RequestMapping(value = "/buildings")
     public RestResponse getBuildings(Principal principal){
@@ -114,6 +131,51 @@ public class FirmApiController {
         return new RestResponse(new RestDevice(device));
     }
 
+    @RequestMapping(value = "/device/types",method = RequestMethod.GET)
+    public RestResponse getAllDeviceTypes(){
+        Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
+        List<RestDeviceType> deviceTypes = new ArrayList<RestDeviceType>();
+        if (null!=deviceTypeIterable){
+            for (DeviceType deviceType: deviceTypeIterable){
+                deviceTypes.add(new RestDeviceType(deviceType));
+            }
+        }
+        return new RestResponse(deviceTypes);
+    }
+
+    @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
+        if (null == principal || null ==principal.getName())
+            return new RestResponse("not login!",1005,null);
+        User user = userRepository.findByName(principal.getName());
+        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+            return new RestResponse("user's information correct!",1005,null);
+        }
+
+        Integer limit = 10;
+        Integer start = 0;
+
+        if (requestParam.containsKey("limit")) {
+            limit = Integer.valueOf(requestParam.get("limit"));
+            requestParam.remove("limit");
+        }
+
+        if (requestParam.containsKey("start")) {
+            start = Integer.valueOf(requestParam.get("start"));
+            requestParam.remove("start");
+        }
+
+        if (!requestParam.containsKey("userId")){
+            requestParam.put("userId",user.getId().toString());
+        }
+
+        Page<Device> devicePage = new DeviceQuery(entityManager)
+                .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
+
+        return new RestResponse(assembleDevices(devicePage));
+
+    }
+
     @RequestMapping(value = "/employees",method = RequestMethod.GET)
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
         if (null == principal || null ==principal.getName())
@@ -141,10 +203,22 @@ public class FirmApiController {
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
-        return new RestResponse(new RestIndexUser(user,assembleUsers(userPage)));
+        return new RestResponse(assembleUsers(user,userPage));
     }
 
-    private List<User> assembleUsers(Page<User> userPage){
+    private Map assembleDevices(Page<Device> devicePage){
+        Map map = new HashMap();
+        map.put("total",String.valueOf(devicePage.getTotalElements()));
+        map.put("thisNum",String.valueOf(devicePage.getNumberOfElements()));
+        List<RestDevice> list = new ArrayList<RestDevice>();
+        for (Device device:devicePage.getContent()){
+            list.add(new RestDevice(device));
+        }
+        map.put("devices",list);
+        return map;
+    }
+
+    private Map assembleUsers(User userRoot,Page<User> userPage){
         Map map = new HashMap();
         map.put("total",String.valueOf(userPage.getTotalElements()));
         map.put("thisNum",String.valueOf(userPage.getNumberOfElements()));
@@ -152,7 +226,9 @@ public class FirmApiController {
         for (User user:userPage.getContent()){
             list.add(user);
         }
-        return list;
+
+        map.put("userList",new RestIndexUser(userRoot,list));
+        return map;
     }
 
 }
