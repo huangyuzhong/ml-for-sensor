@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="MainFile" fileName="logs/app.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="SwordFile" fileName="logs/sword/log.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="StatusFile" fileName="logs/order/transform.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+
+        <File name="ResourceFile" fileName="logs/resource/resource.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+
+    </Appenders>
+
+    <Loggers>
+        <Logger name = "org.sword" level = "WARN">
+            <AppenderRef ref="SwordFile"/>
+        </Logger>
+
+        <!--<Logger name = "com.chebaobao.service.web.common.domain.order.servic.ServiceEventHandler" level = "INFO">-->
+            <!--<AppenderRef ref="StatusFile"/>-->
+        <!--</Logger>-->
+
+        <!--<Logger name = "com.chebaobao.service.web.common.domain.order.OrderEventHandler" level = "INFO">-->
+            <!--<AppenderRef ref="StatusFile"/>-->
+        <!--</Logger>-->
+
+        <!--<Logger name = "com.chebaobao.service.web.common.domain.statusmachine" level = "INFO">-->
+            <!--<AppenderRef ref="StatusFile"/>-->
+        <!--</Logger>-->
+
+        <!--<Logger name = "com.chebaobao.service.web.common.resource" level = "INFO">-->
+            <!--<AppenderRef ref="ResourceFile"/>-->
+        <!--</Logger>-->
+
+        <Root level="DEBUG">
+            <AppenderRef ref="MainFile"/>
+            <AppenderRef ref="Console"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>
