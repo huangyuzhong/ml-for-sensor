@@ -15,7 +15,7 @@ public class Room {
 
     private Integer id;
     private String name;
-    private Floor floor;
+    private Storey floor;
     private Float xPoint;
     private Float yPoint;
     private Integer deviceNum;
@@ -42,11 +42,11 @@ public class Room {
 
     @ManyToOne()
     @JoinColumn(name = "floor_id")
-    public Floor getFloor() {
+    public Storey getFloor() {
         return floor;
     }
 
-    public void setFloor(Floor floor) {
+    public void setFloor(Storey floor) {
         this.floor = floor;
     }
 

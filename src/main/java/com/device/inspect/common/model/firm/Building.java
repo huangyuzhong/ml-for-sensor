@@ -18,7 +18,7 @@ public class Building {
     private Integer deviceNum;
     private Date createDate;
     private Company company;
-    private List<Floor> floorList;
+    private List<Storey> floorList;
 
     @Id
     @GeneratedValue()
@@ -85,11 +85,11 @@ public class Building {
     }
 
     @OneToMany(mappedBy = "build")
-    public List<Floor> getFloorList() {
+    public List<Storey> getFloorList() {
         return floorList;
     }
 
-    public void setFloorList(List<Floor> floorList) {
+    public void setFloorList(List<Storey> floorList) {
         this.floorList = floorList;
     }
 }

@@ -1,7 +1,7 @@
 package com.device.inspect.common.restful.page;
 
-import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -19,7 +19,7 @@ public class RestIndexRoom {
     private Integer alertNum;
     private List<RestRoom> roomList;
 
-    public RestIndexRoom(@NotNull Floor floor) {
+    public RestIndexRoom(@NotNull Storey floor) {
         this.id = floor.getId();
         deviceNum = 0;
         alertNum = 0;

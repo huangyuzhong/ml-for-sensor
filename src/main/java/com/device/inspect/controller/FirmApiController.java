@@ -4,8 +4,8 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.firm.Building;
-import com.device.inspect.common.model.firm.Floor;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleRepository;
@@ -13,7 +13,7 @@ import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.DeviceTypeRepository;
 import com.device.inspect.common.repository.firm.BuildingRepository;
-import com.device.inspect.common.repository.firm.FloorRepository;
+import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
@@ -45,7 +45,7 @@ public class FirmApiController {
     private BuildingRepository buildingRepository;
 
     @Autowired
-    private FloorRepository floorRepository;
+    private StoreyRepository storeyRepository;
 
     @Autowired
     private RoomRepository roomRepository;
@@ -90,7 +90,6 @@ public class FirmApiController {
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
      public RestResponse getFloors(Principal principal,@RequestParam Integer buildId) {
          Building build = buildingRepository.findOne(buildId);
-//         Floor floor = floorRepository.findOne(floorId);
          if (null == build && null ==build.getId()) {
              return new RestResponse("floors information correct!", 1005, null);
          }
@@ -99,7 +98,7 @@ public class FirmApiController {
 
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
     public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId){
-        Floor floor = floorRepository.findOne(floorId);
+        Storey floor = storeyRepository.findOne(floorId);
         if (null == floor&&null ==floor.getId()){
             return  new RestResponse("rooms information correct!",1005,null);
         }

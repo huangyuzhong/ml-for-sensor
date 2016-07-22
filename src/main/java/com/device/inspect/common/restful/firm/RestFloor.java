@@ -1,7 +1,7 @@
 package com.device.inspect.common.restful.firm;
 
 import com.device.inspect.common.model.firm.Building;
-import com.device.inspect.common.model.firm.Floor;
+import com.device.inspect.common.model.firm.Storey;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -20,7 +20,7 @@ public class RestFloor {
     private Integer deviceNum;
     private Date createDate;
 
-    public RestFloor(@NotNull Floor floor){
+    public RestFloor(@NotNull Storey floor){
         this.id = floor.getId();
         this.num = floor.getNum();
         this.name = floor.getName();

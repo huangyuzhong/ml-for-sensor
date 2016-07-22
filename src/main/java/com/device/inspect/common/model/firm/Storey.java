@@ -9,7 +9,7 @@ import java.util.List;
  */
 @Entity
 @Table(name = "floors")
-public class Floor {
+public class Storey {
 
     private Integer id;
     private Integer num;

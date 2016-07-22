@@ -1,6 +1,6 @@
 package com.device.inspect.common.model.record;
 
-import com.device.inspect.common.model.firm.Floor;
+import com.device.inspect.common.model.firm.Storey;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -13,7 +13,7 @@ import java.util.Date;
 public class FloorDaily {
 
     private Integer id;
-    private Floor floor;
+    private Storey floor;
     private Date start;
     private Date end;
     private Integer alterNum;
@@ -30,11 +30,11 @@ public class FloorDaily {
 
     @ManyToOne()
     @JoinColumn(name = "floor_id")
-    public Floor getFloor() {
+    public Storey getFloor() {
         return floor;
     }
 
-    public void setFloor(Floor floor) {
+    public void setFloor(Storey floor) {
         this.floor = floor;
     }
 

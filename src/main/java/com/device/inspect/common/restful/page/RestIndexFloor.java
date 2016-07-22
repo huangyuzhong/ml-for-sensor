@@ -1,7 +1,7 @@
 package com.device.inspect.common.restful.page;
 
 import com.device.inspect.common.model.firm.Building;
-import com.device.inspect.common.model.firm.Floor;
+import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -25,7 +25,7 @@ public class RestIndexFloor {
         alertNum = 0 ;
         if(null!= building.getFloorList()&&building.getFloorList().size()>0){
             floors = new ArrayList<RestFloor>();
-            for (Floor floor:building.getFloorList()){
+            for (Storey floor:building.getFloorList()){
                 devcieNum += building.getDeviceNum();
                 floors.add(new RestFloor(floor));
             }
