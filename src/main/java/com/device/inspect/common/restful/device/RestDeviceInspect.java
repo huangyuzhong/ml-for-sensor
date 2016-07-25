@@ -21,6 +21,7 @@ public class RestDeviceInspect {
     private Float highUp;
     private Float highDown;
     private Integer lowAlter;
+    private String name;
 
     public RestDeviceInspect() {
     }
@@ -34,6 +35,7 @@ public class RestDeviceInspect {
         this.highUp = deviceInspect.getHighUp();
         this.highDown = deviceInspect.getHighDown();
         this.lowAlter = deviceInspect.getLowAlter();
+        this.name = deviceInspect.getName();
     }
 
     public Integer getId() {
@@ -98,5 +100,13 @@ public class RestDeviceInspect {
 
     public void setLowAlter(Integer lowAlter) {
         this.lowAlter = lowAlter;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
