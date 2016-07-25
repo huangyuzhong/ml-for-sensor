@@ -56,7 +56,7 @@ public class SocketMessageApi {
             String sec = result.substring(22,24);
             String stringDate = "20"+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
             try {
-//                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
+                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -71,8 +71,8 @@ public class SocketMessageApi {
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
 
-//            inspectData.setCreateDate(date);
-            inspectData.setCreateDate(new Date());
+            inspectData.setCreateDate(date);
+//            inspectData.setCreateDate(new Date());
             inspectData.setDevice(device);
             inspectData.setDeviceInspect(deviceInspect);
             inspectData.setResult(Float.valueOf(first / 1000).toString());

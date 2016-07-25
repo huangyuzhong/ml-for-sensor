@@ -61,9 +61,8 @@ public class SocketServerThread extends Thread {
 //                    Thread.sleep(1000);
                     response = get(result);
                 }
-//                response = get(result);
 //                dos.writeUTF(response);
-//                out.println(ByteAndHex.hexStringToBytes(response));
+                out.println(ByteAndHex.hexStringToBytes(response));
                 byte[] bytes = ByteAndHex.hexStringToBytes(response);
                 out.println(bytes);
                 out.flush();
@@ -71,6 +70,7 @@ public class SocketServerThread extends Thread {
                 dins.close();
                 out.close();
                 sock.close();
+                Thread.sleep(1000);
                 flag = true;
                 break;
             }
