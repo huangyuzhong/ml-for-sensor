@@ -152,7 +152,7 @@ SET FOREIGN_KEY_CHECKS=0;
 
   drop table if exists device_type_inspect;
   create table `device_type_inspect`(
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `device_type_id` INT NULL,
   `inspect_type_id` INT NULL,
   PRIMARY KEY (`id`)
@@ -279,5 +279,7 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_floor` ADD `scientist_email` VARCHAR(255);
 
   ALTER TABLE `inspect_data` ADD `create_date` DATETIME NULL;
+
+  ALTER TABLE `device_inspect` ADD `name` VARCHAR(255) NULL;
 
 SET FOREIGN_KEY_CHECKS=1;

@@ -18,6 +18,7 @@ public class DeviceInspect {
     private Float highUp;
     private Float highDown;
     private Integer lowAlter;
+    private String name;
 
     @Id
     @GeneratedValue()
@@ -101,5 +102,13 @@ public class DeviceInspect {
 
     public void setLowAlter(Integer lowAlter) {
         this.lowAlter = lowAlter;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
