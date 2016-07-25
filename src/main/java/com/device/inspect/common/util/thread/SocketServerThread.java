@@ -67,6 +67,11 @@ public class SocketServerThread extends Thread {
                 byte[] bytes = ByteAndHex.hexStringToBytes(response);
                 out.println(bytes);
                 out.flush();
+
+                dins.close();
+                out.close();
+                sock.close();
+                flag = true;
                 break;
             }
         }catch (Exception e){
