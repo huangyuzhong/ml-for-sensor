@@ -33,6 +33,7 @@ public class RestDevice {
     private List<RestDeviceInspect> deviceInspects;
     private List<RestFile> files;
 
+
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
         this.code = device.getCode();

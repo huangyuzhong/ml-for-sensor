@@ -19,6 +19,9 @@ public class RestInspectData {
     private String result;
     private Date createDate;
 
+    public RestInspectData() {
+    }
+
     public RestInspectData(@NotNull InspectData inspectData){
         this.id = inspectData.getId();
         this.deviceInspect = null==inspectData.getDeviceInspect()?null:new RestDeviceInspect(inspectData.getDeviceInspect());

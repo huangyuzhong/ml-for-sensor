@@ -1,5 +1,7 @@
 package com.device.inspect.common.util.thread;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceInspect;
@@ -9,6 +11,8 @@ import com.device.inspect.common.repository.device.DeviceInspectRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.InspectDataRepository;
 import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.restful.RestResponse;
+import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.commons.httpclient.HttpClient;
@@ -20,6 +24,7 @@ import java.io.*;
 import java.net.Socket;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by Administrator on 2016/7/23.
@@ -27,7 +32,7 @@ import java.util.Date;
 
 public class SocketServerThread extends Thread {
     private Socket sock;
-
+    PrintWriter out = null;
     public SocketServerThread(Socket s)
     {
         this.sock =s;
@@ -35,7 +40,7 @@ public class SocketServerThread extends Thread {
 
     public void run(){
         try {
-
+            out = new PrintWriter(sock.getOutputStream(),true);
             InputStream ins = sock.getInputStream();
             DataInputStream dins = new DataInputStream(ins);
             //服务端解包过程
@@ -46,16 +51,21 @@ public class SocketServerThread extends Thread {
                 String result = ByteAndHex.bytesToHexString(data);
                 System.out.println(Thread.currentThread().getName()+"发来的内容是:" + result);
                 String flagString = result.substring(2,4);
+                String response = "";
                 if (!result.startsWith("ef")){
                     flag = true;
                 }else {
-                    get(result);
+                    response = get(result);
                 }
+                out.println(response);
+                out.flush();
             }
-        }catch (IOException e){
+        }catch (Exception e){
             e.printStackTrace();
         } finally {
             try {
+
+                out.close();
                 sock.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -63,10 +73,10 @@ public class SocketServerThread extends Thread {
         }
     }
 
-    private void get(String message) throws IOException {
+    private String get(String message) throws Exception {
         HttpClient client = new HttpClient();
         GetMethod method = new GetMethod("http://localhost:8999/api/rest/socket/insert/data?result="+
-        "ef020112340016022014432305ffffd8f0ffffb1e0ef02");
+        message);
 
         client.executeMethod(method);
         //打印服务器返回的状态
@@ -80,8 +90,29 @@ public class SocketServerThread extends Thread {
             buf.append(line).append("\n");
         }
         System.out.println(buf.toString());
+        String response = buf.toString();
+        JSONObject jsonObject = JSON.parseObject(response);
+
+        RestInspectData restInspectData = JSON.parseObject(String.valueOf(jsonObject.get("data")), RestInspectData.class);
+
+        String result = "";
+        result = "ef020500";
+        int lowUp = (int)(restInspectData.getDeviceInspect().getLowUp()*1000);
+        int lowDown = (int)(restInspectData.getDeviceInspect().getLowDown()*1000);
+        int highUp = (int)(restInspectData.getDeviceInspect().getHighUp()*1000);
+        int highDown = (int)(restInspectData.getDeviceInspect().getHighDown()*1000);
+
+        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowUp));
+        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowDown));
+        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(highUp));
+        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(highDown));
+
+        result+="ff02";
+
         //释放连接
         method.releaseConnection();
+
+        return result;
     }
 
 

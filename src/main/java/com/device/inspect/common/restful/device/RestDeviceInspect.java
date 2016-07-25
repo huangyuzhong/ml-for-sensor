@@ -22,6 +22,9 @@ public class RestDeviceInspect {
     private Float highDown;
     private Integer lowAlter;
 
+    public RestDeviceInspect() {
+    }
+
     public RestDeviceInspect(@NotNull DeviceInspect deviceInspect) {
         this.id = deviceInspect.getId();
         this.inspectType = null==deviceInspect.getInspectType()?null:new RestInspectType(deviceInspect.getInspectType());

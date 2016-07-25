@@ -14,6 +14,9 @@ public class RestInspectType {
     private String name;
     private String code;
 
+    public RestInspectType() {
+    }
+
     public RestInspectType(@NotNull InspectType inspectType) {
         this.id = inspectType.getId();
         this.name = inspectType.getName();

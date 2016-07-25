@@ -46,6 +46,7 @@ public class SocketMessageApi {
         String monitorTypeCode = result.substring(4,6);
         InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
         Date date = null;
+        InspectData inspectData = new InspectData();
         if (null != inspectType){
             String year = result.substring(12,14);
             String month = result.substring(14,16);
@@ -69,7 +70,7 @@ public class SocketMessageApi {
             Device device = deviceRepository.findOne(101);
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-            InspectData inspectData = new InspectData();
+
 //            inspectData.setCreateDate(date);
             inspectData.setCreateDate(new Date());
             inspectData.setDevice(device);
@@ -78,7 +79,7 @@ public class SocketMessageApi {
 
             inspectDataRepository.save(inspectData);
         }
-        return new RestResponse();
+        return new RestResponse(new RestInspectData(inspectData));
     }
 
     @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)
