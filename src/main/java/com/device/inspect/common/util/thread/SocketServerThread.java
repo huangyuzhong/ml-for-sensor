@@ -33,6 +33,8 @@ import java.util.Map;
 public class SocketServerThread extends Thread {
     private Socket sock;
     PrintWriter out = null;
+//    DataOutputStream dos = null;
+    DataInputStream dins = null;
     public SocketServerThread(Socket s)
     {
         this.sock =s;
@@ -40,12 +42,13 @@ public class SocketServerThread extends Thread {
 
     public void run(){
         try {
-            out = new PrintWriter(sock.getOutputStream(),true);
+
             InputStream ins = sock.getInputStream();
-            DataInputStream dins = new DataInputStream(ins);
+            dins = new DataInputStream(ins);
             //服务端解包过程
             boolean flag = false;
             while(!flag) {
+                out = new PrintWriter(sock.getOutputStream());
                 byte[] data = new byte[512];
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
@@ -55,16 +58,22 @@ public class SocketServerThread extends Thread {
                 if (!result.startsWith("ef")){
                     flag = true;
                 }else {
+//                    Thread.sleep(1000);
                     response = get(result);
                 }
-                out.println(response);
+//                response = get(result);
+//                dos.writeUTF(response);
+//                out.println(ByteAndHex.hexStringToBytes(response));
+                byte[] bytes = ByteAndHex.hexStringToBytes(response);
+                out.println(bytes);
                 out.flush();
+                break;
             }
         }catch (Exception e){
             e.printStackTrace();
         } finally {
             try {
-
+                dins.close();
                 out.close();
                 sock.close();
             } catch (IOException e) {

@@ -56,8 +56,8 @@ public class SocketMessageApi {
             String sec = result.substring(22,24);
             String stringDate = "20"+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
             try {
-                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
-            } catch (ParseException e) {
+//                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
