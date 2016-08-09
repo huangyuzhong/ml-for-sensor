@@ -26,7 +26,7 @@ public class RestIndexFloor {
         if(null!= building.getFloorList()&&building.getFloorList().size()>0){
             floors = new ArrayList<RestFloor>();
             for (Storey floor:building.getFloorList()){
-                devcieNum += building.getDeviceNum();
+                devcieNum += floor.getDeviceNum();
                 floors.add(new RestFloor(floor));
             }
         }
