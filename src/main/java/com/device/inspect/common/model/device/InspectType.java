@@ -15,6 +15,7 @@ public class InspectType {
     private Integer id;
     private String name;
     private String code;
+    private String unit;
 
     @Id
     @GeneratedValue()
@@ -40,5 +41,13 @@ public class InspectType {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 }
