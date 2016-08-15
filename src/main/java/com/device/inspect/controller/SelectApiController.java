@@ -33,7 +33,7 @@ import java.util.*;
  */
 @RestController
 @RequestMapping(value = "/api/rest/firm")
-public class FirmApiController {
+public class SelectApiController {
 
     @Autowired
     private UserRepository userRepository;
@@ -74,7 +74,6 @@ public class FirmApiController {
             return new RestResponse("user not found!",1005,null);
         return new RestResponse(new RestUser(user));
     }
-
 
 
     @RequestMapping(value = "/buildings")
@@ -138,12 +137,12 @@ public class FirmApiController {
 
     @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
     public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
-        if (null == principal || null ==principal.getName())
-            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(principal.getName());
-        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
-            return new RestResponse("user's information correct!",1005,null);
-        }
+//        if (null == principal || null ==principal.getName())
+//            return new RestResponse("not login!",1005,null);
+//        User user = userRepository.findByName(principal.getName());
+//        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+//            return new RestResponse("user's information correct!",1005,null);
+//        }
 
         Integer limit = 10;
         Integer start = 0;
