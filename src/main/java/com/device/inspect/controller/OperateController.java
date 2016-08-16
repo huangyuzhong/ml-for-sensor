@@ -87,20 +87,31 @@ public class OperateController {
         return new RestResponse(new RestDeviceType(deviceType));
     }
 
-//    @RequestMapping(value = "/operate/device")
-//    public RestResponse operateDevice(Principal principal,@RequestParam Map<String,String> map){
-//        Device device = new Device();
-//
-//
-//    }
-//
-//    @RequestMapping(value = "/create/user")
-//    public RestResponse createNewUser(Principal principal){
-//        User user = userRepository.findByName(principal.getName());
-//        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
-//        User employee = new User();
+    @RequestMapping(value = "")
+    public RestResponse opereateBuilding(Principal principal,@RequestParam String userName,
+            @RequestParam String name,){
+
+    }
+
+    @RequestMapping(value = "/operate/device")
+    public RestResponse operateDevice(Principal principal,@RequestParam Map<String,String> map){
+        Device device = new Device();
+        device.setCode();
+
+
+        return null;
+    }
+
+    @RequestMapping(value = "/create/user")
+    public RestResponse createNewUser(Principal principal){
+        User user = userRepository.findByName(principal.getName());
+        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
+        User employee = new User();
 //        user.setName();
-//
-//    }
+
+        employee.setEmail();
+
+        return null;
+    }
 
 }

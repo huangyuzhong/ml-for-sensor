@@ -62,7 +62,7 @@ public class SocketMessageApi {
             }
 
             String fisrtData = result.substring(26,34);
-            String secondData = result.substring(34, 42);
+            String secondData = result.substring(34,42);
 
             int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
             int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);

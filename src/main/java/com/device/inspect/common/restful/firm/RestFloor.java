@@ -1,6 +1,5 @@
 package com.device.inspect.common.restful.firm;
 
-import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Storey;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
