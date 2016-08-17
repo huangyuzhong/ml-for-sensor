@@ -17,6 +17,7 @@ public class Storey {
     private Building build;
     private Integer deviceNum;
     private Date createDate;
+    private String background;
     private List<Room> roomList;
 
     @Id
@@ -72,6 +73,15 @@ public class Storey {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "background_url")
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @OneToMany(mappedBy = "floor")

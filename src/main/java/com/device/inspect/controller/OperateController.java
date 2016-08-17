@@ -19,6 +19,7 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -87,29 +88,35 @@ public class OperateController {
         return new RestResponse(new RestDeviceType(deviceType));
     }
 
-    @RequestMapping(value = "")
-    public RestResponse opereateBuilding(Principal principal,@RequestParam String userName,
-            @RequestParam String name,){
-
-    }
+//    @RequestMapping(value = "")
+//    public RestResponse opereateBuilding(Principal principal,@RequestParam String userName,
+//            @RequestParam String name,){
+//
+//    }
 
     @RequestMapping(value = "/operate/device")
     public RestResponse operateDevice(Principal principal,@RequestParam Map<String,String> map){
         Device device = new Device();
-        device.setCode();
+//        device.setCode();
 
 
         return null;
     }
 
-    @RequestMapping(value = "/create/user")
-    public RestResponse createNewUser(Principal principal){
-        User user = userRepository.findByName(principal.getName());
+    @RequestMapping(value = "/create/user/{name}")
+    public RestResponse createNewUser(Principal principal,@PathVariable String name,@RequestParam Map<String,String> map){
+        User user = userRepository.findByName(name);
         RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
-        User employee = new User();
+        if (null == roleAuthority)
+            return new RestResponse("权限不足",1005,null);
+
+        User under = new User();
 //        user.setName();
 
-        employee.setEmail();
+        under.setEmail(map.get("email") == null ? null : map.get("email"));
+//        under.setName();
+
+
 
         return null;
     }

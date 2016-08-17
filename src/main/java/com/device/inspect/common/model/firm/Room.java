@@ -20,6 +20,7 @@ public class Room {
     private Float yPoint;
     private Integer deviceNum;
     private Date createDate;
+    private String background;
     private List<Device> deviceList;
 
     @Id
@@ -84,6 +85,15 @@ public class Room {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "background_url")
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @OneToMany(mappedBy = "room")

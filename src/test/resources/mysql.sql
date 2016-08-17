@@ -282,4 +282,8 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `device_inspect` ADD `name` VARCHAR(255) NULL;
 
+  ALTER TABLE `buildings` ADD `background_url` VARCHAR(255) NULL;
+  ALTER TABLE `floors` ADD `background_url` VARCHAR(255) NULL;
+  ALTER TABLE `room` ADD `background_url` VARCHAR(255) NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

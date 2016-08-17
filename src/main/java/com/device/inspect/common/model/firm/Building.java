@@ -18,6 +18,7 @@ public class Building {
     private Integer deviceNum;
     private Date createDate;
     private Company company;
+    private String background;
     private List<Storey> floorList;
 
     @Id
@@ -82,6 +83,15 @@ public class Building {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    @Column(name = "background_url")
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 
     @OneToMany(mappedBy = "build")
