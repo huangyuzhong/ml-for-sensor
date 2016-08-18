@@ -1,0 +1,467 @@
+域名：http://inmycars.ihengtian.top/
+
+
+http://inmycars.ihengtian.top/api/rest/firm/device?deviceId=101
+
+
+  http://inmycars.ihengtian.top/api/rest/login?name=yll&verify=123
+  http://inmycars.ihengtian.top/api/rest/firm/buildings
+
+GET：/api/rest/firm/buildings/{name}
+入参：{
+    name:用户登录名
+}
+出参:{
+{
+    "error": 0,					
+    "message": "OK",
+    "data": {
+        "id": 1,				楼栋ID
+        "background": "XXXXXX",			楼栋分布背景
+        "deviceNum": 50,			楼栋设备数量
+        "alterNum": 0,				报警次数
+        "list": 
+            {
+                "id": 1,			楼栋ID
+                "name": "101",			漏洞名
+                "xpoint": 350,			楼栋横坐标
+                "ypoint": 400,			楼栋纵坐标
+                "deviceNum": 30,		设备数量
+                "createDate": 1467972375000	建立时间
+            },
+            {
+                "id": 2,
+                "name": "102",
+                "xpoint": 600,
+                "ypoint": 400,
+                "deviceNum": 20,
+                "createDate": 1468145194000
+            }
+        ]
+    }
+
+
+GET：/api/rest/firm/floors?buildId=
+入参：{
+buildId          					传入楼栋ID
+}
+出参
+{
+{
+    "error": 0,
+    "message": "OK",
+    "data": {
+ 	"id": 1,					楼栋ID
+        "devcieNum": 30,				楼层设备数量
+        "alertNum": 0,					楼层报警次数
+        "floors": [
+            {
+                "id": 401,				楼层ID			
+                "num": 4,				楼层数
+                "name": "2F",				楼层名
+                "deviceNum": 30,			楼层设备数
+                "createDate": 1467885710000		创建时间
+            }
+        ]
+    }
+}
+}
+
+
+GET: /api/rest/firm/rooms?floorId=
+入参:{
+floorId					传入楼层ID
+}
+出参
+{
+    "error": 0,
+    "message": "OK",
+    "data": {
+        "id": 401,				楼层名
+        "deviceNum": 4,				楼层设备数量
+        "alertNum": 0,				楼层报警次数
+        "roomList": [
+            {
+                "id": 201,			楼层房间ID
+                "name": "201",			楼层房间名
+                "xPoint": 350,			房间X坐标
+                "yPoint": 400,			房间Y坐标
+                "deviceNum": 4,			房间设备数量
+                "createDate": 1467625652000	建立时间
+            }
+        ]
+    }
+}
+
+GET：/api/rest/firm/devices?roomId=
+入参；{
+roomId =201                        房间ID
+}
+出餐：{
+{
+    "error": 0,
+    "message": "OK",
+    "data": {
+        "id": 201,
+        "alterNum": 0,
+        "deviceList": [                                         设备列表
+            {
+                "id": 101,
+                "code": "777",
+                "deviceType": {
+                    "id": 1,
+                    "name": "干细胞冷冻",
+                    "logo": "XXXXXXX",
+                    "inspectTypes": [
+                        {
+                            "id": 1,
+                            "name": "r9",
+                            "code": "111"
+                        }
+                    ]
+                },
+                "createDate": 1467799007000,
+                "creator": "美的变频冰箱",
+                "purchase": 1468835839000,
+                "photo": "logos1",
+                "manager": {
+                    "id": 2,
+                    "name": "sss",
+                    "userName": "sss",
+                    "mobile": "999",
+                    "telephone": "999",
+                    "headIcon": "logo2",
+                    "createDate": 1468489552000,
+                    "gender": "男",
+                    "email": "111",
+                    "department": "研发部",
+                    "job": "研发经理"
+                },
+                "alterNum": 4,
+                "maintain": "每月",
+                "maintainDate": 1468749451000,
+                "maintainAlterDays": 3,
+                "deviceFloors": [
+                    {
+                        "id": 2,
+                        "floorNum": 3,
+                        "name": "zzzzz",
+                        "num": 20
+                    }
+                ],
+                "deviceInspects": [
+                    {
+                        "id": 1,
+                        "inspectType": {				检测类别
+                            "id": 1,
+                            "name": "r9",
+                            "code": "111"
+                        },
+                        "standard": 25,
+                        "lowUp": 2,                             低级报警上线
+                        "lowDown": 5,                           低级报警下线
+                        "highUp": 2,                            高级报警上线
+                        "highDown": 5,                          高级报警上线
+                        "lowAlter": 3                           低级报警通知负责人次数
+                    }
+                ],
+                "files": [
+                    {
+                        "id": 1,
+                        "url": "d:/123.txt",
+                        "type": "文本文档",
+                        "description": "记录报警信息",
+                        "createDate": 1468835790000
+                    }
+                ]
+            }
+        ]
+    }
+}
+}
+
+
+
+GET：/api/rest/firm/device?deviceId=
+入参：{
+deviceId					传入设备ID
+}
+出参
+{
+    "error": 0,
+    "message": "OK",
+    "data": {
+        "id": 101,
+        "code": "777",
+        "deviceType": {
+            "id": 1,
+            "name": "干细胞冷冻",
+            "logo": "XXXXXXX",
+            "inspectTypes": [
+                {
+                    "id": 1,
+                    "name": "r9",
+                    "code": "111"
+                }
+            ]
+        },
+        "createDate": 1467799007000,
+        "creator": "美的变频冰箱",
+        "purchase": 1468835839000,
+        "photo": "logos1",
+        "manager": {
+            "id": 2,
+            "name": "sss",
+            "userName": "sss",
+            "mobile": "999",
+            "telephone": "999",
+            "headIcon": "logo2",
+            "createDate": 1468489552000,
+            "gender": "男",
+            "email": "111",
+            "department": "研发部",
+            "job": "研发经理"
+        },
+        "alterNum": 4,
+        "maintain": "每月",
+        "maintainDate": 1468749451000,
+        "maintainAlterDays": 3,
+        "deviceFloors": [
+            {
+                "id": 2,
+                "floorNum": 3,
+                "name": "zzzzz",
+                "num": 20
+            }
+        ],
+        "deviceInspects": [
+            {
+                "id": 1,
+                "inspectType": {
+                    "id": 1,
+                    "name": "r9",
+                    "code": "111"
+                },
+                "standard": 25,
+                "lowUp": 2,
+                "lowDown": 5,
+                "highUp": 2,
+                "highDown": 5,
+                "lowAlter": 3
+            }
+        ],
+        "files": [
+            {
+                "id": 1,
+                "url": "d:/123.txt",
+                "type": "文本文档",
+                "description": "记录报警信息",
+                "createDate": 1468835790000
+            }
+        ]
+    }
+}
+
+GET：/api/rest/firm/person/mine/info
+出参：{
+       "error": 0,
+       "message": "OK",
+       "data": {
+           "id": 1,
+           "name": "yll",
+           "userName": "ly",
+           "mobile": "13564368150",
+           "telephone": "13564368150",
+           "headIcon": "logo1",
+           "createDate": 1468562479000,
+           "gender": "男",
+           "email": "2222@qq.com",
+           "department": "技术部",
+           "job": "工程师"
+       }
+   }
+
+
+GET：/api/rest/firm/person/info/{userId}
+userId  要查询的用户ID
+出餐：{
+          "error": 0,
+          "message": "OK",
+          "data": {
+              "id": 1,
+              "name": "yll",
+              "userName": "ly",
+              "mobile": "13564368150",
+              "telephone": "13564368150",
+              "headIcon": "logo1",
+              "createDate": 1468562479000,
+              "gender": "男",
+              "email": "2222@qq.com",
+              "department": "技术部",
+              "job": "工程师"
+          }
+      }
+
+GET：/api/rest/firm/device/types
+出参：{
+       "error": 0,
+       "message": "OK",
+       "data": [
+           {
+               "id": 1,
+               "name": "干细胞冷冻",
+               "logo": "XXXXXXX",
+               "inspectTypes": [
+                   {
+                       "id": 1,
+                       "name": "r9",
+                       "code": "111"
+                   }
+               ]
+           },
+           {
+               "id": 2,
+               "name": "血液保鲜",
+               "logo": "ZZZZZZZZ",
+               "inspectTypes": [
+                   {
+                       "id": 1,
+                       "name": "r9",
+                       "code": "111"
+                   }
+               ]
+           },
+           {
+               "id": 3,
+               "name": "火警检测",
+               "logo": "CCCCCCC",
+               "inspectTypes": []
+           }
+       ]
+   }
+
+
+   GET：/api/rest/firm/employees?start=&limit=&userName=&mobile=
+   入参：{
+   start        pageSize*pageNo
+   limit        pageNo
+   userName     用户姓名
+   mobile       手机号
+   }
+   出参
+   {
+       "error": 0,
+       "message": "OK",
+       "data": {
+           "total": "1",                                            查询总数
+           "userList": {
+               "userId": 1,
+               "userList": [
+                   {
+                       "id": 3,
+                       "name": "candy",
+                       "userName": "Candy",
+                       "mobile": "5555",
+                       "telephone": "55555",
+                       "headIcon": "logo3",
+                       "createDate": 1468489557000,
+                       "gender": "女",
+                       "email": "333@qq.com",
+                       "department": "技术部",
+                       "job": "技术组长"
+                   }
+               ]
+           },
+           "thisNum": "1"                                               本次总数
+       }
+   }
+
+   GET：/api/rest/firm/manager/devices?start=&limit=&code=&name=&typeId=&userId
+   入参：{
+   start        pageSize*pageNo
+   limit        pageNo
+   code         设备编号
+   typeId       设备种类ID
+   userId       管理员Id（可以不填，默认登录人的）
+   }
+
+   出餐：{
+          "error": 0,
+          "message": "OK",
+          "data": {
+              "total": "1",
+              "devices": [
+                  {
+                      "id": 102,
+                      "code": "888",
+                      "deviceType": {
+                          "id": 2,
+                          "name": "血液保鲜",
+                          "logo": "ZZZZZZZZ",
+                          "inspectTypes": [
+                              {
+                                  "id": 1,
+                                  "name": "r9",
+                                  "code": "111"
+                              }
+                          ]
+                      },
+                      "createDate": 1468317410000,
+                      "creator": "某工厂",
+                      "purchase": 1468231422000,
+                      "photo": "logos2",
+                      "manager": {
+                          "id": 1,
+                          "name": "yll",
+                          "userName": "ly",
+                          "mobile": "13564368150",
+                          "telephone": "13564368150",
+                          "headIcon": "logo1",
+                          "createDate": 1468562479000,
+                          "gender": "男",
+                          "email": "2222@qq.com",
+                          "department": "技术部",
+                          "job": "工程师"
+                      },
+                      "alterNum": 3,
+                      "maintain": "每月",
+                      "maintainDate": 1468144767000,
+                      "maintainAlterDays": 5,
+                      "deviceFloors": [
+                          {
+                              "id": 1,
+                              "floorNum": 2,
+                              "name": "sssss",
+                              "num": 12
+                          }
+                      ],
+                      "deviceInspects": [
+                          {
+                              "id": 2,
+                              "inspectType": {
+                                  "id": 2,
+                                  "name": "r10",
+                                  "code": "222"
+                              },
+                              "standard": 25,
+                              "lowUp": 3,
+                              "lowDown": 4,
+                              "highUp": 3,
+                              "highDown": 4,
+                              "lowAlter": 5
+                          }
+                      ],
+                      "files": [
+                          {
+                              "id": 2,
+                              "url": "c:/456.txt",
+                              "type": "文本文档",
+                              "description": "记录产品信息",
+                              "createDate": 1468490557000
+                          }
+                      ]
+                  }
+              ],
+              "thisNum": "1"
+          }
+      }

@@ -18,6 +18,8 @@ public class Storey {
     private Integer deviceNum;
     private Date createDate;
     private String background;
+    private Float xpoint;
+    private Float ypoint;
     private List<Room> roomList;
 
     @Id
@@ -82,6 +84,24 @@ public class Storey {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    @Column(name = "x_location")
+    public Float getXpoint() {
+        return xpoint;
+    }
+
+    public void setXpoint(Float xpoint) {
+        this.xpoint = xpoint;
+    }
+
+    @Column(name = "y_location")
+    public Float getYpoint() {
+        return ypoint;
+    }
+
+    public void setYpoint(Float ypoint) {
+        this.ypoint = ypoint;
     }
 
     @OneToMany(mappedBy = "floor")

@@ -286,4 +286,7 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `floors` ADD `background_url` VARCHAR(255) NULL;
   ALTER TABLE `room` ADD `background_url` VARCHAR(255) NULL;
 
+  ALTER TABLE `floors` ADD `x_location` FLOAT NULL;
+  ALTER TABLE `floors` ADD `y_location` FLOAT NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

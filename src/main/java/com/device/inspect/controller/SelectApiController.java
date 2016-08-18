@@ -76,9 +76,9 @@ public class SelectApiController {
     }
 
 
-    @RequestMapping(value = "/buildings")
-    public RestResponse getBuildings(Principal principal){
-        User user = userRepository.findByName(principal.getName());
+    @RequestMapping(value = "/buildings/{name}")
+    public RestResponse getBuildings(Principal principal,@PathVariable String name){
+        User user = userRepository.findByName(name);
         if (null == user&&null == user.getCompany()){
             return new RestResponse("user's information correct!",1005,null);
         }
@@ -89,7 +89,7 @@ public class SelectApiController {
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
      public RestResponse getFloors(Principal principal,@RequestParam Integer buildId) {
          Building build = buildingRepository.findOne(buildId);
-         if (null == build && null ==build.getId()) {
+         if (null == build || null ==build.getId()) {
              return new RestResponse("floors information correct!", 1005, null);
          }
          return new RestResponse(new RestIndexFloor(build));
@@ -98,7 +98,7 @@ public class SelectApiController {
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
     public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId){
         Storey floor = storeyRepository.findOne(floorId);
-        if (null == floor&&null ==floor.getId()){
+        if (null == floor||null ==floor.getId()){
             return  new RestResponse("rooms information correct!",1005,null);
         }
         return new RestResponse(new RestIndexRoom(floor));
@@ -108,7 +108,7 @@ public class SelectApiController {
     @RequestMapping(value = "/devices",method = RequestMethod.GET)
     public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId){
         Room room = roomRepository.findOne(roomId);
-        if (null == room&&null ==room.getId()){
+        if (null == room||null ==room.getId()){
             return  new RestResponse("devices information correct!",1005,null);
         }
         return new RestResponse(new RestIndexDevice(room));
@@ -137,12 +137,12 @@ public class SelectApiController {
 
     @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
     public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
-//        if (null == principal || null ==principal.getName())
-//            return new RestResponse("not login!",1005,null);
-//        User user = userRepository.findByName(principal.getName());
-//        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
-//            return new RestResponse("user's information correct!",1005,null);
-//        }
+        if (null == principal || null ==principal.getName())
+            return new RestResponse("not login!",1005,null);
+        User user = userRepository.findByName(principal.getName());
+        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+            return new RestResponse("user's information correct!",1005,null);
+        }
 
         Integer limit = 10;
         Integer start = 0;
