@@ -2,21 +2,16 @@ package com.device.inspect.controller;
 
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
-import com.device.inspect.common.model.device.Device;
-import com.device.inspect.common.model.device.DeviceType;
-import com.device.inspect.common.model.device.DeviceTypeInspect;
-import com.device.inspect.common.model.device.InspectType;
+import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
-import com.device.inspect.common.repository.device.DeviceRepository;
-import com.device.inspect.common.repository.device.DeviceTypeInspectRepository;
-import com.device.inspect.common.repository.device.DeviceTypeRepository;
-import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.restful.RestResponse;
+import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -67,7 +62,10 @@ public class OperateController {
     @Autowired
     private RoleAuthorityRepository roleAuthorityRepository;
 
-    @RequestMapping(value = "/operate/device/type")
+    @Autowired
+    private DeviceFloorRepository deviceFloorRepository;
+
+    @RequestMapping(value = "/device/type")
     public RestResponse operateDeviceType(Principal principal,@RequestParam Map<String,String> map){
         User user = userRepository.findByName(principal.getName());
         DeviceType deviceType = new DeviceType();
@@ -86,6 +84,46 @@ public class OperateController {
         }
         deviceType.setDeviceTypeInspectList(list);
         return new RestResponse(new RestDeviceType(deviceType));
+    }
+
+    /**
+     * type 0 是添加  1是修改
+     * @param deviceId
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/device/floor/{deviceId}")
+    public RestResponse operateDeviceFloor(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+        Device device = deviceRepository.findOne(deviceId);
+        if (null == device||null==map.get("type"))
+            return new RestResponse("设备信息出错！",1005,null);
+        DeviceFloor deviceFloor = new DeviceFloor();
+
+        if (map.get("type").equals("1")){
+            if (map.get("floorId")==null)
+                return new RestResponse("设备层信息出错！",1005,null);
+            deviceFloor = deviceFloorRepository.findOne(Integer.valueOf(map.get("floorId")));
+            if (null == deviceFloor)
+                return new RestResponse("设备层信息出错！",1005,null);
+            if (null!=map.get("floorNum"))
+                deviceFloor.setFloorNum(Integer.valueOf(map.get("floorNum")));
+
+        }else {
+            deviceFloor.setDevice(device);
+            deviceFloor.setFloorNum(null == map.get("floorNum") ? null : Integer.valueOf(map.get("floorNum")));
+        }
+        deviceFloor.setScientist(map.get("scientist"));
+        deviceFloor.setName(map.get("name"));
+        deviceFloor.setEmail(map.get("email"));
+        deviceFloor.setMobile(map.get("mobile"));
+        deviceFloorRepository.save(deviceFloor);
+        if (null==device.getDeviceFloorList()) {
+            List<DeviceFloor> list = new ArrayList<DeviceFloor>();
+            list.add(deviceFloor);
+            device.setDeviceFloorList(list);
+        }else device.getDeviceFloorList().add(deviceFloor);
+        return new RestResponse(new RestDevice(device));
+
     }
 
 //    @RequestMapping(value = "")
@@ -115,8 +153,6 @@ public class OperateController {
 
         under.setEmail(map.get("email") == null ? null : map.get("email"));
 //        under.setName();
-
-
 
         return null;
     }

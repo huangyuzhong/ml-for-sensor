@@ -1,0 +1,12 @@
+
+/api/rest/operate/device/floor/{deviceId}?type=&floorId=&floorNum=&scientist=&name=&email=&mobile=
+deviceId：当前设备Id
+入参：{
+type    1是修改，0是添加
+floorId 修改时制定当前的层Id
+floorNum    添加的第几层的数量，int值
+scientist   科学家名字
+name        存放物品名称
+email       科学家邮箱
+mobile      科学家手机
+}

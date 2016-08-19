@@ -1,0 +1,38 @@
+/api/rest/file/create/building/{name}?name=&xpoint=&ypoint=     创建大楼
+{name}    用户登录名
+入参：{
+name:大楼名称
+xpoint：横坐标值
+ypoint：纵坐标值
+file：图片文件
+}
+
+
+
+/api/rest/file/create/floor/{name}?name=&xpoint=&ypoint=     创建楼层
+{name}    用户登录名
+入参：{
+name:楼层名称
+buildId：大楼Id
+xpoint：横坐标值
+ypoint：纵坐标值
+file：背景图片文件
+}
+
+
+/api/rest/file/create/room/{name}?name=&xpoint=&ypoint=     创建楼层
+{name}    用户登录名
+入参：{
+name:楼层名称
+floorId：大楼Id
+xpoint：横坐标值
+ypoint：纵坐标值
+file：背景图片文件
+}
+
+/api/rest/file/create/deviceType/{name}?name=       创建设备种类
+{name}    用户登录名
+入参：{
+name:设备种类名称
+
+}

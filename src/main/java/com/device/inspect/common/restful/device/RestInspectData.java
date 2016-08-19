@@ -18,6 +18,7 @@ public class RestInspectData {
     private RestDeviceInspect deviceInspect;
     private String result;
     private Date createDate;
+    private Integer judge;
 
     public RestInspectData() {
     }
@@ -27,6 +28,20 @@ public class RestInspectData {
         this.deviceInspect = null==inspectData.getDeviceInspect()?null:new RestDeviceInspect(inspectData.getDeviceInspect());
         this.result = inspectData.getResult()+inspectData.getDeviceInspect().getInspectType().getUnit();
         this.createDate = inspectData.getCreateDate();
+        judge = 0;
+        if (null!=inspectData.getDeviceInspect()){
+            if (Float.valueOf(inspectData.getResult())<=inspectData.getDeviceInspect().getLowUp()&&
+                    Float.valueOf(inspectData.getResult())>=inspectData.getDeviceInspect().getLowDown())
+                judge = 0;
+            else if ((Float.valueOf(inspectData.getResult())<=inspectData.getDeviceInspect().getHighUp()&&
+                    Float.valueOf(inspectData.getResult())>=inspectData.getDeviceInspect().getLowUp())||
+                    (Float.valueOf(inspectData.getResult())<=inspectData.getDeviceInspect().getLowDown()&&
+                    Float.valueOf(inspectData.getResult())>=inspectData.getDeviceInspect().getHighDown()))
+                judge = 1;
+            else
+                judge = 2;
+
+        }
     }
 
     public Integer getId() {
@@ -59,5 +74,13 @@ public class RestInspectData {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Integer getJudge() {
+        return judge;
+    }
+
+    public void setJudge(Integer judge) {
+        this.judge = judge;
     }
 }

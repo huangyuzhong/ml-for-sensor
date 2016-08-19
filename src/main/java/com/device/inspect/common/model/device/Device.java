@@ -28,6 +28,7 @@ public class Device {
     private Date maintainDate;
     private Integer maintainAlterDays;
     private Room room;
+    private String model;
     private MonitorDevice monitorDevice;
     private List<DeviceFloor> deviceFloorList;
     private List<DeviceFile> deviceFileList;
@@ -193,5 +194,13 @@ public class Device {
 
     public void setDeviceInspectList(List<DeviceInspect> deviceInspectList) {
         this.deviceInspectList = deviceInspectList;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

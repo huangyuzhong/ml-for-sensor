@@ -25,6 +25,7 @@ public class RestUser {
     private String email;
     private String department;
     private String job;
+    private String jobNum;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -39,6 +40,7 @@ public class RestUser {
         this.email = user.getEmail();
         this.department = user.getDepartment();
         this.job = user.getJob();
+        this.jobNum = user.getJobNum();
     }
 
 
@@ -137,5 +139,13 @@ public class RestUser {
 
     public void setJob(String job) {
         this.job = job;
+    }
+
+    public String getJobNum() {
+        return jobNum;
+    }
+
+    public void setJobNum(String jobNum) {
+        this.jobNum = jobNum;
     }
 }

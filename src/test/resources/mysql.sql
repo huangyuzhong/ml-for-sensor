@@ -289,4 +289,7 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `floors` ADD `x_location` FLOAT NULL;
   ALTER TABLE `floors` ADD `y_location` FLOAT NULL;
 
+  ALTER TABLE `users` ADD `job_number` VARCHAR(255) NULL;
+  ALTER TABLE `device` ADD `model` VARCHAR(255) NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestMonitorDevice {
     private Integer id;
-    private Integer number;
+    private String number;
     private String battery;
     private String online;
 
@@ -31,11 +31,11 @@ public class RestMonitorDevice {
         this.id = id;
     }
 
-    public Integer getNumber() {
+    public String getNumber() {
         return number;
     }
 
-    public void setNumber(Integer number) {
+    public void setNumber(String number) {
         this.number = number;
     }
 

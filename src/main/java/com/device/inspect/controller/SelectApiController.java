@@ -135,13 +135,13 @@ public class SelectApiController {
         return new RestResponse(deviceTypes);
     }
 
-    @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
-    public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
-        if (null == principal || null ==principal.getName())
-            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(principal.getName());
-        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
-            return new RestResponse("user's information correct!",1005,null);
+    @RequestMapping(value = "/manager/devices/{name}",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByManger(Principal principal,@PathVariable String name,@RequestParam Map<String,String> requestParam){
+//        if (null == principal || null ==principal.getName())
+//            return new RestResponse("not login!",1005,null);
+        User user = userRepository.findByName(name);
+        if (null == user||null == user.getCompany()){
+            return new RestResponse("user's information error!",1005,null);
         }
 
         Integer limit = 10;
@@ -168,11 +168,11 @@ public class SelectApiController {
 
     }
 
-    @RequestMapping(value = "/employees",method = RequestMethod.GET)
-    public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
-        if (null == principal || null ==principal.getName())
-            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(principal.getName());
+    @RequestMapping(value = "/employees/{name}",method = RequestMethod.GET)
+    public RestResponse getAllEmployees(Principal principal,@PathVariable String name,@RequestParam Map<String,String> requestParam){
+//        if (null == principal || null ==principal.getName())
+//            return new RestResponse("not login!",1005,null);
+        User user = userRepository.findByName(name);
         if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
             return new RestResponse("user's information correct!",1005,null);
         }

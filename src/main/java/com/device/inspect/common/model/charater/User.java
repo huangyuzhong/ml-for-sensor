@@ -26,6 +26,7 @@ public class User {
     private String job;
     private Company company;
     private Role role;
+    private String jobNum;
 
     @Id
     @GeneratedValue()
@@ -145,5 +146,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    @Column(name = "job_number")
+    public String getJobNum() {
+        return jobNum;
+    }
+
+    public void setJobNum(String jobNum) {
+        this.jobNum = jobNum;
     }
 }

@@ -28,6 +28,7 @@ public class RestDevice {
     private String maintain;
     private Date maintainDate;
     private Integer maintainAlterDays;
+    private String model;
     private RestMonitorDevice monitorDevice;
     private List<RestDeviceFloor> deviceFloors;
     private List<RestDeviceInspect> deviceInspects;
@@ -48,6 +49,7 @@ public class RestDevice {
         this.maintainDate = device.getMaintainDate();
         this.maintainAlterDays = device.getMaintainAlterDays();
         this.monitorDevice = null==device.getMonitorDevice()?null:new RestMonitorDevice(device.getMonitorDevice());
+        this.model = device.getModel();
         if (null!=device.getDeviceFloorList()&&device.getDeviceFloorList().size()>0){
             this.deviceFloors = new ArrayList<RestDeviceFloor>();
             for (DeviceFloor deviceFloor : device.getDeviceFloorList())
@@ -203,5 +205,13 @@ public class RestDevice {
 
     public void setFiles(List<RestFile> files) {
         this.files = files;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }
