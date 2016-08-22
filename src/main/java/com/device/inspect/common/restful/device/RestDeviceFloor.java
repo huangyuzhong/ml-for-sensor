@@ -18,6 +18,7 @@ public class RestDeviceFloor {
     private Integer num;
     private String mobile;
     private String email;
+    private Integer productNum;
 
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
@@ -27,6 +28,7 @@ public class RestDeviceFloor {
         this.num = deviceFloor.getNum();
         this.mobile = deviceFloor.getMobile();
         this.email = deviceFloor.getEmail();
+        this.productNum = deviceFloor.getProductNum();
     }
 
     public Integer getId() {
@@ -83,5 +85,13 @@ public class RestDeviceFloor {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Integer getProductNum() {
+        return productNum;
+    }
+
+    public void setProductNum(Integer productNum) {
+        this.productNum = productNum;
     }
 }

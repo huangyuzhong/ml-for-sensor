@@ -116,12 +116,9 @@ public class OperateController {
         deviceFloor.setName(map.get("name"));
         deviceFloor.setEmail(map.get("email"));
         deviceFloor.setMobile(map.get("mobile"));
+        deviceFloor.setProductNum(map.get("productNum")==null?null:Integer.valueOf(map.get("productNum")));
         deviceFloorRepository.save(deviceFloor);
-        if (null==device.getDeviceFloorList()) {
-            List<DeviceFloor> list = new ArrayList<DeviceFloor>();
-            list.add(deviceFloor);
-            device.setDeviceFloorList(list);
-        }else device.getDeviceFloorList().add(deviceFloor);
+
         return new RestResponse(new RestDevice(device));
 
     }

@@ -1,5 +1,5 @@
 
-/api/rest/operate/device/floor/{deviceId}?type=&floorId=&floorNum=&scientist=&name=&email=&mobile=
+/api/rest/operate/device/floor/{deviceId}?type=&floorId=&floorNum=&scientist=&name=&email=&mobile=&productNum=
 deviceId：当前设备Id
 入参：{
 type    1是修改，0是添加
@@ -9,4 +9,5 @@ scientist   科学家名字
 name        存放物品名称
 email       科学家邮箱
 mobile      科学家手机
+productNum  实验品数量
 }

@@ -18,6 +18,7 @@ public class DeviceFloor {
     private Integer num;
     private String mobile;
     private String email;
+    private Integer productNum;
 
     @Id
     @GeneratedValue()
@@ -90,5 +91,14 @@ public class DeviceFloor {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Column(name = "product_num")
+    public Integer getProductNum() {
+        return productNum;
+    }
+
+    public void setProductNum(Integer productNum) {
+        this.productNum = productNum;
     }
 }

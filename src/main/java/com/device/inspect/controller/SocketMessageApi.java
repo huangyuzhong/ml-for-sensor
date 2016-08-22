@@ -82,22 +82,44 @@ public class SocketMessageApi {
         return new RestResponse(new RestInspectData(inspectData));
     }
 
+//    @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)
+//    public RestResponse getCurrentDataFromDevice(@RequestParam Integer deviceId){
+//        Device device = deviceRepository.findOne(deviceId);
+//        List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
+////        List<InspectData> inspectDataList = new ArrayList<InspectData>();
+//        List<RestInspectData> list = new ArrayList<RestInspectData>();
+//        if (null!=deviceInspectList&&deviceInspectList.size()>0){
+//            for (DeviceInspect deviceInspect : deviceInspectList){
+//                InspectData inspectData = inspectDataRepository.
+//                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+//                if (null!=inspectData)
+//                    list.add(new RestInspectData(inspectData));
+//            }
+//        }
+//
+//        return new RestResponse(list);
+//    }
+
     @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)
-    public RestResponse getCurrentDataFromDevice(@RequestParam Integer deviceId){
+    public RestResponse getCurrentData(@RequestParam Integer deviceId){
         Device device = deviceRepository.findOne(deviceId);
         List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
-//        List<InspectData> inspectDataList = new ArrayList<InspectData>();
-        List<RestInspectData> list = new ArrayList<RestInspectData>();
+        List<List> list = new ArrayList<List>();
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
-                InspectData inspectData = inspectDataRepository.
-                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
-                if (null!=inspectData)
-                    list.add(new RestInspectData(inspectData));
+                List<InspectData> inspectDatas = inspectDataRepository.
+                        findTop7ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                if (null!=inspectDatas&&inspectDatas.size()>0) {
+                    List<RestInspectData> insertDatas = new ArrayList<RestInspectData>();
+                    for (InspectData inspectData : inspectDatas)
+                        insertDatas.add(new RestInspectData(inspectData));
+                    list.add(insertDatas);
+                }
             }
         }
 
         return new RestResponse(list);
+
     }
 
 }

@@ -292,4 +292,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `users` ADD `job_number` VARCHAR(255) NULL;
   ALTER TABLE `device` ADD `model` VARCHAR(255) NULL;
 
+  ALTER TABLE `device_floor` ADD `product_num` INT NULL;
+
 SET FOREIGN_KEY_CHECKS=1;
