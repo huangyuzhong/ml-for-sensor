@@ -11,3 +11,9 @@ email       科学家邮箱
 mobile      科学家手机
 productNum  实验品数量
 }
+
+/api/rest/room/current/data?roomId=
+入参：
+{
+roomId：当前房间Id
+}

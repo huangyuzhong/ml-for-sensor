@@ -11,6 +11,7 @@ public class RoleAuthority {
     private Integer id;
     private String name;
     private Integer child;
+    private String roleName;
 
     @Id
     @GeneratedValue()
@@ -37,5 +38,14 @@ public class RoleAuthority {
 
     public void setChild(Integer child) {
         this.child = child;
+    }
+
+    @Column(name = "role_name")
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
     }
 }

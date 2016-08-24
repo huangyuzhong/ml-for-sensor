@@ -298,5 +298,8 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device` ADD `y_location` FLOAT NULL;
 
   ALTER TABLE `company` ADD `create_date` DATETIME NULL;
+  ALTER TABLE `room` ADD `device_id` INT NULL;
+
+  ALTER TABLE `role_authority` ADD `role_name` VARCHAR(255) NULL;
 
 SET FOREIGN_KEY_CHECKS=1;

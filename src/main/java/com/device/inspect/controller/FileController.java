@@ -86,7 +86,7 @@ public class FileController {
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = userRepository.findByName(name);
-        RestResponse restResponse = null;
+        RestResponse restResponse = new RestResponse();
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
@@ -94,11 +94,6 @@ public class FileController {
         else {
             if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
 
-                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-
-                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-
-//        List<String> result = new ArrayList<String>();
                 Building building = new Building();
                 if (null!=param.get("type")&&null!=param.get("buildId")&&param.get("type").equals("1")){
                     building = buildingRepository.findOne(Integer.valueOf(param.get("buildId")));
@@ -110,40 +105,44 @@ public class FileController {
 
                 building.setName(null == param.get("name") ? null : param.get("name"));
                 building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
-                building.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
-                Set<String> keys = map.keySet();
-                for (String key : keys) {
-                    JSONObject jobj = new JSONObject();
-                    String path = "";
+                building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        JSONObject jobj = new JSONObject();
+                        String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
-                    File add = new File(path);
-                    if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
-                    }
-
-                    List<MultipartFile> files = map.get(key);
-                    if (null != files && files.size() > 0) {
-                        MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                        InputStream is = file.getInputStream();
-                        File f = new File(path + fileName);
-                        FileOutputStream fos = new FileOutputStream(f);
-                        int hasRead = 0;
-                        byte[] buf = new byte[1024];
-                        while ((hasRead = is.read(buf)) > 0) {
-                            fos.write(buf, 0, hasRead);
+                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                        File add = new File(path);
+                        if (!add.exists() && !add.isDirectory()) {
+                            add.mkdir();
                         }
-                        fos.close();
-                        is.close();
 
-                        building.setBackground("/photo/company/" + fileName);
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+//                String name  = file.getOriginalFilename();
+                            String fileName = UUID.randomUUID().toString() + ".jpg";
+                            InputStream is = file.getInputStream();
+                            File f = new File(path + fileName);
+                            FileOutputStream fos = new FileOutputStream(f);
+                            int hasRead = 0;
+                            byte[] buf = new byte[1024];
+                            while ((hasRead = is.read(buf)) > 0) {
+                                fos.write(buf, 0, hasRead);
+                            }
+                            fos.close();
+                            is.close();
+
+                            building.setBackground("/photo/company/" + fileName);
 //                        userRepository.save(user);
-
+                        }
+                        restResponse = new RestResponse("添加成功！",null);
 
                     }
-                    restResponse = new RestResponse("添加成功！",null);
+                }catch (ClassCastException e){
 
                 }
                 buildingRepository.save(building);

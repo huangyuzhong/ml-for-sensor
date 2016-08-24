@@ -21,6 +21,7 @@ public class Room {
     private Integer deviceNum;
     private Date createDate;
     private String background;
+    private Device device;
     private List<Device> deviceList;
 
     @Id
@@ -94,6 +95,16 @@ public class Room {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    @OneToOne()
+    @JoinColumn(name = "device_id")
+    public Device getDevice() {
+        return device;
+    }
+
+    public void setDevice(Device device) {
+        this.device = device;
     }
 
     @OneToMany(mappedBy = "room")
