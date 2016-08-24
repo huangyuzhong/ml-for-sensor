@@ -294,4 +294,9 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `device_floor` ADD `product_num` INT NULL;
 
+  ALTER TABLE `device` ADD `x_location` FLOAT NULL;
+  ALTER TABLE `device` ADD `y_location` FLOAT NULL;
+
+  ALTER TABLE `company` ADD `create_date` DATETIME NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

@@ -30,6 +30,8 @@ public class Device {
     private Room room;
     private String model;
     private MonitorDevice monitorDevice;
+    private Float xPoint;
+    private Float yPoint;
     private List<DeviceFloor> deviceFloorList;
     private List<DeviceFile> deviceFileList;
     private List<DeviceInspect> deviceInspectList;
@@ -202,5 +204,23 @@ public class Device {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    @Column(name = "x_location")
+    public Float getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(Float xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    @Column(name = "y_location")
+    public Float getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(Float yPoint) {
+        this.yPoint = yPoint;
     }
 }

@@ -24,6 +24,7 @@ public class Company {
     private Date signDate;
     private Date contractEndDate;
     private String background;
+    private Date createDate;
     private List<Building> buildings;
 
     @Id
@@ -124,6 +125,15 @@ public class Company {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    @Column(name = "create_date")
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
     }
 
     @OneToMany(mappedBy = "company")

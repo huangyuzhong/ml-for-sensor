@@ -68,8 +68,8 @@ public class SelectApiController {
     }
 
     @RequestMapping(value = "/person/mine/info")
-    public RestResponse getMyMessage(Principal principal){
-        User user = userRepository.findByName(principal.getName());
+    public RestResponse getMyMessage(Principal principal,@RequestParam String name){
+        User user = userRepository.findByName(name);
         if (null == user)
             return new RestResponse("user not found!",1005,null);
         return new RestResponse(new RestUser(user));

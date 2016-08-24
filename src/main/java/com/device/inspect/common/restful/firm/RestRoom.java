@@ -19,6 +19,7 @@ public class RestRoom {
     private Float yPoint;
     private Integer deviceNum;
     private Date createDate;
+    private String background;
 
     public RestRoom(@NotNull Room room){
         this.id = room.getId();
@@ -27,6 +28,7 @@ public class RestRoom {
         this.yPoint = room.getyPoint();
         this.deviceNum = room.getDeviceNum();
         this.createDate = room.getCreateDate();
+        this.background = room.getBackground();
     }
 
     public Integer getId() {
@@ -75,5 +77,13 @@ public class RestRoom {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 }

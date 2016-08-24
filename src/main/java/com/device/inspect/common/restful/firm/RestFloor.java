@@ -18,6 +18,9 @@ public class RestFloor {
 //    private RestBuilding build;
     private Integer deviceNum;
     private Date createDate;
+    private String background;
+    private Float xpoint;
+    private Float ypoint;
 
     public RestFloor(@NotNull Storey floor){
         this.id = floor.getId();
@@ -26,6 +29,9 @@ public class RestFloor {
 //        this.build = null==floor.getBuild()?null:new RestBuilding(floor.getBuild());
         this.deviceNum = floor.getDeviceNum();
         this.createDate = floor.getCreateDate();
+        this.background = floor.getBackground();
+        this.xpoint = floor.getXpoint();
+        this.ypoint = floor.getYpoint();
     }
 
     public Integer getId() {
@@ -74,5 +80,29 @@ public class RestFloor {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
+    }
+
+    public Float getXpoint() {
+        return xpoint;
+    }
+
+    public void setXpoint(Float xpoint) {
+        this.xpoint = xpoint;
+    }
+
+    public Float getYpoint() {
+        return ypoint;
+    }
+
+    public void setYpoint(Float ypoint) {
+        this.ypoint = ypoint;
     }
 }

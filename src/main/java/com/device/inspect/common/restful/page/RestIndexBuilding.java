@@ -4,6 +4,7 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.restful.firm.RestBuilding;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -21,12 +22,15 @@ public class RestIndexBuilding {
     private String background;
     private Integer deviceNum;
     private Integer alterNum;
+    private Integer days;
     private List<RestBuilding> list;
 
 
     public RestIndexBuilding(@NotNull Company company){
         this.id = company.getId();
         this.background = company.getBackground();
+        if (null!=company.getCreateDate())
+            days = MyCalendar.getDateSpace(company.getCreateDate(),new Date());
         if (null!=company.getBuildings()&&company.getBuildings().size()>0){
             this.deviceNum = 0 ;
             this.alterNum = 0;
@@ -68,6 +72,14 @@ public class RestIndexBuilding {
 
     public void setAlterNum(Integer alterNum) {
         this.alterNum = alterNum;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 
     public List<RestBuilding> getList() {

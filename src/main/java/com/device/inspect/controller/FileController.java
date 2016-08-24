@@ -71,6 +71,16 @@ public class FileController {
     @Autowired
     private RoleAuthorityRepository roleAuthorityRepository;
 
+    /**
+     *
+     * @param name
+     * @param param         type 0位新增，1为修改
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/create/building/{name}")
     public void createBuilding(@PathVariable String name,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
@@ -90,9 +100,14 @@ public class FileController {
 
 //        List<String> result = new ArrayList<String>();
                 Building building = new Building();
-                building.setCreateDate(new Date());
-                building.setDeviceNum(0);
-                building.setCompany(user.getCompany());
+                if (null!=param.get("type")&&null!=param.get("buildId")&&param.get("type").equals("1")){
+                    building = buildingRepository.findOne(Integer.valueOf(param.get("buildId")));
+                }else {
+                    building.setCreateDate(new Date());
+                    building.setDeviceNum(0);
+                    building.setCompany(user.getCompany());
+                }
+
                 building.setName(null == param.get("name") ? null : param.get("name"));
                 building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                 building.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
@@ -124,12 +139,14 @@ public class FileController {
                         is.close();
 
                         building.setBackground("/photo/company/" + fileName);
-                        userRepository.save(user);
+//                        userRepository.save(user);
+
 
                     }
                     restResponse = new RestResponse("添加成功！",null);
 
                 }
+                buildingRepository.save(building);
             } else {
                 restResponse = new RestResponse("权限不足！",1005,null);
             }
@@ -159,9 +176,15 @@ public class FileController {
 
 //        List<String> result = new ArrayList<String>();
             Storey floor = new Storey();
-            floor.setCreateDate(new Date());
+
+            if (null!=param.get("type")&&null!=param.get("floorId")&&param.get("type").equals("1")){
+                floor = storeyRepository.findOne(Integer.valueOf(param.get("floorId")));
+            }else {
+                floor.setCreateDate(new Date());
+                floor.setDeviceNum(0);
+            }
+
             floor.setBuild(map.get("buildId") == null ? null : buildingRepository.findOne(Integer.valueOf(param.get("buildId"))));
-            floor.setDeviceNum(0);
             floor.setName(null == param.get("name") ? null : param.get("name"));
             floor.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
             floor.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
@@ -194,12 +217,13 @@ public class FileController {
                     is.close();
 
                     floor.setBackground("/photo/company/" + fileName);
-                    userRepository.save(user);
+//                    userRepository.save(user);
 
                 }
                 restResponse = new RestResponse("添加成功！",null);
 
             }
+            storeyRepository.save(floor);
         } else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
@@ -226,8 +250,14 @@ public class FileController {
 
 //        List<String> result = new ArrayList<String>();
             Room room = new Room();
-            room.setCreateDate(new Date());
-            room.setDeviceNum(0);
+
+            if (null!=param.get("type")&&null!=param.get("roomId")&&param.get("type").equals("1")){
+                room = roomRepository.findOne(Integer.valueOf(param.get("floorId")));
+            }else {
+                room.setCreateDate(new Date());
+                room.setDeviceNum(0);
+            }
+
             room.setFloor(null == param.get("floorId") ? null : storeyRepository.findOne(Integer.valueOf(param.get("floorId"))));
             room.setName(null == param.get("name") ? null : param.get("name"));
             room.setxPoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
@@ -261,12 +291,13 @@ public class FileController {
                     is.close();
 
                     room.setBackground("/photo/company/" + fileName);
-                    userRepository.save(user);
+
 
                 }
                 restResponse = new RestResponse("添加成功！",null);
 
             }
+            roomRepository.save(room);
         } else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
@@ -324,7 +355,6 @@ public class FileController {
                     is.close();
 
                     deviceType.setLogo("/photo/company/" + fileName);
-                    userRepository.save(user);
 
                 }
                 restResponse = new RestResponse("添加成功！",null);

@@ -29,6 +29,8 @@ public class RestDevice {
     private Date maintainDate;
     private Integer maintainAlterDays;
     private String model;
+    private Float xPoint;
+    private Float yPoint;
     private RestMonitorDevice monitorDevice;
     private List<RestDeviceFloor> deviceFloors;
     private List<RestDeviceInspect> deviceInspects;
@@ -50,6 +52,8 @@ public class RestDevice {
         this.maintainAlterDays = device.getMaintainAlterDays();
         this.monitorDevice = null==device.getMonitorDevice()?null:new RestMonitorDevice(device.getMonitorDevice());
         this.model = device.getModel();
+        this.xPoint = device.getxPoint();
+        this.yPoint = device.getyPoint();
         if (null!=device.getDeviceFloorList()&&device.getDeviceFloorList().size()>0){
             this.deviceFloors = new ArrayList<RestDeviceFloor>();
             for (DeviceFloor deviceFloor : device.getDeviceFloorList())
@@ -213,5 +217,21 @@ public class RestDevice {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public Float getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(Float xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    public Float getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(Float yPoint) {
+        this.yPoint = yPoint;
     }
 }

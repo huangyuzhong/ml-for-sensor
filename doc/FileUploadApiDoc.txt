@@ -1,32 +1,38 @@
-/api/rest/file/create/building/{name}?name=&xpoint=&ypoint=     创建大楼
+/api/rest/file/create/building/{name}?name=&xpoint=&ypoint=&type=&buildId=     创建大楼
 {name}    用户登录名
 入参：{
 name:大楼名称
 xpoint：横坐标值
 ypoint：纵坐标值
+type:   0位新增，1为修改
+buildId：    修改时必须有值
 file：图片文件
 }
 
 
 
-/api/rest/file/create/floor/{name}?name=&xpoint=&ypoint=     创建楼层
+/api/rest/file/create/floor/{name}?name=&xpoint=&ypoint=&type=&floorId=     创建楼层
 {name}    用户登录名
 入参：{
 name:楼层名称
 buildId：大楼Id
 xpoint：横坐标值
 ypoint：纵坐标值
+type:   0位新增，1为修改
+floorId：    修改时必须有值
 file：背景图片文件
 }
 
 
-/api/rest/file/create/room/{name}?name=&xpoint=&ypoint=     创建楼层
+/api/rest/file/create/room/{name}?name=&xpoint=&ypoint=&type=&roomId=     创建楼层
 {name}    用户登录名
 入参：{
 name:楼层名称
 floorId：大楼Id
 xpoint：横坐标值
 ypoint：纵坐标值
+type:   0位新增，1为修改
+roomId：    修改时必须有值
 file：背景图片文件
 }
 
