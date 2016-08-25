@@ -17,3 +17,25 @@ productNum  实验品数量
 {
 roomId：当前房间Id
 }
+
+/api/rest/file/create/device/{name}?roomId=&typeId=&code=&xPoint=&yPoint=&name=         创建设备
+{name} 登陆人用户名
+入参：{
+roomId：     房间Id
+typeId：     所选设备种类id
+code：       设备编号
+xPoint：     所在房间的x坐标
+yPoint：     所在房间的y坐标
+name：       设备名称
+file：       上传的设备图
+}
+
+/api/rest/operate/device/{deviceId}?name=&creator=&maintain=&maintainAlterDays=&model=
+{deviceId}  设备id
+入参：{
+name：                   设备名称
+creator：                制造商
+maintain：               保养周期
+maintainAlterDays：      提前提醒天数
+model；                  品牌名称
+}

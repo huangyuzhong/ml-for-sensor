@@ -154,4 +154,24 @@ public class OperateController {
         return null;
     }
 
+    @RequestMapping(value = "/device/{deviceId}")
+    public RestResponse operateDevice(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+        Device device = deviceRepository.findOne(deviceId);
+        if (null == device)
+            return new RestResponse("设备信息出错！",1005,null);
+        if (null!=map.get("name"))
+            device.setName(map.get("name"));
+        if (null!=map.get("creator"))
+            device.setCreator(map.get("creator"));
+        if (null!=map.get("maintain"))
+            device.setCreator(map.get("maintain"));
+        if (null!=map.get("maintainAlterDays"))
+            device.setCreator(map.get("maintainAlterDays"));
+        if (null!=map.get("model"))
+            device.setCreator(map.get("model"));
+
+        return new RestResponse(new RestDevice(device));
+
+    }
+
 }

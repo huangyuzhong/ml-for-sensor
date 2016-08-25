@@ -260,7 +260,7 @@ public class FileController {
             DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
-            device.setAlterNum(null == param.get("alterNum") ? 30 : Integer.valueOf(param.get("alterNum")));
+            device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
             device.setDeviceType(deviceType);
             device.setManager(null == param.get("managerId") ? user : userRepository.findOne(Integer.valueOf(param.get("managerId"))));
             device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
