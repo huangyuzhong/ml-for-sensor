@@ -36,9 +36,10 @@ roomId：    修改时必须有值
 file：背景图片文件
 }
 
-/api/rest/file/create/deviceType/{name}?name=       创建设备种类
+/api/rest/file/create/deviceType/{name}?name=&type=&deviceTypeId=       创建设备种类
 {name}    用户登录名
 入参：{
 name:设备种类名称
-
+type：               0为新增，1为修改
+deviceTypeId：       修改时必有
 }
