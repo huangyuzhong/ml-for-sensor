@@ -257,7 +257,7 @@ public class FileController {
             restResponse = new RestResponse("设备种类信息出错！", null);
         else if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")){
             Room room = roomRepository.findOne(Integer.valueOf(param.get("roomId")));
-            DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId"));
+            DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 30 : Integer.valueOf(param.get("alterNum")));
