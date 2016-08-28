@@ -75,7 +75,7 @@ public class SocketMessageApi {
             Device device = new Device();
             if (monitorTypeCode.equals("00")||monitorTypeCode.equals("08")){
                 device = deviceRepository.findOne(101);
-            }else if (monitorTypeCode.equals("01")||monitorTypeCode.equals("02")||monitorTypeCode.equals("04")||
+            }else if (monitorTypeCode.equals("01")||monitorTypeCode.equals("04")||
                     monitorTypeCode.equals("05")||monitorTypeCode.equals("06")){
                 device = deviceRepository.findOne(103);
             }else {
