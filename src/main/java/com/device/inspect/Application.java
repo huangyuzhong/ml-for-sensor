@@ -11,6 +11,8 @@ import com.device.inspect.common.repository.device.InspectTypeRepository;
 import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,6 +31,7 @@ import java.util.Date;
 public class Application {
 
     private static final int SOCKET_PORT = 8192;
+    private static final Logger LOGGER = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws Throwable {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
@@ -47,6 +50,7 @@ public class Application {
                 //等待请求,此方法会一直阻塞,直到获得请求才往下走
                 socket = s.accept();
                 System.out.println("Connection accept socket:" + socket);
+                LOGGER.info("Connection accept socket:" + socket);
                 SocketServerThread thread = new SocketServerThread(socket);
                 thread.start();
 

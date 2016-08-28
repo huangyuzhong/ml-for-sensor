@@ -20,6 +20,7 @@ public class Building {
     private Company company;
     private String background;
     private List<Storey> floorList;
+    private Integer alterNum;
 
     @Id
     @GeneratedValue()
@@ -101,5 +102,14 @@ public class Building {
 
     public void setFloorList(List<Storey> floorList) {
         this.floorList = floorList;
+    }
+
+    @Transient
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }

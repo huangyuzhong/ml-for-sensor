@@ -21,6 +21,7 @@ public class Storey {
     private Float xpoint;
     private Float ypoint;
     private List<Room> roomList;
+    private Integer alterNum;
 
     @Id
     @GeneratedValue()
@@ -111,5 +112,14 @@ public class Storey {
 
     public void setRoomList(List<Room> roomList) {
         this.roomList = roomList;
+    }
+
+    @Transient
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }

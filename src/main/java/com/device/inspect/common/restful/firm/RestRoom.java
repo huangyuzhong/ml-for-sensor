@@ -20,6 +20,7 @@ public class RestRoom {
     private Integer deviceNum;
     private Date createDate;
     private String background;
+    private Integer alterNum;
 
     public RestRoom(@NotNull Room room){
         this.id = room.getId();
@@ -29,6 +30,7 @@ public class RestRoom {
         this.deviceNum = room.getDeviceNum();
         this.createDate = room.getCreateDate();
         this.background = room.getBackground();
+        this.alterNum = null==room.getAlterNum()?0:room.getAlterNum();
     }
 
     public Integer getId() {
@@ -85,5 +87,13 @@ public class RestRoom {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }

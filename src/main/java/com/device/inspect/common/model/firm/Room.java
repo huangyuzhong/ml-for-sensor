@@ -23,6 +23,7 @@ public class Room {
     private String background;
     private Device device;
     private List<Device> deviceList;
+    private Integer alterNum;
 
     @Id
     @GeneratedValue()
@@ -114,5 +115,14 @@ public class Room {
 
     public void setDeviceList(List<Device> deviceList) {
         this.deviceList = deviceList;
+    }
+
+    @Transient
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }

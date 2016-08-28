@@ -18,7 +18,7 @@ public class RestBuilding {
     private Float ypoint;
     private Integer deviceNum;
     private Date createDate;
-
+    private Integer alterNum;
 
     public RestBuilding(@NotNull Building building) {
         this.id = building.getId();
@@ -27,6 +27,7 @@ public class RestBuilding {
         this.ypoint = building.getYpoint();
         this.deviceNum = building.getDeviceNum();
         this.createDate = building.getCreateDate();
+        this.alterNum = null==building.getAlterNum()?0:building.getAlterNum();
     }
 
     public Integer getId() {
@@ -75,5 +76,13 @@ public class RestBuilding {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }

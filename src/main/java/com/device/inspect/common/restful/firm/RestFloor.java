@@ -21,6 +21,7 @@ public class RestFloor {
     private String background;
     private Float xpoint;
     private Float ypoint;
+    private Integer alterNum;
 
     public RestFloor(@NotNull Storey floor){
         this.id = floor.getId();
@@ -32,6 +33,7 @@ public class RestFloor {
         this.background = floor.getBackground();
         this.xpoint = floor.getXpoint();
         this.ypoint = floor.getYpoint();
+        this.alterNum = null==floor.getAlterNum()?0:floor.getAlterNum();
     }
 
     public Integer getId() {
@@ -104,5 +106,13 @@ public class RestFloor {
 
     public void setYpoint(Float ypoint) {
         this.ypoint = ypoint;
+    }
+
+    public Integer getAlterNum() {
+        return alterNum;
+    }
+
+    public void setAlterNum(Integer alterNum) {
+        this.alterNum = alterNum;
     }
 }
