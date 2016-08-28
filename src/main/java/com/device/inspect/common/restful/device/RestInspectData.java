@@ -29,7 +29,8 @@ public class RestInspectData {
         this.result = inspectData.getResult()+inspectData.getDeviceInspect().getInspectType().getUnit();
         this.createDate = inspectData.getCreateDate();
         judge = 0;
-        if (null!=inspectData.getDeviceInspect()){
+        if (null!=inspectData.getDeviceInspect()&&null!=inspectData.getDeviceInspect().getLowUp()&&null!=
+                inspectData.getDeviceInspect().getLowDown()){
             if (Float.valueOf(inspectData.getResult())<=inspectData.getDeviceInspect().getLowUp()&&
                     Float.valueOf(inspectData.getResult())>=inspectData.getDeviceInspect().getLowDown())
                 judge = 0;
