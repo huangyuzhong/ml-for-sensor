@@ -24,10 +24,12 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.firm.RestBuilding;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
+import com.device.inspect.controller.request.DeviceTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -266,6 +268,7 @@ public class FileController {
             device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
             device.setName(param.get("name"));
+            device.setRoom(room);
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
@@ -393,7 +396,7 @@ public class FileController {
     }
 
     @RequestMapping(value = "/create/deviceType/{name}")
-    public void createDeviceType(@PathVariable String name,@RequestParam Map<String,String> param,
+    public void createDeviceType(@PathVariable String name,@RequestParam Map<String,String> param,@RequestBody DeviceTypeRequest deviceTypeReq,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = userRepository.findByName(name);
