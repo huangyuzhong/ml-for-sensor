@@ -228,10 +228,16 @@ public class SelectApiController {
         User user = userRepository.findByName(name);
         if (null==user)
             return new RestResponse("用户信息出错！",1005,null);
-        int id = user.getCompany().getId();
 
-        List<User> list = userRepository.findByCompanyId(id);
-        return new RestResponse(list);
+        List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
+        List<RestUser> result = new ArrayList<RestUser>();
+        for (User userEnch : list){
+            RestUser restUser = new RestUser(userEnch);
+            result.add(restUser);
+        }
+        return new RestResponse(result);
     }
+
+
 
 }

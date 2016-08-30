@@ -310,30 +310,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_type_inspect` ADD `low_alert_minutes` INT NULL;
 
 
-  ALTER TABLE `company` DROP FOREIGN KEY company_1;
-
-  ALTER TABLE `company` DROP `manager_user_id`;
-
-
-  drop table if exists company_manager;
-    create table `company_manager`(
-    `id` INT NOT NULL,
-    `company_id` INT NULL,
-    `manager_id` INT NULL,
-    PRIMARY KEY (`id`)
-    );
-
-  ALTER TABLE `company` DROP FOREIGN KEY company_2;
-  ALTER TABLE `company` DROP `business_user_id`;
-  drop table if exists company_business;
-  create table `company_business`(
-      `id` INT NOT NULL,
-      `company_id` INT NULL,
-      `business_id` INT NULL,
-      PRIMARY KEY (`id`)
-  );
-
-
 
 
 SET FOREIGN_KEY_CHECKS=1;
