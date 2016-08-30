@@ -39,3 +39,19 @@ maintain：               保养周期
 maintainAlterDays：      提前提醒天数
 model；                  品牌名称
 }
+
+/api/rest/room/current/data?roomId=
+
+/api/rest/operate/device/{deviceId}?name=&  creator=&  maintain=& maintainAlterDays=&  model=& purchase=& maintainDate=&
+入参：{
+name                        名称
+creator                     制造商
+maintain                    保养规则
+maintainAlterDays           保养提醒天数
+model                       品牌名
+purchase                    购买日期
+maintainDate                最新一次保养日期
+}
+
+/api/rest/firm/colleges/{name}
+{name} 登陆用户名

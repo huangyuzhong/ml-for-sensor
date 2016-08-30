@@ -8,6 +8,7 @@ import java.util.List;
 public class DeviceTypeRequest {
     private Integer id;
     private String name;
+    private Integer type;
     private List<InspectTypeRequest> list;
 
     public Integer getId() {
@@ -24,6 +25,14 @@ public class DeviceTypeRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 
     public List<InspectTypeRequest> getList() {

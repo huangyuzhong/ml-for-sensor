@@ -36,10 +36,36 @@ roomId：    修改时必须有值
 file：背景图片文件
 }
 
-/api/rest/file/create/deviceType/{name}?name=&type=&deviceTypeId=       创建设备种类
+POST：/api/rest/file/create/deviceType/{name}       创建设备种类
 {name}    用户登录名
 入参：{
-name:设备种类名称
-type：               0为新增，1为修改
-deviceTypeId：       修改时必有
+id：     设备种类id                  修改时添加
+type：   1位修改，0位添加
+name：   设备种类名称
+list:[{
+id;                     检测类型id
+lowUp;                  低级报警高值
+lowDown;                低级报警低值
+highUp;                 高级报警高值
+highDown;               高级报警低值
+standard;               标准值
+lowAlter;               低级报警状态持续多少次发送警报
+},{
+。。。
+}]
+}
+
+/api/rest/file/create/device/{name}?roomId=&typeId=&code=&alterNum=&managerId=&xPoint=&yPoint=&name=&monitorCode=
+                 创建设备
+{name} 用户登录名
+入参：{
+roomId                 房间id
+typeId                  设备种类id
+code                    设备标号
+alterNum                默认0
+managerId               管理员id
+xPoint                  在房间平面图上x坐标值
+yPoint                  在房间平面图上y坐标值
+name                    设备名称
+monitorCode             终端编号
 }

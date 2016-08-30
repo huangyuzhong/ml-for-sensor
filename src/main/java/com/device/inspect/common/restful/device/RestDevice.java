@@ -40,6 +40,7 @@ public class RestDevice {
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
         this.code = device.getCode();
+        this.name = device.getName();
         this.deviceType = null==device.getDeviceType()?null:new RestDeviceType(device.getDeviceType());
         this.createDate = device.getCreateDate();
         this.creator = device.getCreator();

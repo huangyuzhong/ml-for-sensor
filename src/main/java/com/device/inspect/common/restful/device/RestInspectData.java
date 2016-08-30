@@ -19,6 +19,7 @@ public class RestInspectData {
     private String result;
     private Date createDate;
     private Integer judge;
+    private String picResult;
 
     public RestInspectData() {
     }
@@ -27,6 +28,7 @@ public class RestInspectData {
         this.id = inspectData.getId();
         this.deviceInspect = null==inspectData.getDeviceInspect()?null:new RestDeviceInspect(inspectData.getDeviceInspect());
         this.result = inspectData.getResult()+inspectData.getDeviceInspect().getInspectType().getUnit();
+        this.picResult = inspectData.getResult();
         this.createDate = inspectData.getCreateDate();
         judge = 0;
         if (null!=inspectData.getDeviceInspect()&&null!=inspectData.getDeviceInspect().getLowUp()&&null!=
@@ -83,5 +85,13 @@ public class RestInspectData {
 
     public void setJudge(Integer judge) {
         this.judge = judge;
+    }
+
+    public String getPicResult() {
+        return picResult;
+    }
+
+    public void setPicResult(String picResult) {
+        this.picResult = picResult;
     }
 }

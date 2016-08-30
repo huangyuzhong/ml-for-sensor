@@ -195,7 +195,7 @@ public class SelectApiController {
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
-        return new RestResponse(assembleUsers(user,userPage));
+        return new RestResponse(assembleUsers(user, userPage));
     }
 
     private Map assembleDevices(Page<Device> devicePage){
@@ -221,6 +221,17 @@ public class SelectApiController {
 
         map.put("userList",new RestIndexUser(userRoot,list));
         return map;
+    }
+
+    @RequestMapping(value = "/colleges/{name}")
+    public RestResponse getMyCompanyWorkers(@PathVariable String name){
+        User user = userRepository.findByName(name);
+        if (null==user)
+            return new RestResponse("用户信息出错！",1005,null);
+        int id = user.getCompany().getId();
+
+        List<User> list = userRepository.findByCompanyId(id);
+        return new RestResponse(list);
     }
 
 }

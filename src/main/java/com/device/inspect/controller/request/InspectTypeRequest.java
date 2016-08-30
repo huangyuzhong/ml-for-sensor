@@ -10,6 +10,8 @@ public class InspectTypeRequest {
     private String lowDown;
     private String highUp;
     private String highDown;
+    private String standard;
+    private Integer lowAlter;
 
     public Integer getId() {
         return id;
@@ -57,5 +59,21 @@ public class InspectTypeRequest {
 
     public void setHighDown(String highDown) {
         this.highDown = highDown;
+    }
+
+    public String getStandard() {
+        return standard;
+    }
+
+    public void setStandard(String standard) {
+        this.standard = standard;
+    }
+
+    public Integer getLowAlter() {
+        return lowAlter;
+    }
+
+    public void setLowAlter(Integer lowAlter) {
+        this.lowAlter = lowAlter;
     }
 }

@@ -14,14 +14,12 @@ import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -129,14 +127,6 @@ public class OperateController {
 //
 //    }
 
-    @RequestMapping(value = "/operate/device")
-    public RestResponse operateDevice(Principal principal,@RequestParam Map<String,String> map){
-        Device device = new Device();
-//        device.setCode();
-
-
-        return null;
-    }
 
     @RequestMapping(value = "/create/user/{name}")
     public RestResponse createNewUser(Principal principal,@PathVariable String name,@RequestParam Map<String,String> map){
@@ -169,9 +159,26 @@ public class OperateController {
             device.setCreator(map.get("maintainAlterDays"));
         if (null!=map.get("model"))
             device.setCreator(map.get("model"));
+        if (null!=map.get("purchase"))
+            device.setPurchase(new Date());
+        if (null!=map.get("maintainDate"))
+            device.setMaintainDate(new Date());
+        if(null!=map.get("managerId")){
+            User user = userRepository.findOne(Integer.valueOf(map.get("managerId")));
+            if (null!=user){
+                device.setManager(user);
+            }
+        }
 
         return new RestResponse(new RestDevice(device));
-
     }
+
+//    @RequestMapping(value = "/device/data/{deviceId}")
+//    public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody ){
+//        Device device = deviceRepository.findOne(deviceId);
+//        if (null == device)
+//            return new RestResponse("设备信息出错！",1005,null);
+//
+//    }
 
 }

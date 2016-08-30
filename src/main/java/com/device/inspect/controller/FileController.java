@@ -3,18 +3,14 @@ package com.device.inspect.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.User;
-import com.device.inspect.common.model.device.Device;
-import com.device.inspect.common.model.device.DeviceType;
+import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
-import com.device.inspect.common.repository.device.DeviceRepository;
-import com.device.inspect.common.repository.device.DeviceTypeInspectRepository;
-import com.device.inspect.common.repository.device.DeviceTypeRepository;
-import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
@@ -25,6 +21,7 @@ import com.device.inspect.common.restful.firm.RestBuilding;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.controller.request.DeviceTypeRequest;
+import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
@@ -40,6 +37,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.rowset.serial.SerialException;
 import java.io.*;
+import java.io.File;
 import java.util.*;
 
 /**
@@ -78,6 +76,14 @@ public class FileController {
 
     @Autowired
     private RoleAuthorityRepository roleAuthorityRepository;
+
+    @Autowired
+    private DeviceInspectRepository deviceInspectRepository;
+
+    @Autowired
+    private MonitorDeviceRepository monitorDeviceRepository;
+
+
 
     /**
      *
@@ -226,7 +232,6 @@ public class FileController {
 
                         floor.setBackground("/photo/company/" + fileName);
 //                    userRepository.save(user);
-
                     }
                 }
             }catch (ClassCastException e){
@@ -260,6 +265,7 @@ public class FileController {
         else if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")){
             Room room = roomRepository.findOne(Integer.valueOf(param.get("roomId")));
             DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
+
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
@@ -269,6 +275,28 @@ public class FileController {
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
             device.setName(param.get("name"));
             device.setRoom(room);
+            deviceRepository.save(device);
+            MonitorDevice monitorDevice = new MonitorDevice();
+            monitorDevice.setBattery("100");
+            monitorDevice.setDevice(device);
+            monitorDevice.setNumber(param.get("monitorCode"));
+            monitorDevice.setOnline("在线");
+            monitorDeviceRepository.save(monitorDevice);
+
+            if (null!=deviceType.getDeviceTypeInspectList()){
+                for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
+                    DeviceInspect deviceInspect = new DeviceInspect();
+                    deviceInspect.setDevice(device);
+                    deviceInspect.setInspectType(deviceTypeInspect.getInspectType());
+                    deviceInspect.setStandard(deviceTypeInspect.getStandard());
+                    deviceInspect.setHighUp(deviceTypeInspect.getHighUp());
+                    deviceInspect.setHighDown(deviceTypeInspect.getHighDown());
+                    deviceInspect.setLowDown(deviceTypeInspect.getLowDown());
+                    deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
+                    deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
+                    deviceInspectRepository.save(deviceInspect);
+                }
+            }
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
@@ -302,20 +330,15 @@ public class FileController {
 
                         device.setPhoto("/photo/device/" + fileName);
 //                    userRepository.save(user);
-
                     }
                 }
             }catch (ClassCastException e){
                 e.printStackTrace();
             }
-
-            deviceRepository.save(device);
             restResponse = new RestResponse("操作成功！",new RestDevice(device));
         }else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
-
-
     }
 
     @RequestMapping(value = "/create/room/{name}")
@@ -396,7 +419,7 @@ public class FileController {
     }
 
     @RequestMapping(value = "/create/deviceType/{name}")
-    public void createDeviceType(@PathVariable String name,@RequestParam Map<String,String> param,@RequestBody DeviceTypeRequest deviceTypeReq,
+    public void createDeviceType(@PathVariable String name,@RequestBody DeviceTypeRequest deviceTypeReq,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = userRepository.findByName(name);
@@ -407,11 +430,45 @@ public class FileController {
             restResponse = new RestResponse("手机号出错！", null);
 
         DeviceType deviceType = new DeviceType();
+        List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
         if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
-            if (null!=param.get("type")&&null!=param.get("deviceTypeId")&&param.get("type").equals("1")){
-                deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("deviceTypeId")));
+            if (null!=deviceTypeReq.getType()&&null!=deviceTypeReq.getId()&&1==deviceTypeReq.getId()){
+                deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
+                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
+                if (null!=deviceTypeReq&&deviceTypeReq.getList().size()>0){
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()){
+                        InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
+                        DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.
+                                findByDeviceTypeIdAndInspectTypeId(deviceType.getId(),inspectType.getId());
+                        if (null!=deviceTypeInspect){
+                            deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                            deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                            deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                            deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+                            deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                            deviceTypeInspect.setLowAlter(null==inspectTypeRequest.getLowAlter()?10:inspectTypeRequest.getLowAlter());
+                            deviceTypeInspectRepository.save(deviceTypeInspect);
+                        }
+                    }
+                }
             }else {
-                deviceType.setName(null == param.get("name") ? null : param.get("name"));
+                if (null!=deviceTypeReq&&deviceTypeReq.getList().size()>0){
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()){
+                        InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
+                        DeviceTypeInspect deviceTypeInspect = new DeviceTypeInspect();
+                        deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                        deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                        deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                        deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+                        deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                        deviceTypeInspect.setLowAlter(null==inspectTypeRequest.getLowAlter()?10:inspectTypeRequest.getLowAlter());
+                        deviceTypeInspectRepository.save(deviceTypeInspect);
+                    }
+                }
+            }
+
+            if (null!=deviceTypeReq.getName()){
+                deviceType.setName(deviceTypeReq.getName());
             }
 
             try {
@@ -445,14 +502,13 @@ public class FileController {
                         is.close();
 
                         deviceType.setLogo("/photo/company/" + fileName);
-
                     }
-
                 }
             }catch (ClassCastException e){
                 e.printStackTrace();
 //                deviceType.setLogo("/photo/company/" + fileName);
             }
+            deviceTypeRepository.save(deviceType);
             restResponse = new RestResponse("操作成功！",new RestDeviceType(deviceType));
         } else {
             restResponse = new RestResponse("权限不足！",1005,null);

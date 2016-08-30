@@ -23,6 +23,10 @@ public class RestDeviceInspect {
     private Integer lowAlter;
     private String name;
 
+    private String start;
+    private String value;
+    private String end;
+
     public RestDeviceInspect() {
     }
 
@@ -36,6 +40,16 @@ public class RestDeviceInspect {
         this.highDown = deviceInspect.getHighDown();
         this.lowAlter = deviceInspect.getLowAlter();
         this.name = deviceInspect.getName();
+        if (null!=deviceInspect.getDevice()&&null!=deviceInspect.getHighDown()){
+            this.value = String.valueOf(deviceInspect.getHighUp() - deviceInspect.getHighDown());
+            this.start = String.valueOf(deviceInspect.getStandard() - 3*(deviceInspect.getHighUp() - deviceInspect.getHighDown()));
+            this.end = String.valueOf(deviceInspect.getStandard() + 3*(deviceInspect.getHighUp() - deviceInspect.getHighDown()));
+        }else {
+            this.start = "0";
+            this.end = "1";
+            this.value = "1";
+        }
+
     }
 
     public Integer getId() {
@@ -108,5 +122,29 @@ public class RestDeviceInspect {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getStart() {
+        return start;
+    }
+
+    public void setStart(String start) {
+        this.start = start;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getEnd() {
+        return end;
+    }
+
+    public void setEnd(String end) {
+        this.end = end;
     }
 }

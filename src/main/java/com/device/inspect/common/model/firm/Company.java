@@ -10,14 +10,14 @@ import java.util.List;
  * Created by Administrator on 2016/7/7.
  */
 @Entity
-@Table(name = "")
+@Table(name = "company")
 public class Company {
 
     private Integer id;
     private String name;
     private String address;
-    private User manager;
-    private User businessMan;
+//    private User manager;
+//    private User businessMan;
     private String email;
     private String telephone;
     private String contractNum;
@@ -53,26 +53,26 @@ public class Company {
         this.address = address;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "manager_user_id")
-    public User getManager() {
-        return manager;
-    }
+//    @ManyToOne()
+//    @JoinColumn(name = "manager_user_id")
+//    public User getManager() {
+//        return manager;
+//    }
+//
+//
+//    public void setManager(User manager) {
+//        this.manager = manager;
+//    }
 
-
-    public void setManager(User manager) {
-        this.manager = manager;
-    }
-
-    @ManyToOne()
-    @JoinColumn(name = "business_user_id")
-    public User getBusinessMan() {
-        return businessMan;
-    }
-
-    public void setBusinessMan(User businessMan) {
-        this.businessMan = businessMan;
-    }
+//    @ManyToOne()
+//    @JoinColumn(name = "business_user_id")
+//    public User getBusinessMan() {
+//        return businessMan;
+//    }
+//
+//    public void setBusinessMan(User businessMan) {
+//        this.businessMan = businessMan;
+//    }
 
     public String getEmail() {
         return email;
