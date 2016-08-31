@@ -79,15 +79,15 @@ public class SocketMessageApi {
 
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-            if (null!=deviceInspect.getStandard()){
-                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
-                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
-                    return new RestResponse("超出范围！",1005,null);
-                }
-            }else {
-                if (first!=1||first!=0)
-                    return new RestResponse("数据有误！",1005,null);
-            }
+//            if (null!=deviceInspect.getStandard()){
+//                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
+//                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
+//                    return new RestResponse("超出范围！",1005,null);
+//                }
+//            }else {
+//                if (first!=1||first!=0)
+//                    return new RestResponse("数据有误！",1005,null);
+//            }
 
 
 //            inspectData.setCreateDate(date);
@@ -98,39 +98,40 @@ public class SocketMessageApi {
             inspectData.setResult(record.toString());
 
             inspectDataRepository.save(inspectData);
-            if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
-                AlertCount high = alertCountRepository.
-                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
 
-                if (null == high){
-                    high.setDevice(device);
-                    high.setInspectType(deviceInspect.getInspectType());
-                    high.setNum(0);
-                    high.setType(1);
-                    high.setUnit(deviceInspect.getInspectType().getUnit());
-                }
-                if (high.getNum()==0){
-                    high.setCreateDate(new Date());
-                }
-                high.setNum(high.getNum() + 1);
-                alertCountRepository.save(high);
-            }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
-                    (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
-                AlertCount low = alertCountRepository.
-                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(),1);
-                if (null == low){
-                    low.setDevice(device);
-                    low.setInspectType(deviceInspect.getInspectType());
-                    low.setNum(0);
-                    low.setType(1);
-                    low.setUnit(deviceInspect.getInspectType().getUnit());
-                }
-                if (low.getNum()==0){
-                    low.setCreateDate(new Date());
-                }
-                low.setNum(low.getNum()+1);
-                alertCountRepository.save(low);
-            }
+//            if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
+//                AlertCount high = alertCountRepository.
+//                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
+//
+//                if (null == high){
+//                    high.setDevice(device);
+//                    high.setInspectType(deviceInspect.getInspectType());
+//                    high.setNum(0);
+//                    high.setType(1);
+//                    high.setUnit(deviceInspect.getInspectType().getUnit());
+//                }
+//                if (high.getNum()==0){
+//                    high.setCreateDate(new Date());
+//                }
+//                high.setNum(high.getNum() + 1);
+//                alertCountRepository.save(high);
+//            }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
+//                    (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
+//                AlertCount low = alertCountRepository.
+//                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(),1);
+//                if (null == low){
+//                    low.setDevice(device);
+//                    low.setInspectType(deviceInspect.getInspectType());
+//                    low.setNum(0);
+//                    low.setType(1);
+//                    low.setUnit(deviceInspect.getInspectType().getUnit());
+//                }
+//                if (low.getNum()==0){
+//                    low.setCreateDate(new Date());
+//                }
+//                low.setNum(low.getNum()+1);
+//                alertCountRepository.save(low);
+//            }
 
         }
         return new RestResponse(new RestInspectData(inspectData));
