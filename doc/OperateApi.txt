@@ -119,3 +119,5 @@ telephone               固话号
 email                   邮箱号
 }
 
+
+/api/rest/firm/query/inspect/type               获取所有的检测类型

@@ -317,8 +317,13 @@ SET FOREIGN_KEY_CHECKS=0;
   `alert_num` INT NULL DEFAULT 0 ,
   `alert_type` INT NULL DEFAULT 1,
   `create_date` DATETIME NULL,
-  
+  `unit` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `alert_count` ADD CONSTRAINT `alert_count_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `alert_count` ADD CONSTRAINT `alert_count_2` FOREIGN KEY (`inspect_type_id`) REFERENCES `inspect_type` (`id`);
+
+  ALTER TABLE `inspect_data` CHANGE COLUMN `result` `result` FLOAT NULL;
 
 SET FOREIGN_KEY_CHECKS=1;

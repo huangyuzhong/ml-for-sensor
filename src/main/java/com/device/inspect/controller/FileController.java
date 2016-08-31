@@ -343,10 +343,14 @@ public class FileController {
             }catch (ClassCastException e){
                 e.printStackTrace();
             }
+            deviceRepository.save(device);
             restResponse = new RestResponse("操作成功！",new RestDevice(device));
         }else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
+        out.print(JSON.toJSONString(restResponse));
+        out.flush();
+        out.close();
     }
 
     @RequestMapping(value = "/create/room/{name}")

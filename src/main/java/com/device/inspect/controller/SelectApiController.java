@@ -3,6 +3,7 @@ package com.device.inspect.controller;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
+import com.device.inspect.common.model.device.InspectType;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
@@ -14,6 +15,7 @@ import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.DeviceTypeRepository;
+import com.device.inspect.common.repository.device.InspectTypeRepository;
 import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
@@ -22,6 +24,7 @@ import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.common.restful.device.RestInspectType;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +68,9 @@ public class SelectApiController {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private InspectTypeRepository inspectTypeRepository;
 
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
@@ -318,6 +324,15 @@ public class SelectApiController {
         return new RestResponse(result);
     }
 
+    @RequestMapping(value = "/query/inspect/type")
+    public RestResponse getAllInspectType(){
+        Iterable<InspectType> iterable = inspectTypeRepository.findAll();
+        List<RestInspectType> list = new ArrayList<RestInspectType>();
+        for (InspectType inspectType : iterable){
+            list.add(new RestInspectType(inspectType));
+        }
+        return new RestResponse(list);
+    }
 
 
 }
