@@ -65,7 +65,7 @@ public class SocketMessageApi {
             String secondData = result.substring(34, 42);
 
             int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
-            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
+//            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
 
             Device device = new Device();
             if (monitorTypeCode.equals("00")||monitorTypeCode.equals("08")){
@@ -79,11 +79,16 @@ public class SocketMessageApi {
 
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-
-            Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
-            if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
-                return new RestResponse("超出范围！",1005,null);
+            if (null!=deviceInspect.getStandard()){
+                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
+                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
+                    return new RestResponse("超出范围！",1005,null);
+                }
+            }else {
+                if (first!=1||first!=0)
+                    return new RestResponse("数据有误！",1005,null);
             }
+
 
 //            inspectData.setCreateDate(date);
             inspectData.setCreateDate(new Date());
