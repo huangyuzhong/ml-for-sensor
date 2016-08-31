@@ -95,7 +95,7 @@ public class SocketMessageApi {
             inspectDataRepository.save(inspectData);
             if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
                 AlertCount high = alertCountRepository.
-                        findTopByDeviceIdAndTypeInspectTypeIdAndOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
+                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
 
                 if (null == high){
                     high.setDevice(device);
@@ -112,7 +112,7 @@ public class SocketMessageApi {
             }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
                     (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
                 AlertCount low = alertCountRepository.
-                        findTopByDeviceIdAndTypeInspectTypeIdAndOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(),1);
+                        findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(),1);
                 if (null == low){
                     low.setDevice(device);
                     low.setInspectType(deviceInspect.getInspectType());
