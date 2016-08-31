@@ -4,8 +4,10 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.firm.Building;
+import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleRepository;
@@ -13,12 +15,14 @@ import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.DeviceTypeRepository;
 import com.device.inspect.common.repository.firm.BuildingRepository;
+import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -58,6 +62,9 @@ public class SelectApiController {
 
     @Autowired
     private DeviceTypeRepository deviceTypeRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
@@ -196,6 +203,79 @@ public class SelectApiController {
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
         return new RestResponse(assembleUsers(user, userPage));
+    }
+
+    @RequestMapping(value = "/query/all/company/{name}")
+    public RestResponse getAllCompany(@PathVariable String name){
+        User user = userRepository.findByName(name);
+        if (null == user){
+            return new RestResponse("用户信息不存在！",1005,null);
+        }
+        List<RestCompany> list = new ArrayList<RestCompany>();
+        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")){
+            Map<String,String> requestParam = new HashMap<String,String>();
+            Page<Company> companyPage = new CompanyQuery(entityManager)
+                    .query(requestParam, 0, 100000, new Sort(Sort.Direction.DESC, "createDate"));
+            list = (List)assembleCompanies(companyPage).get("companies");
+        }else if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")){
+            Map<String,String> requestParam = new HashMap<String,String>();
+            requestParam.put("businessId",user.getId().toString());
+            Page<Company> companyPage = new CompanyQuery(entityManager)
+                    .query(requestParam, 0, 100000, new Sort(Sort.Direction.DESC, "createDate"));
+            list = (List)assembleCompanies(companyPage).get("companies");
+        }else {
+            Company company = user.getCompany();
+            list.add(new RestCompany(company));
+        }
+
+        return new RestResponse(list);
+    }
+
+    @RequestMapping(value = "/query/company/{name}")
+    public RestResponse getCompanyByUserName(@PathVariable String name,@RequestParam Map<String,String> requestParam){
+        User user = userRepository.findByName(name);
+        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+            return new RestResponse("user's information correct!",1005,null);
+        }
+        if (user.getRole().getRoleAuthority()!=null){
+            if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")){
+                requestParam.put("businessId",user.getId().toString());
+            }else if (user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")){
+
+            }else {
+                return new RestResponse("权限不足！",null);
+            }
+        }
+
+        Integer limit = 10;
+        Integer start = 0;
+
+        if (requestParam.containsKey("limit")) {
+            limit = Integer.valueOf(requestParam.get("limit"));
+            requestParam.remove("limit");
+        }
+
+        if (requestParam.containsKey("start")) {
+            start = Integer.valueOf(requestParam.get("start"));
+            requestParam.remove("start");
+        }
+
+        Page<Company> companyPage = new CompanyQuery(entityManager)
+                .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
+
+        return new RestResponse(assembleCompanies(companyPage));
+    }
+
+    private Map assembleCompanies(Page<Company> companyPage){
+        Map map = new HashMap();
+        map.put("total",String.valueOf(companyPage.getTotalElements()));
+        map.put("thisNum",String.valueOf(companyPage.getNumberOfElements()));
+        List<RestCompany> list = new ArrayList<RestCompany>();
+        for (Company company:companyPage.getContent()){
+            list.add(new RestCompany(company));
+        }
+        map.put("companies",list);
+        return map;
     }
 
     private Map assembleDevices(Page<Device> devicePage){

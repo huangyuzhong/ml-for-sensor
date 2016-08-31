@@ -69,3 +69,28 @@ yPoint                  在房间平面图上y坐标值
 name                    设备名称
 monitorCode             终端编号
 }
+
+
+/api/rest/file/change/device/picture/{deviceId}             更改设备详情图
+deviceId：设备id
+入参：{
+文件
+}
+
+POST：/api/rest/operate/device/data/{deviceId}               更改设备的最高值
+入参：{
+id：     设备id                      不需要
+type：                               不需要
+name：   设备名称                     不需要
+list:[{
+id;                     检测类型id
+lowUp;                  低级报警高值
+lowDown;                低级报警低值
+highUp;                 高级报警高值
+highDown;               高级报警低值
+standard;               标准值
+lowAlter;               低级报警状态持续多少次发送警报
+},{
+。。。
+}]
+}

@@ -309,7 +309,16 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_type_inspect` ADD `high_down_alert` FLOAT NULL;
   ALTER TABLE `device_type_inspect` ADD `low_alert_minutes` INT NULL;
 
-
+  drop table if exists alert_count;
+  create table `alert_count`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `inspect_type_id` INT NULL,
+  `alert_num` INT NULL DEFAULT 0 ,
+  `alert_type` INT NULL DEFAULT 1,
+  `create_date` DATETIME NULL,
+  
+  );
 
 
 SET FOREIGN_KEY_CHECKS=1;

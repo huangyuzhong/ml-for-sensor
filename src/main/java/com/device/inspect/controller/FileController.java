@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
+import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
@@ -12,14 +13,17 @@ import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.BuildingRepository;
+import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.firm.RestBuilding;
+import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
+import com.device.inspect.controller.request.CompanyRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +86,9 @@ public class FileController {
 
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
 
 
@@ -294,6 +301,7 @@ public class FileController {
                     deviceInspect.setLowDown(deviceTypeInspect.getLowDown());
                     deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
                     deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
+                    deviceInspect.setName(deviceTypeInspect.getInspectType().getName());
                     deviceInspectRepository.save(deviceInspect);
                 }
             }
@@ -516,6 +524,133 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+    }
 
+    @RequestMapping(value = "/change/picture/{deviceId}")
+    public void uploadPhoto(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
+            throws ServletException, IOException,SerialException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        RestResponse restResponse = null;
+
+        Device device = deviceRepository.findOne(deviceId);
+        if (null==device){
+            restResponse = new RestResponse("当前设备有误！",1005,null);
+        }else {
+            MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+
+            MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+            Set<String> keys = map.keySet();
+            List<String> result = new ArrayList<String>();
+            for (String key : keys) {
+
+                JSONObject jobj = new JSONObject();
+                String path = "";
+                path = request.getSession().getServletContext().getRealPath("/") + "photo/device/";
+                File add = new File(path);
+                if (!add.exists() && !add.isDirectory()) {
+                    add.mkdir();
+                }
+
+                List<MultipartFile> files = map.get(key);
+                if (null != files && files.size() > 0) {
+                    MultipartFile file = files.get(0);
+//                String name  = file.getOriginalFilename();
+                    String fileName = UUID.randomUUID().toString() + ".jpg";
+                    InputStream is = file.getInputStream();
+                    File f = new File(path + fileName);
+                    FileOutputStream fos = new FileOutputStream(f);
+                    int hasRead = 0;
+                    byte[] buf = new byte[1024];
+                    while ((hasRead = is.read(buf)) > 0) {
+                        fos.write(buf, 0, hasRead);
+                    }
+                    fos.close();
+                    is.close();
+                    device.setPhoto("/photo/device/"+fileName);
+                }
+            }
+            out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
+            out.flush();
+            out.close();
+        }
+    }
+
+    @RequestMapping(value = "/create/company/{name}")
+    public void createDeviceType(@PathVariable String name,@RequestBody CompanyRequest companyRequest,
+                                 HttpServletRequest request,HttpServletResponse response)
+            throws ServletException, IOException,SerialException{
+        User user = userRepository.findByName(name);
+        RestResponse restResponse = null;
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        if (null == user)
+            restResponse = new RestResponse("手机号出错！", null);
+
+        Company company = null;
+        List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
+        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")||
+                user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")) {
+
+            if (null==companyRequest.getId()){
+                company = new Company();
+                company.setCreateDate(new Date());
+                company.setBusinessMan(user);
+            }else {
+                company = companyRepository.findOne(companyRequest.getId());
+            }
+            company.setName(companyRequest.getName());
+            company.setAddress(companyRequest.getAddress());
+            company.setContractEndDate(companyRequest.getContractEndDate());
+            company.setContractNum(companyRequest.getContractNum());
+            company.setEmail(companyRequest.getEmail());
+            company.setSignDate(companyRequest.getSignDate());
+            company.setTelephone(companyRequest.getTelephone());
+
+            try {
+                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                Set<String> keys = map.keySet();
+                for (String key : keys) {
+                    JSONObject jobj = new JSONObject();
+                    String path = "";
+
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                    File add = new File(path);
+                    if (!add.exists() && !add.isDirectory()) {
+                        add.mkdir();
+                    }
+
+                    List<MultipartFile> files = map.get(key);
+                    if (null != files && files.size() > 0) {
+                        MultipartFile file = files.get(0);
+//                String name  = file.getOriginalFilename();
+                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        InputStream is = file.getInputStream();
+                        File f = new File(path + fileName);
+                        FileOutputStream fos = new FileOutputStream(f);
+                        int hasRead = 0;
+                        byte[] buf = new byte[1024];
+                        while ((hasRead = is.read(buf)) > 0) {
+                            fos.write(buf, 0, hasRead);
+                        }
+                        fos.close();
+                        is.close();
+
+                        company.setBackground("/photo/company/" + fileName);
+                    }
+                }
+            }catch (ClassCastException e){
+                e.printStackTrace();
+//                deviceType.setLogo("/photo/company/" + fileName);
+            }
+            companyRepository.save(company);
+            restResponse = new RestResponse("操作成功！",new RestCompany(company));
+        } else {
+            restResponse = new RestResponse("权限不足！",1005,null);
+        }
+        out.print(JSON.toJSONString(restResponse));
+        out.flush();
+        out.close();
     }
 }

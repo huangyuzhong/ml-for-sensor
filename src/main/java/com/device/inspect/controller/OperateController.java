@@ -1,18 +1,24 @@
 package com.device.inspect.controller;
 
+import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.BuildingRepository;
+import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.restful.RestResponse;
+import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.controller.request.DeviceTypeRequest;
+import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,6 +68,12 @@ public class OperateController {
 
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
+
+    @Autowired
+    private DeviceInspectRepository deviceInspectRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @RequestMapping(value = "/device/type")
     public RestResponse operateDeviceType(Principal principal,@RequestParam Map<String,String> map){
@@ -121,29 +133,6 @@ public class OperateController {
 
     }
 
-//    @RequestMapping(value = "")
-//    public RestResponse opereateBuilding(Principal principal,@RequestParam String userName,
-//            @RequestParam String name,){
-//
-//    }
-
-
-    @RequestMapping(value = "/create/user/{name}")
-    public RestResponse createNewUser(Principal principal,@PathVariable String name,@RequestParam Map<String,String> map){
-        User user = userRepository.findByName(name);
-        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
-        if (null == roleAuthority)
-            return new RestResponse("权限不足",1005,null);
-
-        User under = new User();
-//        user.setName();
-
-        under.setEmail(map.get("email") == null ? null : map.get("email"));
-//        under.setName();
-
-        return null;
-    }
-
     @RequestMapping(value = "/device/{deviceId}")
     public RestResponse operateDevice(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
         Device device = deviceRepository.findOne(deviceId);
@@ -154,11 +143,11 @@ public class OperateController {
         if (null!=map.get("creator"))
             device.setCreator(map.get("creator"));
         if (null!=map.get("maintain"))
-            device.setCreator(map.get("maintain"));
+            device.setMaintain(map.get("maintain"));
         if (null!=map.get("maintainAlterDays"))
-            device.setCreator(map.get("maintainAlterDays"));
+            device.setMaintainAlterDays(Integer.valueOf(map.get("maintainAlterDays")));
         if (null!=map.get("model"))
-            device.setCreator(map.get("model"));
+            device.setModel(map.get("model"));
         if (null!=map.get("purchase"))
             device.setPurchase(new Date());
         if (null!=map.get("maintainDate"))
@@ -169,16 +158,90 @@ public class OperateController {
                 device.setManager(user);
             }
         }
+        deviceRepository.save(device);
 
         return new RestResponse(new RestDevice(device));
     }
 
-//    @RequestMapping(value = "/device/data/{deviceId}")
-//    public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody ){
-//        Device device = deviceRepository.findOne(deviceId);
-//        if (null == device)
-//            return new RestResponse("设备信息出错！",1005,null);
-//
-//    }
+    @RequestMapping(value = "/device/data/{deviceId}")
+    public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
+        Device device = deviceRepository.findOne(deviceId);
+        if (null == device)
+            return new RestResponse("设备信息出错！",1005,null);
+        if (null!=request.getList()&&request.getList().size()>0){
+            for (InspectTypeRequest inspectTypeRequest:request.getList()){
+                DeviceInspect deviceInspect = deviceInspectRepository.
+                        findByInspectTypeIdAndDeviceId(inspectTypeRequest.getId(), deviceId);
+
+                deviceInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                deviceInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                deviceInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                deviceInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+
+                deviceInspectRepository.save(deviceInspect);
+            }
+        }
+        return new RestResponse(new RestDevice(device));
+    }
+
+    @RequestMapping(value = "/create/user/{name}")
+    public RestResponse createNewUser(@PathVariable String name,@RequestParam Map<String,String> map){
+        User user = userRepository.findByName(name);
+        if (null == user)
+            return new RestResponse("用户信息错误！",1005,null);
+        User child = new User();
+        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
+        if (null==roleAuthority)
+            return new RestResponse("权限不足，无法添加！",null);
+        Company company = null;
+        if (null==map.get("companyId"))
+            company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
+        if (null==map.get("name"))
+            return new RestResponse("登录名不能为空！",1005,null);
+        User judge = userRepository.findByName(map.get("name"));
+        if (judge!=null)
+            return new RestResponse("登录名已存在！",1005,null);
+        child.setCompany(company);
+        child.setCreateDate(new Date());
+        child.setName(map.get("name"));
+        child.setPassword(map.get("password"));
+        child.setUserName(map.get("userName"));
+        child.setDepartment(map.get("department"));
+        child.setJobNum(map.get("jobNum"));
+        child.setJob(map.get("job"));
+        userRepository.save(user);
+        Role role = new Role();
+        role.setAuthority(roleAuthority.getName());
+        role.setRoleAuthority(roleAuthority);
+        role.setUser(user);
+        roleRepository.save(role);
+        return new RestResponse("创建成功！",null);
+    }
+
+    @RequestMapping(value = "/update/user/{name}")
+    public RestResponse updateUserMessage(@PathVariable String name,@RequestParam Map<String,String> param){
+        User user = userRepository.findByName(name);
+        if (null == user)
+            return new RestResponse("用户信息错误！",1005,null);
+        if (null!=param.get("userName"))
+            user.setUserName(param.get("userName"));
+        if (null!=param.get("department"))
+            user.setDepartment(param.get("department"));
+        if (null!=param.get("jobNum"))
+            user.setJobNum(param.get("jobNum"));
+        if (null!=param.get("job"))
+            user.setJob(param.get("job"));
+        if (null!=param.get("password"))
+            user.setPassword(param.get("password"));
+        if (null!=param.get("mobile"))
+            user.setMobile(param.get("mobile"));
+        if (null!=param.get("telephone"))
+            user.setTelephone(param.get("telephone"));
+        if (null!=param.get("email"))
+            user.setEmail(param.get("email"));
+        userRepository.save(user);
+        return new RestResponse(new RestUser(user));
+    }
 
 }

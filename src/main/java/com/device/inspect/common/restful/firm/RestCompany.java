@@ -1,23 +1,22 @@
-package com.device.inspect.common.model.firm;
+package com.device.inspect.common.restful.firm;
 
-import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.firm.Company;
+import com.device.inspect.common.restful.charater.RestUser;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.List;
 
 /**
- * Created by Administrator on 2016/7/7.
+ * Created by Administrator on 2016/8/31.
  */
-@Entity
-@Table(name = "company")
-public class Company {
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class RestCompany {
     private Integer id;
     private String name;
     private String address;
-    private User manager;
-    private User businessMan;
+    private RestUser manager;
+    private RestUser businessMan;
     private String email;
     private String telephone;
     private String contractNum;
@@ -25,10 +24,22 @@ public class Company {
     private Date contractEndDate;
     private String background;
     private Date createDate;
-    private List<Building> buildings;
 
-    @Id
-    @GeneratedValue()
+    public RestCompany(@NotNull Company company){
+        this.id = company.getId();
+        this.name = company.getName();
+        this.address = company.getAddress();
+        this.manager = null==company.getManager()?null:new RestUser(company.getManager());
+        this.businessMan = null==company.getBusinessMan()?null:new RestUser(company.getBusinessMan());
+        this.email = company.getEmail();
+        this.telephone = company.getTelephone();
+        this.contractNum = company.getContractNum();
+        this.signDate = company.getSignDate();
+        this.contractEndDate = company.getContractEndDate();
+        this.background = company.getBackground();
+        this.createDate = company.getCreateDate();
+    }
+
     public Integer getId() {
         return id;
     }
@@ -53,24 +64,19 @@ public class Company {
         this.address = address;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "manager_user_id")
-    public User getManager() {
+    public RestUser getManager() {
         return manager;
     }
 
-
-    public void setManager(User manager) {
+    public void setManager(RestUser manager) {
         this.manager = manager;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "business_user_id")
-    public User getBusinessMan() {
+    public RestUser getBusinessMan() {
         return businessMan;
     }
 
-    public void setBusinessMan(User businessMan) {
+    public void setBusinessMan(RestUser businessMan) {
         this.businessMan = businessMan;
     }
 
@@ -90,7 +96,6 @@ public class Company {
         this.telephone = telephone;
     }
 
-    @Column(name = "contract_no")
     public String getContractNum() {
         return contractNum;
     }
@@ -99,8 +104,6 @@ public class Company {
         this.contractNum = contractNum;
     }
 
-
-    @Column(name = "sign_date")
     public Date getSignDate() {
         return signDate;
     }
@@ -109,7 +112,6 @@ public class Company {
         this.signDate = signDate;
     }
 
-    @Column(name = "contract_end_date")
     public Date getContractEndDate() {
         return contractEndDate;
     }
@@ -118,7 +120,6 @@ public class Company {
         this.contractEndDate = contractEndDate;
     }
 
-    @Column(name = "background_url")
     public String getBackground() {
         return background;
     }
@@ -127,21 +128,11 @@ public class Company {
         this.background = background;
     }
 
-    @Column(name = "create_date")
     public Date getCreateDate() {
         return createDate;
     }
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
-    }
-
-    @OneToMany(mappedBy = "company")
-    public List<Building> getBuildings() {
-        return buildings;
-    }
-
-    public void setBuildings(List<Building> buildings) {
-        this.buildings = buildings;
     }
 }

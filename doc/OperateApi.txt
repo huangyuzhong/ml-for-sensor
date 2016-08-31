@@ -55,3 +55,67 @@ maintainDate                最新一次保养日期
 
 /api/rest/firm/colleges/{name}
 {name} 登陆用户名
+
+
+POST：/api/rest/file/create/company/{name}           （公司新增和修改公用接口）
+{name}：用户登录名
+入参：{
+    id;                     修改时添加企业Id
+    name;                   企业名称
+    address;                企业地址
+    email;                  企业邮箱
+    telephone;              企业客服
+    contractNum;            合同编号
+    signDate;               签署日期
+    contractEndDate;        合同终止日期
+    还有选择的上传文件（公司楼的分布图）
+}
+
+/api/rest/firm/query/company/{name}?start=&limit=&name=&address=                平台管理员和业务员企业列表中显示
+{name}用户登录名
+入参：{
+start           默认0
+limit           默认10
+name            企业名称
+address=        企业地址：模糊匹配
+}
+出参：{
+total：      查询到的总数
+thisNum：    本次查询到数目
+companies：  企业列表
+}
+
+/api/rest/firm/query/all/company/{name}                 平台人员和企业管理员新增用户时查询的企业列表
+{name}   用户登录名
+入参：{
+无}
+出参：{
+企业列表
+}
+
+
+/api/rest/operate/create/user/{name}?companyId=&name=&password=&userName=&department=&jobNum=&job       创建下一级人员接口
+{name}：用户登录名
+{
+companyId：                  公司id，根据查询接口
+name                         公司名称
+password                    登陆初始密码
+userName                    下属的用户名称
+department                  所属部门
+jobNum                      工号
+job                         职位
+}
+
+/api/rest/operate/update/user/{name}?userName=&department=&jobNum=&job=&password=&mobile=&telephone=&email=     人员自己修改信息接口
+{name} 用户登录名
+入参：{
+userName                全名
+department              部门
+jobNum                  工号
+job                     职位
+password                密码
+mobile                  手机号
+telephone               固话号
+email                   邮箱号
+}
+

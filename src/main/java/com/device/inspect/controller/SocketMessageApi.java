@@ -114,8 +114,6 @@ public class SocketMessageApi {
             return new RestResponse();
         }
 
-
-
     }
 
     @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)

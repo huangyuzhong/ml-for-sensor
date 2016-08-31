@@ -12,6 +12,5 @@ import java.util.List;
 public interface UserRepository extends CrudRepository<User,Integer> {
     public User findByName(String name);
 
-
     public List<User> findByCompanyId(Integer CompanyId);
 }
