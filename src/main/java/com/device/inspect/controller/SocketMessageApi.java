@@ -79,15 +79,15 @@ public class SocketMessageApi {
 
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-            if (null!=deviceInspect.getStandard()){
-                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
-                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
-                    return new RestResponse("超出范围！",1005,null);
-                }
-            }else {
-                if (first/1000!=1||first/1000!=0)
-                    return new RestResponse("数据有误！",1005,null);
-            }
+//            if (null!=deviceInspect.getStandard()){
+//                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
+//                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
+//                    return new RestResponse("超出范围！",1005,null);
+//                }
+//            }else {
+//                if (first/1000!=1||first/1000!=0)
+//                    return new RestResponse("数据有误！",1005,null);
+//            }
 
 
 //            inspectData.setCreateDate(date);
