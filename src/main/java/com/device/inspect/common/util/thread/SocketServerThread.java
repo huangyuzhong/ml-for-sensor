@@ -111,10 +111,11 @@ public class SocketServerThread extends Thread {
 
         String result = "";
         result = "ef020500";
-        int lowUp = (int)(restInspectData.getDeviceInspect().getLowUp()*1000);
-        int lowDown = (int)(restInspectData.getDeviceInspect().getLowDown()*1000);
-        int highUp = (int)(restInspectData.getDeviceInspect().getHighUp()*1000);
-        int highDown = (int)(restInspectData.getDeviceInspect().getHighDown()*1000);
+
+        int lowUp = (int)(null==restInspectData.getDeviceInspect().getLowUp()?0:(restInspectData.getDeviceInspect().getLowUp()*1000));
+        int lowDown = (int)(null==restInspectData.getDeviceInspect().getLowDown()?0:(restInspectData.getDeviceInspect().getLowDown()*1000));
+        int highUp = (int)(null==restInspectData.getDeviceInspect().getHighUp()?0:(restInspectData.getDeviceInspect().getHighUp()*1000));
+        int highDown = (int)(null==restInspectData.getDeviceInspect().getHighDown()?0:(restInspectData.getDeviceInspect().getHighDown()*1000));
 
         result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowUp));
         result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowDown));
