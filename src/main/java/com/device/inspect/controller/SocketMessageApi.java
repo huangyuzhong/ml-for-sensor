@@ -98,9 +98,9 @@ public class SocketMessageApi {
             inspectData.setDeviceInspect(deviceInspect);
             Float record = Float.valueOf(first / 1000);
             inspectData.setResult(record.toString());
-            if(monitorTypeCode.equals("02")&&record>100000){
-                return new RestResponse("二氧化碳数据错误！",1005,null);
-            }
+//            if(monitorTypeCode.equals("02")&&record>100000){
+//                return new RestResponse("二氧化碳数据错误！",1005,null);
+//            }
 
             inspectDataRepository.save(inspectData);
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
