@@ -344,6 +344,12 @@ public class FileController {
                 e.printStackTrace();
             }
             deviceRepository.save(device);
+            device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
+            roomRepository.save(device.getRoom());
+            device.getRoom().getFloor().setDeviceNum(device.getRoom().getFloor().getDeviceNum()+1);
+            storeyRepository.save(device.getRoom().getFloor());
+            device.getRoom().getFloor().getBuild().setDeviceNum(device.getRoom().getFloor().getBuild().getDeviceNum()+1);
+            buildingRepository.save(device.getRoom().getFloor().getBuild());
             restResponse = new RestResponse("操作成功！",new RestDevice(device));
         }else {
             restResponse = new RestResponse("权限不足！",1005,null);

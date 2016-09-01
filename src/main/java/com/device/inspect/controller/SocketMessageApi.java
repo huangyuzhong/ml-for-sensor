@@ -41,6 +41,8 @@ public class SocketMessageApi {
     @Autowired
     private AlertCountRepository alertCountRepository;
 
+    String unit = "s";
+
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
         String monitorTypeCode = result.substring(4,6);
@@ -96,6 +98,9 @@ public class SocketMessageApi {
             inspectData.setDeviceInspect(deviceInspect);
             Float record = Float.valueOf(first / 1000);
             inspectData.setResult(record.toString());
+            if(monitorTypeCode.equals("02")&&record>100000){
+                return new RestResponse("二氧化碳数据错误！",1005,null);
+            }
 
             inspectDataRepository.save(inspectData);
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
@@ -113,7 +118,7 @@ public class SocketMessageApi {
                     newLow.setInspectType(deviceInspect.getInspectType());
                     newLow.setNum(0);
                     newLow.setType(1);
-                    newLow.setUnit(deviceInspect.getInspectType().getUnit());
+                    newLow.setUnit(unit);
                     newLow.setCreateDate(new Date());
                     alertCountRepository.save(newLow);
                 }
@@ -123,7 +128,7 @@ public class SocketMessageApi {
                     high.setInspectType(deviceInspect.getInspectType());
                     high.setNum(0);
                     high.setType(1);
-                    high.setUnit(deviceInspect.getInspectType().getUnit());
+                    high.setUnit(unit);
                 }
                 if (high.getNum()==0){
                     high.setCreateDate(new Date());
@@ -138,7 +143,7 @@ public class SocketMessageApi {
                     newHigh.setInspectType(deviceInspect.getInspectType());
                     newHigh.setNum(0);
                     newHigh.setType(1);
-                    newHigh.setUnit(deviceInspect.getInspectType().getUnit());
+                    newHigh.setUnit(unit);
                     newHigh.setCreateDate(new Date());
                     alertCountRepository.save(newHigh);
                 }
@@ -147,7 +152,7 @@ public class SocketMessageApi {
                     low.setInspectType(deviceInspect.getInspectType());
                     low.setNum(0);
                     low.setType(1);
-                    low.setUnit(deviceInspect.getInspectType().getUnit());
+                    low.setUnit(unit);
                 }
                 if (low.getNum()==0){
                     low.setCreateDate(new Date());
@@ -160,7 +165,7 @@ public class SocketMessageApi {
                 newLow.setInspectType(deviceInspect.getInspectType());
                 newLow.setNum(0);
                 newLow.setType(1);
-                newLow.setUnit(deviceInspect.getInspectType().getUnit());
+                newLow.setUnit(unit);
                 newLow.setCreateDate(new Date());
                 alertCountRepository.save(newLow);
 
@@ -169,7 +174,7 @@ public class SocketMessageApi {
                 newHigh.setInspectType(deviceInspect.getInspectType());
                 newHigh.setNum(0);
                 newHigh.setType(1);
-                newHigh.setUnit(deviceInspect.getInspectType().getUnit());
+                newHigh.setUnit(unit);
                 newHigh.setCreateDate(new Date());
                 alertCountRepository.save(newHigh);
             }
