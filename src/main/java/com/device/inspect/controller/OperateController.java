@@ -185,6 +185,8 @@ public class OperateController {
         return new RestResponse(new RestDevice(device));
     }
 
+
+
     @RequestMapping(value = "/create/user/{name}")
     public RestResponse createNewUser(@PathVariable String name,@RequestParam Map<String,String> map){
         User user = userRepository.findByName(name);
@@ -243,5 +245,7 @@ public class OperateController {
         userRepository.save(user);
         return new RestResponse(new RestUser(user));
     }
+
+
 
 }

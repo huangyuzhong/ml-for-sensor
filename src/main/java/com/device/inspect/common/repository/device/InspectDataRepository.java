@@ -11,4 +11,5 @@ import java.util.List;
 public interface InspectDataRepository extends CrudRepository<InspectData,Integer> {
     public InspectData findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
     public List<InspectData> findTop7ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
+    public List<InspectData> findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
 }

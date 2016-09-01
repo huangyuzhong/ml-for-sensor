@@ -9,10 +9,7 @@ import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
 import java.util.*;
@@ -239,6 +236,41 @@ public class SocketMessageApi {
 
         return new RestResponse(map);
 
+    }
+
+    @RequestMapping(value = "/device/chart/{deviceId}")
+    public RestResponse getTopTwentyData(@PathVariable Integer deviceId){
+        Device device = deviceRepository.findOne(deviceId);
+        List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
+        Map map = new HashMap();
+        List<List> list = new ArrayList<List>();
+        Float  score = Float.valueOf(100);
+        if (null!=deviceInspectList&&deviceInspectList.size()>0){
+            for (DeviceInspect deviceInspect : deviceInspectList){
+                List<InspectData> inspectDatas = inspectDataRepository.
+                        findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                if (null!=inspectDatas&&inspectDatas.size()>0) {
+                    List<RestInspectData> insertDatas = new ArrayList<RestInspectData>();
+                    for (InspectData inspectData : inspectDatas) {
+                        insertDatas.add(new RestInspectData(inspectData));
+                        if(null!=inspectData.getDeviceInspect().getHighDown()){
+                            float m=0;
+                            if (Float.valueOf(inspectData.getResult())>inspectData.getDeviceInspect().getStandard()){
+                                m = Float.valueOf(inspectData.getResult())-inspectData.getDeviceInspect().getStandard();
+                            }else {
+                                m = inspectData.getDeviceInspect().getStandard()-Float.valueOf(inspectData.getResult());
+                            }
+                            score = score - m/(inspectData.getDeviceInspect().getHighUp()-inspectData.getDeviceInspect().getStandard());
+                        }
+                    }
+                    list.add(insertDatas);
+                }
+            }
+        }
+        map.put("list",list);
+        map.put("score",score);
+
+        return new RestResponse(map);
     }
 
 }
