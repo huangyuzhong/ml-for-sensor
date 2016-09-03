@@ -246,6 +246,72 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
+    @RequestMapping(value = "/deviceType/{name}")
+    public RestResponse operateDeviceType(@PathVariable String name,@RequestBody DeviceTypeRequest deviceTypeReq){
+        User user = userRepository.findByName(name);
+        if (null == user)
+            return new RestResponse("手机号出错！", null);
+        DeviceType deviceType = new DeviceType();
+        List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
+
+        if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
+            if (null != deviceTypeReq.getId()) {
+                deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
+                if (null==deviceType)
+                    return new RestResponse("当前设备不存在！",1005,null);
+                deviceType.setName(deviceTypeReq.getName());
+                deviceTypeRepository.save(deviceType);
+                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
+                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                        if (inspectTypeRequest.isChosed()){
+                            InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
+                            DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.
+                                    findByDeviceTypeIdAndInspectTypeId(deviceType.getId(), inspectType.getId());
+                            if (null != deviceTypeInspect) {
+                                deviceTypeInspect.setDeviceType(deviceType);
+                                deviceTypeInspect.setInspectType(inspectType);
+                                deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                                deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                                deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                                deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+                                deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                                deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
+                                deviceTypeInspectRepository.save(deviceTypeInspect);
+                            }
+                        }
+                    }
+                }
+            } else {
+                deviceType.setName(deviceTypeReq.getName());
+                deviceTypeRepository.save(deviceType);
+                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                        if (inspectTypeRequest.isChosed()){
+                            InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
+                            DeviceTypeInspect deviceTypeInspect = new DeviceTypeInspect();
+                            deviceTypeInspect.setDeviceType(deviceType);
+                            deviceTypeInspect.setInspectType(inspectType);
+                            deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                            deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                            deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                            deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+                            deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                            deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
+                            deviceTypeInspectRepository.save(deviceTypeInspect);
+                        }
+
+                    }
+                }
+            }
+
+
+        } else {
+            return new RestResponse("权限不足！",1005,null);
+        }
+        return new RestResponse(new RestDeviceType(deviceType));
+    }
+
 
 
 }

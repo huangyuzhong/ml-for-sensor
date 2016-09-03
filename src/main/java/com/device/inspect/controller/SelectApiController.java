@@ -27,6 +27,8 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.device.RestInspectType;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
+import com.device.inspect.controller.request.DeviceTypeRequest;
+import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -136,6 +138,10 @@ public class SelectApiController {
         return new RestResponse(new RestDevice(device));
     }
 
+    /**
+     * 查询所有的设备种类
+     * @return
+     */
     @RequestMapping(value = "/device/types",method = RequestMethod.GET)
     public RestResponse getAllDeviceTypes(){
         Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
@@ -327,11 +333,22 @@ public class SelectApiController {
     @RequestMapping(value = "/query/inspect/type")
     public RestResponse getAllInspectType(){
         Iterable<InspectType> iterable = inspectTypeRepository.findAll();
-        List<RestInspectType> list = new ArrayList<RestInspectType>();
-        for (InspectType inspectType : iterable){
-            list.add(new RestInspectType(inspectType));
+//        List<RestInspectType> list = new ArrayList<RestInspectType>();
+//        for (InspectType inspectType : iterable){
+//            list.add(new RestInspectType(inspectType));
+//        }
+        DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
+        List<InspectTypeRequest> list = new ArrayList<InspectTypeRequest>();
+        if (null!=iterable){
+            for (InspectType inspectType:iterable){
+                InspectTypeRequest inspectTypeRequest = new InspectTypeRequest();
+                inspectTypeRequest.setId(inspectType.getId());
+                inspectTypeRequest.setName(inspectType.getName());
+                list.add(inspectTypeRequest);
+            }
         }
-        return new RestResponse(list);
+        deviceTypeRequest.setList(list);
+        return new RestResponse(deviceTypeRequest);
     }
 
 

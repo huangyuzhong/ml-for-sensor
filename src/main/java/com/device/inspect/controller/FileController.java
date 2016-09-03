@@ -436,59 +436,18 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/deviceType/{name}")
-    public void createDeviceType(@PathVariable String name,@RequestBody DeviceTypeRequest deviceTypeReq,
+    @RequestMapping(value = "/upload/deviceType/icon/{deviceTypeId}")
+    public void createDeviceType(@PathVariable Integer deviceTypeId,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        User user = userRepository.findByName(name);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
-        if (null == user)
-            restResponse = new RestResponse("手机号出错！", null);
 
-        DeviceType deviceType = new DeviceType();
-        List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
-        if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
-            if (null!=deviceTypeReq.getType()&&null!=deviceTypeReq.getId()&&1==deviceTypeReq.getId()){
-                deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
-                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
-                if (null!=deviceTypeReq&&deviceTypeReq.getList().size()>0){
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()){
-                        InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
-                        DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.
-                                findByDeviceTypeIdAndInspectTypeId(deviceType.getId(),inspectType.getId());
-                        if (null!=deviceTypeInspect){
-                            deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
-                            deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
-                            deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
-                            deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
-                            deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
-                            deviceTypeInspect.setLowAlter(null==inspectTypeRequest.getLowAlter()?10:inspectTypeRequest.getLowAlter());
-                            deviceTypeInspectRepository.save(deviceTypeInspect);
-                        }
-                    }
-                }
-            }else {
-                if (null!=deviceTypeReq&&deviceTypeReq.getList().size()>0){
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()){
-                        InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
-                        DeviceTypeInspect deviceTypeInspect = new DeviceTypeInspect();
-                        deviceTypeInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
-                        deviceTypeInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
-                        deviceTypeInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
-                        deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
-                        deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
-                        deviceTypeInspect.setLowAlter(null==inspectTypeRequest.getLowAlter()?10:inspectTypeRequest.getLowAlter());
-                        deviceTypeInspectRepository.save(deviceTypeInspect);
-                    }
-                }
-            }
-
-            if (null!=deviceTypeReq.getName()){
-                deviceType.setName(deviceTypeReq.getName());
-            }
-
+        DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
+        if (null==deviceType)
+            restResponse = new RestResponse("设备类型不存在！",1005,null);
+        else {
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                 MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -528,9 +487,8 @@ public class FileController {
             }
             deviceTypeRepository.save(deviceType);
             restResponse = new RestResponse("操作成功！",new RestDeviceType(deviceType));
-        } else {
-            restResponse = new RestResponse("权限不足！",1005,null);
         }
+
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();

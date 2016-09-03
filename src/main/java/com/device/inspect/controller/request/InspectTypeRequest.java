@@ -1,8 +1,11 @@
 package com.device.inspect.controller.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * Created by Administrator on 2016/8/29.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class InspectTypeRequest {
     private Integer id;
     private String name;
@@ -12,6 +15,7 @@ public class InspectTypeRequest {
     private String highDown;
     private String standard;
     private Integer lowAlter;
+    private boolean chosed;
 
     public Integer getId() {
         return id;
@@ -75,5 +79,13 @@ public class InspectTypeRequest {
 
     public void setLowAlter(Integer lowAlter) {
         this.lowAlter = lowAlter;
+    }
+
+    public boolean isChosed() {
+        return chosed;
+    }
+
+    public void setChosed(boolean chosed) {
+        this.chosed = chosed;
     }
 }

@@ -1,10 +1,13 @@
 package com.device.inspect.controller.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 /**
  * Created by Administrator on 2016/8/29.
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DeviceTypeRequest {
     private Integer id;
     private String name;
