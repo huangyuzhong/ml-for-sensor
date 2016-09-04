@@ -481,11 +481,12 @@ public class FileController {
                         deviceType.setLogo("/photo/company/" + fileName);
                     }
                 }
+                deviceTypeRepository.save(deviceType);
             }catch (ClassCastException e){
                 e.printStackTrace();
 //                deviceType.setLogo("/photo/company/" + fileName);
             }
-            deviceTypeRepository.save(deviceType);
+
             restResponse = new RestResponse("操作成功！",new RestDeviceType(deviceType));
         }
 
@@ -545,7 +546,7 @@ public class FileController {
     }
 
     @RequestMapping(value = "/create/company/{name}")
-    public void createDeviceType(@PathVariable String name,@RequestBody CompanyRequest companyRequest,
+    public void createCompany(@PathVariable String name,@RequestParam Map<String,String> param,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = userRepository.findByName(name);
@@ -560,20 +561,18 @@ public class FileController {
         if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")||
                 user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")) {
 
-            if (null==companyRequest.getId()){
+            if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
             }else {
-                company = companyRepository.findOne(companyRequest.getId());
+                company = companyRepository.findOne(Integer.valueOf(param.get("id")));
             }
-            company.setName(companyRequest.getName());
-            company.setAddress(companyRequest.getAddress());
-            company.setContractEndDate(companyRequest.getContractEndDate());
-            company.setContractNum(companyRequest.getContractNum());
-            company.setEmail(companyRequest.getEmail());
-            company.setSignDate(companyRequest.getSignDate());
-            company.setTelephone(companyRequest.getTelephone());
+
+            company.setName(param.get("name"));
+            company.setAddress(param.get("address"));
+            company.setEmail(param.get("email"));
+            company.setTelephone(param.get("telephone"));
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;

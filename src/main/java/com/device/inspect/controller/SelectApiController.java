@@ -3,6 +3,7 @@ package com.device.inspect.controller;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
+import com.device.inspect.common.model.device.DeviceTypeInspect;
 import com.device.inspect.common.model.device.InspectType;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
@@ -146,12 +147,38 @@ public class SelectApiController {
     public RestResponse getAllDeviceTypes(){
         Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
         List<RestDeviceType> deviceTypes = new ArrayList<RestDeviceType>();
-        if (null!=deviceTypeIterable){
-            for (DeviceType deviceType: deviceTypeIterable){
+        if (null!=deviceTypeIterable)
+            for (DeviceType deviceType: deviceTypeIterable)
                 deviceTypes.add(new RestDeviceType(deviceType));
+
+        return new RestResponse(deviceTypes);
+    }
+
+    @RequestMapping(value = "/device/type/request/{deviceTypeId}")
+    public RestResponse getCurrentDeviceTypeRequest(@PathVariable Integer deviceTypeId){
+        DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
+        if (null==deviceType)
+            return new RestResponse("当前设备类型不存在！",1905,null);
+        DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
+        List<InspectTypeRequest> requests = new ArrayList<InspectTypeRequest>();
+        if (null!=deviceType.getDeviceTypeInspectList()){
+            for (DeviceTypeInspect deviceTypeInspect:deviceType.getDeviceTypeInspectList()){
+                InspectTypeRequest request = new InspectTypeRequest();
+                request.setId(deviceTypeInspect.getInspectType().getId());
+                request.setName(deviceTypeInspect.getInspectType().getName());
+                request.setChosed(true);
+                request.setHighDown(null == deviceTypeInspect.getHighDown() ? null : deviceTypeInspect.getHighDown().toString());
+                request.setHighUp(null == deviceTypeInspect.getHighUp() ? null : deviceTypeInspect.getHighUp().toString());
+                request.setStandard(null == deviceTypeInspect.getStandard() ? null : deviceTypeInspect.getStandard().toString());
+                request.setLowDown(null == deviceTypeInspect.getLowDown() ? null : deviceTypeInspect.getLowDown().toString());
+                request.setLowUp(null == deviceTypeInspect.getLowUp() ? null : deviceTypeInspect.getLowUp().toString());
+                requests.add(request);
             }
         }
-        return new RestResponse(deviceTypes);
+        deviceTypeRequest.setId(deviceType.getId());
+        deviceTypeRequest.setName(deviceType.getName());
+        deviceTypeRequest.setList(requests);
+        return new RestResponse(deviceTypeRequest);
     }
 
     @RequestMapping(value = "/manager/devices/{name}",method = RequestMethod.GET)

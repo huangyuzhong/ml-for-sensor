@@ -2,6 +2,8 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.device.DeviceTypeInspect;
+import com.device.inspect.controller.request.DeviceTypeRequest;
+import com.device.inspect.controller.request.InspectTypeRequest;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -63,4 +65,5 @@ public class RestDeviceType {
     public void setInspectTypes(List<RestInspectType> inspectTypes) {
         this.inspectTypes = inspectTypes;
     }
+
 }

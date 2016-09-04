@@ -1,6 +1,10 @@
 package com.device.inspect.controller.request;
 
+import com.device.inspect.common.model.device.DeviceType;
+import com.device.inspect.common.model.device.InspectType;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * Created by Administrator on 2016/8/29.
