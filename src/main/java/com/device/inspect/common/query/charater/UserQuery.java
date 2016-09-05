@@ -21,7 +21,7 @@ public class UserQuery extends Querier<User> {
         queryFilterMap.put("userName", new UserQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<User> userRoot) {
-                return cb.equal(userRoot.get("userName"), object);
+                return cb.like(userRoot.<String>get("userName"), '%' + (String) object + '%');
             }
         });
 

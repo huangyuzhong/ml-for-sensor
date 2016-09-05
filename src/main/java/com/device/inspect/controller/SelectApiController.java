@@ -237,7 +237,9 @@ public class SelectApiController {
         }
 
         requestParam.put("authorityId",user.getRole().getRoleAuthority().getChild().toString());
-        requestParam.put("companyId",user.getCompany().getId().toString());
+        if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")){
+            requestParam.put("companyId",user.getCompany().getId().toString());
+        }
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
