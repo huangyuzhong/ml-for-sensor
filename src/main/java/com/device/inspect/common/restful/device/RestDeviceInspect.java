@@ -147,4 +147,7 @@ public class RestDeviceInspect {
     public void setEnd(String end) {
         this.end = end;
     }
+
+
+
 }

@@ -26,6 +26,8 @@ public class RestUser {
     private String department;
     private String job;
     private String jobNum;
+    private RestRole role;
+    private String companyName;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -41,6 +43,8 @@ public class RestUser {
         this.department = user.getDepartment();
         this.job = user.getJob();
         this.jobNum = user.getJobNum();
+        this.role = null==user.getRole()?null:new RestRole(user.getRole());
+        this.companyName = user.getCompany().getName();
     }
 
 
@@ -147,5 +151,21 @@ public class RestUser {
 
     public void setJobNum(String jobNum) {
         this.jobNum = jobNum;
+    }
+
+    public RestRole getRole() {
+        return role;
+    }
+
+    public void setRole(RestRole role) {
+        this.role = role;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 }

@@ -163,7 +163,41 @@ public class OperateController {
         return new RestResponse(new RestDevice(device));
     }
 
-    @RequestMapping(value = "/device/data/{deviceId}")
+    @RequestMapping(value = "/get/device/parameter/{deviceId}")
+    public RestResponse getDeviceParameter(@PathVariable Integer deviceId){
+        Device device = deviceRepository.findOne(deviceId);
+        if (null==device)
+            return new RestResponse("设备信息出错！",1005,null);
+        DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
+        List<InspectTypeRequest> list = new ArrayList<InspectTypeRequest>();
+        for (DeviceInspect deviceInspect : device.getDeviceInspectList()){
+            InspectTypeRequest request = new InspectTypeRequest();
+            if (deviceInspect.getStandard()==null)
+                request.setChosed(false);
+            else {
+                request.setChosed(true);
+            }
+
+            request.setHighUp(null == deviceInspect.getHighUp() ? null : deviceInspect.getHighUp().toString());
+            request.setHighDown(deviceInspect.getHighDown() == null ? null : deviceInspect.getHighDown().toString());
+            request.setLowUp(deviceInspect.getLowUp() == null ? null : deviceInspect.getLowUp().toString());
+            request.setLowDown(deviceInspect.getLowDown() == null ? null : deviceInspect.getLowDown().toString());
+            request.setStandard(deviceInspect.getStandard()==null?null:deviceInspect.getStandard().toString());
+            request.setId(deviceInspect.getInspectType().getId());
+            request.setName(deviceInspect.getInspectType().getName());
+
+            list.add(request);
+        }
+        deviceTypeRequest.setId(deviceId);
+        deviceTypeRequest.setName(device.getDeviceType().getName());
+        deviceTypeRequest.setList(list);
+        return new RestResponse(deviceTypeRequest);
+    }
+
+    /**
+     * 修改单个设备的参数
+     */
+    @RequestMapping(value = "/device/parameter/{deviceId}")
     public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
@@ -172,12 +206,16 @@ public class OperateController {
             for (InspectTypeRequest inspectTypeRequest:request.getList()){
                 DeviceInspect deviceInspect = deviceInspectRepository.
                         findByInspectTypeIdAndDeviceId(inspectTypeRequest.getId(), deviceId);
-
-                deviceInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
-                deviceInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
-                deviceInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
-                deviceInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
-                deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
+                if (null!=inspectTypeRequest.getStandard())
+                    deviceInspect.setStandard(Float.valueOf(inspectTypeRequest.getStandard()));
+                if (null!=inspectTypeRequest.getHighDown())
+                    deviceInspect.setHighDown(Float.valueOf(inspectTypeRequest.getHighDown()));
+                if (null!=inspectTypeRequest.getHighUp())
+                    deviceInspect.setHighUp(Float.valueOf(inspectTypeRequest.getHighUp()));
+                if (null!=inspectTypeRequest.getLowUp())
+                    deviceInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
+                if (null!=inspectTypeRequest.getLowDown())
+                    deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
 
                 deviceInspectRepository.save(deviceInspect);
             }
@@ -196,27 +234,30 @@ public class OperateController {
         RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
         if (null==roleAuthority)
             return new RestResponse("权限不足，无法添加！",null);
-        Company company = null;
+
         if (null==map.get("companyId"))
-            company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
+            return new RestResponse("公司信息错误！",1005,null);
+
         if (null==map.get("name"))
             return new RestResponse("登录名不能为空！",1005,null);
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
+        Company company = new Company();
+        company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
         child.setCompany(company);
         child.setCreateDate(new Date());
         child.setName(map.get("name"));
-        child.setPassword(map.get("password"));
+        child.setPassword(null==map.get("password")?"123":map.get("password"));
         child.setUserName(map.get("userName"));
         child.setDepartment(map.get("department"));
         child.setJobNum(map.get("jobNum"));
         child.setJob(map.get("job"));
-        userRepository.save(user);
+        userRepository.save(child);
         Role role = new Role();
         role.setAuthority(roleAuthority.getName());
         role.setRoleAuthority(roleAuthority);
-        role.setUser(user);
+        role.setUser(child);
         roleRepository.save(role);
         return new RestResponse("创建成功！",null);
     }

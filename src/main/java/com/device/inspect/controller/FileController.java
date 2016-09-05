@@ -537,6 +537,7 @@ public class FileController {
                     fos.close();
                     is.close();
                     device.setPhoto("/photo/device/"+fileName);
+                    deviceRepository.save(device);
                 }
             }
             out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
