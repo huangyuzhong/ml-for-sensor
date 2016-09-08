@@ -583,7 +583,7 @@ public class FileController {
                     JSONObject jobj = new JSONObject();
                     String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/"+company.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
                         add.mkdir();
@@ -592,8 +592,8 @@ public class FileController {
                     List<MultipartFile> files = map.get(key);
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -605,7 +605,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        company.setBackground("/photo/company/" + fileName);
+                        company.setBackground("/photo/company/" +company.getId()+"/"+ fileName);
                     }
                 }
             }catch (ClassCastException e){

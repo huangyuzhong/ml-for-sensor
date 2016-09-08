@@ -27,7 +27,17 @@ public class RestInspectData {
     public RestInspectData(@NotNull InspectData inspectData){
         this.id = inspectData.getId();
         this.deviceInspect = null==inspectData.getDeviceInspect()?null:new RestDeviceInspect(inspectData.getDeviceInspect());
-        this.result = inspectData.getResult()+inspectData.getDeviceInspect().getInspectType().getUnit();
+        if (inspectData.getDeviceInspect().getInspectType().getCode()!=null&&
+                (inspectData.getDeviceInspect().getInspectType().getCode().equals("05")||
+                        inspectData.getDeviceInspect().getInspectType().getCode().equals("08"))){
+            if (inspectData.getResult().equals("1")){
+                this.result = "开";
+            }else {
+                this.result = "关";
+            }
+        } else
+            this.result = inspectData.getResult()+inspectData.getDeviceInspect().getInspectType().getUnit();
+
         this.picResult = inspectData.getResult();
         this.createDate = inspectData.getCreateDate();
         judge = 0;
