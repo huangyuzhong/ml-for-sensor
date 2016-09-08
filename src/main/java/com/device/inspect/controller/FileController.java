@@ -512,10 +512,9 @@ public class FileController {
             Set<String> keys = map.keySet();
             List<String> result = new ArrayList<String>();
             for (String key : keys) {
-
                 JSONObject jobj = new JSONObject();
                 String path = "";
-                path = request.getSession().getServletContext().getRealPath("/") + "photo/device/";
+                path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
                 File add = new File(path);
                 if (!add.exists() && !add.isDirectory()) {
                     add.mkdir();
@@ -524,8 +523,8 @@ public class FileController {
                 List<MultipartFile> files = map.get(key);
                 if (null != files && files.size() > 0) {
                     MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                    String fileName = UUID.randomUUID().toString() + ".jpg";
+                String fileName  = file.getOriginalFilename();
+//                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
@@ -536,7 +535,7 @@ public class FileController {
                     }
                     fos.close();
                     is.close();
-                    device.setPhoto("/photo/device/"+fileName);
+                    device.setPhoto("/photo/device/"+device.getId()+"/"+fileName);
                     deviceRepository.save(device);
                 }
             }

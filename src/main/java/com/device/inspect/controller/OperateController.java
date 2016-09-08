@@ -245,6 +245,10 @@ public class OperateController {
             return new RestResponse("登录名已存在！",1005,null);
         Company company = new Company();
         company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
+        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS"))
+            if (company.getManager()!=null)
+                return new RestResponse("该公司已有管理员账号！",1005,null);
+
         child.setCompany(company);
         child.setCreateDate(new Date());
         child.setName(map.get("name"));
