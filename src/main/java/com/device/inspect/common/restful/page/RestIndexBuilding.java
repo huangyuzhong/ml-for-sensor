@@ -19,6 +19,7 @@ import java.util.List;
 public class RestIndexBuilding {
 
     private Integer id;
+    private String name;
     private String background;
     private Integer deviceNum;
     private Integer alterNum;
@@ -28,6 +29,7 @@ public class RestIndexBuilding {
 
     public RestIndexBuilding(@NotNull Company company){
         this.id = company.getId();
+        this.name = company.getName();
         this.background = company.getBackground();
         if (null!=company.getCreateDate())
             days = MyCalendar.getDateSpace(company.getCreateDate(),new Date());
@@ -88,5 +90,13 @@ public class RestIndexBuilding {
 
     public void setList(List<RestBuilding> list) {
         this.list = list;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

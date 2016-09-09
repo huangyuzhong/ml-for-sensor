@@ -19,6 +19,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexDevice {
     private Integer id;
+    private String name;
     private Integer alterNum;
     private Integer days;
     private Integer deviceNum;
@@ -26,6 +27,7 @@ public class RestIndexDevice {
 
     public  RestIndexDevice(@NotNull Room room){
         this.id = room.getId();
+        this.name = room.getName();
         alterNum = 0;
         deviceNum = room.getDeviceNum();
         if (null!=room.getCreateDate())
@@ -79,5 +81,11 @@ public class RestIndexDevice {
         this.deviceNum = deviceNum;
     }
 
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 }

@@ -17,6 +17,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestIndexRoom {
     private Integer id;
+    private String name;
     private Integer deviceNum;
     private Integer alertNum;
     private Integer days;
@@ -24,6 +25,7 @@ public class RestIndexRoom {
 
     public RestIndexRoom(@NotNull Storey floor) {
         this.id = floor.getId();
+        this.name = floor.getName();
         deviceNum = 0;
         alertNum = 0;
         if (null!=floor.getCreateDate())
@@ -77,5 +79,13 @@ public class RestIndexRoom {
 
     public void setDays(Integer days) {
         this.days = days;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
