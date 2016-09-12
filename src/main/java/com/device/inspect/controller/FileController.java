@@ -90,6 +90,12 @@ public class FileController {
     @Autowired
     private CompanyRepository companyRepository;
 
+    @Autowired
+    private FileRepository fileRepository;
+
+    @Autowired
+    private DeviceFileRepository deviceFileRepository;
+
 
 
     /**
@@ -619,5 +625,64 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+    }
+
+    @RequestMapping(value = "/upload/device/file/{deviceId}")
+    public void uploadDeviceFile(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
+            throws ServletException, IOException,SerialException {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        RestResponse restResponse = null;
+
+        Device device = deviceRepository.findOne(deviceId);
+        if (null==device){
+            restResponse = new RestResponse("当前设备有误！",1005,null);
+        }else {
+            Files createFile = new Files();
+            createFile.setCreateDate(new Date());
+            createFile.setEnable(1);
+
+            MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+
+            MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+            Set<String> keys = map.keySet();
+            List<String> result = new ArrayList<String>();
+            for (String key : keys) {
+                JSONObject jobj = new JSONObject();
+                String path = "";
+                path = request.getSession().getServletContext().getRealPath("/") + "photo/file/"+device.getId()+"/";
+                File add = new File(path);
+                if (!add.exists() && !add.isDirectory()) {
+                    add.mkdir();
+                }
+
+                List<MultipartFile> files = map.get(key);
+                if (null != files && files.size() > 0) {
+                    MultipartFile file = files.get(0);
+                    String fileName  = file.getOriginalFilename();
+//                    String fileName = UUID.randomUUID().toString() + ".jpg";
+                    InputStream is = file.getInputStream();
+                    File f = new File(path + fileName);
+                    FileOutputStream fos = new FileOutputStream(f);
+                    int hasRead = 0;
+                    byte[] buf = new byte[1024];
+                    while ((hasRead = is.read(buf)) > 0) {
+                        fos.write(buf, 0, hasRead);
+                    }
+                    fos.close();
+                    is.close();
+                    createFile.setName(fileName);
+                    createFile.setUrl("/photo/file/" + device.getId() + "/" + fileName);
+                    fileRepository.save(createFile);
+                    DeviceFile deviceFile = new DeviceFile();
+                    deviceFile.setDevice(device);
+                    deviceFile.setFile(createFile);
+                    deviceFileRepository.save(deviceFile);
+                }
+            }
+            out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
+            out.flush();
+            out.close();
+        }
     }
 }

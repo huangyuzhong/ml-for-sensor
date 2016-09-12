@@ -325,5 +325,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `alert_count` ADD CONSTRAINT `alert_count_2` FOREIGN KEY (`inspect_type_id`) REFERENCES `inspect_type` (`id`);
 
   ALTER TABLE `inspect_data` CHANGE COLUMN `result` `result` FLOAT NULL;
+  ALTER TABLE `file` ADD `file_name` VARCHAR(255) NULL;
 
 SET FOREIGN_KEY_CHECKS=1;

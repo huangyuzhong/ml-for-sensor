@@ -1,6 +1,7 @@
 package com.device.inspect.common.restful.device;
 
-import com.device.inspect.common.model.device.File;
+import com.device.inspect.common.model.device.Files;
+import com.device.inspect.common.model.device.Files;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -18,7 +19,7 @@ public class RestFile {
     private Integer enable;
     private Date createDate;
 
-    public RestFile(@NotNull File file) {
+    public RestFile(@NotNull Files file) {
         this.id = file.getId();
         this.url = file.getUrl();
         this.type = file.getType();

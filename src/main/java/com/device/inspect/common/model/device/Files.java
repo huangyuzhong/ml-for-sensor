@@ -8,7 +8,7 @@ import java.util.Date;
  */
 @Entity
 @Table(name = "file")
-public class File {
+public class Files {
 
     private Integer id;
     private String url;
@@ -16,6 +16,7 @@ public class File {
     private String description;
     private Integer enable;
     private Date createDate;
+    private String name;
 
     @Id
     @GeneratedValue()
@@ -66,5 +67,14 @@ public class File {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "file_name")
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

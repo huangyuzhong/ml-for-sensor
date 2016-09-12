@@ -11,7 +11,7 @@ public class DeviceFile {
 
     private Integer id;
     private Device device;
-    private File file;
+    private Files file;
 
     @Id
     @GeneratedValue()
@@ -35,11 +35,11 @@ public class DeviceFile {
 
     @ManyToOne()
     @JoinColumn(name = "file_id")
-    public File getFile() {
+    public Files getFile() {
         return file;
     }
 
-    public void setFile(File file) {
+    public void setFile(Files file) {
         this.file = file;
     }
 }
