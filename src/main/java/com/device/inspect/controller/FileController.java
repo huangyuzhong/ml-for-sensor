@@ -680,7 +680,7 @@ public class FileController {
                     deviceFileRepository.save(deviceFile);
                 }
             }
-            out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
+            out.print(JSON.toJSONString(new RestResponse("文件上传成功！", 0, new RestDevice(device))));
             out.flush();
             out.close();
         }
