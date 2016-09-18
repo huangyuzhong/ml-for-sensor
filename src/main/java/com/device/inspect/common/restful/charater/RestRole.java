@@ -19,7 +19,7 @@ public class RestRole {
     public RestRole(@NotNull Role role){
         this.id = role.getId();
         this.authority = role.getAuthority();
-        this.roleAuthority = null==role.getAuthority()?null:new RestRoleAuthority(role.getRoleAuthority());
+        this.roleAuthority = null==role.getRoleAuthority()?null:new RestRoleAuthority(role.getRoleAuthority());
     }
 
     public Integer getId() {
