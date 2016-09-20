@@ -25,7 +25,7 @@ public class RestIndexDevice {
     private Integer deviceNum;
     private List<RestDevice> deviceList;
     private Integer roomId;
-    private String roomName;
+//    private String roomName;
     private Integer floorId;
     private String floorName;
     private Integer buildId;
@@ -109,13 +109,6 @@ public class RestIndexDevice {
         this.roomId = roomId;
     }
 
-    public String getRoomName() {
-        return roomName;
-    }
-
-    public void setRoomName(String roomName) {
-        this.roomName = roomName;
-    }
 
     public Integer getFloorId() {
         return floorId;
