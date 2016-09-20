@@ -32,6 +32,13 @@ public class UserQuery extends Querier<User> {
             }
         });
 
+        queryFilterMap.put("jobNum", new UserQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<User> userRoot) {
+                return cb.equal(userRoot.get("jobNum"),object);
+            }
+        });
+
         queryFilterMap.put("authorityId", new UserQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<User> userRoot) {

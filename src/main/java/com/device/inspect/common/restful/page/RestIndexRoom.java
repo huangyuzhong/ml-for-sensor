@@ -22,10 +22,16 @@ public class RestIndexRoom {
     private Integer alertNum;
     private Integer days;
     private List<RestRoom> roomList;
+    private Integer floorId;
+    private String buildName;
+    private Integer buildId;
 
     public RestIndexRoom(@NotNull Storey floor) {
         this.id = floor.getId();
         this.name = floor.getName();
+        this.buildName = floor.getBuild().getName();
+        this.buildId = floor.getBuild().getId();
+        this.floorId = floor.getId();
         deviceNum = 0;
         alertNum = 0;
         if (null!=floor.getCreateDate())
@@ -87,5 +93,29 @@ public class RestIndexRoom {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getFloorId() {
+        return floorId;
+    }
+
+    public void setFloorId(Integer floorId) {
+        this.floorId = floorId;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
+    }
+
+    public Integer getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(Integer buildId) {
+        this.buildId = buildId;
     }
 }

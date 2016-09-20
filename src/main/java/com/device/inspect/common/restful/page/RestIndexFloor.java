@@ -22,10 +22,12 @@ public class RestIndexFloor {
     private Integer alertNum;
     private Integer days;
     private List<RestFloor> floors;
+    private Integer buildId;
 
     public RestIndexFloor(@NotNull Building building){
         this.id = building.getId();
         this.name = building.getName();
+        this.buildId = building.getId();
         devcieNum = 0;
         alertNum = 0 ;
         if (null!=building.getCreateDate())
@@ -85,5 +87,13 @@ public class RestIndexFloor {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(Integer buildId) {
+        this.buildId = buildId;
     }
 }

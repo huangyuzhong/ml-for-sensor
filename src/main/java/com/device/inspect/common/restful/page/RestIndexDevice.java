@@ -24,12 +24,24 @@ public class RestIndexDevice {
     private Integer days;
     private Integer deviceNum;
     private List<RestDevice> deviceList;
+    private Integer roomId;
+    private String roomName;
+    private Integer floorId;
+    private String floorName;
+    private Integer buildId;
+    private String buildName;
 
     public  RestIndexDevice(@NotNull Room room){
         this.id = room.getId();
         this.name = room.getName();
-        alterNum = 0;
-        deviceNum = room.getDeviceNum();
+        this.roomId = room.getId();
+        this.floorId = room.getFloor().getId();
+        this.floorName = room.getFloor().getName();
+        this.buildId = room.getFloor().getBuild().getId();
+        this.buildName = room.getFloor().getBuild().getName();
+        this.alterNum = 0;
+        this.deviceNum = room.getDeviceNum();
+
         if (null!=room.getCreateDate())
             days = MyCalendar.getDateSpace(room.getCreateDate(), new Date());
         if (null!=room.getDeviceList()&&room.getDeviceList().size()>0){
@@ -87,5 +99,53 @@ public class RestIndexDevice {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Integer getRoomId() {
+        return roomId;
+    }
+
+    public void setRoomId(Integer roomId) {
+        this.roomId = roomId;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
+    }
+
+    public Integer getFloorId() {
+        return floorId;
+    }
+
+    public void setFloorId(Integer floorId) {
+        this.floorId = floorId;
+    }
+
+    public String getFloorName() {
+        return floorName;
+    }
+
+    public void setFloorName(String floorName) {
+        this.floorName = floorName;
+    }
+
+    public Integer getBuildId() {
+        return buildId;
+    }
+
+    public void setBuildId(Integer buildId) {
+        this.buildId = buildId;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public void setBuildName(String buildName) {
+        this.buildName = buildName;
     }
 }
