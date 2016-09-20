@@ -7,4 +7,5 @@ import org.springframework.data.repository.CrudRepository;
  * Created by Administrator on 2016/7/8.
  */
 public interface DeviceFileRepository extends CrudRepository<DeviceFile,Integer> {
+    public DeviceFile findByDeviceIdAndFileId(Integer DeviceId,Integer FileId);
 }

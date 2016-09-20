@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
+import java.io.File;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -74,6 +75,12 @@ public class OperateController {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private FileRepository fileRepository;
+
+    @Autowired
+    private DeviceFileRepository deviceFileRepository;
 
     @RequestMapping(value = "/device/type")
     public RestResponse operateDeviceType(Principal principal,@RequestParam Map<String,String> map){
@@ -357,6 +364,18 @@ public class OperateController {
         return new RestResponse(new RestDeviceType(deviceType));
     }
 
+    @RequestMapping(value = "/delete/file/{fileId}")
+    public RestResponse deleteFileFromDevice(@PathVariable Integer fileId,@RequestParam Integer deviceId){
+        Files files = fileRepository.findOne(fileId);
+        if (null==files)
+            return new RestResponse("该文件不存在！",1005,null);
+        DeviceFile deviceFile = deviceFileRepository.findByDeviceIdAndFileId(deviceId,fileId);
+        if (null == deviceFile)
+            return new RestResponse("该设备无此文件！",1005,null);
+        deviceFileRepository.delete(deviceFile);
+        fileRepository.delete(files);
+        return new RestResponse("删除成功！",null);
+    }
 
 
 }

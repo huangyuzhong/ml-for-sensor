@@ -35,6 +35,9 @@ public class RestDevice {
     private List<RestDeviceFloor> deviceFloors;
     private List<RestDeviceInspect> deviceInspects;
     private List<RestFile> files;
+    private String pushType;
+    private Integer pushInterval;
+    private String roomName;
 
 
     public RestDevice(@NotNull Device device) {
@@ -55,6 +58,11 @@ public class RestDevice {
         this.model = device.getModel();
         this.xPoint = device.getxPoint();
         this.yPoint = device.getyPoint();
+        this.pushType = device.getPushType();
+        this.pushInterval = device.getPushInterval();
+        this.roomName = device.getRoom().getFloor().getBuild().getName() + device.getRoom().getFloor().getName()+
+                device.getRoom().getName();
+
         if (null!=device.getDeviceFloorList()&&device.getDeviceFloorList().size()>0){
             this.deviceFloors = new ArrayList<RestDeviceFloor>();
             for (DeviceFloor deviceFloor : device.getDeviceFloorList())
@@ -234,5 +242,29 @@ public class RestDevice {
 
     public void setyPoint(Float yPoint) {
         this.yPoint = yPoint;
+    }
+
+    public String getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(String pushType) {
+        this.pushType = pushType;
+    }
+
+    public Integer getPushInterval() {
+        return pushInterval;
+    }
+
+    public void setPushInterval(Integer pushInterval) {
+        this.pushInterval = pushInterval;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public void setRoomName(String roomName) {
+        this.roomName = roomName;
     }
 }

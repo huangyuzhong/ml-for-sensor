@@ -288,6 +288,8 @@ public class FileController {
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
             device.setName(param.get("name"));
             device.setRoom(room);
+            device.setPushType("短信");
+            device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
             deviceRepository.save(device);
             MonitorDevice monitorDevice = new MonitorDevice();
             monitorDevice.setBattery("100");

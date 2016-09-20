@@ -35,6 +35,8 @@ public class Device {
     private List<DeviceFloor> deviceFloorList;
     private List<DeviceFile> deviceFileList;
     private List<DeviceInspect> deviceInspectList;
+    private String pushType;
+    private Integer pushInterval;
 
     @Id
     @GeneratedValue()
@@ -222,5 +224,23 @@ public class Device {
 
     public void setyPoint(Float yPoint) {
         this.yPoint = yPoint;
+    }
+
+    @Column(name = "push_type")
+    public String getPushType() {
+        return pushType;
+    }
+
+    public void setPushType(String pushType) {
+        this.pushType = pushType;
+    }
+
+    @Column(name = "push_interval")
+    public Integer getPushInterval() {
+        return pushInterval;
+    }
+
+    public void setPushInterval(Integer pushInterval) {
+        this.pushInterval = pushInterval;
     }
 }

@@ -327,4 +327,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `inspect_data` CHANGE COLUMN `result` `result` FLOAT NULL;
   ALTER TABLE `file` ADD `file_name` VARCHAR(255) NULL;
 
+  ALTER TABLE `device` ADD push_type VARCHAR(255);
+  ALTER TABLE `device` ADD push_interval INT NULL DEFAULT 30;
 SET FOREIGN_KEY_CHECKS=1;
