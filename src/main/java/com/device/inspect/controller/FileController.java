@@ -2,6 +2,8 @@ package com.device.inspect.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.device.inspect.common.model.charater.Role;
+import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
@@ -573,20 +575,44 @@ public class FileController {
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
+
+                company.setName(param.get("name"));
+                company.setAddress(param.get("address"));
+                company.setEmail(param.get("email"));
+                company.setTelephone(param.get("telephone"));
+                companyRepository.save(company);
+
+                firmManager.setName(param.get("name"));
+                firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
+                firmManager.setUserName(param.get("userName"));
+                firmManager.setCompany(company);
+                firmManager.setCreateDate(new Date());
+                userRepository.save(firmManager);
+                RoleAuthority roleAuthority = roleAuthorityRepository.findByName("FIRM_MANAGER");
+                Role role = new Role();
+                role.setAuthority(roleAuthority.getName());
+                role.setRoleAuthority(roleAuthority);
+                role.setUser(user);
+                roleRepository.save(role);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
+                company.setName(param.get("name"));
+                company.setAddress(param.get("address"));
+                company.setEmail(param.get("email"));
+                company.setTelephone(param.get("telephone"));
+                companyRepository.save(company);
+
                 firmManager = company.getManager();
+                firmManager.setName(param.get("name"));
+                firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
+                firmManager.setUserName(param.get("userName"));
+                firmManager.setCompany(company);
+                firmManager.setCreateDate(new Date());
+                userRepository.save(firmManager);
             }
 
-            company.setName(param.get("name"));
-            company.setAddress(param.get("address"));
-            company.setEmail(param.get("email"));
-            company.setTelephone(param.get("telephone"));
-            companyRepository.save(company);
-            firmManager.setName(param.get("name"));
-            firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
-            firmManager.setUserName(param.get("userName"));
-            userRepository.save(firmManager);
+
+
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
