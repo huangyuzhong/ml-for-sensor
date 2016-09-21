@@ -592,8 +592,9 @@ public class FileController {
                 Role role = new Role();
                 role.setAuthority(roleAuthority.getName());
                 role.setRoleAuthority(roleAuthority);
-                role.setUser(user);
+                role.setUser(firmManager);
                 roleRepository.save(role);
+                company.setManager(firmManager);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 company.setName(param.get("name"));
