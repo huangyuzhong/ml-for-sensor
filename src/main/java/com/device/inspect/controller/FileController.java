@@ -568,19 +568,25 @@ public class FileController {
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
         if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")||
                 user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")) {
-
+            User firmManager = new User();
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
+                firmManager = company.getManager();
             }
 
             company.setName(param.get("name"));
             company.setAddress(param.get("address"));
             company.setEmail(param.get("email"));
             company.setTelephone(param.get("telephone"));
+            companyRepository.save(company);
+            firmManager.setName(param.get("name"));
+            firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
+            firmManager.setUserName(param.get("userName"));
+            userRepository.save(firmManager);
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;

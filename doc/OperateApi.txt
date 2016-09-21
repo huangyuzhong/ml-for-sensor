@@ -126,3 +126,8 @@ email                   邮箱号
 /api/rest/device/chart/{deviceId}               获取设备绘图页面的展示数据
 {deviceId}  设备id
 返回数据和设备轮询的数据一致，有20条
+
+
+/api/rest/operate/delete/file/{fileId}?deviceId=
+fileId:删除文件的id
+deviceId：当前设备的id
