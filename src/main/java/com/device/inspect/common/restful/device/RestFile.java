@@ -18,6 +18,7 @@ public class RestFile {
     private String description;
     private Integer enable;
     private Date createDate;
+    private String name;
 
     public RestFile(@NotNull Files file) {
         this.id = file.getId();
@@ -25,6 +26,7 @@ public class RestFile {
         this.type = file.getType();
         this.description = file.getDescription();
         this.createDate = file.getCreateDate();
+        this.name = file.getName();
     }
 
     public Integer getId() {
@@ -73,5 +75,13 @@ public class RestFile {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
