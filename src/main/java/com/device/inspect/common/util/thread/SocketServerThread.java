@@ -53,24 +53,24 @@ public class SocketServerThread extends Thread {
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
                 System.out.println(Thread.currentThread().getName()+"发来的内容是:" + result);
-                String flagString = result.substring(2,4);
-                String response = "";
-                if (!result.startsWith("ef")){
-                    flag = true;
-                }else {
-//                    Thread.sleep(1000);
-                    response = get(result);
-                }
-//                dos.writeUTF(response);
-                out.println(ByteAndHex.hexStringToBytes(response));
-                byte[] bytes = ByteAndHex.hexStringToBytes(response);
-                out.println(bytes);
+//                String flagString = result.substring(2,4);
+//                String response = "";
+//                if (!result.startsWith("ef")){
+//                    flag = true;
+//                }else {
+//                    response = get(result);
+//                }
+////                dos.writeUTF(response);
+//                out.println(ByteAndHex.hexStringToBytes(response));
+//                byte[] bytes = ByteAndHex.hexStringToBytes(response);
+//                out.println(bytes);
+//                out.flush();
+                byte[]
+                String result1 = ByteAndHex.bytesToHexString("ef020003020100000000000000088800000000001210a102161007172827ffffffffffffffffffffffffffffa403".getBytes());
+                System.out.println(result1);
+                out.println();
                 out.flush();
 
-                dins.close();
-                out.close();
-                sock.close();
-                Thread.sleep(1000);
                 flag = true;
                 break;
             }
