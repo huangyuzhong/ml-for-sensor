@@ -329,4 +329,20 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `device` ADD push_type VARCHAR(255);
   ALTER TABLE `device` ADD push_interval INT NULL DEFAULT 30;
+
+  drop table if exists device_version;
+  create table `device_version`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL,
+  `url` VARCHAR(500) NULL,
+  `code_first` VARCHAR(255) NULL,
+  `code_second` VARCHAR(255) NULL,
+  `code_third` VARCHAR(255) NULL,
+  `code_forth` VARCHAR(255) NULL,
+  `type` VARCHAR(255) NULL,
+  `create_date` DATETIME NULL
+  PRIMARY KEY (`id`)
+  );
+
+
 SET FOREIGN_KEY_CHECKS=1;
