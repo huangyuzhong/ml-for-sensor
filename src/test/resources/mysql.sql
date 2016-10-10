@@ -340,7 +340,7 @@ SET FOREIGN_KEY_CHECKS=0;
   `code_third` VARCHAR(255) NULL,
   `code_forth` VARCHAR(255) NULL,
   `type` VARCHAR(255) NULL,
-  `create_date` DATETIME NULL
+  `create_date` DATETIME NULL,
   PRIMARY KEY (`id`)
   );
 

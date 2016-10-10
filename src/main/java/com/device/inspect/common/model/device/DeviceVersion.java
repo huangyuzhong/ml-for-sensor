@@ -45,6 +45,7 @@ public class DeviceVersion {
         this.url = url;
     }
 
+    @Column(name = "code_first")
     public String getFirstCode() {
         return firstCode;
     }
@@ -52,7 +53,7 @@ public class DeviceVersion {
     public void setFirstCode(String firstCode) {
         this.firstCode = firstCode;
     }
-
+    @Column(name = "code_second")
     public String getSecondCode() {
         return secondCode;
     }
@@ -60,7 +61,7 @@ public class DeviceVersion {
     public void setSecondCode(String secondCode) {
         this.secondCode = secondCode;
     }
-
+    @Column(name = "code_third")
     public String getThirdCode() {
         return thirdCode;
     }
@@ -68,7 +69,7 @@ public class DeviceVersion {
     public void setThirdCode(String thirdCode) {
         this.thirdCode = thirdCode;
     }
-
+    @Column(name = "code_forth")
     public String getForthCode() {
         return forthCode;
     }

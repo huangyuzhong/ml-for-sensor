@@ -38,14 +38,24 @@ public class SocketMessageApi {
     @Autowired
     private AlertCountRepository alertCountRepository;
 
+    @Autowired
+    private DeviceVersionRepository deviceVersionRepository;
+
     String unit = "s";
 
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
         String monitorTypeCode = result.substring(4,6);
-        InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
+//        InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
+        InspectType inspectType = inspectTypeRepository.findOne(1);
+        Device device = deviceRepository.findOne(101);
+        DeviceInspect deviceInspect = deviceInspectRepository.findOne(1);
+
         Date date = null;
+        String response = null;
+
         InspectData inspectData = new InspectData();
+
         if (null != inspectType){
 //            String year = result.substring(12,14);
 //            String month = result.substring(14,16);
@@ -60,126 +70,167 @@ public class SocketMessageApi {
 //                e.printStackTrace();
 //            }
 
-            String fisrtData = result.substring(26,34);
-            String secondData = result.substring(34, 42);
-
-            int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
-//            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
-
-            Device device = new Device();
-            if (monitorTypeCode.equals("00")||monitorTypeCode.equals("08")){
-                device = deviceRepository.findOne(101);
-            }else if (monitorTypeCode.equals("01")||monitorTypeCode.equals("04")||
-                    monitorTypeCode.equals("05")||monitorTypeCode.equals("06")){
-                device = deviceRepository.findOne(103);
-            }else {
-                device = deviceRepository.findOne(104);
-            }
-
-            DeviceInspect deviceInspect = deviceInspectRepository.
-                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-//            if (null!=deviceInspect.getStandard()){
-//                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
-//                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
-//                    return new RestResponse("超出范围！",1005,null);
-//                }
+//            String fisrtData = result.substring(26,34);
+//            String secondData = result.substring(34, 42);
+//
+//            int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
+////            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
+//
+//            Device device = new Device();
+//            if (monitorTypeCode.equals("00")||monitorTypeCode.equals("08")){
+//                device = deviceRepository.findOne(101);
+//            }else if (monitorTypeCode.equals("01")||monitorTypeCode.equals("04")||
+//                    monitorTypeCode.equals("05")||monitorTypeCode.equals("06")){
+//                device = deviceRepository.findOne(103);
 //            }else {
-//                if (first/1000!=1||first/1000!=0)
-//                    return new RestResponse("数据有误！",1005,null);
+//                device = deviceRepository.findOne(104);
 //            }
-
-
-//            inspectData.setCreateDate(date);
-            inspectData.setCreateDate(new Date());
-            inspectData.setDevice(device);
-            inspectData.setDeviceInspect(deviceInspect);
-            Float record = Float.valueOf(first / 1000);
-            inspectData.setResult(record.toString());
-//            if(monitorTypeCode.equals("02")&&record>100000){
-//                return new RestResponse("二氧化碳数据错误！",1005,null);
+//
+//            DeviceInspect deviceInspect = deviceInspectRepository.
+//                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
+////            if (null!=deviceInspect.getStandard()){
+////                Float judge = Float.valueOf(first / 1000)/deviceInspect.getStandard();
+////                if ((judge>0&&judge>100)||(judge<0&&judge<-100)){
+////                    return new RestResponse("超出范围！",1005,null);
+////                }
+////            }else {
+////                if (first/1000!=1||first/1000!=0)
+////                    return new RestResponse("数据有误！",1005,null);
+////            }
+//
+//
+////            inspectData.setCreateDate(date);
+//            inspectData.setCreateDate(new Date());
+//            inspectData.setDevice(device);
+//            inspectData.setDeviceInspect(deviceInspect);
+//            Float record = Float.valueOf(first / 1000);
+//            inspectData.setResult(record.toString());
+////            if(monitorTypeCode.equals("02")&&record>100000){
+////                return new RestResponse("二氧化碳数据错误！",1005,null);
+////            }
+//
+//            inspectDataRepository.save(inspectData);
+//            if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
+//                return new RestResponse(new RestInspectData(inspectData));
 //            }
+//            AlertCount high = alertCountRepository.
+//                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
+//            AlertCount low = alertCountRepository.
+//                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
+//
+//            if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
+//                if (null!=low){
+//                    AlertCount newLow = new AlertCount();
+//                    newLow.setDevice(device);
+//                    newLow.setInspectType(deviceInspect.getInspectType());
+//                    newLow.setNum(0);
+//                    newLow.setType(1);
+//                    newLow.setUnit(unit);
+//                    newLow.setCreateDate(new Date());
+//                    alertCountRepository.save(newLow);
+//                }
+//
+//                if (null == high){
+//                    high.setDevice(device);
+//                    high.setInspectType(deviceInspect.getInspectType());
+//                    high.setNum(0);
+//                    high.setType(1);
+//                    high.setUnit(unit);
+//                }
+//                if (high.getNum()==0){
+//                    high.setCreateDate(new Date());
+//                }
+//                high.setNum(high.getNum() + 1);
+//                alertCountRepository.save(high);
+//            }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
+//                    (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
+//                if (null!=high){
+//                    AlertCount newHigh = new AlertCount();
+//                    newHigh.setDevice(device);
+//                    newHigh.setInspectType(deviceInspect.getInspectType());
+//                    newHigh.setNum(0);
+//                    newHigh.setType(1);
+//                    newHigh.setUnit(unit);
+//                    newHigh.setCreateDate(new Date());
+//                    alertCountRepository.save(newHigh);
+//                }
+//                if (null == low){
+//                    low.setDevice(device);
+//                    low.setInspectType(deviceInspect.getInspectType());
+//                    low.setNum(0);
+//                    low.setType(1);
+//                    low.setUnit(unit);
+//                }
+//                if (low.getNum()==0){
+//                    low.setCreateDate(new Date());
+//                }
+//                low.setNum(low.getNum()+1);
+//                alertCountRepository.save(low);
+//            }else {
+//                AlertCount newLow = new AlertCount();
+//                newLow.setDevice(device);
+//                newLow.setInspectType(deviceInspect.getInspectType());
+//                newLow.setNum(0);
+//                newLow.setType(1);
+//                newLow.setUnit(unit);
+//                newLow.setCreateDate(new Date());
+//                alertCountRepository.save(newLow);
+//
+//                AlertCount newHigh = new AlertCount();
+//                newHigh.setDevice(device);
+//                newHigh.setInspectType(deviceInspect.getInspectType());
+//                newHigh.setNum(0);
+//                newHigh.setType(1);
+//                newHigh.setUnit(unit);
+//                newHigh.setCreateDate(new Date());
+//                alertCountRepository.save(newHigh);
+//            }
+            List<Byte> responseByte = new ArrayList<Byte>();
+            responseByte.add((byte)0xEF);
+            responseByte.add((byte)0x02);
+            responseByte.add((byte)0x05);
+            responseByte.add((byte)0x00);       //版本号更新确定
 
-            inspectDataRepository.save(inspectData);
-            if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
-                return new RestResponse(new RestInspectData(inspectData));
+            float lowUp = deviceInspect.getLowUp();
+            float lowDown = deviceInspect.getLowDown();
+            float highUp = deviceInspect.getHighUp();
+            float highDown = deviceInspect.getHighDown();
+
+            try {
+                for (byte one : ByteAndHex.intToByteArray((int) lowUp*1000))
+                    responseByte.add(one);
+                for (byte two : ByteAndHex.intToByteArray((int) lowDown*1000) )
+                    responseByte.add(two);
+                for (byte three : ByteAndHex.intToByteArray((int) highUp*1000))
+                    responseByte.add(three);
+                for (byte four : ByteAndHex.intToByteArray((int)highDown*1000))
+                    responseByte.add(four);
+                DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+                int length = deviceVersion.getUrl().length();
+                String confirm = "";
+                if (String.valueOf(length).length()<4){
+                    for (int i = 0; i < 4-String.valueOf(length).length(); i++) {
+                        confirm ="0"+confirm;
+                    }
+                }
+                for (byte bb : ByteAndHex.hexStringToBytes(confirm))
+                    responseByte.add(bb);
+                for (char cc : deviceVersion.getUrl().toCharArray())
+                    responseByte.add((byte)cc);
+                responseByte.add((byte)0xFF);
+                responseByte.add((byte)0x02);
+                byte[] message = new byte[responseByte.size()];
+                for (int i = 0; i < responseByte.size(); i++) {
+                    message[i] = responseByte.get(i);
+                }
+                response = ByteAndHex.bytesToHexString(message);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            AlertCount high = alertCountRepository.
-                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
-            AlertCount low = alertCountRepository.
-                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
-
-            if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
-                if (null!=low){
-                    AlertCount newLow = new AlertCount();
-                    newLow.setDevice(device);
-                    newLow.setInspectType(deviceInspect.getInspectType());
-                    newLow.setNum(0);
-                    newLow.setType(1);
-                    newLow.setUnit(unit);
-                    newLow.setCreateDate(new Date());
-                    alertCountRepository.save(newLow);
-                }
-
-                if (null == high){
-                    high.setDevice(device);
-                    high.setInspectType(deviceInspect.getInspectType());
-                    high.setNum(0);
-                    high.setType(1);
-                    high.setUnit(unit);
-                }
-                if (high.getNum()==0){
-                    high.setCreateDate(new Date());
-                }
-                high.setNum(high.getNum() + 1);
-                alertCountRepository.save(high);
-            }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
-                    (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
-                if (null!=high){
-                    AlertCount newHigh = new AlertCount();
-                    newHigh.setDevice(device);
-                    newHigh.setInspectType(deviceInspect.getInspectType());
-                    newHigh.setNum(0);
-                    newHigh.setType(1);
-                    newHigh.setUnit(unit);
-                    newHigh.setCreateDate(new Date());
-                    alertCountRepository.save(newHigh);
-                }
-                if (null == low){
-                    low.setDevice(device);
-                    low.setInspectType(deviceInspect.getInspectType());
-                    low.setNum(0);
-                    low.setType(1);
-                    low.setUnit(unit);
-                }
-                if (low.getNum()==0){
-                    low.setCreateDate(new Date());
-                }
-                low.setNum(low.getNum()+1);
-                alertCountRepository.save(low);
-            }else {
-                AlertCount newLow = new AlertCount();
-                newLow.setDevice(device);
-                newLow.setInspectType(deviceInspect.getInspectType());
-                newLow.setNum(0);
-                newLow.setType(1);
-                newLow.setUnit(unit);
-                newLow.setCreateDate(new Date());
-                alertCountRepository.save(newLow);
-
-                AlertCount newHigh = new AlertCount();
-                newHigh.setDevice(device);
-                newHigh.setInspectType(deviceInspect.getInspectType());
-                newHigh.setNum(0);
-                newHigh.setType(1);
-                newHigh.setUnit(unit);
-                newHigh.setCreateDate(new Date());
-                alertCountRepository.save(newHigh);
-            }
-
         }
 
 
-        return new RestResponse(new RestInspectData(inspectData));
+        return new RestResponse(response);
     }
 
     @RequestMapping(value = "/room/current/data",method = RequestMethod.GET)
