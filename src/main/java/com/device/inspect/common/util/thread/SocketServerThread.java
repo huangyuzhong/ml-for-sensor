@@ -61,14 +61,14 @@ public class SocketServerThread extends Thread {
                     response = get(result);
                 }
 //                dos.writeUTF(response);
-                out.println(ByteAndHex.hexStringToBytes(response));
+//                out.println(ByteAndHex.hexStringToBytes(response));
                 byte[] bytes = ByteAndHex.hexStringToBytes(response);
                 out.println(bytes);
                 out.flush();
 
 
 
-                String result1 = ByteAndHex.bytesToHexString("ef020003020100000000000000088800000000001210a102161007172827ffffffffffffffffffffffffffffa403".getBytes());
+                String result1 = ByteAndHex.bytesToHexString("".getBytes());
                 System.out.println(result1);
                 out.println();
                 out.flush();
@@ -109,22 +109,7 @@ public class SocketServerThread extends Thread {
         String response = buf.toString();
         JSONObject jsonObject = JSON.parseObject(response);
 
-        RestInspectData restInspectData = JSON.parseObject(String.valueOf(jsonObject.get("data")), RestInspectData.class);
-
-        String result = "";
-        result = "ef020500";
-
-        int lowUp = (int)(null==restInspectData.getDeviceInspect().getLowUp()?0:(restInspectData.getDeviceInspect().getLowUp()*1000));
-        int lowDown = (int)(null==restInspectData.getDeviceInspect().getLowDown()?0:(restInspectData.getDeviceInspect().getLowDown()*1000));
-        int highUp = (int)(null==restInspectData.getDeviceInspect().getHighUp()?0:(restInspectData.getDeviceInspect().getHighUp()*1000));
-        int highDown = (int)(null==restInspectData.getDeviceInspect().getHighDown()?0:(restInspectData.getDeviceInspect().getHighDown()*1000));
-
-        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowUp));
-        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(lowDown));
-        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(highUp));
-        result+=ByteAndHex.bytesToHexString(ByteAndHex.intToByteArray(highDown));
-
-        result+="ff02";
+        String result = jsonObject.get("data").toString();
 
         //释放连接
         method.releaseConnection();

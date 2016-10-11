@@ -7,4 +7,5 @@ import org.springframework.data.repository.CrudRepository;
  * Created by Administrator on 2016/7/8.
  */
 public interface MonitorDeviceRepository extends CrudRepository<MonitorDevice,Integer> {
+    public MonitorDevice findByNumber(String Number);
 }
