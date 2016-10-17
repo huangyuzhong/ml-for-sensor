@@ -53,7 +53,7 @@ public class SocketServerThread extends Thread {
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
                 System.out.println(Thread.currentThread().getName()+"发来的内容是:" + result);
-                String flagString = result.substring(2,4);
+//                String flagString = result.substring(2,4);
                 String response = "";
                 if (!result.startsWith("ef")){
                     flag = true;
@@ -66,12 +66,10 @@ public class SocketServerThread extends Thread {
                 out.println(bytes);
                 out.flush();
 
-
-
-                String result1 = ByteAndHex.bytesToHexString("".getBytes());
-                System.out.println(result1);
-                out.println();
-                out.flush();
+//                String result1 = ByteAndHex.bytesToHexString("".getBytes());
+//                System.out.println(result1);
+//                out.println();
+//                out.flush();
 
                 flag = true;
                 break;
@@ -108,8 +106,9 @@ public class SocketServerThread extends Thread {
         System.out.println(buf.toString());
         String response = buf.toString();
         JSONObject jsonObject = JSON.parseObject(response);
-
-        String result = jsonObject.get("data").toString();
+        String result = "";
+        if (null!=jsonObject.get("data"))
+            result = jsonObject.get("data").toString();
 
         //释放连接
         method.releaseConnection();

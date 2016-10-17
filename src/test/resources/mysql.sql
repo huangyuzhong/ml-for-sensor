@@ -344,5 +344,54 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  ALTER TABLE `device` ADD `floor_id` INT NULL;
+  ALTER TABLE `device` ADD `build_id` INT NULL;
+
+  ALTER TABLE `device` ADD CONSTRAINT `device_3` FOREIGN KEY (`floor_id`) REFERENCES `floors` (`id`);
+  ALTER TABLE `device` ADD CONSTRAINT `device_4` FOREIGN KEY (`build_id`) REFERENCES `buildings` (`id`);
+
+  ALTER TABLE `room` ADD `low_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `high_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `online_num` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `offline_num` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `total_num` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `assets_health` FLOAT NULL DEFAULT 0.0;
+
+  ALTER TABLE `floors` ADD `low_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `floors` ADD `high_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `floors` ADD `online_num` INT NULL DEFAULT 0;
+  ALTER TABLE `floors` ADD `offline_num` INT NULL DEFAULT 0;
+  ALTER TABLE `floors` ADD `total_num` INT NULL DEFAULT 0;
+  ALTER TABLE `floors` ADD `assets_health` FLOAT NULL DEFAULT 0.0;
+
+  ALTER TABLE `buildings` ADD `low_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `buildings` ADD `high_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `buildings` ADD `online_num` INT NULL DEFAULT 0;
+  ALTER TABLE `buildings` ADD `offline_num` INT NULL DEFAULT 0;
+  ALTER TABLE `buildings` ADD `total_num` INT NULL DEFAULT 0;
+  ALTER TABLE `buildings` ADD `assets_health` FLOAT NULL DEFAULT 0.0;
+
+  ALTER TABLE `role_authority` ADD `parent_id` INT NULL;
+
+  drop table if exists `message_send`;
+  create table `message_send`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `send_reason` VARCHAR(500) NULL,
+  `send_type` VARCHAR(255) NULL,
+  `user_id` INT NULL,
+  `error_reason` VARCHAR(255) NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  ALTER TABLE `device` ADD `health_score` FLOAT NULL;
+  ALTER TABLE `device` ADD `enable` INT NULL DEFAULT 0;
+  ALTER TABLE `room` ADD `enable` INT NULL;
+  ALTER TABLE `floors` ADD `enable` INT NULL;
+  ALTER TABLE `buildings` ADD `enable` INT NULL;
+
+  ALTER TABLE `company` ADD `logo` VARCHAR(255) NULL;
+  ALTER TABLE `company` ADD `login_url` VARCHAR(500) NULL;
+
+  ALTER TABLE `message_send` ADD CONSTRAINT `message_send_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 SET FOREIGN_KEY_CHECKS=1;

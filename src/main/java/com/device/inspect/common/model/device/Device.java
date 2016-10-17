@@ -1,7 +1,9 @@
 package com.device.inspect.common.model.device;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -37,6 +39,10 @@ public class Device {
     private List<DeviceInspect> deviceInspectList;
     private String pushType;
     private Integer pushInterval;
+    private Storey floor;
+    private Building building;
+    private String score;
+    private Integer enable;
 
     @Id
     @GeneratedValue()

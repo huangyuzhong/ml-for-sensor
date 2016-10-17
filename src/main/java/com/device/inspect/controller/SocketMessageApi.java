@@ -51,36 +51,42 @@ public class SocketMessageApi {
         String monitorTypeCode = result.substring(6,8);
         InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
 
-        Date date = null;
+//        Date date = null;
         String response = null;
 
         InspectData inspectData = new InspectData();
 
         if (null != inspectType){
-            String year = result.substring(34,36);
-            String month = result.substring(36,38);
-            String day = result.substring(38,40);
-            String hour = result.substring(40,42);
-            String min = result.substring(42,44);
-            String sec = result.substring(44,46);
-            String stringDate = "20"+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
-            try {
-                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            String year = result.substring(34,36);
+//            String month = result.substring(36,38);
+//            String day = result.substring(38,40);
+//            String hour = result.substring(40,42);
+//            String min = result.substring(42,44);
+//            String sec = result.substring(44,46);
+//            String stringDate = "20"+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
+//            try {
+//                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
-            String fisrtData = result.substring(50,58);
+            String fisrtData = result.substring(48,56);
 
             int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
 //            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
 
             Device device = new Device();
-            String mointorCode = result.substring(8,34);
+            String mointorCode = result.substring(8,26);
             MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(monitorTypeCode);
 
             if (null==monitorDevice)
                 return new RestResponse(null);
+            if(monitorTypeCode.equals("03")) {
+                monitorDevice.setBattery(String.valueOf(first));
+                return new RestResponse(null);
+            }
+//            String battery = result.substring(46,48);
+//            monitorDevice.setBattery(result.substring(46,48));
 
             device = monitorDevice.getDevice();
 
@@ -88,7 +94,7 @@ public class SocketMessageApi {
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
 
 
-            inspectData.setCreateDate(date);
+            inspectData.setCreateDate(new Date());
             inspectData.setDevice(device);
             inspectData.setDeviceInspect(deviceInspect);
             Float record = Float.valueOf(first)/1000;
@@ -173,8 +179,8 @@ public class SocketMessageApi {
                     newHigh.setCreateDate(new Date());
                     alertCountRepository.save(newHigh);
                 }
-
             }
+
             DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
             String firstCode = result.substring(26,28);
             String secondCode = result.substring(28,30);
@@ -185,41 +191,51 @@ public class SocketMessageApi {
             responseByte.add((byte)0xEF);
             responseByte.add((byte)0x02);
             responseByte.add((byte)0x05);
+            boolean updateFlag = false;
             if (!firstCode.equals(deviceVersion.getFirstCode())||!secondCode.equals(deviceVersion.equals(deviceVersion.getSecondCode()))||
                     !thirdCode.equals(deviceVersion.getThirdCode())||!forthCode.equals(deviceVersion.getForthCode())){
+                updateFlag = true;
                 if (deviceVersion.getType().equals("1")){
                     responseByte.add((byte)0x01);
                 }else {
                     responseByte.add((byte)0x02);
                 }
             }else responseByte.add((byte)0x00);       //版本号更新确定
-
-            float lowUp = deviceInspect.getLowUp();
-            float lowDown = deviceInspect.getLowDown();
-            float highUp = deviceInspect.getHighUp();
-            float highDown = deviceInspect.getHighDown();
-
             try {
-                for (byte one : ByteAndHex.intToByteArray((int) lowUp*1000))
-                    responseByte.add(one);
-                for (byte two : ByteAndHex.intToByteArray((int) lowDown*1000) )
-                    responseByte.add(two);
-                for (byte three : ByteAndHex.intToByteArray((int) highUp*1000))
-                    responseByte.add(three);
-                for (byte four : ByteAndHex.intToByteArray((int)highDown*1000))
-                    responseByte.add(four);
+                if (null!=deviceInspect.getStandard()&&null!=deviceInspect.getLowDown()&&null!=deviceInspect.getLowUp()&&
+                        null!=deviceInspect.getHighDown()&&null!=deviceInspect.getHighUp()){
+                    //默认不存在没有报警值得情况
+//                    responseByte.add((byte)0x01);
+                    float lowUp = deviceInspect.getLowUp();
+                    float lowDown = deviceInspect.getLowDown();
+                    float highUp = deviceInspect.getHighUp();
+                    float highDown = deviceInspect.getHighDown();
 
-                int length = deviceVersion.getUrl().length();
-                String confirm = "";
-                if (String.valueOf(length).length()<4){
-                    for (int i = 0; i < 4-String.valueOf(length).length(); i++) {
-                        confirm ="0"+confirm;
+                    for (byte one : ByteAndHex.intToByteArray((int) lowUp*1000))
+                        responseByte.add(one);
+                    for (byte two : ByteAndHex.intToByteArray((int) lowDown*1000) )
+                        responseByte.add(two);
+                    for (byte three : ByteAndHex.intToByteArray((int) highUp*1000))
+                        responseByte.add(three);
+                    for (byte four : ByteAndHex.intToByteArray((int)highDown*1000))
+                        responseByte.add(four);
+                }else responseByte.add((byte)0x00);
+
+
+                if (updateFlag){
+                    int length = deviceVersion.getUrl().length();
+                    String confirm = "";
+                    if (String.valueOf(length).length()<4){
+                        for (int i = 0; i < 4-String.valueOf(length).length(); i++) {
+                            confirm ="0"+confirm;
+                        }
                     }
+                    for (byte bb : ByteAndHex.hexStringToBytes(confirm))
+                        responseByte.add(bb);
+                    for (char cc : deviceVersion.getUrl().toCharArray())
+                        responseByte.add((byte)cc);
                 }
-                for (byte bb : ByteAndHex.hexStringToBytes(confirm))
-                    responseByte.add(bb);
-                for (char cc : deviceVersion.getUrl().toCharArray())
-                    responseByte.add((byte)cc);
+
                 responseByte.add((byte)0xFF);
                 responseByte.add((byte)0x02);
                 byte[] message = new byte[responseByte.size()];
