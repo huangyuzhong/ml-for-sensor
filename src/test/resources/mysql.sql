@@ -344,6 +344,8 @@ SET FOREIGN_KEY_CHECKS=0;
   PRIMARY KEY (`id`)
   );
 
+  --二期新增
+
   ALTER TABLE `device` ADD `floor_id` INT NULL;
   ALTER TABLE `device` ADD `build_id` INT NULL;
 
@@ -393,5 +395,31 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `company` ADD `login_url` VARCHAR(500) NULL;
 
   ALTER TABLE `message_send` ADD CONSTRAINT `message_send_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+  ALTER TABLE `device_floor` ADD `user_id` INT NULL;
+  ALTER TABLE `device_floor` ADD CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+  ALTER TABLE `company` ADD `low_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `high_alert_num` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `online_num` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `offline_num` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `total_num` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `assets_health` FLOAT NULL DEFAULT 0.0;
+
+  ALTER TABLE `company` ADD `enable` INT NULL;
+
+  ALTER TABLE `device_floor` ADD `type_name` VARCHAR(255) NULL;
+  ALTER TABLE `device_floor` ADD `effective_days` INT NULL;
+  ALTER TABLE `device_floor` ADD `over_effective` DATETIME NULL;
+
+  drop table if exists `device_offline`;
+  create table `device_offline`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `device_id` INT NULL,
+  `offline_date` DATETIME NULL,
+  PRIMARY KEY (`id`)
+  );
+  ALTER TABLE `device_offline` ADD CONSTRAINT `device_offline_1` FOREIGN kEY (`device_id`) REFERENCES `device` (`id`);
+
 
 SET FOREIGN_KEY_CHECKS=1;

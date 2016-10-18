@@ -21,7 +21,14 @@ public class RestFloor {
     private String background;
     private Float xpoint;
     private Float ypoint;
-    private Integer alterNum;
+
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
+    private Integer enable;
 
     public RestFloor(@NotNull Storey floor){
         this.id = floor.getId();
@@ -33,7 +40,13 @@ public class RestFloor {
         this.background = floor.getBackground();
         this.xpoint = floor.getXpoint();
         this.ypoint = floor.getYpoint();
-        this.alterNum = null==floor.getAlterNum()?0:floor.getAlterNum();
+        this.lowAlert = floor.getLowAlert();
+        this.highAlert = floor.getHighAlert();
+        this.online = floor.getOnline();
+        this.offline = floor.getOffline();
+        this.total = floor.getTotal();
+        this.score = floor.getScore();
+        this.enable = floor.getEnable();
     }
 
     public Integer getId() {
@@ -108,11 +121,59 @@ public class RestFloor {
         this.ypoint = ypoint;
     }
 
-    public Integer getAlterNum() {
-        return alterNum;
+    public Integer getLowAlert() {
+        return lowAlert;
     }
 
-    public void setAlterNum(Integer alterNum) {
-        this.alterNum = alterNum;
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
     }
 }

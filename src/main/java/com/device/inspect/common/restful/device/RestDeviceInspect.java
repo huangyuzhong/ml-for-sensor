@@ -22,7 +22,6 @@ public class RestDeviceInspect {
     private Float highDown;
     private Integer lowAlter;
     private String name;
-
     private String start;
     private String value;
     private String end;

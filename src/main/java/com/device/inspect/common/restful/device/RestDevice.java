@@ -38,6 +38,8 @@ public class RestDevice {
     private String pushType;
     private Integer pushInterval;
     private String roomName;
+    private String score;
+    private Integer enable;
 
 
     public RestDevice(@NotNull Device device) {
@@ -62,7 +64,8 @@ public class RestDevice {
         this.pushInterval = device.getPushInterval();
         this.roomName = device.getRoom().getFloor().getBuild().getName() + device.getRoom().getFloor().getName()+
                 device.getRoom().getName();
-
+        this.score = device.getScore();
+        this.enable = device.getEnable();
         if (null!=device.getDeviceFloorList()&&device.getDeviceFloorList().size()>0){
             this.deviceFloors = new ArrayList<RestDeviceFloor>();
             for (DeviceFloor deviceFloor : device.getDeviceFloorList())
@@ -82,6 +85,7 @@ public class RestDevice {
                     files.add(new RestFile(deviceFile.getFile()));
             }
         }
+
     }
 
     public Integer getId() {
@@ -266,5 +270,21 @@ public class RestDevice {
 
     public void setRoomName(String roomName) {
         this.roomName = roomName;
+    }
+
+    public String getScore() {
+        return score;
+    }
+
+    public void setScore(String score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
     }
 }

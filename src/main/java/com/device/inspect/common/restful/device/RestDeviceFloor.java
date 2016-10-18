@@ -2,6 +2,7 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceFloor;
+import com.device.inspect.common.restful.charater.RestUser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ public class RestDeviceFloor {
     private String mobile;
     private String email;
     private Integer productNum;
+    private RestUser user;
 
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
@@ -29,6 +31,7 @@ public class RestDeviceFloor {
         this.mobile = deviceFloor.getMobile();
         this.email = deviceFloor.getEmail();
         this.productNum = deviceFloor.getProductNum();
+        this.user = null==deviceFloor.getUser()?null:new RestUser(deviceFloor.getUser());
     }
 
     public Integer getId() {

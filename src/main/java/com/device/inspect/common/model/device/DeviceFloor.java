@@ -3,6 +3,7 @@ package com.device.inspect.common.model.device;
 import com.device.inspect.common.model.charater.User;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -19,6 +20,10 @@ public class DeviceFloor {
     private String mobile;
     private String email;
     private Integer productNum;
+    private User user;
+    private String type;
+    private Integer effective;
+    private Date overDate;
 
     @Id
     @GeneratedValue()
@@ -100,5 +105,40 @@ public class DeviceFloor {
 
     public void setProductNum(Integer productNum) {
         this.productNum = productNum;
+    }
+
+    @ManyToOne()
+    @JoinColumn(name = "user_id")
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    @Column(name = "type_name")
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+    @Column(name = "effective_days")
+    public Integer getEffective() {
+        return effective;
+    }
+
+    public void setEffective(Integer effective) {
+        this.effective = effective;
+    }
+    @Column(name = "over_effective")
+    public Date getOverDate() {
+        return overDate;
+    }
+
+    public void setOverDate(Date overDate) {
+        this.overDate = overDate;
     }
 }

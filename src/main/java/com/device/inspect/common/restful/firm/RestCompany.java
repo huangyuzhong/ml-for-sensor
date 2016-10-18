@@ -25,6 +25,16 @@ public class RestCompany {
     private String background;
     private Date createDate;
 
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
+    private Integer enable;
+    private String logo;
+    private String login;
+
     public RestCompany(@NotNull Company company){
         this.id = company.getId();
         this.name = company.getName();
@@ -38,6 +48,16 @@ public class RestCompany {
         this.contractEndDate = company.getContractEndDate();
         this.background = company.getBackground();
         this.createDate = company.getCreateDate();
+
+        this.lowAlert = company.getLowAlert();
+        this.highAlert = company.getHighAlert();
+        this.online = company.getOnline();
+        this.offline = company.getOffline();
+        this.total = company.getTotal();
+        this.score = company.getScore();
+        this.enable = company.getEnable();
+        this.login = company.getLogin();
+        this.logo = company.getLogo();
     }
 
     public Integer getId() {
@@ -134,5 +154,77 @@ public class RestCompany {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public Integer getLowAlert() {
+        return lowAlert;
+    }
+
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
+    }
+
+    public String getLogo() {
+        return logo;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
     }
 }

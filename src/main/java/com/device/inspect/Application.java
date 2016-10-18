@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -28,6 +29,7 @@ import java.util.Date;
 @Configuration
 @EnableAspectJAutoProxy
 @SpringBootApplication
+@EnableScheduling
 public class Application {
 
     private static final int SOCKET_PORT = 8192;

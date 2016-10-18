@@ -249,4 +249,41 @@ public class Device {
     public void setPushInterval(Integer pushInterval) {
         this.pushInterval = pushInterval;
     }
+
+    @ManyToOne
+    @JoinColumn(name = "floor_id")
+    public Storey getFloor() {
+        return floor;
+    }
+
+    public void setFloor(Storey floor) {
+        this.floor = floor;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "build_id")
+    public Building getBuilding() {
+        return building;
+    }
+
+    public void setBuilding(Building building) {
+        this.building = building;
+    }
+
+    @Column(name = "health_score")
+    public String getScore() {
+        return score;
+    }
+
+    public void setScore(String score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
+    }
 }

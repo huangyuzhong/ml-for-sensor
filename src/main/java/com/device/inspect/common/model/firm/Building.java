@@ -20,7 +20,14 @@ public class Building {
     private Company company;
     private String background;
     private List<Storey> floorList;
-    private Integer alterNum;
+//    private Integer alterNum;
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
+    private Integer enable;
 
     @Id
     @GeneratedValue()
@@ -104,12 +111,60 @@ public class Building {
         this.floorList = floorList;
     }
 
-    @Transient
-    public Integer getAlterNum() {
-        return alterNum;
+    @Column(name = "low_alert_num")
+    public Integer getLowAlert() {
+        return lowAlert;
     }
 
-    public void setAlterNum(Integer alterNum) {
-        this.alterNum = alterNum;
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+    @Column(name = "high_alert_num")
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+    @Column(name = "online_num")
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+    @Column(name = "offline_num")
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+    @Column(name = "total_num")
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+    @Column(name = "assets_health")
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
     }
 }

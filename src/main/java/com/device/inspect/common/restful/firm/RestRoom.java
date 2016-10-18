@@ -20,7 +20,14 @@ public class RestRoom {
     private Integer deviceNum;
     private Date createDate;
     private String background;
-    private Integer alterNum;
+
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
+    private Integer enable;
 
     public RestRoom(@NotNull Room room){
         this.id = room.getId();
@@ -30,7 +37,13 @@ public class RestRoom {
         this.deviceNum = room.getDeviceNum();
         this.createDate = room.getCreateDate();
         this.background = room.getBackground();
-        this.alterNum = null==room.getAlterNum()?0:room.getAlterNum();
+        this.lowAlert = room.getLowAlert();
+        this.highAlert = room.getHighAlert();
+        this.online = room.getOnline();
+        this.offline = room.getOffline();
+        this.total = room.getTotal();
+        this.score = room.getScore();
+        this.enable = room.getEnable();
     }
 
     public Integer getId() {
@@ -89,11 +102,59 @@ public class RestRoom {
         this.background = background;
     }
 
-    public Integer getAlterNum() {
-        return alterNum;
+    public Integer getLowAlert() {
+        return lowAlert;
     }
 
-    public void setAlterNum(Integer alterNum) {
-        this.alterNum = alterNum;
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
     }
 }
