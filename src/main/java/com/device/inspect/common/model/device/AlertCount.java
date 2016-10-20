@@ -17,6 +17,7 @@ public class AlertCount {
     private Integer type;       //1为低级报警，2为高级报警
     private Date createDate;
     private String unit;
+    private Date finish;
 
     @Id
     @GeneratedValue()
@@ -81,5 +82,14 @@ public class AlertCount {
 
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+
+    @Column(name = "finish_date")
+    public Date getFinish() {
+        return finish;
+    }
+
+    public void setFinish(Date finish) {
+        this.finish = finish;
     }
 }

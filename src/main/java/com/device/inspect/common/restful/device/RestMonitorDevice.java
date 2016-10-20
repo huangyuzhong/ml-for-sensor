@@ -14,7 +14,7 @@ public class RestMonitorDevice {
     private Integer id;
     private String number;
     private String battery;
-    private String online;
+    private Integer online;
 
     public RestMonitorDevice(@NotNull MonitorDevice monitorDevice) {
         this.id = monitorDevice.getId();
@@ -47,11 +47,11 @@ public class RestMonitorDevice {
         this.battery = battery;
     }
 
-    public String getOnline() {
+    public Integer getOnline() {
         return online;
     }
 
-    public void setOnline(String online) {
+    public void setOnline(Integer online) {
         this.online = online;
     }
 }

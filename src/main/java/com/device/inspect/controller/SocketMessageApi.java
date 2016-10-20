@@ -49,68 +49,53 @@ public class SocketMessageApi {
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
         String monitorTypeCode = result.substring(6,8);
+        String fisrtData = result.substring(48,56);
+        int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
+        Device device = new Device();
+        String mointorCode = result.substring(8,26);
+        MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
+
+        if (null==monitorDevice)
+            return new RestResponse(null);
+        if(monitorTypeCode.equals("03")) {
+            monitorDevice.setBattery(String.valueOf(Float.valueOf(first)/1000));
+            return new RestResponse(null);
+        }
+
+        device = monitorDevice.getDevice();
+        if (device.getEnable()==0)
+            return new RestResponse(null);
+
         InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
 
-//        Date date = null;
         String response = null;
 
         InspectData inspectData = new InspectData();
 
         if (null != inspectType){
-//            String year = result.substring(34,36);
-//            String month = result.substring(36,38);
-//            String day = result.substring(38,40);
-//            String hour = result.substring(40,42);
-//            String min = result.substring(42,44);
-//            String sec = result.substring(44,46);
-//            String stringDate = "20"+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec;
-//            try {
-//                date = StringDate.stringToDate(stringDate, "yyyy-MM-dd HH:mm:ss");
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-
-            String fisrtData = result.substring(48,56);
-
-            int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
-//            int second = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(secondData), 0, 4);
-
-            Device device = new Device();
-            String mointorCode = result.substring(8,26);
-            MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(monitorTypeCode);
-
-            if (null==monitorDevice)
-                return new RestResponse(null);
-            if(monitorTypeCode.equals("03")) {
-                monitorDevice.setBattery(String.valueOf(first));
-                return new RestResponse(null);
-            }
-//            String battery = result.substring(46,48);
-//            monitorDevice.setBattery(result.substring(46,48));
-
-            device = monitorDevice.getDevice();
 
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
 
-
             inspectData.setCreateDate(new Date());
             inspectData.setDevice(device);
             inspectData.setDeviceInspect(deviceInspect);
-            Float record = Float.valueOf(first)/1000;
-            inspectData.setResult(record.toString());
+            float record = Float.valueOf(first)/1000;
+            inspectData.setResult(String.valueOf(record));
 
             inspectDataRepository.save(inspectData);
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
-                return new RestResponse(new RestInspectData(inspectData));
+                return new RestResponse(null);
             }
             AlertCount high = alertCountRepository.
                     findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
             AlertCount low = alertCountRepository.
                     findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
 
-            if (deviceInspect.getHighUp()<record&&record<deviceInspect.getHighDown()){
-                if (null!=low){
+            if (deviceInspect.getHighUp()<record||record<deviceInspect.getHighDown()){
+                if (null!=low&&low.getNum()>0){
+                    low.setFinish(new Date());
+                    alertCountRepository.save(low);
                     AlertCount newLow = new AlertCount();
                     newLow.setDevice(device);
                     newLow.setInspectType(deviceInspect.getInspectType());
@@ -122,10 +107,12 @@ public class SocketMessageApi {
                 }
 
                 if (null == high){
+                    high = new AlertCount();
                     high.setDevice(device);
                     high.setInspectType(deviceInspect.getInspectType());
                     high.setNum(0);
-                    high.setType(1);
+                    high.setType(2);
+                    high.setCreateDate(new Date());
                     high.setUnit(unit);
                 }
                 if (high.getNum()==0){
@@ -133,21 +120,26 @@ public class SocketMessageApi {
                 }
                 high.setNum(high.getNum() + 1);
                 alertCountRepository.save(high);
+                inspectData.setType("high");
             }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
                     (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
-                if (null!=high){
+                if (null!=high&&high.getNum()>0){
+                    high.setFinish(new Date());
+                    alertCountRepository.save(high);
                     AlertCount newHigh = new AlertCount();
                     newHigh.setDevice(device);
                     newHigh.setInspectType(deviceInspect.getInspectType());
                     newHigh.setNum(0);
-                    newHigh.setType(1);
+                    newHigh.setType(2);
                     newHigh.setUnit(unit);
                     newHigh.setCreateDate(new Date());
                     alertCountRepository.save(newHigh);
                 }
                 if (null == low){
+                    low = new AlertCount();
                     low.setDevice(device);
                     low.setInspectType(deviceInspect.getInspectType());
+                    low.setCreateDate(new Date());
                     low.setNum(0);
                     low.setType(1);
                     low.setUnit(unit);
@@ -157,8 +149,14 @@ public class SocketMessageApi {
                 }
                 low.setNum(low.getNum()+1);
                 alertCountRepository.save(low);
+                inspectData.setType("low");
             }else {
                 if (null==low||low.getNum()>0){
+                    if (null!=low){
+                        low.setFinish(new Date());
+                        alertCountRepository.save(low);
+                    }
+
                     AlertCount newLow = new AlertCount();
                     newLow.setDevice(device);
                     newLow.setInspectType(deviceInspect.getInspectType());
@@ -170,16 +168,24 @@ public class SocketMessageApi {
                 }
 
                 if (null==high||high.getNum()>0){
+                    if (null!=high){
+                        high.setFinish(new Date());
+                        alertCountRepository.save(high);
+                    }
+
+
                     AlertCount newHigh = new AlertCount();
                     newHigh.setDevice(device);
                     newHigh.setInspectType(deviceInspect.getInspectType());
                     newHigh.setNum(0);
-                    newHigh.setType(1);
+                    newHigh.setType(2);
                     newHigh.setUnit(unit);
                     newHigh.setCreateDate(new Date());
                     alertCountRepository.save(newHigh);
                 }
+                inspectData.setType("normal");
             }
+            inspectDataRepository.save(inspectData);
 
             DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
             String firstCode = result.substring(26,28);
@@ -230,6 +236,7 @@ public class SocketMessageApi {
                             confirm ="0"+confirm;
                         }
                     }
+                    confirm = confirm+length;
                     for (byte bb : ByteAndHex.hexStringToBytes(confirm))
                         responseByte.add(bb);
                     for (char cc : deviceVersion.getUrl().toCharArray())

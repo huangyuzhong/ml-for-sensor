@@ -23,7 +23,7 @@ public class DeviceOffline {
         this.id = id;
     }
 
-    @ManyToMany()
+    @ManyToOne()
     @JoinColumn(name = "device_id")
     public Device getDevice() {
         return device;

@@ -12,8 +12,9 @@ public class MonitorDevice {
     private Integer id;
     private String number;
     private String battery;
-    private String online;
+    private Integer online;
     private Device device;
+
 
     @Id
     @GeneratedValue()
@@ -43,11 +44,11 @@ public class MonitorDevice {
     }
 
     @Column(name = "online_status")
-    public String getOnline() {
+    public Integer getOnline() {
         return online;
     }
 
-    public void setOnline(String online) {
+    public void setOnline(Integer online) {
         this.online = online;
     }
 

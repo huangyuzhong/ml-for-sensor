@@ -386,10 +386,10 @@ SET FOREIGN_KEY_CHECKS=0;
   );
 
   ALTER TABLE `device` ADD `health_score` FLOAT NULL;
-  ALTER TABLE `device` ADD `enable` INT NULL DEFAULT 0;
-  ALTER TABLE `room` ADD `enable` INT NULL;
-  ALTER TABLE `floors` ADD `enable` INT NULL;
-  ALTER TABLE `buildings` ADD `enable` INT NULL;
+  ALTER TABLE `device` ADD `enable` INT NULL DEFAULT 1;
+  ALTER TABLE `room` ADD `enable` INT NULL DEFAULT 1;
+  ALTER TABLE `floors` ADD `enable` INT NULL DEFAULT 1;
+  ALTER TABLE `buildings` ADD `enable` INT NULL DEFAULT 1;
 
   ALTER TABLE `company` ADD `logo` VARCHAR(255) NULL;
   ALTER TABLE `company` ADD `login_url` VARCHAR(500) NULL;
@@ -406,7 +406,7 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `company` ADD `total_num` INT NULL DEFAULT 0;
   ALTER TABLE `company` ADD `assets_health` FLOAT NULL DEFAULT 0.0;
 
-  ALTER TABLE `company` ADD `enable` INT NULL;
+  ALTER TABLE `company` ADD `enable` INT NULL DEFAULT 1;
 
   ALTER TABLE `device_floor` ADD `type_name` VARCHAR(255) NULL;
   ALTER TABLE `device_floor` ADD `effective_days` INT NULL;
@@ -421,5 +421,13 @@ SET FOREIGN_KEY_CHECKS=0;
   );
   ALTER TABLE `device_offline` ADD CONSTRAINT `device_offline_1` FOREIGN kEY (`device_id`) REFERENCES `device` (`id`);
 
+  ALTER TABLE `inspect`.`monitor_device`
+  CHANGE COLUMN `online_status` `online_status` INT NULL DEFAULT 0 ;
+
+  ALTER TABLE `monitor_device` ADD CONSTRAINT `monitor_device_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+
+  ALTER TABLE `alert_count` ADD `finish_date` DATETIME NULL;
+
+  ALTER TABLE `inspect_data` ADD `type` VARCHAR(255) NULL;
 
 SET FOREIGN_KEY_CHECKS=1;

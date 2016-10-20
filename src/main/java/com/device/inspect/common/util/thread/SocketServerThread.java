@@ -59,17 +59,17 @@ public class SocketServerThread extends Thread {
                     flag = true;
                 }else {
                     response = get(result);
+                    System.out.println("11111111===="+response);
                 }
-//                dos.writeUTF(response);
-//                out.println(ByteAndHex.hexStringToBytes(response));
-                byte[] bytes = ByteAndHex.hexStringToBytes(response);
-                out.println(bytes);
-                out.flush();
+                if (null==response){
+                    flag = true;
+                    break;
+                }
 
-//                String result1 = ByteAndHex.bytesToHexString("".getBytes());
-//                System.out.println(result1);
-//                out.println();
-//                out.flush();
+//                byte[] bytes = ByteAndHex.hexStringToBytes(response);
+//                out.println(bytes);
+                out.println(response);
+                out.flush();
 
                 flag = true;
                 break;
@@ -106,7 +106,7 @@ public class SocketServerThread extends Thread {
         System.out.println(buf.toString());
         String response = buf.toString();
         JSONObject jsonObject = JSON.parseObject(response);
-        String result = "";
+        String result = null;
         if (null!=jsonObject.get("data"))
             result = jsonObject.get("data").toString();
 

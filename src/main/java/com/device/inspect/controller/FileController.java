@@ -297,7 +297,7 @@ public class FileController {
             monitorDevice.setBattery("100");
             monitorDevice.setDevice(device);
             monitorDevice.setNumber(param.get("monitorCode"));
-            monitorDevice.setOnline("在线");
+            monitorDevice.setOnline(1);
             monitorDeviceRepository.save(monitorDevice);
 
             if (null!=deviceType.getDeviceTypeInspectList()){

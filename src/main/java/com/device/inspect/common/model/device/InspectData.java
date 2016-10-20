@@ -15,6 +15,7 @@ public class InspectData {
     private DeviceInspect deviceInspect;
     private String result;
     private Date createDate;
+    private String type;
 
     @Id
     @GeneratedValue()
@@ -61,5 +62,13 @@ public class InspectData {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

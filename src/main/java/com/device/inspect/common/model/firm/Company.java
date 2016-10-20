@@ -219,7 +219,7 @@ public class Company {
         this.logo = logo;
     }
 
-    @Column(name = "")
+    @Column(name = "login_url")
     public String getLogin() {
         return login;
     }
