@@ -8,4 +8,5 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface MonitorDeviceRepository extends CrudRepository<MonitorDevice,Integer> {
     public MonitorDevice findByNumber(String Number);
+    public MonitorDevice findByDeviceId(Integer DeviceId);
 }

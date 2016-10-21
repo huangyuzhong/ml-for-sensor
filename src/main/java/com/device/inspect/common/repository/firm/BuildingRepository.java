@@ -9,5 +9,5 @@ import java.util.List;
  * Created by Administrator on 2016/7/8.
  */
 public interface BuildingRepository extends CrudRepository<Building,Integer> {
-//    public List<Building> findByCompanyId(Integer CompanyId);
+    public List<Building> findByCompanyIdAndEnable(Integer CompanyId,Integer Enable);
 }

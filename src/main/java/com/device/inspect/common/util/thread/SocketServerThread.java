@@ -32,8 +32,9 @@ import java.util.Map;
 
 public class SocketServerThread extends Thread {
     private Socket sock;
-    PrintWriter out = null;
+//    PrintWriter out = null;
 //    DataOutputStream dos = null;
+    DataOutputStream outData = null;
     DataInputStream dins = null;
     public SocketServerThread(Socket s)
     {
@@ -48,7 +49,8 @@ public class SocketServerThread extends Thread {
             //服务端解包过程
             boolean flag = false;
             while(!flag) {
-                out = new PrintWriter(sock.getOutputStream());
+//                out = new PrintWriter(sock.getOutputStream());
+                outData = new DataOutputStream(sock.getOutputStream());
                 byte[] data = new byte[512];
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
@@ -66,10 +68,9 @@ public class SocketServerThread extends Thread {
                     break;
                 }
 
-//                byte[] bytes = ByteAndHex.hexStringToBytes(response);
-//                out.println(bytes);
-                out.println(response);
-                out.flush();
+                byte[] bytes = ByteAndHex.hexStringToBytes(response);
+                outData.write(bytes,0,bytes.length);
+                outData.flush();
 
                 flag = true;
                 break;
@@ -79,7 +80,7 @@ public class SocketServerThread extends Thread {
         } finally {
             try {
                 dins.close();
-                out.close();
+                outData.close();
                 sock.close();
             } catch (IOException e) {
                 e.printStackTrace();
