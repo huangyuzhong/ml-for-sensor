@@ -18,6 +18,7 @@ public class LoginUser implements UserDetails {
     public LoginUser(User user) {
         this.username = user.getName();
         this.verify = user.getPassword().toString();
+        this.company = user.getCompany().getName();
     }
 
 	private String username;
@@ -39,6 +40,8 @@ public class LoginUser implements UserDetails {
     private String verify;
 
 	private List<Role> roles;
+
+    private String company;
 
 	@Override
 	public String getUsername() {
@@ -121,4 +124,12 @@ public class LoginUser implements UserDetails {
 	public void setVerify(String verify) {
 		this.verify = verify;
 	}
+    @JsonIgnore
+    public String getCompany() {
+        return company;
+    }
+    @JsonProperty
+    public void setCompany(String company) {
+        this.company = company;
+    }
 }

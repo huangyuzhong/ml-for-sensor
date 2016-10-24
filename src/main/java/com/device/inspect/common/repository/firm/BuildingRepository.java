@@ -10,4 +10,5 @@ import java.util.List;
  */
 public interface BuildingRepository extends CrudRepository<Building,Integer> {
     public List<Building> findByCompanyIdAndEnable(Integer CompanyId,Integer Enable);
+    public List<Building> findByCompanyId(Integer CompanyId);
 }

@@ -112,7 +112,8 @@ public class Storey {
         this.ypoint = ypoint;
     }
 
-    @OneToMany(mappedBy = "floor")
+//    @OneToMany(mappedBy = "floor")
+    @Transient
     public List<Room> getRoomList() {
         return roomList;
     }

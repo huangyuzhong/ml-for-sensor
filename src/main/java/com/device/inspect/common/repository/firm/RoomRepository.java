@@ -10,4 +10,5 @@ import java.util.List;
  */
 public interface RoomRepository extends CrudRepository<Room,Integer> {
     public List<Room> findByFloorIdAndEnable(Integer FloorId,Integer Enable);
+    public List<Room> findByFloorId(Integer FloorId);
 }

@@ -40,16 +40,20 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 //		final LoginUser user = new ObjectMapper().readValue(request.getInputStream(), LoginUser.class);
 		String name = "";
 		String verify = "";
+        String company = "";
 		if (null!=map2.get("name")&&map2.get("name").length>0)
 			name = map2.get("name")[0];
 		if (null!=map2.get("verify")&&map2.get("verify").length>0)
 			verify = map2.get("verify")[0];
+        if(null!=map2.get("company")&&map2.get("company").length>0)
+            company = map2.get("company")[0];
 
 		final LoginUser user = new LoginUser();
 		user.setUsername(name);
 		user.setVerify(verify);
+        user.setCompany(company);
 
-		final LoginUser authenticatedUser = loginUserService.loadUserByName(user.getUsername(),user.getVerify(), authorities);
+		final LoginUser authenticatedUser = loginUserService.loadUserByName(user.getUsername(),user.getVerify(), user.getCompany(),authorities);
 
         // Lookup the complete User object from the database and create an Authentication for it
 

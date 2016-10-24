@@ -1,4 +1,4 @@
-ÓòÃû£ºhttp://inmycars.ihengtian.top/
+http://inmycars.ihengtian.top/
 
 
 http://inmycars.ihengtian.top/api/rest/firm/device?deviceId=101
@@ -7,27 +7,27 @@ http://inmycars.ihengtian.top/api/rest/firm/device?deviceId=101
   http://inmycars.ihengtian.top/api/rest/login?name=yll&verify=123
   http://inmycars.ihengtian.top/api/rest/firm/buildings
 
-GET£º/api/rest/firm/buildings/{name}
-Èë²Î£º{
-    name:ÓÃ»§µÇÂ¼Ãû
+GETï¿½ï¿½/api/rest/firm/buildings/{name}
+ï¿½ï¿½Î£ï¿½{
+    name:ï¿½Ã»ï¿½ï¿½ï¿½Â¼ï¿½ï¿½
 }
-³ö²Î:{
+ï¿½ï¿½ï¿½ï¿½:{
 {
     "error": 0,					
     "message": "OK",
     "data": {
-        "id": 1,				Â¥¶°ID
-        "background": "XXXXXX",			Â¥¶°·Ö²¼±³¾°
-        "deviceNum": 50,			Â¥¶°Éè±¸ÊýÁ¿
-        "alterNum": 0,				±¨¾¯´ÎÊý
+        "id": 1,				Â¥ï¿½ï¿½ID
+        "background": "XXXXXX",			Â¥ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½
+        "deviceNum": 50,			Â¥ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+        "alterNum": 0,				ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         "list": 
             {
-                "id": 1,			Â¥¶°ID
-                "name": "101",			Â©¶´Ãû
-                "xpoint": 350,			Â¥¶°ºá×ø±ê
-                "ypoint": 400,			Â¥¶°×Ý×ø±ê
-                "deviceNum": 30,		Éè±¸ÊýÁ¿
-                "createDate": 1467972375000	½¨Á¢Ê±¼ä
+                "id": 1,			Â¥ï¿½ï¿½ID
+                "name": "101",			Â©ï¿½ï¿½ï¿½ï¿½
+                "xpoint": 350,			Â¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                "ypoint": 400,			Â¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                "deviceNum": 30,		ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+                "createDate": 1467972375000	ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
             },
             {
                 "id": 2,
@@ -41,76 +41,75 @@ GET£º/api/rest/firm/buildings/{name}
     }
 
 
-GET£º/api/rest/firm/floors?buildId=
-Èë²Î£º{
-buildId          					´«ÈëÂ¥¶°ID
+GETï¿½ï¿½/api/rest/firm/floors?buildId=
+ï¿½ï¿½Î£ï¿½{
+buildId          					ï¿½ï¿½ï¿½ï¿½Â¥ï¿½ï¿½ID
 }
-³ö²Î
+ï¿½ï¿½ï¿½ï¿½
 {
 {
     "error": 0,
     "message": "OK",
     "data": {
- 	"id": 1,					Â¥¶°ID
-        "devcieNum": 30,				Â¥²ãÉè±¸ÊýÁ¿
-        "alertNum": 0,					Â¥²ã±¨¾¯´ÎÊý
+ 	"id": 1,					Â¥ï¿½ï¿½ID
+        "devcieNum": 30,				Â¥ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+        "alertNum": 0,					Â¥ï¿½ã±¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         "floors": [
             {
-                "id": 401,				Â¥²ãID			
-                "num": 4,				Â¥²ãÊý
-                "name": "2F",				Â¥²ãÃû
-                "deviceNum": 30,			Â¥²ãÉè±¸Êý
-                "createDate": 1467885710000		´´½¨Ê±¼ä
+                "id": 401,				Â¥ï¿½ï¿½ID			
+                "num": 4,				Â¥ï¿½ï¿½ï¿½ï¿½
+                "name": "2F",				Â¥ï¿½ï¿½ï¿½ï¿½
+                "deviceNum": 30,			Â¥ï¿½ï¿½ï¿½è±¸ï¿½ï¿½
+                "createDate": 1467885710000		ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
             }
         ]
     }
 }
 }
 
-
 GET: /api/rest/firm/rooms?floorId=
-Èë²Î:{
-floorId					´«ÈëÂ¥²ãID
+ï¿½ï¿½ï¿½:{
+floorId					ï¿½ï¿½ï¿½ï¿½Â¥ï¿½ï¿½ID
 }
-³ö²Î
+ï¿½ï¿½ï¿½ï¿½
 {
     "error": 0,
     "message": "OK",
     "data": {
-        "id": 401,				Â¥²ãÃû
-        "deviceNum": 4,				Â¥²ãÉè±¸ÊýÁ¿
-        "alertNum": 0,				Â¥²ã±¨¾¯´ÎÊý
+        "id": 401,				Â¥ï¿½ï¿½ï¿½ï¿½
+        "deviceNum": 4,				Â¥ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+        "alertNum": 0,				Â¥ï¿½ã±¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         "roomList": [
             {
-                "id": 201,			Â¥²ã·¿¼äID
-                "name": "201",			Â¥²ã·¿¼äÃû
-                "xPoint": 350,			·¿¼äX×ø±ê
-                "yPoint": 400,			·¿¼äY×ø±ê
-                "deviceNum": 4,			·¿¼äÉè±¸ÊýÁ¿
-                "createDate": 1467625652000	½¨Á¢Ê±¼ä
+                "id": 201,			Â¥ï¿½ã·¿ï¿½ï¿½ID
+                "name": "201",			Â¥ï¿½ã·¿ï¿½ï¿½ï¿½ï¿½
+                "xPoint": 350,			ï¿½ï¿½ï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½
+                "yPoint": 400,			ï¿½ï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½
+                "deviceNum": 4,			ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+                "createDate": 1467625652000	ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
             }
         ]
     }
 }
 
-GET£º/api/rest/firm/devices?roomId=
-Èë²Î£»{
-roomId =201                        ·¿¼äID
+GETï¿½ï¿½/api/rest/firm/devices?roomId=
+ï¿½ï¿½Î£ï¿½{
+roomId =201                        ï¿½ï¿½ï¿½ï¿½ID
 }
-³ö²Í£º{
+ï¿½ï¿½ï¿½Í£ï¿½{
 {
     "error": 0,
     "message": "OK",
     "data": {
         "id": 201,
         "alterNum": 0,
-        "deviceList": [                                         Éè±¸ÁÐ±í
+        "deviceList": [                                         ï¿½è±¸ï¿½Ð±ï¿½
             {
                 "id": 101,
                 "code": "777",
                 "deviceType": {
                     "id": 1,
-                    "name": "¸ÉÏ¸°ûÀä¶³",
+                    "name": "ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ä¶³",
                     "logo": "XXXXXXX",
                     "inspectTypes": [
                         {
@@ -121,7 +120,7 @@ roomId =201                        ·¿¼äID
                     ]
                 },
                 "createDate": 1467799007000,
-                "creator": "ÃÀµÄ±äÆµ±ùÏä",
+                "creator": "ï¿½ï¿½ï¿½Ä±ï¿½Æµï¿½ï¿½ï¿½ï¿½",
                 "purchase": 1468835839000,
                 "photo": "logos1",
                 "manager": {
@@ -132,13 +131,13 @@ roomId =201                        ·¿¼äID
                     "telephone": "999",
                     "headIcon": "logo2",
                     "createDate": 1468489552000,
-                    "gender": "ÄÐ",
+                    "gender": "ï¿½ï¿½",
                     "email": "111",
-                    "department": "ÑÐ·¢²¿",
-                    "job": "ÑÐ·¢¾­Àí"
+                    "department": "ï¿½Ð·ï¿½ï¿½ï¿½",
+                    "job": "ï¿½Ð·ï¿½ï¿½ï¿½ï¿½ï¿½"
                 },
                 "alterNum": 4,
-                "maintain": "Ã¿ÔÂ",
+                "maintain": "Ã¿ï¿½ï¿½",
                 "maintainDate": 1468749451000,
                 "maintainAlterDays": 3,
                 "deviceFloors": [
@@ -152,25 +151,25 @@ roomId =201                        ·¿¼äID
                 "deviceInspects": [
                     {
                         "id": 1,
-                        "inspectType": {				¼ì²âÀà±ð
+                        "inspectType": {				ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                             "id": 1,
                             "name": "r9",
                             "code": "111"
                         },
                         "standard": 25,
-                        "lowUp": 2,                             µÍ¼¶±¨¾¯ÉÏÏß
-                        "lowDown": 5,                           µÍ¼¶±¨¾¯ÏÂÏß
-                        "highUp": 2,                            ¸ß¼¶±¨¾¯ÉÏÏß
-                        "highDown": 5,                          ¸ß¼¶±¨¾¯ÉÏÏß
-                        "lowAlter": 3                           µÍ¼¶±¨¾¯Í¨Öª¸ºÔðÈË´ÎÊý
+                        "lowUp": 2,                             ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        "lowDown": 5,                           ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        "highUp": 2,                            ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        "highDown": 5,                          ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                        "lowAlter": 3                           ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Í¨Öªï¿½ï¿½ï¿½ï¿½ï¿½Ë´ï¿½ï¿½ï¿½
                     }
                 ],
                 "files": [
                     {
                         "id": 1,
                         "url": "d:/123.txt",
-                        "type": "ÎÄ±¾ÎÄµµ",
-                        "description": "¼ÇÂ¼±¨¾¯ÐÅÏ¢",
+                        "type": "ï¿½Ä±ï¿½ï¿½Äµï¿½",
+                        "description": "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢",
                         "createDate": 1468835790000
                     }
                 ]
@@ -182,11 +181,11 @@ roomId =201                        ·¿¼äID
 
 
 
-GET£º/api/rest/firm/device?deviceId=
-Èë²Î£º{
-deviceId					´«ÈëÉè±¸ID
+GETï¿½ï¿½/api/rest/firm/device?deviceId=
+ï¿½ï¿½Î£ï¿½{
+deviceId					ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ID
 }
-³ö²Î
+ï¿½ï¿½ï¿½ï¿½
 {
     "error": 0,
     "message": "OK",
@@ -195,7 +194,7 @@ deviceId					´«ÈëÉè±¸ID
         "code": "777",
         "deviceType": {
             "id": 1,
-            "name": "¸ÉÏ¸°ûÀä¶³",
+            "name": "ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ä¶³",
             "logo": "XXXXXXX",
             "inspectTypes": [
                 {
@@ -206,7 +205,7 @@ deviceId					´«ÈëÉè±¸ID
             ]
         },
         "createDate": 1467799007000,
-        "creator": "ÃÀµÄ±äÆµ±ùÏä",
+        "creator": "ï¿½ï¿½ï¿½Ä±ï¿½Æµï¿½ï¿½ï¿½ï¿½",
         "purchase": 1468835839000,
         "photo": "logos1",
         "manager": {
@@ -217,13 +216,13 @@ deviceId					´«ÈëÉè±¸ID
             "telephone": "999",
             "headIcon": "logo2",
             "createDate": 1468489552000,
-            "gender": "ÄÐ",
+            "gender": "ï¿½ï¿½",
             "email": "111",
-            "department": "ÑÐ·¢²¿",
-            "job": "ÑÐ·¢¾­Àí"
+            "department": "ï¿½Ð·ï¿½ï¿½ï¿½",
+            "job": "ï¿½Ð·ï¿½ï¿½ï¿½ï¿½ï¿½"
         },
         "alterNum": 4,
-        "maintain": "Ã¿ÔÂ",
+        "maintain": "Ã¿ï¿½ï¿½",
         "maintainDate": 1468749451000,
         "maintainAlterDays": 3,
         "deviceFloors": [
@@ -254,16 +253,16 @@ deviceId					´«ÈëÉè±¸ID
             {
                 "id": 1,
                 "url": "d:/123.txt",
-                "type": "ÎÄ±¾ÎÄµµ",
-                "description": "¼ÇÂ¼±¨¾¯ÐÅÏ¢",
+                "type": "ï¿½Ä±ï¿½ï¿½Äµï¿½",
+                "description": "ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢",
                 "createDate": 1468835790000
             }
         ]
     }
 }
 
-GET£º/api/rest/firm/person/mine/info
-³ö²Î£º{
+GETï¿½ï¿½/api/rest/firm/person/mine/info
+ï¿½ï¿½ï¿½Î£ï¿½{
        "error": 0,
        "message": "OK",
        "data": {
@@ -274,17 +273,17 @@ GET£º/api/rest/firm/person/mine/info
            "telephone": "13564368150",
            "headIcon": "logo1",
            "createDate": 1468562479000,
-           "gender": "ÄÐ",
+           "gender": "ï¿½ï¿½",
            "email": "2222@qq.com",
-           "department": "¼¼Êõ²¿",
-           "job": "¹¤³ÌÊ¦"
+           "department": "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+           "job": "ï¿½ï¿½ï¿½ï¿½Ê¦"
        }
    }
 
 
-GET£º/api/rest/firm/person/info/{userId}
-userId  Òª²éÑ¯µÄÓÃ»§ID
-³ö²Í£º{
+GETï¿½ï¿½/api/rest/firm/person/info/{userId}
+userId  Òªï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½Ã»ï¿½ID
+ï¿½ï¿½ï¿½Í£ï¿½{
           "error": 0,
           "message": "OK",
           "data": {
@@ -295,21 +294,21 @@ userId  Òª²éÑ¯µÄÓÃ»§ID
               "telephone": "13564368150",
               "headIcon": "logo1",
               "createDate": 1468562479000,
-              "gender": "ÄÐ",
+              "gender": "ï¿½ï¿½",
               "email": "2222@qq.com",
-              "department": "¼¼Êõ²¿",
-              "job": "¹¤³ÌÊ¦"
+              "department": "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+              "job": "ï¿½ï¿½ï¿½ï¿½Ê¦"
           }
       }
 
-GET£º/api/rest/firm/device/types
-³ö²Î£º{
+GETï¿½ï¿½/api/rest/firm/device/types
+ï¿½ï¿½ï¿½Î£ï¿½{
        "error": 0,
        "message": "OK",
        "data": [
            {
                "id": 1,
-               "name": "¸ÉÏ¸°ûÀä¶³",
+               "name": "ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ä¶³",
                "logo": "XXXXXXX",
                "inspectTypes": [
                    {
@@ -321,7 +320,7 @@ GET£º/api/rest/firm/device/types
            },
            {
                "id": 2,
-               "name": "ÑªÒº±£ÏÊ",
+               "name": "ÑªÒºï¿½ï¿½ï¿½ï¿½",
                "logo": "ZZZZZZZZ",
                "inspectTypes": [
                    {
@@ -333,7 +332,7 @@ GET£º/api/rest/firm/device/types
            },
            {
                "id": 3,
-               "name": "»ð¾¯¼ì²â",
+               "name": "ï¿½ð¾¯¼ï¿½ï¿½",
                "logo": "CCCCCCC",
                "inspectTypes": []
            }
@@ -341,19 +340,19 @@ GET£º/api/rest/firm/device/types
    }
 
 
-   GET£º/api/rest/firm/employees?start=&limit=&userName=&mobile=
-   Èë²Î£º{
+   GETï¿½ï¿½/api/rest/firm/employees?start=&limit=&userName=&mobile=
+   ï¿½ï¿½Î£ï¿½{
    start        pageSize*pageNo
    limit        pageNo
-   userName     ÓÃ»§ÐÕÃû
-   mobile       ÊÖ»úºÅ
+   userName     ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½
+   mobile       ï¿½Ö»ï¿½ï¿½ï¿½
    }
-   ³ö²Î
+   ï¿½ï¿½ï¿½ï¿½
    {
        "error": 0,
        "message": "OK",
        "data": {
-           "total": "1",                                            ²éÑ¯×ÜÊý
+           "total": "1",                                            ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½ï¿½
            "userList": {
                "userId": 1,
                "userList": [
@@ -367,25 +366,25 @@ GET£º/api/rest/firm/device/types
                        "createDate": 1468489557000,
                        "gender": "Å®",
                        "email": "333@qq.com",
-                       "department": "¼¼Êõ²¿",
-                       "job": "¼¼Êõ×é³¤"
+                       "department": "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+                       "job": "ï¿½ï¿½ï¿½ï¿½ï¿½é³¤"
                    }
                ]
            },
-           "thisNum": "1"                                               ±¾´Î×ÜÊý
+           "thisNum": "1"                                               ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
        }
    }
 
-   GET£º/api/rest/firm/manager/devices?start=&limit=&code=&name=&typeId=&userId
-   Èë²Î£º{
+   GETï¿½ï¿½/api/rest/firm/manager/devices?start=&limit=&code=&name=&typeId=&userId
+   ï¿½ï¿½Î£ï¿½{
    start        pageSize*pageNo
    limit        pageNo
-   code         Éè±¸±àºÅ
-   typeId       Éè±¸ÖÖÀàID
-   userId       ¹ÜÀíÔ±Id£¨¿ÉÒÔ²»Ìî£¬Ä¬ÈÏµÇÂ¼ÈËµÄ£©
+   code         ï¿½è±¸ï¿½ï¿½ï¿½
+   typeId       ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ID
+   userId       ï¿½ï¿½ï¿½ï¿½Ô±Idï¿½ï¿½ï¿½ï¿½ï¿½Ô²ï¿½ï¿½î£¬Ä¬ï¿½Ïµï¿½Â¼ï¿½ËµÄ£ï¿½
    }
 
-   ³ö²Í£º{
+   ï¿½ï¿½ï¿½Í£ï¿½{
           "error": 0,
           "message": "OK",
           "data": {
@@ -396,7 +395,7 @@ GET£º/api/rest/firm/device/types
                       "code": "888",
                       "deviceType": {
                           "id": 2,
-                          "name": "ÑªÒº±£ÏÊ",
+                          "name": "ÑªÒºï¿½ï¿½ï¿½ï¿½",
                           "logo": "ZZZZZZZZ",
                           "inspectTypes": [
                               {
@@ -407,7 +406,7 @@ GET£º/api/rest/firm/device/types
                           ]
                       },
                       "createDate": 1468317410000,
-                      "creator": "Ä³¹¤³§",
+                      "creator": "Ä³ï¿½ï¿½ï¿½ï¿½",
                       "purchase": 1468231422000,
                       "photo": "logos2",
                       "manager": {
@@ -418,13 +417,13 @@ GET£º/api/rest/firm/device/types
                           "telephone": "13564368150",
                           "headIcon": "logo1",
                           "createDate": 1468562479000,
-                          "gender": "ÄÐ",
+                          "gender": "ï¿½ï¿½",
                           "email": "2222@qq.com",
-                          "department": "¼¼Êõ²¿",
-                          "job": "¹¤³ÌÊ¦"
+                          "department": "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½",
+                          "job": "ï¿½ï¿½ï¿½ï¿½Ê¦"
                       },
                       "alterNum": 3,
-                      "maintain": "Ã¿ÔÂ",
+                      "maintain": "Ã¿ï¿½ï¿½",
                       "maintainDate": 1468144767000,
                       "maintainAlterDays": 5,
                       "deviceFloors": [
@@ -455,8 +454,8 @@ GET£º/api/rest/firm/device/types
                           {
                               "id": 2,
                               "url": "c:/456.txt",
-                              "type": "ÎÄ±¾ÎÄµµ",
-                              "description": "¼ÇÂ¼²úÆ·ÐÅÏ¢",
+                              "type": "ï¿½Ä±ï¿½ï¿½Äµï¿½",
+                              "description": "ï¿½ï¿½Â¼ï¿½ï¿½Æ·ï¿½ï¿½Ï¢",
                               "createDate": 1468490557000
                           }
                       ]

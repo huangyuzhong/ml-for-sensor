@@ -430,4 +430,10 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `inspect_data` ADD `type` VARCHAR(255) NULL;
 
+  ALTER TABLE `device_type` ADD `company_id` INT NULL;
+  ALTER TABLE `device_type` ADD CONSTRAINT `device_type_company_1` FOREIGN KEY (`company_id`) REFERENCES `company` (`id`);
+
+  ALTER TABLE `device_type` ADD `enable` INT NULL DEFAULT 1;
+
+
 SET FOREIGN_KEY_CHECKS=1;

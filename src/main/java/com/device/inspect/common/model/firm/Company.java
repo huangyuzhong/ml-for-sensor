@@ -145,7 +145,8 @@ public class Company {
         this.createDate = createDate;
     }
 
-    @OneToMany(mappedBy = "company")
+//    @OneToMany(mappedBy = "company")
+    @Transient
     public List<Building> getBuildings() {
         return buildings;
     }

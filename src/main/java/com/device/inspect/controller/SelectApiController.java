@@ -28,6 +28,7 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.device.RestInspectType;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
+import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
@@ -93,40 +96,61 @@ public class SelectApiController {
 
 
     @RequestMapping(value = "/buildings/{name}")
-    public RestResponse getBuildings(Principal principal,@PathVariable String name){
+    public RestResponse getBuildings(Principal principal,@PathVariable String name,@RequestParam Integer enable){
         User user = userRepository.findByName(name);
         if (null == user&&null == user.getCompany()){
             return new RestResponse("user's information correct!",1005,null);
         }
+        List<Building> list = new ArrayList<Building>();
+        if (null!=enable&&(enable==0||enable==1))
+            list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable);
+        else
+            list = buildingRepository.findByCompanyId(user.getCompany().getId());
+        user.getCompany().setBuildings(list);
         return new RestResponse(new RestIndexBuilding(user.getCompany()));
     }
 
 
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
-     public RestResponse getFloors(Principal principal,@RequestParam Integer buildId) {
+     public RestResponse getFloors(Principal principal,@RequestParam Integer buildId,@RequestParam Integer enable) {
          Building build = buildingRepository.findOne(buildId);
          if (null == build || null ==build.getId()) {
              return new RestResponse("floors information correct!", 1005, null);
          }
+         List<Storey> list = new ArrayList<Storey>();
+         if (null!=enable&&(enable==0||enable==1))
+            list = storeyRepository.findByBuildIdAndEnable(buildId,enable);
+         else list = storeyRepository.findByBuildId(buildId);
+         build.setFloorList(list);
          return new RestResponse(new RestIndexFloor(build));
      }
 
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
-    public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId){
+    public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId,@RequestParam Integer enable){
         Storey floor = storeyRepository.findOne(floorId);
         if (null == floor||null ==floor.getId()){
             return  new RestResponse("rooms information correct!",1005,null);
         }
+        List<Room> list = new ArrayList<Room>();
+        if (null!=enable&&(enable==0||enable==1))
+            list = roomRepository.findByFloorIdAndEnable(floorId,enable);
+        else list = roomRepository.findByFloorId(floorId);
+        floor.setRoomList(list);
         return new RestResponse(new RestIndexRoom(floor));
     }
 
 
     @RequestMapping(value = "/devices",method = RequestMethod.GET)
-    public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId){
+    public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId,@RequestParam Integer enable){
         Room room = roomRepository.findOne(roomId);
         if (null == room||null ==room.getId()){
             return  new RestResponse("devices information correct!",1005,null);
         }
+        List<Device> list = new ArrayList<Device>();
+        if (null!=enable&&(enable==0||enable==1))
+            list = deviceRepository.findByRoomIdAndEnable(roomId,enable);
+        else list = deviceRepository.findByRoomId(roomId);
+        room.setDeviceList(list);
         return new RestResponse(new RestIndexDevice(room));
     }
 
@@ -143,13 +167,18 @@ public class SelectApiController {
      * 查询所有的设备种类
      * @return
      */
-    @RequestMapping(value = "/device/types",method = RequestMethod.GET)
-    public RestResponse getAllDeviceTypes(){
+    @RequestMapping(value = "/device/types/{name}",method = RequestMethod.GET)
+    public RestResponse getAllDeviceTypes(@PathVariable String name,@RequestParam Integer enable){
+        User user = userRepository.findByName(name);
+        if (null == user||null==user.getCompany())
+            return new RestResponse("user information wrong!",1005,null);
         Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
         List<RestDeviceType> deviceTypes = new ArrayList<RestDeviceType>();
         if (null!=deviceTypeIterable)
             for (DeviceType deviceType: deviceTypeIterable)
                 deviceTypes.add(new RestDeviceType(deviceType));
+
+
 
         return new RestResponse(deviceTypes);
     }
@@ -378,6 +407,21 @@ public class SelectApiController {
         }
         deviceTypeRequest.setList(list);
         return new RestResponse(deviceTypeRequest);
+    }
+
+    @RequestMapping("/test/company")
+    public RestResponse updateCompanyURL(){
+        Iterable<Company> companies = companyRepository.findAll();
+        for (Company company:companies){
+
+            try {
+                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getName(),"UTF-8")));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            companyRepository.save(company);
+        }
+        return new RestResponse();
     }
 
 

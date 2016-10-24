@@ -25,6 +25,7 @@ import com.device.inspect.common.restful.firm.RestBuilding;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
+import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.controller.request.CompanyRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
@@ -44,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.rowset.serial.SerialException;
 import java.io.*;
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -52,6 +54,8 @@ import java.util.*;
 @Controller
 @RequestMapping(value = "/api/rest/file")
 public class FileController {
+
+    private static final String SERVICE_PATH = "http://inmycars.ihengtian.top";
 
     @Autowired
     private UserRepository userRepository;
@@ -575,8 +579,11 @@ public class FileController {
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
-
+                if (null==param.get("name")||"".equals(param.get("name")))
+                    throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
+                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                        ByteAndHex.convertMD5(URLEncoder.encode(param.get("name"),"UTF-8")));
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
@@ -597,7 +604,11 @@ public class FileController {
                 company.setManager(firmManager);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
+                if (null==param.get("name")||"".equals(param.get("name")))
+                    throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
+                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                        ByteAndHex.convertMD5(URLEncoder.encode(param.get("name"),"UTF-8")));
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
@@ -611,9 +622,6 @@ public class FileController {
                 firmManager.setCreateDate(new Date());
                 userRepository.save(firmManager);
             }
-
-
-
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;

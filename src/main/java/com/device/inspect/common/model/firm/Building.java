@@ -102,7 +102,8 @@ public class Building {
         this.background = background;
     }
 
-    @OneToMany(mappedBy = "build")
+//    @OneToMany(mappedBy = "build")
+    @Transient
     public List<Storey> getFloorList() {
         return floorList;
     }

@@ -11,4 +11,5 @@ import java.util.List;
 public interface DeviceRepository extends CrudRepository<Device,Integer> {
     public Device findByCode(String Code);
     public List<Device> findByRoomIdAndEnable(Integer RoomId,Integer Enable);
+    public List<Device> findByRoomId(Integer RoomId);
 }

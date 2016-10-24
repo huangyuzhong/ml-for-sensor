@@ -115,7 +115,8 @@ public class Room {
         this.device = device;
     }
 
-    @OneToMany(mappedBy = "room")
+//    @OneToMany(mappedBy = "room")
+    @Transient
     public List<Device> getDeviceList() {
         return deviceList;
     }

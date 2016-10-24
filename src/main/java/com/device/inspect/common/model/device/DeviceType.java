@@ -1,5 +1,7 @@
 package com.device.inspect.common.model.device;
 
+import com.device.inspect.common.model.firm.Company;
+
 import javax.persistence.*;
 import java.util.List;
 
@@ -13,6 +15,8 @@ public class DeviceType {
     private Integer id;
     private String name;
     private String logo;
+    private Company company;
+    private Integer enable;
     private List<DeviceTypeInspect> deviceTypeInspectList;
 
     @Id

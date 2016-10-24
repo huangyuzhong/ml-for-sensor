@@ -10,4 +10,5 @@ import java.util.List;
  */
 public interface StoreyRepository extends CrudRepository<Storey,Integer> {
     public List<Storey> findByBuildIdAndEnable(Integer BuildId,Integer Enable);
+    public List<Storey> findByBuildId(Integer BuildId);
 }
