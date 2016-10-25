@@ -41,13 +41,16 @@ public class WebSecurityConfig {
         protected void configure(HttpSecurity http) throws Exception {
 
             Set<String> roles = new HashSet<>();
-            roles.add("ROLE_PLATFORM");
-            roles.add("ROLE_COMPANY");
+            roles.add("SERVICE_MANAGER");
+            roles.add("SERVICE_BUSINESS");
+            roles.add("FIRM_MANAGER");
+            roles.add("FIRM_WORKER");
+            roles.add("FIRM_SCIENTIST");
 
             http.csrf().disable().headers().cacheControl().and()
                     .antMatcher("/api/**").authorizeRequests()
                     .antMatchers("/api/rest/**").permitAll()
-                    .anyRequest().hasAnyRole("ADMIN", "SHOP","WORKER", "CUSTOMER").and()
+                    .anyRequest().hasAnyRole("SERVICE_MANAGER", "SERVICE_BUSINESS","FIRM_MANAGER", "FIRM_WORKER","FIRM_SCIENTIST").and()
                     .exceptionHandling().and()
                     .addFilterBefore(new StatelessLoginFilter("/api/rest/login",  loginUserService, authenticationManager(), roles),
                             UsernamePasswordAuthenticationFilter.class)

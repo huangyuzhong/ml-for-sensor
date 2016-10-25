@@ -34,6 +34,7 @@ import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import java.io.UnsupportedEncodingException;
@@ -78,6 +79,15 @@ public class SelectApiController {
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
 
+    private User judgeByPrincipal(Principal principal){
+        if (null == principal||null==principal.getName())
+            throw new UsernameNotFoundException("You are not login!");
+        User user = userRepository.findByName(principal.getName());
+        if (null==user)
+            throw new UsernameNotFoundException("user not found!");
+        return user;
+    }
+
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
         User user = userRepository.findOne(userId);
@@ -95,10 +105,10 @@ public class SelectApiController {
     }
 
 
-    @RequestMapping(value = "/buildings/{name}")
-    public RestResponse getBuildings(Principal principal,@PathVariable String name,@RequestParam Integer enable){
-        User user = userRepository.findByName(name);
-        if (null == user&&null == user.getCompany()){
+    @RequestMapping(value = "/buildings")
+    public RestResponse getBuildings(Principal principal,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        if (null == user.getCompany()){
             return new RestResponse("user's information correct!",1005,null);
         }
         List<Building> list = new ArrayList<Building>();
@@ -168,17 +178,20 @@ public class SelectApiController {
      * @return
      */
     @RequestMapping(value = "/device/types/{name}",method = RequestMethod.GET)
-    public RestResponse getAllDeviceTypes(@PathVariable String name,@RequestParam Integer enable){
-        User user = userRepository.findByName(name);
-        if (null == user||null==user.getCompany())
-            return new RestResponse("user information wrong!",1005,null);
-        Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
+    public RestResponse getAllDeviceTypes(Principal principal,@PathVariable String name,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        if (null==user.getCompany())
+            return new RestResponse("user's information wrong!",1005,null);
+        List<DeviceType> list = new ArrayList<DeviceType>();
+        list.addAll(deviceTypeRepository.findByCompanyIdIsNull());
+        if (null!=user.getRole().getRoleAuthority()&&user.getRole().getRoleAuthority().getName().startsWith("FIRM")){
+            list.addAll(deviceTypeRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable));
+        }
+//        Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
         List<RestDeviceType> deviceTypes = new ArrayList<RestDeviceType>();
-        if (null!=deviceTypeIterable)
-            for (DeviceType deviceType: deviceTypeIterable)
+        if (null!=list)
+            for (DeviceType deviceType: list)
                 deviceTypes.add(new RestDeviceType(deviceType));
-
-
 
         return new RestResponse(deviceTypes);
     }
@@ -390,11 +403,14 @@ public class SelectApiController {
 
     @RequestMapping(value = "/query/inspect/type")
     public RestResponse getAllInspectType(){
+//        if (null==principal)
+//            throw new UsernameNotFoundException("you are not login!");
+//        User user = userRepository.findByName(principal.getName());
+//        if (null==user)
+//            throw new UsernameNotFoundException("user's name isn't correct!");
+
         Iterable<InspectType> iterable = inspectTypeRepository.findAll();
-//        List<RestInspectType> list = new ArrayList<RestInspectType>();
-//        for (InspectType inspectType : iterable){
-//            list.add(new RestInspectType(inspectType));
-//        }
+
         DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
         List<InspectTypeRequest> list = new ArrayList<InspectTypeRequest>();
         if (null!=iterable){
@@ -409,20 +425,20 @@ public class SelectApiController {
         return new RestResponse(deviceTypeRequest);
     }
 
-    @RequestMapping("/test/company")
-    public RestResponse updateCompanyURL(){
-        Iterable<Company> companies = companyRepository.findAll();
-        for (Company company:companies){
-
-            try {
-                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getName(),"UTF-8")));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            companyRepository.save(company);
-        }
-        return new RestResponse();
-    }
+//    @RequestMapping("/test/company")
+//    public RestResponse updateCompanyURL(){
+//        Iterable<Company> companies = companyRepository.findAll();
+//        for (Company company:companies){
+//
+//            try {
+//                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getName(),"UTF-8")));
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//            companyRepository.save(company);
+//        }
+//        return new RestResponse();
+//    }
 
 
 }

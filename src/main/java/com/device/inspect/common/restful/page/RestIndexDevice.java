@@ -30,6 +30,7 @@ public class RestIndexDevice {
     private String floorName;
     private Integer buildId;
     private String buildName;
+    private RestDevice device;
 
     public  RestIndexDevice(@NotNull Room room){
         this.id = room.getId();
@@ -41,7 +42,7 @@ public class RestIndexDevice {
         this.buildName = room.getFloor().getBuild().getName();
         this.alterNum = 0;
         this.deviceNum = room.getDeviceNum();
-
+        this.device = null==room.getDevice()?null:new RestDevice(room.getDevice());
         if (null!=room.getCreateDate())
             days = MyCalendar.getDateSpace(room.getCreateDate(), new Date());
         if (null!=room.getDeviceList()&&room.getDeviceList().size()>0){

@@ -54,4 +54,22 @@ public class DeviceType {
     public void setDeviceTypeInspectList(List<DeviceTypeInspect> deviceTypeInspectList) {
         this.deviceTypeInspectList = deviceTypeInspectList;
     }
+
+    @ManyToOne()
+    @JoinColumn(name = "company_id")
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
+    }
 }
