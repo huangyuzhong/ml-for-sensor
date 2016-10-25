@@ -21,8 +21,6 @@ public class RestIndexBuilding {
     private Integer id;
     private String name;
     private String background;
-    private Integer deviceNum;
-    private Integer alterNum;
     private Integer days;
     private List<RestBuilding> list;
     private Integer lowAlert;
@@ -48,12 +46,9 @@ public class RestIndexBuilding {
         if (null!=company.getCreateDate())
             days = MyCalendar.getDateSpace(company.getCreateDate(),new Date());
         if (null!=company.getBuildings()&&company.getBuildings().size()>0){
-            this.deviceNum = 0 ;
-            this.alterNum = 0;
             list = new ArrayList<RestBuilding>();
             for (Building building:company.getBuildings()) {
                 list.add(new RestBuilding(building));
-                deviceNum+=building.getDeviceNum();
             }
         }
     }
@@ -72,22 +67,6 @@ public class RestIndexBuilding {
 
     public void setBackground(String background) {
         this.background = background;
-    }
-
-    public Integer getDeviceNum() {
-        return deviceNum;
-    }
-
-    public void setDeviceNum(Integer deviceNum) {
-        this.deviceNum = deviceNum;
-    }
-
-    public Integer getAlterNum() {
-        return alterNum;
-    }
-
-    public void setAlterNum(Integer alterNum) {
-        this.alterNum = alterNum;
     }
 
     public Integer getDays() {

@@ -3,6 +3,7 @@ package com.device.inspect.common.restful.device;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.restful.charater.RestUser;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -40,7 +41,7 @@ public class RestDevice {
     private String roomName;
     private String score;
     private Integer enable;
-
+    private Integer days;
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -85,6 +86,8 @@ public class RestDevice {
                     files.add(new RestFile(deviceFile.getFile()));
             }
         }
+        if (null!=device.getCreateDate())
+            days = MyCalendar.getDateSpace(device.getCreateDate(),new Date());
 
     }
 
@@ -286,5 +289,13 @@ public class RestDevice {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 }

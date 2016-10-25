@@ -1,6 +1,8 @@
 package com.device.inspect.common.restful.firm;
 
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.restful.device.RestDevice;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -20,7 +22,6 @@ public class RestRoom {
     private Integer deviceNum;
     private Date createDate;
     private String background;
-
     private Integer lowAlert;
     private Integer highAlert;
     private Integer online;
@@ -28,6 +29,9 @@ public class RestRoom {
     private Integer total;
     private Float score;
     private Integer enable;
+    private Integer deviceId;
+    private Integer days;
+
 
     public RestRoom(@NotNull Room room){
         this.id = room.getId();
@@ -44,6 +48,9 @@ public class RestRoom {
         this.total = room.getTotal();
         this.score = room.getScore();
         this.enable = room.getEnable();
+        this.deviceId = null==room.getDevice()?null:room.getDevice().getId();
+        if (null!=room.getCreateDate())
+            days = MyCalendar.getDateSpace(room.getCreateDate(),new Date());
     }
 
     public Integer getId() {
@@ -156,5 +163,21 @@ public class RestRoom {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    public Integer getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(Integer deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 }

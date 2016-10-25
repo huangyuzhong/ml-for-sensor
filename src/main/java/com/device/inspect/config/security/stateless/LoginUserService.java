@@ -29,7 +29,7 @@ public class LoginUserService {
 
 	private final AccountStatusUserDetailsChecker detailsChecker = new AccountStatusUserDetailsChecker();
 
-	public final LoginUser loadUserByName(String name,String verify, String companyName,Set<String> roleNames) throws UsernameNotFoundException {
+	public final LoginUser loadUserByName(String name,String verify, String companyId,Set<String> roleNames) throws UsernameNotFoundException {
         User user = userRepository.findByName(name);
         if (user == null) {
             throw new UsernameNotFoundException("user not found!");
@@ -42,20 +42,20 @@ public class LoginUserService {
         List<Role> newRoles = new ArrayList<>(roleNames.size());
         if (null != role&&roleNames.contains(role.getAuthority()))
             newRoles.add(role);
-        if (null==companyName&&!user.getRole().getRoleAuthority().getName().startsWith("SERVICE"))
+        if (null==companyId&&!user.getRole().getRoleAuthority().getName().startsWith("SERVICE"))
             throw new UsernameNotFoundException("you're not a service manager!");
         if(null!=user.getRole().getRoleAuthority().getName()&&user.getRole().getRoleAuthority().getName().startsWith("SERVICE")){
-            if (null!=companyName&&!"".equals(companyName))
+            if (null!=companyId&&!"".equals(companyId))
                 throw new UsernameNotFoundException("you are not a firm account!");
         }
-        if (null!=companyName&&user.getRole().getRoleAuthority().getName().startsWith("FIRM")){
-            String realName = "";
+        if (null!=companyId&&user.getRole().getRoleAuthority().getName().startsWith("FIRM")){
+            String realId = "";
             try {
-                realName = URLDecoder.decode(ByteAndHex.convertMD5(companyName),"UTF-8");
+                realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            if (!user.getCompany().getName().equals(realName))
+            if (!user.getCompany().getId().toString().equals(realId))
                 throw new UsernameNotFoundException("user's company isn't correct!");
 
         }

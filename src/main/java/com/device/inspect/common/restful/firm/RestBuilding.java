@@ -2,6 +2,7 @@ package com.device.inspect.common.restful.firm;
 
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -25,6 +26,7 @@ public class RestBuilding {
     private Integer total;
     private Float score;
     private Integer enable;
+    private Integer days;
 
     public RestBuilding(@NotNull Building building) {
         this.id = building.getId();
@@ -40,6 +42,8 @@ public class RestBuilding {
         this.total = building.getTotal();
         this.score = building.getScore();
         this.enable = building.getEnable();
+        if (null!=building.getCreateDate())
+            days = MyCalendar.getDateSpace(building.getCreateDate(),new Date());
     }
 
     public Integer getId() {
@@ -144,5 +148,13 @@ public class RestBuilding {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 }

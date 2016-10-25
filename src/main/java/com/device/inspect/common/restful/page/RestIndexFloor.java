@@ -18,35 +18,38 @@ import java.util.List;
 public class RestIndexFloor {
     private  Integer id;
     private String name;
-    private Integer devcieNum;
+//    private Integer devcieNum;
     private Integer alertNum;
     private Integer days;
     private List<RestFloor> floors;
     private Integer buildId;
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
 
     public RestIndexFloor(@NotNull Building building){
         this.id = building.getId();
         this.name = building.getName();
         this.buildId = building.getId();
-        devcieNum = 0;
+        this.lowAlert = building.getLowAlert();
+        this.highAlert = building.getHighAlert();
+        this.online = building.getOnline();
+        this.offline = building.getOffline();
+        this.total = building.getTotal();
+        this.score = building.getScore();
+
         alertNum = 0 ;
         if (null!=building.getCreateDate())
             days = MyCalendar.getDateSpace(building.getCreateDate(),new Date());
         if(null!= building.getFloorList()&&building.getFloorList().size()>0){
             floors = new ArrayList<RestFloor>();
             for (Storey floor:building.getFloorList()){
-                devcieNum += floor.getDeviceNum();
                 floors.add(new RestFloor(floor));
             }
         }
-    }
-
-    public Integer getDevcieNum() {
-        return devcieNum;
-    }
-
-    public void setDevcieNum(Integer devcieNum) {
-        this.devcieNum = devcieNum;
     }
 
     public Integer getAlertNum() {
@@ -95,5 +98,53 @@ public class RestIndexFloor {
 
     public void setBuildId(Integer buildId) {
         this.buildId = buildId;
+    }
+
+    public Integer getLowAlert() {
+        return lowAlert;
+    }
+
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
     }
 }

@@ -38,6 +38,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
@@ -97,69 +98,77 @@ public class SelectApiController {
     }
 
     @RequestMapping(value = "/person/mine/info")
-    public RestResponse getMyMessage(Principal principal,@RequestParam String name){
-        User user = userRepository.findByName(name);
-        if (null == user)
-            return new RestResponse("user not found!",1005,null);
+    public RestResponse getMyMessage(Principal principal){
+        User user = judgeByPrincipal(principal);
         return new RestResponse(new RestUser(user));
     }
 
 
     @RequestMapping(value = "/buildings")
-    public RestResponse getBuildings(Principal principal,@RequestParam Integer enable){
+    public RestResponse getBuildings(Principal principal,@RequestParam  Map<String,String> map){
         User user = judgeByPrincipal(principal);
         if (null == user.getCompany()){
             return new RestResponse("user's information correct!",1005,null);
         }
         List<Building> list = new ArrayList<Building>();
-        if (null!=enable&&(enable==0||enable==1))
-            list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable);
+        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
+            list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(),Integer.valueOf(map.get("enable")));
         else
             list = buildingRepository.findByCompanyId(user.getCompany().getId());
         user.getCompany().setBuildings(list);
         return new RestResponse(new RestIndexBuilding(user.getCompany()));
     }
 
-
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
-     public RestResponse getFloors(Principal principal,@RequestParam Integer buildId,@RequestParam Integer enable) {
-         Building build = buildingRepository.findOne(buildId);
-         if (null == build || null ==build.getId()) {
+     public RestResponse getFloors(Principal principal,@RequestParam Map<String,String> map) {
+         String buildId = map.get("buildId");
+         Building build = null;
+         if (null!=buildId){
+             build = buildingRepository.findOne(Integer.valueOf(buildId));
+         }
+
+         if (null == build) {
              return new RestResponse("floors information correct!", 1005, null);
          }
          List<Storey> list = new ArrayList<Storey>();
-         if (null!=enable&&(enable==0||enable==1))
-            list = storeyRepository.findByBuildIdAndEnable(buildId,enable);
-         else list = storeyRepository.findByBuildId(buildId);
+         if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
+            list = storeyRepository.findByBuildIdAndEnable(Integer.valueOf(buildId),Integer.valueOf(map.get("enable")));
+         else list = storeyRepository.findByBuildId(Integer.valueOf(buildId));
          build.setFloorList(list);
          return new RestResponse(new RestIndexFloor(build));
      }
 
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
-    public  RestResponse getRooms(Principal principal,@RequestParam Integer floorId,@RequestParam Integer enable){
-        Storey floor = storeyRepository.findOne(floorId);
-        if (null == floor||null ==floor.getId()){
+    public  RestResponse getRooms(Principal principal,@RequestParam Map<String,String> map){
+        String floorId = map.get("floorId");
+        Storey floor = null;
+        if (null!=floorId)
+            floor = storeyRepository.findOne(Integer.valueOf(floorId));
+        if (null == floor){
             return  new RestResponse("rooms information correct!",1005,null);
         }
         List<Room> list = new ArrayList<Room>();
-        if (null!=enable&&(enable==0||enable==1))
-            list = roomRepository.findByFloorIdAndEnable(floorId,enable);
-        else list = roomRepository.findByFloorId(floorId);
+        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
+            list = roomRepository.findByFloorIdAndEnable(Integer.valueOf(floorId),Integer.valueOf(map.get("enable")));
+        else list = roomRepository.findByFloorId(Integer.valueOf(floorId));
         floor.setRoomList(list);
         return new RestResponse(new RestIndexRoom(floor));
     }
 
 
     @RequestMapping(value = "/devices",method = RequestMethod.GET)
-    public  RestResponse getDevices(Principal principal,@RequestParam Integer roomId,@RequestParam Integer enable){
-        Room room = roomRepository.findOne(roomId);
+    public  RestResponse getDevices(Principal principal,@RequestParam Map<String,String> map){
+        String roomId = map.get("roomId");
+        Room room = null;
+        if (null!=roomId)
+            room = roomRepository.findOne(Integer.valueOf(roomId));
         if (null == room||null ==room.getId()){
             return  new RestResponse("devices information correct!",1005,null);
         }
         List<Device> list = new ArrayList<Device>();
-        if (null!=enable&&(enable==0||enable==1))
-            list = deviceRepository.findByRoomIdAndEnable(roomId,enable);
-        else list = deviceRepository.findByRoomId(roomId);
+        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
+            list = deviceRepository.findByRoomIdAndEnable(Integer.valueOf(roomId),Integer.valueOf(map.get("enable")));
+        else list = deviceRepository.findByRoomId(Integer.valueOf(roomId));
         room.setDeviceList(list);
         return new RestResponse(new RestIndexDevice(room));
     }
@@ -177,8 +186,8 @@ public class SelectApiController {
      * 查询所有的设备种类
      * @return
      */
-    @RequestMapping(value = "/device/types/{name}",method = RequestMethod.GET)
-    public RestResponse getAllDeviceTypes(Principal principal,@PathVariable String name,@RequestParam Integer enable){
+    @RequestMapping(value = "/device/types",method = RequestMethod.GET)
+    public RestResponse getAllDeviceTypes(Principal principal,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
         if (null==user.getCompany())
             return new RestResponse("user's information wrong!",1005,null);
@@ -223,11 +232,11 @@ public class SelectApiController {
         return new RestResponse(deviceTypeRequest);
     }
 
-    @RequestMapping(value = "/manager/devices/{name}",method = RequestMethod.GET)
-    public RestResponse getAllDevicesByManger(Principal principal,@PathVariable String name,@RequestParam Map<String,String> requestParam){
+    @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         if (null == user||null == user.getCompany()){
             return new RestResponse("user's information error!",1005,null);
         }
@@ -256,11 +265,11 @@ public class SelectApiController {
 
     }
 
-    @RequestMapping(value = "/employees/{name}",method = RequestMethod.GET)
-    public RestResponse getAllEmployees(Principal principal,@PathVariable String name,@RequestParam Map<String,String> requestParam){
+    @RequestMapping(value = "/employees",method = RequestMethod.GET)
+    public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(name);
+        User user = userRepository.findByName(principal.getName());
         if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
             return new RestResponse("user's information correct!",1005,null);
         }
@@ -314,10 +323,35 @@ public class SelectApiController {
         return new RestResponse(list);
     }
 
-    @RequestMapping(value = "/query/company/{name}")
-    public RestResponse getCompanyByUserName(@PathVariable String name,@RequestParam Map<String,String> requestParam){
-        User user = userRepository.findByName(name);
-        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+    /**
+     * 登陆页面根据公司URL获取公司信息
+     * @param companyId
+     * @return
+     */
+    @RequestMapping(value = "/query/login/company")
+    public RestResponse getCompanyById(@RequestParam String companyId){
+        String realId = "";
+        try {
+            realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        Company company = companyRepository.findOne(Integer.valueOf(realId));
+        if (null==company)
+            return new RestResponse("当前登陆页面不是企业URL！",1005,null);
+        return new RestResponse(new RestCompany(company));
+    }
+
+    /**
+     * 根据登录人获取所属公司信息
+     * @param principal
+     * @param requestParam
+     * @return
+     */
+    @RequestMapping(value = "/query/mine/company")
+    public RestResponse getCompanyByUserName(Principal principal,@RequestParam Map<String,String> requestParam){
+        User user = judgeByPrincipal(principal);
+        if (null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
             return new RestResponse("user's information correct!",1005,null);
         }
         if (user.getRole().getRoleAuthority()!=null){
@@ -425,20 +459,20 @@ public class SelectApiController {
         return new RestResponse(deviceTypeRequest);
     }
 
-//    @RequestMapping("/test/company")
-//    public RestResponse updateCompanyURL(){
-//        Iterable<Company> companies = companyRepository.findAll();
-//        for (Company company:companies){
-//
-//            try {
-//                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getName(),"UTF-8")));
-//            } catch (UnsupportedEncodingException e) {
-//                e.printStackTrace();
-//            }
-//            companyRepository.save(company);
-//        }
-//        return new RestResponse();
-//    }
+    @RequestMapping("/test/company")
+    public RestResponse updateCompanyURL(){
+        Iterable<Company> companies = companyRepository.findAll();
+        for (Company company:companies){
+
+            try {
+                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            companyRepository.save(company);
+        }
+        return new RestResponse();
+    }
 
 
 }

@@ -20,9 +20,7 @@ import java.util.List;
 public class RestIndexDevice {
     private Integer id;
     private String name;
-    private Integer alterNum;
     private Integer days;
-    private Integer deviceNum;
     private List<RestDevice> deviceList;
     private Integer roomId;
 //    private String roomName;
@@ -31,6 +29,13 @@ public class RestIndexDevice {
     private Integer buildId;
     private String buildName;
     private RestDevice device;
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
+
 
     public  RestIndexDevice(@NotNull Room room){
         this.id = room.getId();
@@ -40,8 +45,13 @@ public class RestIndexDevice {
         this.floorName = room.getFloor().getName();
         this.buildId = room.getFloor().getBuild().getId();
         this.buildName = room.getFloor().getBuild().getName();
-        this.alterNum = 0;
-        this.deviceNum = room.getDeviceNum();
+//        this.alterNum = 0;
+        this.lowAlert = room.getLowAlert();
+        this.highAlert = room.getHighAlert();
+        this.online = room.getOnline();
+        this.offline = room.getOffline();
+        this.total = room.getTotal();
+        this.score = room.getScore();
         this.device = null==room.getDevice()?null:new RestDevice(room.getDevice());
         if (null!=room.getCreateDate())
             days = MyCalendar.getDateSpace(room.getCreateDate(), new Date());
@@ -62,14 +72,6 @@ public class RestIndexDevice {
         this.id = id;
     }
 
-    public Integer getAlterNum() {
-        return alterNum;
-    }
-
-    public void setAlterNum(Integer alterNum) {
-        this.alterNum = alterNum;
-    }
-
     public List<RestDevice> getDeviceList() {
         return deviceList;
     }
@@ -84,14 +86,6 @@ public class RestIndexDevice {
 
     public void setDays(Integer days) {
         this.days = days;
-    }
-
-    public Integer getDeviceNum() {
-        return deviceNum;
-    }
-
-    public void setDeviceNum(Integer deviceNum) {
-        this.deviceNum = deviceNum;
     }
 
     public String getName() {
@@ -141,5 +135,61 @@ public class RestIndexDevice {
 
     public void setBuildName(String buildName) {
         this.buildName = buildName;
+    }
+
+    public RestDevice getDevice() {
+        return device;
+    }
+
+    public void setDevice(RestDevice device) {
+        this.device = device;
+    }
+
+    public Integer getLowAlert() {
+        return lowAlert;
+    }
+
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
     }
 }

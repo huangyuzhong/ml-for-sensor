@@ -12,7 +12,6 @@ import java.util.List;
 @Entity
 @Table(name = "room")
 public class Room {
-
     private Integer id;
     private String name;
     private Storey floor;

@@ -582,8 +582,7 @@ public class FileController {
                 if (null==param.get("name")||"".equals(param.get("name")))
                     throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
-                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
-                        ByteAndHex.convertMD5(URLEncoder.encode(param.get("name"),"UTF-8")));
+
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
@@ -607,8 +606,7 @@ public class FileController {
                 if (null==param.get("name")||"".equals(param.get("name")))
                     throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
-                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
-                        ByteAndHex.convertMD5(URLEncoder.encode(param.get("name"),"UTF-8")));
+
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
@@ -622,6 +620,8 @@ public class FileController {
                 firmManager.setCreateDate(new Date());
                 userRepository.save(firmManager);
             }
+            company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                    ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
 
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;

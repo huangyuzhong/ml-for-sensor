@@ -1,6 +1,7 @@
 package com.device.inspect.common.restful.firm;
 
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -29,6 +30,7 @@ public class RestFloor {
     private Integer total;
     private Float score;
     private Integer enable;
+    private Integer days;
 
     public RestFloor(@NotNull Storey floor){
         this.id = floor.getId();
@@ -47,6 +49,8 @@ public class RestFloor {
         this.total = floor.getTotal();
         this.score = floor.getScore();
         this.enable = floor.getEnable();
+        if (null!=floor.getCreateDate())
+            days = MyCalendar.getDateSpace(floor.getCreateDate(),new Date());
     }
 
     public Integer getId() {
@@ -175,5 +179,13 @@ public class RestFloor {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 }

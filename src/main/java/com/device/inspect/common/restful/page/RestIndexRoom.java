@@ -18,13 +18,17 @@ import java.util.List;
 public class RestIndexRoom {
     private Integer id;
     private String name;
-    private Integer deviceNum;
-    private Integer alertNum;
     private Integer days;
     private List<RestRoom> roomList;
     private Integer floorId;
     private String buildName;
     private Integer buildId;
+    private Integer lowAlert;
+    private Integer highAlert;
+    private Integer online;
+    private Integer offline;
+    private Integer total;
+    private Float score;
 
     public RestIndexRoom(@NotNull Storey floor) {
         this.id = floor.getId();
@@ -32,14 +36,17 @@ public class RestIndexRoom {
         this.buildName = floor.getBuild().getName();
         this.buildId = floor.getBuild().getId();
         this.floorId = floor.getId();
-        deviceNum = 0;
-        alertNum = 0;
+        this.lowAlert = floor.getLowAlert();
+        this.highAlert = floor.getHighAlert();
+        this.online = floor.getOnline();
+        this.offline = floor.getOffline();
+        this.total = floor.getTotal();
+        this.score = floor.getScore();
         if (null!=floor.getCreateDate())
             days = MyCalendar.getDateSpace(floor.getCreateDate(), new Date());
         if (null!=floor.getRoomList()&&floor.getRoomList().size()>0){
             roomList = new ArrayList<RestRoom>();
             for (Room room : floor.getRoomList()){
-                deviceNum += room.getDeviceNum();
                 roomList.add(new RestRoom(room));
             }
         }
@@ -59,24 +66,6 @@ public class RestIndexRoom {
 
     public void setRoomList(List<RestRoom> roomList) {
         this.roomList = roomList;
-    }
-
-    public Integer getAlertNum() {
-
-        return alertNum;
-    }
-
-    public void setAlertNum(Integer alertNum) {
-        this.alertNum = alertNum;
-    }
-
-    public Integer getDeviceNum() {
-
-        return deviceNum;
-    }
-
-    public void setDeviceNum(Integer deviceNum) {
-        this.deviceNum = deviceNum;
     }
 
     public Integer getDays() {
@@ -117,5 +106,53 @@ public class RestIndexRoom {
 
     public void setBuildId(Integer buildId) {
         this.buildId = buildId;
+    }
+
+    public Integer getLowAlert() {
+        return lowAlert;
+    }
+
+    public void setLowAlert(Integer lowAlert) {
+        this.lowAlert = lowAlert;
+    }
+
+    public Integer getHighAlert() {
+        return highAlert;
+    }
+
+    public void setHighAlert(Integer highAlert) {
+        this.highAlert = highAlert;
+    }
+
+    public Integer getOnline() {
+        return online;
+    }
+
+    public void setOnline(Integer online) {
+        this.online = online;
+    }
+
+    public Integer getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Integer offline) {
+        this.offline = offline;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+
+    public Float getScore() {
+        return score;
+    }
+
+    public void setScore(Float score) {
+        this.score = score;
     }
 }
