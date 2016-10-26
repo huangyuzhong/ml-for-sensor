@@ -297,9 +297,14 @@ public class SelectApiController {
         return new RestResponse(assembleUsers(user, userPage));
     }
 
-    @RequestMapping(value = "/query/all/company/{name}")
-    public RestResponse getAllCompany(@PathVariable String name){
-        User user = userRepository.findByName(name);
+    /**
+     * 平台业务员查询所有的业务企业，企业员工查询自己的
+     * @param principal
+     * @return
+     */
+    @RequestMapping(value = "/query/all/company")
+    public RestResponse getAllCompany(Principal principal){
+        User user = judgeByPrincipal(principal);
         if (null == user){
             return new RestResponse("用户信息不存在！",1005,null);
         }
@@ -420,17 +425,25 @@ public class SelectApiController {
         return map;
     }
 
-    @RequestMapping(value = "/colleges/{name}")
-    public RestResponse getMyCompanyWorkers(@PathVariable String name){
-        User user = userRepository.findByName(name);
+    /**
+     *获取当前企业所有员工(仅包含企业管理员和设备管理员)
+     * @param
+     * @return
+     */
+    @RequestMapping(value = "/colleges")
+    public RestResponse getMyCompanyWorkers(Principal  principal){
+        User user = judgeByPrincipal(principal);
         if (null==user)
             return new RestResponse("用户信息出错！",1005,null);
 
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
-            RestUser restUser = new RestUser(userEnch);
-            result.add(restUser);
+            if(null!=userEnch.getRole().getRoleAuthority()&&(userEnch.getRole().getRoleAuthority().getName().equals("FIRM_WORKER")||
+                    userEnch.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER"))){
+                RestUser restUser = new RestUser(userEnch);
+                result.add(restUser);
+            }
         }
         return new RestResponse(result);
     }
