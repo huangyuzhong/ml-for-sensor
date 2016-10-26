@@ -232,6 +232,12 @@ public class SelectApiController {
         return new RestResponse(deviceTypeRequest);
     }
 
+    /**
+     * 查询用户设备列表信息
+     * @param principal
+     * @param requestParam
+     * @return
+     */
     @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
     public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
@@ -506,5 +512,6 @@ public class SelectApiController {
         }
         return new RestResponse(result);
     }
+
 
 }

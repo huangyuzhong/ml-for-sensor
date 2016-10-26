@@ -258,6 +258,11 @@ public class SocketMessageApi {
         return new RestResponse(response);
     }
 
+    /**
+     * 房间绑定设备数据内容
+     * @param roomId
+     * @return
+     */
     @RequestMapping(value = "/room/current/data",method = RequestMethod.GET)
     public RestResponse getCurrentDataFromDevice(@RequestParam Integer roomId){
         Room room = roomRepository.findOne(roomId);

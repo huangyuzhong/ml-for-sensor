@@ -23,12 +23,10 @@ public class RestIndexDevice {
     private Integer days;
     private List<RestDevice> deviceList;
     private Integer roomId;
-//    private String roomName;
     private Integer floorId;
     private String floorName;
     private Integer buildId;
     private String buildName;
-    private RestDevice device;
     private Integer lowAlert;
     private Integer highAlert;
     private Integer online;
@@ -52,7 +50,6 @@ public class RestIndexDevice {
         this.offline = room.getOffline();
         this.total = room.getTotal();
         this.score = room.getScore();
-        this.device = null==room.getDevice()?null:new RestDevice(room.getDevice());
         if (null!=room.getCreateDate())
             days = MyCalendar.getDateSpace(room.getCreateDate(), new Date());
         if (null!=room.getDeviceList()&&room.getDeviceList().size()>0){
@@ -135,14 +132,6 @@ public class RestIndexDevice {
 
     public void setBuildName(String buildName) {
         this.buildName = buildName;
-    }
-
-    public RestDevice getDevice() {
-        return device;
-    }
-
-    public void setDevice(RestDevice device) {
-        this.device = device;
     }
 
     public Integer getLowAlert() {

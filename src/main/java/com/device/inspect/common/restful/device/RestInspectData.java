@@ -14,7 +14,6 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestInspectData {
     private Integer id;
-//    private Device device;
     private RestDeviceInspect deviceInspect;
     private String result;
     private Date createDate;

@@ -46,6 +46,18 @@ public class DeviceQuery extends Querier<Device> {
                 return cb.equal(deviceRoot.get("manager").get("id"),object);
             }
         });
+        queryFilterMap.put("monitorCode", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("monitorDevice").get("number"),object);
+            }
+        });
+        queryFilterMap.put("enable", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("enable"),object);
+            }
+        });
 
     }
 

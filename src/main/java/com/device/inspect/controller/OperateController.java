@@ -20,6 +20,7 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
@@ -82,25 +83,13 @@ public class OperateController {
     @Autowired
     private DeviceFileRepository deviceFileRepository;
 
-    @RequestMapping(value = "/device/type")
-    public RestResponse operateDeviceType(Principal principal,@RequestParam Map<String,String> map){
+    private User judgeByPrincipal(Principal principal){
+        if (null == principal||null==principal.getName())
+            throw new UsernameNotFoundException("You are not login!");
         User user = userRepository.findByName(principal.getName());
-        DeviceType deviceType = new DeviceType();
-        deviceType.setName(map.get("name"));
-        deviceTypeRepository.save(deviceType);
-        List<DeviceTypeInspect> list = new ArrayList<DeviceTypeInspect>();
-        String[] types = map.get("types").split(",");
-        for (String str : types){
-            InspectType inspectType = inspectTypeRepository.findOne(Integer.valueOf(str));
-
-            DeviceTypeInspect deviceTypeInspect = new DeviceTypeInspect();
-            deviceTypeInspect.setDeviceType(deviceType);
-            deviceTypeInspect.setInspectType(inspectType);
-            deviceTypeInspectRepository.save(deviceTypeInspect);
-            list.add(deviceTypeInspect);
-        }
-        deviceType.setDeviceTypeInspectList(list);
-        return new RestResponse(new RestDeviceType(deviceType));
+        if (null==user)
+            throw new UsernameNotFoundException("user not found!");
+        return user;
     }
 
     /**
@@ -140,6 +129,12 @@ public class OperateController {
 
     }
 
+    /**
+     * 修改设备基本信息
+     * @param deviceId
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/device/{deviceId}")
     public RestResponse operateDevice(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
         Device device = deviceRepository.findOne(deviceId);
@@ -170,6 +165,11 @@ public class OperateController {
         return new RestResponse(new RestDevice(device));
     }
 
+    /**
+     * 获取设备报警参数
+     * @param deviceId
+     * @return
+     */
     @RequestMapping(value = "/get/device/parameter/{deviceId}")
     public RestResponse getDeviceParameter(@PathVariable Integer deviceId){
         Device device = deviceRepository.findOne(deviceId);
@@ -231,10 +231,15 @@ public class OperateController {
     }
 
 
-
-    @RequestMapping(value = "/create/user/{name}")
-    public RestResponse createNewUser(@PathVariable String name,@RequestParam Map<String,String> map){
-        User user = userRepository.findByName(name);
+    /**
+     * 创建新用户
+     * @param
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/create/user")
+    public RestResponse createNewUser(Principal principal,@RequestParam Map<String,String> map){
+        User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("用户信息错误！",1005,null);
         User child = new User();
@@ -273,9 +278,15 @@ public class OperateController {
         return new RestResponse("创建成功！",null);
     }
 
-    @RequestMapping(value = "/update/user/{name}")
-    public RestResponse updateUserMessage(@PathVariable String name,@RequestParam Map<String,String> param){
-        User user = userRepository.findByName(name);
+    /**
+     * 修改用户信息
+     * @param
+     * @param param
+     * @return
+     */
+    @RequestMapping(value = "/update/user")
+    public RestResponse updateUserMessage(Principal principal,@RequestParam Map<String,String> param){
+        User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("用户信息错误！",1005,null);
         if (null!=param.get("userName"))
@@ -298,9 +309,9 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
-    @RequestMapping(value = "/deviceType/{name}")
-    public RestResponse operateDeviceType(@PathVariable String name,@RequestBody DeviceTypeRequest deviceTypeReq){
-        User user = userRepository.findByName(name);
+    @RequestMapping(value = "/deviceType")
+    public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeReq){
+        User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("手机号出错！", null);
         DeviceType deviceType = new DeviceType();
@@ -356,8 +367,6 @@ public class OperateController {
                     }
                 }
             }
-
-
         } else {
             return new RestResponse("权限不足！",1005,null);
         }
@@ -376,6 +385,7 @@ public class OperateController {
         fileRepository.delete(files);
         return new RestResponse("删除成功！",null);
     }
+
 
 
 }

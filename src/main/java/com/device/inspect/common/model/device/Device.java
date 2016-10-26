@@ -43,6 +43,7 @@ public class Device {
     private Building building;
     private String score;
     private Integer enable;
+    private Integer status;
 
     @Id
     @GeneratedValue()
@@ -285,5 +286,14 @@ public class Device {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    @Column(name = "alert_status")
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }
