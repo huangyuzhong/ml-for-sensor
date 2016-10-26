@@ -430,7 +430,7 @@ public class SelectApiController {
      * @param
      * @return
      */
-    @RequestMapping(value = "/colleges")
+    @RequestMapping(value = "/colleges/manager")
     public RestResponse getMyCompanyWorkers(Principal  principal){
         User user = judgeByPrincipal(principal);
         if (null==user)
@@ -487,5 +487,24 @@ public class SelectApiController {
         return new RestResponse();
     }
 
+    /**
+     * 获取用户所在企业所有的科学家
+     * @param principal
+     * @return
+     */
+    @RequestMapping("/colleges/scientist")
+    public RestResponse getMyScientist(Principal principal){
+        User user = judgeByPrincipal(principal);
+
+        List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
+        List<RestUser> result = new ArrayList<RestUser>();
+        for (User userEnch : list){
+            if(null!=userEnch.getRole().getRoleAuthority()&&userEnch.getRole().getRoleAuthority().getName().equals("FIRM_SCIENTIST")){
+                RestUser restUser = new RestUser(userEnch);
+                result.add(restUser);
+            }
+        }
+        return new RestResponse(result);
+    }
 
 }
