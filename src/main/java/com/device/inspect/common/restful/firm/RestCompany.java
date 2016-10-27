@@ -34,6 +34,9 @@ public class RestCompany {
     private Integer enable;
     private String logo;
     private String login;
+    private Float lat;
+    private Float lng;
+    private String location;
 
     public RestCompany(@NotNull Company company){
         this.id = company.getId();
@@ -58,6 +61,8 @@ public class RestCompany {
         this.enable = company.getEnable();
         this.login = company.getLogin();
         this.logo = company.getLogo();
+        this.lat = company.getLat();
+        this.lng = company.getLng();
     }
 
     public Integer getId() {
@@ -226,5 +231,21 @@ public class RestCompany {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public Float getLat() {
+        return lat;
+    }
+
+    public void setLat(Float lat) {
+        this.lat = lat;
+    }
+
+    public Float getLng() {
+        return lng;
+    }
+
+    public void setLng(Float lng) {
+        this.lng = lng;
     }
 }

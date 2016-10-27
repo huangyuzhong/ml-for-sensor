@@ -586,6 +586,13 @@ public class FileController {
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
+                if (null!=param.get("location")){
+                    String[] location = param.get("location").split(",");
+                    if (location.length==2){
+                        company.setLat(Float.valueOf(location[0]));
+                        company.setLng(Float.valueOf(location[0]));
+                    }
+                }
                 companyRepository.save(company);
 
                 firmManager.setName(param.get("name"));
@@ -610,6 +617,13 @@ public class FileController {
                 company.setAddress(param.get("address"));
                 company.setEmail(param.get("email"));
                 company.setTelephone(param.get("telephone"));
+                if (null!=param.get("location")){
+                    String[] location = param.get("location").split(",");
+                    if (location.length==2){
+                        company.setLat(Float.valueOf(location[0]));
+                        company.setLng(Float.valueOf(location[0]));
+                    }
+                }
                 companyRepository.save(company);
 
                 firmManager = company.getManager();

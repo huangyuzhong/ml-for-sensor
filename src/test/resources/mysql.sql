@@ -436,6 +436,9 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_type` ADD `enable` INT NULL DEFAULT 1;
 
   ALTER TABLE `device` ADD `alert_status` INT NULL DEFAULT 0;
+  ALTER TABLE `company` ADD `lat` FLOAT NULL;
+  ALTER TABLE `company` ADD `lng` FLOAT NULL;
+
 
 
 SET FOREIGN_KEY_CHECKS=1;
