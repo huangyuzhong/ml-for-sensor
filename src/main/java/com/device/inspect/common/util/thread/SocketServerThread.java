@@ -95,7 +95,7 @@ public class SocketServerThread extends Thread {
 
     private String get(String message) throws Exception {
         HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod("http://localhost:8999/api/rest/socket/insert/data?result="+
+        GetMethod method = new GetMethod("http://localhost:8998/api/rest/socket/insert/data?result="+
         message);
 
         client.executeMethod(method);
