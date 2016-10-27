@@ -4,7 +4,10 @@ import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
+import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
@@ -386,6 +389,125 @@ public class OperateController {
         return new RestResponse("删除成功！",null);
     }
 
+    @RequestMapping(value = "/manager/device/{deviceId}")
+    public RestResponse deleteDeviceById(Principal principal,@PathVariable Integer deviceId,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        Device device = deviceRepository.findOne(deviceId);
+        if (null==device)
+            return new RestResponse("该设备不存在！",1005,null);
+        if (device.getManager().getId().equals(user.getId())||(user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&
+        device.getManager().getCompany().getId().equals(user.getCompany().getId()))) {
+            device.setEnable(enable);
+            deviceRepository.save(device);
+            return new RestResponse("删除成功！",null);
+        }
+        return new RestResponse("权限不足！",1005,null);
+    }
+
+    @RequestMapping(value = "/manager/room/{roomId}")
+    public RestResponse deleteRoomById(Principal principal,@PathVariable Integer roomId,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        Room room = roomRepository.findOne(roomId);
+        if (null == room)
+            return new RestResponse("该房间不存在！",1005,null);
+        if (user.getRole().getRoleAuthority().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(room.getFloor().getBuild().getCompany().getId())){
+            List<Device> list = deviceRepository.findByRoomId(roomId);
+            if (null!=list)
+                for (Device device:list){
+                    device.setEnable(enable);
+                }
+            deviceRepository.save(list);
+            room.setEnable(enable);
+            roomRepository.save(room);
+            return new RestResponse("删除成功！",null);
+        }
+        return new RestResponse("权限不足！",1005,null);
+    }
+
+    @RequestMapping(value = "/manager/floor/{floorId}")
+    public RestResponse deleteFloorById(Principal principal,@PathVariable Integer floorId,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        Storey floor = storeyRepository.findOne(floorId);
+        if (null==floor)
+            return new RestResponse("该楼层不存在！",1005,null);
+        if (user.getRole().getRoleAuthority().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(floor.getBuild().getCompany().getId())){
+            List<Room> roomList = roomRepository.findByFloorId(floorId);
+            if (null!=roomList) {
+                for (Room room : roomList) {
+                    List<Device> deviceListlist = deviceRepository.findByRoomId(room.getId());
+                    if (null != deviceListlist)
+                        for (Device device : deviceListlist) {
+                            device.setEnable(enable);
+                        }
+                    deviceRepository.save(deviceListlist);
+                    room.setEnable(enable);
+                }
+                roomRepository.save(roomList);
+            }
+            floor.setEnable(enable);
+            storeyRepository.save(floor);
+            return new RestResponse("删除成功！",null);
+        }
+        return new RestResponse("权限不足！",1005,null);
+    }
+
+    @RequestMapping(value = "/manager/build/{buildId}")
+    public RestResponse deleteBuildById(Principal principal,@PathVariable Integer buildId,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        Building building = buildingRepository.findOne(buildId);
+        if (null == building)
+            return new RestResponse("该建筑不存在！",1005,null);
+        if(user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(building.getCompany().getId())){
+            List<Storey> floorList = storeyRepository.findByBuildId(buildId);
+            if (null!=floorList){
+                for (Storey floor:floorList){
+                    List<Room> roomList = roomRepository.findByFloorId(floor.getId());
+                    if (null!=roomList) {
+                        for (Room room : roomList) {
+                            List<Device> deviceListlist = deviceRepository.findByRoomId(room.getId());
+                            if (null != deviceListlist)
+                                for (Device device : deviceListlist) {
+                                    device.setEnable(enable);
+                                }
+                            deviceRepository.save(deviceListlist);
+                            room.setEnable(enable);
+                        }
+                        roomRepository.save(roomList);
+                    }
+                    floor.setEnable(enable);
+                }
+                storeyRepository.save(floorList);
+            }
+            building.setEnable(enable);
+            buildingRepository.save(building);
+            return new RestResponse("删除成功！",null);
+        }
+        return new RestResponse("权限不足！",1005,null);
+    }
+
+    @RequestMapping(value = "/manager/device/type/{typeId}")
+    public RestResponse managerOperateDeviceTypeById(Principal principal,@PathVariable Integer typeId,@RequestParam Integer enable){
+        User user = judgeByPrincipal(principal);
+        DeviceType deviceType = deviceTypeRepository.findOne(typeId);
+        if (null==deviceType.getCompany()){
+            if (user.getRole().getRoleAuthority().getName().startsWith("SERVICE")){
+                deviceType.setEnable(enable);
+                deviceTypeRepository.save(deviceType);
+                return new RestResponse("删除成功！",null);
+            }else {
+                return new RestResponse("权限不足！",1005,null);
+            }
+        }else {
+            if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&
+                    user.getCompany().getId().equals(deviceType.getCompany().getId())){
+                deviceType.setEnable(enable);
+                deviceTypeRepository.save(deviceType);
+                return new RestResponse("删除成功！",null);
+            }else {
+                return new RestResponse("权限不足！",1005,null);
+            }
+        }
+    }
 
 
 }
