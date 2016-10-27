@@ -579,7 +579,7 @@ public class FileController {
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
-                if (null==param.get("name")||"".equals(param.get("name")))
+                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account")))
                     throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
 
@@ -595,7 +595,7 @@ public class FileController {
                 }
                 companyRepository.save(company);
 
-                firmManager.setName(param.get("name"));
+                firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
@@ -610,7 +610,7 @@ public class FileController {
                 company.setManager(firmManager);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
-                if (null==param.get("name")||"".equals(param.get("name")))
+                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account")))
                     throw new RuntimeException("企业名不能为空");
                 company.setName(param.get("name"));
 
@@ -627,7 +627,7 @@ public class FileController {
                 companyRepository.save(company);
 
                 firmManager = company.getManager();
-                firmManager.setName(param.get("name"));
+                firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
