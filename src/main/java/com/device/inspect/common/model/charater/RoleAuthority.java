@@ -32,14 +32,14 @@ public class RoleAuthority {
         this.name = name;
     }
 
-    @Column(name = "child_id")
-    public Integer getChild() {
-        return child;
-    }
-
-    public void setChild(Integer child) {
-        this.child = child;
-    }
+//    @Column(name = "child_id")
+//    public Integer getChild() {
+//        return child;
+//    }
+//
+//    public void setChild(Integer child) {
+//        this.child = child;
+//    }
 
     @Column(name = "role_name")
     public String getRoleName() {

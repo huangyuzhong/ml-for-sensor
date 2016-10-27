@@ -1,5 +1,8 @@
 package com.device.inspect.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.device.inspect.common.model.charater.Role;
+import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceType;
@@ -12,6 +15,7 @@ import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
+import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
@@ -29,6 +33,7 @@ import com.device.inspect.common.restful.device.RestInspectType;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +84,9 @@ public class SelectApiController {
 
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
+
+    @Autowired
+    private RoleAuthorityRepository roleAuthorityRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -193,7 +201,7 @@ public class SelectApiController {
             return new RestResponse("user's information wrong!",1005,null);
         List<DeviceType> list = new ArrayList<DeviceType>();
         list.addAll(deviceTypeRepository.findByCompanyIdIsNull());
-        if (null!=user.getRole().getRoleAuthority()&&user.getRole().getRoleAuthority().getName().startsWith("FIRM")){
+        if (UserRoleDifferent.userStartWithFirm(user)){
             list.addAll(deviceTypeRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable));
         }
 //        Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
@@ -275,8 +283,15 @@ public class SelectApiController {
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
-        User user = userRepository.findByName(principal.getName());
-        if (null == user&&null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
+        User user = judgeByPrincipal(principal);
+
+        List<RoleAuthority> roleAuthorities = new ArrayList<RoleAuthority>();
+        if (null!=user.getRoles())
+            for (Role role:user.getRoles()){
+                roleAuthorities.addAll(roleAuthorityRepository.findByParent(role.getRoleAuthority().getId()));
+            }
+
+        if (null == user&&null == user.getCompany()&&(null==roleAuthorities||roleAuthorities.size()==0)){
             return new RestResponse("user's information correct!",1005,null);
         }
 
@@ -292,9 +307,14 @@ public class SelectApiController {
             start = Integer.valueOf(requestParam.get("start"));
             requestParam.remove("start");
         }
+        List<Integer> list = new ArrayList<Integer>();
+        if (null!=roleAuthorities)
+            for (RoleAuthority roleAuthority : roleAuthorities){
+                list.add(roleAuthority.getId());
+            }
 
-        requestParam.put("authorityId",user.getRole().getRoleAuthority().getChild().toString());
-        if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")){
+        requestParam.put("authorityId", JSON.toJSONString(list));
+        if (UserRoleDifferent.userFirmManagerConfirm(user)){
             requestParam.put("companyId",user.getCompany().getId().toString());
         }
         Page<User> userPage = new UserQuery(entityManager)
@@ -315,12 +335,12 @@ public class SelectApiController {
             return new RestResponse("用户信息不存在！",1005,null);
         }
         List<RestCompany> list = new ArrayList<RestCompany>();
-        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")){
+        if (UserRoleDifferent.userServiceManagerConfirm(user)){
             Map<String,String> requestParam = new HashMap<String,String>();
             Page<Company> companyPage = new CompanyQuery(entityManager)
                     .query(requestParam, 0, 100000, new Sort(Sort.Direction.DESC, "createDate"));
             list = (List)assembleCompanies(companyPage).get("companies");
-        }else if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")){
+        }else if (UserRoleDifferent.userServiceWorkerConfirm(user)){
             Map<String,String> requestParam = new HashMap<String,String>();
             requestParam.put("businessId",user.getId().toString());
             Page<Company> companyPage = new CompanyQuery(entityManager)
@@ -362,17 +382,13 @@ public class SelectApiController {
     @RequestMapping(value = "/query/mine/company")
     public RestResponse getCompanyByUserName(Principal principal,@RequestParam Map<String,String> requestParam){
         User user = judgeByPrincipal(principal);
-        if (null == user.getCompany()&&user.getRole().getRoleAuthority().getChild()!=null){
-            return new RestResponse("user's information correct!",1005,null);
-        }
-        if (user.getRole().getRoleAuthority()!=null){
-            if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")){
-                requestParam.put("businessId",user.getId().toString());
-            }else if (user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")){
 
-            }else {
-                return new RestResponse("权限不足！",null);
-            }
+        if (UserRoleDifferent.userServiceWorkerConfirm(user)){
+            requestParam.put("businessId",user.getId().toString());
+        }else if (UserRoleDifferent.userServiceManagerConfirm(user) ){
+
+        }else {
+            return new RestResponse("权限不足！",null);
         }
 
         Integer limit = 10;
@@ -445,8 +461,8 @@ public class SelectApiController {
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
-            if(null!=userEnch.getRole().getRoleAuthority()&&(userEnch.getRole().getRoleAuthority().getName().equals("FIRM_WORKER")||
-                    userEnch.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER"))){
+            if(null!=userEnch.getRoles()&&(UserRoleDifferent.userFirmWorkerConfirm(userEnch)||
+                    UserRoleDifferent.userFirmManagerConfirm(userEnch))){
                 RestUser restUser = new RestUser(userEnch);
                 result.add(restUser);
             }
@@ -505,13 +521,12 @@ public class SelectApiController {
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
-            if(null!=userEnch.getRole().getRoleAuthority()&&userEnch.getRole().getRoleAuthority().getName().equals("FIRM_SCIENTIST")){
+            if(UserRoleDifferent.userScientistConfirm(user)){
                 RestUser restUser = new RestUser(userEnch);
                 result.add(restUser);
             }
         }
         return new RestResponse(result);
     }
-
 
 }

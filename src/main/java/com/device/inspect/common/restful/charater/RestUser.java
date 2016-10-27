@@ -43,7 +43,8 @@ public class RestUser {
         this.department = user.getDepartment();
         this.job = user.getJob();
         this.jobNum = user.getJobNum();
-        this.role = null==user.getRole()?null:new RestRole(user.getRole());
+        if (null!=user.getRoles()&&user.getRoles().size()>1)
+            this.role = new RestRole(user.getRoles().get(0));
         this.companyName = user.getCompany().getName();
     }
 

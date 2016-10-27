@@ -4,6 +4,7 @@ import com.device.inspect.common.model.firm.Company;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/7.
@@ -25,7 +26,7 @@ public class User {
     private String department;
     private String job;
     private Company company;
-    private Role role;
+    private List<Role> roles;
     private String jobNum;
 
     @Id
@@ -139,13 +140,13 @@ public class User {
         this.company = company;
     }
 
-    @OneToOne(mappedBy = "user")
-    public Role getRole() {
-        return role;
+    @OneToMany(mappedBy = "user")
+    public List<Role> getRoles() {
+        return roles;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
     }
 
     @Column(name = "job_number")

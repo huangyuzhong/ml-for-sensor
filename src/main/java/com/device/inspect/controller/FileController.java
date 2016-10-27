@@ -26,6 +26,7 @@ import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.CompanyRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
@@ -125,7 +126,7 @@ public class FileController {
         if (null == user)
             restResponse = new RestResponse("该用户不存在！", null);
         else {
-            if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
+            if (UserRoleDifferent.userFirmManagerConfirm(user)) {
 
                 Building building = new Building();
                 if (null!=param.get("type")&&null!=param.get("buildId")&&param.get("type").equals("1")){
@@ -204,7 +205,7 @@ public class FileController {
         else if(null==param.get("buildId")){
             restResponse = new RestResponse("楼建筑信息出错！", null);
         }
-        else if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
+        else if (UserRoleDifferent.userFirmManagerConfirm(user)) {
 
             Storey floor = new Storey();
 
@@ -281,7 +282,7 @@ public class FileController {
             restResponse = new RestResponse("房间信息信息出错！", null);
         else if (null==param.get("typeId"))
             restResponse = new RestResponse("设备种类信息出错！", null);
-        else if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")){
+        else if (UserRoleDifferent.userFirmManagerConfirm(user)){
             Room room = roomRepository.findOne(Integer.valueOf(param.get("roomId")));
             DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
 
@@ -386,7 +387,7 @@ public class FileController {
         else if(null==param.get("floorId")){
             restResponse = new RestResponse("楼层信息出错！", null);
         }
-        else if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
+        else if (UserRoleDifferent.userFirmManagerConfirm(user)) {
 
             Room room = new Room();
 
@@ -572,8 +573,8 @@ public class FileController {
 
         Company company = null;
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
-        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")||
-                user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")) {
+        if (UserRoleDifferent.userServiceWorkerConfirm(user)||
+                UserRoleDifferent.userServiceManagerConfirm(user) ) {
             User firmManager = null;
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();

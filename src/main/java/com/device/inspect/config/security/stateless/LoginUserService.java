@@ -7,6 +7,7 @@ import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,18 +38,19 @@ public class LoginUserService {
         if (!String.valueOf(user.getPassword()).equals(verify))
             throw new UsernameNotFoundException("user's password isn't correct!");
         
-        Role role = roleRepository.findByUserId(user.getId());
+        List<Role> roles = roleRepository.findByUserId(user.getId());
+        user.setRoles(roles);
 
         List<Role> newRoles = new ArrayList<>(roleNames.size());
-        if (null != role&&roleNames.contains(role.getAuthority()))
-            newRoles.add(role);
-        if (null==companyId&&!user.getRole().getRoleAuthority().getName().startsWith("SERVICE"))
+//        if (null != role&&roleNames.contains(role.getAuthority()))
+//            newRoles.add(role);
+        if (null==companyId&&!UserRoleDifferent.userStartWithService(user))
             throw new UsernameNotFoundException("you're not a service manager!");
-        if(null!=user.getRole().getRoleAuthority().getName()&&user.getRole().getRoleAuthority().getName().startsWith("SERVICE")){
+        if(null!=user.getRoles()&&UserRoleDifferent.userStartWithService(user)){
             if (null!=companyId&&!"".equals(companyId))
                 throw new UsernameNotFoundException("you are not a firm account!");
         }
-        if (null!=companyId&&user.getRole().getRoleAuthority().getName().startsWith("FIRM")){
+        if (null!=companyId&&UserRoleDifferent.userStartWithFirm(user)){
             String realId = "";
             try {
                 realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");

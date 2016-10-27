@@ -20,6 +20,7 @@ import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -246,9 +247,18 @@ public class OperateController {
         if (null == user)
             return new RestResponse("用户信息错误！",1005,null);
         User child = new User();
-        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
-        if (null==roleAuthority)
-            return new RestResponse("权限不足，无法添加！",null);
+//        RoleAuthority roleAuthority = roleAuthorityRepository.findOne(user.getRole().getRoleAuthority().getChild());
+
+        List<RoleAuthority> roleAuthorityList = new ArrayList<RoleAuthority>();
+        if (null!=user.getRoles())
+            for (Role role:user.getRoles()){
+                roleAuthorityList.addAll(roleAuthorityRepository.findByParent(role.getRoleAuthority().getId()));
+            }
+        if (UserRoleDifferent.userFirmManagerConfirm(user))
+            if (null==map.get("role")||"".equals(map.get("role")))
+                return new RestResponse("必须选定添加员工角色！",1005,null);
+        if (null==roleAuthorityList)
+            return new RestResponse("权限不足，无法添加！",1005,null);
 
         if (null==map.get("companyId"))
             return new RestResponse("公司信息错误！",1005,null);
@@ -260,7 +270,7 @@ public class OperateController {
             return new RestResponse("登录名已存在！",1005,null);
         Company company = new Company();
         company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
-        if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS"))
+        if (UserRoleDifferent.userServiceWorkerConfirm(user))
             if (company.getManager()!=null)
                 return new RestResponse("该公司已有管理员账号！",1005,null);
 
@@ -273,11 +283,28 @@ public class OperateController {
         child.setJobNum(map.get("jobNum"));
         child.setJob(map.get("job"));
         userRepository.save(child);
-        Role role = new Role();
-        role.setAuthority(roleAuthority.getName());
-        role.setRoleAuthority(roleAuthority);
-        role.setUser(child);
-        roleRepository.save(role);
+        if (roleAuthorityList.size()==1){
+            Role role = new Role();
+            role.setAuthority(roleAuthorityList.get(0).getName());
+            role.setRoleAuthority(roleAuthorityList.get(0));
+            role.setUser(child);
+            roleRepository.save(role);
+        }else {
+            String[] roles = map.get("role").split(",");
+            if (null!=roles&&roles.length>0){
+                for (String roleName:roles){
+                    RoleAuthority roleAuthority = roleAuthorityRepository.findByName(roleName);
+                    if (null!=roleAuthority){
+                        Role role = new Role();
+                        role.setAuthority(roleAuthorityList.get(0).getName());
+                        role.setRoleAuthority(roleAuthorityList.get(0));
+                        role.setUser(child);
+                        roleRepository.save(role);
+                    }
+                }
+            }
+        }
+
         return new RestResponse("创建成功！",null);
     }
 
@@ -320,7 +347,7 @@ public class OperateController {
         DeviceType deviceType = new DeviceType();
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
 
-        if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")) {
+        if (UserRoleDifferent.userFirmManagerConfirm(user)) {
             if (null != deviceTypeReq.getId()) {
                 deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
                 if (null==deviceType)
@@ -395,7 +422,7 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null==device)
             return new RestResponse("该设备不存在！",1005,null);
-        if (device.getManager().getId().equals(user.getId())||(user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&
+        if (device.getManager().getId().equals(user.getId())||(UserRoleDifferent.userFirmManagerConfirm(user)&&
         device.getManager().getCompany().getId().equals(user.getCompany().getId()))) {
             device.setEnable(enable);
             deviceRepository.save(device);
@@ -410,7 +437,7 @@ public class OperateController {
         Room room = roomRepository.findOne(roomId);
         if (null == room)
             return new RestResponse("该房间不存在！",1005,null);
-        if (user.getRole().getRoleAuthority().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(room.getFloor().getBuild().getCompany().getId())){
+        if (UserRoleDifferent.userFirmManagerConfirm(user)&&user.getCompany().getId().equals(room.getFloor().getBuild().getCompany().getId())){
             List<Device> list = deviceRepository.findByRoomId(roomId);
             if (null!=list)
                 for (Device device:list){
@@ -430,7 +457,7 @@ public class OperateController {
         Storey floor = storeyRepository.findOne(floorId);
         if (null==floor)
             return new RestResponse("该楼层不存在！",1005,null);
-        if (user.getRole().getRoleAuthority().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(floor.getBuild().getCompany().getId())){
+        if (UserRoleDifferent.userFirmManagerConfirm(user)&&user.getCompany().getId().equals(floor.getBuild().getCompany().getId())){
             List<Room> roomList = roomRepository.findByFloorId(floorId);
             if (null!=roomList) {
                 for (Room room : roomList) {
@@ -457,7 +484,7 @@ public class OperateController {
         Building building = buildingRepository.findOne(buildId);
         if (null == building)
             return new RestResponse("该建筑不存在！",1005,null);
-        if(user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&user.getCompany().getId().equals(building.getCompany().getId())){
+        if(UserRoleDifferent.userFirmManagerConfirm(user)&&user.getCompany().getId().equals(building.getCompany().getId())){
             List<Storey> floorList = storeyRepository.findByBuildId(buildId);
             if (null!=floorList){
                 for (Storey floor:floorList){
@@ -490,7 +517,7 @@ public class OperateController {
         User user = judgeByPrincipal(principal);
         DeviceType deviceType = deviceTypeRepository.findOne(typeId);
         if (null==deviceType.getCompany()){
-            if (user.getRole().getRoleAuthority().getName().startsWith("SERVICE")){
+            if (UserRoleDifferent.userStartWithService(user)){
                 deviceType.setEnable(enable);
                 deviceTypeRepository.save(deviceType);
                 return new RestResponse("删除成功！",null);
@@ -498,7 +525,7 @@ public class OperateController {
                 return new RestResponse("权限不足！",1005,null);
             }
         }else {
-            if (user.getRole().getRoleAuthority().getName().equals("FIRM_MANAGER")&&
+            if (UserRoleDifferent.userFirmManagerConfirm(user)&&
                     user.getCompany().getId().equals(deviceType.getCompany().getId())){
                 deviceType.setEnable(enable);
                 deviceTypeRepository.save(deviceType);
