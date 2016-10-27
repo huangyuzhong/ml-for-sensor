@@ -17,6 +17,8 @@ import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,8 @@ import java.util.Map;
  */
 
 public class SocketServerThread extends Thread {
+    private static final Logger LOGGER = LogManager.getLogger(SocketServerThread.class);
+
     private Socket sock;
 //    PrintWriter out = null;
 //    DataOutputStream dos = null;
@@ -55,6 +59,7 @@ public class SocketServerThread extends Thread {
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
                 System.out.println(Thread.currentThread().getName()+"发来的内容是:" + result);
+                LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
 //                String flagString = result.substring(2,4);
                 String response = "";
                 if (!result.startsWith("ef")){
@@ -113,7 +118,7 @@ public class SocketServerThread extends Thread {
 
         //释放连接
         method.releaseConnection();
-
+        LOGGER.info(Thread.currentThread().getName()+"当前返回数据:" + result);
         return result;
     }
 
