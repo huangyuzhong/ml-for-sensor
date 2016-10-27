@@ -574,7 +574,7 @@ public class FileController {
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
         if (user.getRole().getRoleAuthority().getName().equals("SERVICE_BUSINESS")||
                 user.getRole().getRoleAuthority().getName().equals("SERVICE_MANAGER")) {
-            User firmManager = new User();
+            User firmManager = null;
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
                 company.setCreateDate(new Date());
@@ -593,8 +593,13 @@ public class FileController {
                         company.setLng(Float.valueOf(location[1]));
                     }
                 }
-                companyRepository.save(company);
 
+                firmManager = userRepository.findByName(param.get("account"));
+                if (null!=firmManager)
+                    throw new RuntimeException("创建失败，管理员账号已存在！");
+
+                companyRepository.save(company);
+                firmManager = new User();
                 firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
@@ -624,8 +629,10 @@ public class FileController {
                         company.setLng(Float.valueOf(location[1]));
                     }
                 }
+                firmManager = userRepository.findByName(param.get("account"));
+                if (null == firmManager)
+                    throw new RuntimeException("创建失败，管理员账号不存在！");
                 companyRepository.save(company);
-
                 firmManager = company.getManager();
                 firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
