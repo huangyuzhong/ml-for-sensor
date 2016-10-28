@@ -14,24 +14,20 @@ import javax.validation.constraints.NotNull;
 public class RestDeviceFloor {
     private Integer id;
     private Integer floorNum;
-    private String scientist;
     private String name;
     private Integer num;
     private String mobile;
     private String email;
     private Integer productNum;
-    private RestUser user;
+    private RestUser scientist;
 
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
         this.floorNum = deviceFloor.getFloorNum();
-//        this.scientist = deviceFloor.getScientist();
         this.name = deviceFloor.getName();
         this.num = deviceFloor.getNum();
-//        this.mobile = deviceFloor.getMobile();
-//        this.email = deviceFloor.getEmail();
         this.productNum = deviceFloor.getProductNum();
-        this.user = null==deviceFloor.getUser()?null:new RestUser(deviceFloor.getUser());
+        this.scientist = null==deviceFloor.getScientist()?null:new RestUser(deviceFloor.getScientist());
     }
 
     public Integer getId() {
@@ -48,14 +44,6 @@ public class RestDeviceFloor {
 
     public void setFloorNum(Integer floorNum) {
         this.floorNum = floorNum;
-    }
-
-    public String getScientist() {
-        return scientist;
-    }
-
-    public void setScientist(String scientist) {
-        this.scientist = scientist;
     }
 
     public String getName() {
@@ -96,5 +84,13 @@ public class RestDeviceFloor {
 
     public void setProductNum(Integer productNum) {
         this.productNum = productNum;
+    }
+
+    public RestUser getScientist() {
+        return scientist;
+    }
+
+    public void setScientist(RestUser scientist) {
+        this.scientist = scientist;
     }
 }
