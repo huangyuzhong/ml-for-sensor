@@ -439,17 +439,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `company` ADD `lat` FLOAT NULL;
   ALTER TABLE `company` ADD `lng` FLOAT NULL;
 
-  drop table if exists `scientist_device`;
-  create TABLE `scientist_device`(
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `user_id` INT NULL,
-  `device_id` INT NULL,
-  PRIMARY KEY (`id`)
-  );
-
-  ALTER TABLE `scientist_device` ADD CONSTRAINT `scientist_device_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-  ALTER TABLE `scientist_device` ADD CONSTRAINT `scientist_device_2` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
-
   ALTER TABLE `device_floor`
     DROP COLUMN `scientist_email`,
     DROP COLUMN `scientist_mobile`,

@@ -430,6 +430,7 @@ public class FileController {
                         MultipartFile file = files.get(0);
 //                String name  = file.getOriginalFilename();
                         String fileName = UUID.randomUUID().toString() + ".jpg";
+
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -546,8 +547,10 @@ public class FileController {
                 List<MultipartFile> files = map.get(key);
                 if (null != files && files.size() > 0) {
                     MultipartFile file = files.get(0);
-                String fileName  = file.getOriginalFilename();
+                    String fileName  = file.getOriginalFilename();
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
+                    if (null==fileName||fileName.equals(""))
+                        break;
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
@@ -736,6 +739,8 @@ public class FileController {
                     MultipartFile file = files.get(0);
                     String fileName  = file.getOriginalFilename();
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
+                    if (null==fileName||fileName.equals(""))
+                        break;
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
