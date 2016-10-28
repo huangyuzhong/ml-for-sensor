@@ -87,6 +87,9 @@ public class OperateController {
     @Autowired
     private DeviceFileRepository deviceFileRepository;
 
+    @Autowired
+    private ScientistDeviceRepository scientistDeviceRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -103,10 +106,17 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/device/floor/{deviceId}")
-    public RestResponse operateDeviceFloor(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+    public RestResponse operateDeviceFloor(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+        User user = judgeByPrincipal(principal);
+        if (!UserRoleDifferent.userScientistConfirm(user))
+            return new RestResponse("您的权限不足！",1005,null);
+
         Device device = deviceRepository.findOne(deviceId);
         if (null == device||null==map.get("type"))
             return new RestResponse("设备信息出错！",1005,null);
+        ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(user.getId(),deviceId);
+        if (null == scientistDevice)
+            return new RestResponse("您的权限不足！",1005,null);
         DeviceFloor deviceFloor = new DeviceFloor();
 
         if (map.get("type").equals("1")){
@@ -117,10 +127,13 @@ public class OperateController {
                 return new RestResponse("设备层信息出错！",1005,null);
             if (null!=map.get("floorNum"))
                 deviceFloor.setFloorNum(Integer.valueOf(map.get("floorNum")));
+            deviceFloor.setScientist(user);
 
         }else {
             deviceFloor.setDevice(device);
             deviceFloor.setFloorNum(null == map.get("floorNum") ? null : Integer.valueOf(map.get("floorNum")));
+            deviceFloor.setEnable(1);
+            deviceFloor.setScientist(user);
         }
 //        deviceFloor.setScientist(map.get("scientist"));
         deviceFloor.setName(map.get("name"));
@@ -128,9 +141,28 @@ public class OperateController {
 //        deviceFloor.setMobile(map.get("mobile"));
         deviceFloor.setProductNum(map.get("productNum")==null?null:Integer.valueOf(map.get("productNum")));
         deviceFloorRepository.save(deviceFloor);
-
         return new RestResponse(new RestDevice(device));
+    }
 
+    /**
+     * 删除设备层
+     * @param principal
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/delete/device/floor/{id}")
+    public RestResponse deleteDeviceFloorById(Principal principal,@PathVariable Integer id){
+        DeviceFloor deviceFloor = deviceFloorRepository.findOne(id);
+        if (null==deviceFloor)
+            return new RestResponse();
+        User user = judgeByPrincipal(principal);
+        if (!UserRoleDifferent.userScientistConfirm(user))
+            return new RestResponse("您的权限不足！",1005,null);
+        if(null==deviceFloor.getScientist()||!deviceFloor.getScientist().getId().equals(user.getId()))
+            return new RestResponse("您的权限不足！",1005,null);
+        deviceFloor.setEnable(0);
+        deviceFloorRepository.save(deviceFloor);
+        return new RestResponse("删除成功！",null);
     }
 
     /**
@@ -377,6 +409,8 @@ public class OperateController {
                     }
                 }
             } else {
+                deviceType.setEnable(1);
+                deviceType.setCompany(user.getCompany());
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
                 if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
@@ -394,7 +428,6 @@ public class OperateController {
                             deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
                             deviceTypeInspectRepository.save(deviceTypeInspect);
                         }
-
                     }
                 }
             }
@@ -537,5 +570,60 @@ public class OperateController {
         }
     }
 
+    /**
+     * 当前仅支持企业用户级删除
+     * @param principal
+     * @return
+     */
+    @RequestMapping(value = "/delete/user/{userId}")
+    public RestResponse deleteUserById(Principal principal, @PathVariable Integer userId,@RequestParam Integer takeId){
+        User manager = judgeByPrincipal(principal);
+        if (!UserRoleDifferent.userFirmManagerConfirm(manager))
+            return new RestResponse("权限不足，无法删除！",1005,null);
+        User old = userRepository.findOne(userId);
+        User take = userRepository.findOne(takeId);
+        if (null == old)
+            return new RestResponse("该员工不存在，无法删除！",1005,null);
+        if (null == take)
+            return new RestResponse("没有交接人，无法删除！",1005,null);
+        if (!take.getCompany().getId().equals(manager.getCompany().getId()))
+            return new RestResponse("交接人权限不足，无法删除！",1005,null);
+        boolean workerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
+        boolean scientistFlag = UserRoleDifferent.userScientistConfirm(old);
+        if (workerFlag){
+            if (!UserRoleDifferent.userFirmWorkerConfirm(take))
+                return new RestResponse("交接人权限不足，无法删除！",1005,null);
+        }
+        if (scientistFlag){
+            if (!UserRoleDifferent.userScientistConfirm(old))
+                return new RestResponse("交接人权限不足，无法删除！",1005,null);
+        }
+        if (workerFlag){
+            List<Device> deviceList = deviceRepository.findByManagerId(old.getId());
+            if (null!=deviceList)
+                for (Device device:deviceList){
+                    device.setManager(take);
+                    deviceRepository.save(device);
+                }
+        }
+        if (scientistFlag){
+            List<ScientistDevice> scientistDeviceList = scientistDeviceRepository.findByScientistId(old.getId());
+            if (null!=scientistDeviceList)
+                for (ScientistDevice scientistDevice:scientistDeviceList){
+                    ScientistDevice over = scientistDeviceRepository.findByScientistIdAndDeviceId(takeId,scientistDevice.getDevice().getId());
+                    if (null==over){
+                        scientistDevice.setScientist(take);
+                        scientistDeviceRepository.save(over);
+                    }
+                }
+            List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByScientistId(old.getId());
+            if (null!=deviceFloorList)
+                for (DeviceFloor deviceFloor:deviceFloorList){
+                    deviceFloor.setScientist(take);
+                    deviceFloorRepository.save(deviceFloor);
+                }
+        }
+        return new RestResponse("删除成功！",null);
+    }
 
 }

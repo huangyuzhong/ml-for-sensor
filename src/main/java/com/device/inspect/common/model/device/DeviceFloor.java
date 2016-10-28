@@ -17,10 +17,11 @@ public class DeviceFloor {
     private String name;
     private Integer num;
     private Integer productNum;
-    private User scientist;
     private String type;
     private Integer effective;
     private Date overDate;
+    private Integer enable;
+    private User scientist;
 
     @Id
     @GeneratedValue()
@@ -78,16 +79,6 @@ public class DeviceFloor {
         this.productNum = productNum;
     }
 
-    @ManyToOne()
-    @JoinColumn(name = "user_id")
-    public User getUser() {
-        return scientist;
-    }
-
-    public void setUser(User scientist) {
-        this.scientist = scientist;
-    }
-
     @Column(name = "type_name")
     public String getType() {
         return type;
@@ -114,5 +105,21 @@ public class DeviceFloor {
         this.overDate = overDate;
     }
 
+    public Integer getEnable() {
+        return enable;
+    }
 
+    public void setEnable(Integer enable) {
+        this.enable = enable;
+    }
+
+    @ManyToOne()
+    @JoinColumn(name = "user_id")
+    public User getScientist() {
+        return scientist;
+    }
+
+    public void setScientist(User scientist) {
+        this.scientist = scientist;
+    }
 }

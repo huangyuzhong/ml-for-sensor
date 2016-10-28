@@ -105,6 +105,9 @@ public class FileController {
     @Autowired
     private DeviceFileRepository deviceFileRepository;
 
+    @Autowired
+    private ScientistDeviceRepository scientistDeviceRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -145,10 +148,11 @@ public class FileController {
                     building.setDeviceNum(0);
                     building.setCompany(user.getCompany());
                 }
-
+                building.setEnable(1);
                 building.setName(null == param.get("name") ? null : param.get("name"));
                 building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                 building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
+                buildingRepository.save(building);
                 try {
                     MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                     MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -228,6 +232,8 @@ public class FileController {
             floor.setName(null == param.get("name") ? null : param.get("name"));
             floor.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
             floor.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
+            floor.setEnable(1);
+            storeyRepository.save(floor);
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                 MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -290,21 +296,30 @@ public class FileController {
             restResponse = new RestResponse("房间信息信息出错！", null);
         else if (null==param.get("typeId"))
             restResponse = new RestResponse("设备种类信息出错！", null);
-        else if (UserRoleDifferent.userFirmManagerConfirm(user)){
+        if (UserRoleDifferent.userFirmManagerConfirm(user)){
             Room room = roomRepository.findOne(Integer.valueOf(param.get("roomId")));
             DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
+            if (null==room||null==deviceType)
+                throw new RuntimeException("信息有误！");
+            if(null == param.get("monitorCode")||"".equals(param.get("monitorCode")))
+                throw new RuntimeException("终端信号为空！");
 
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
             device.setDeviceType(deviceType);
-            device.setManager(null == param.get("managerId") ? user : userRepository.findOne(Integer.valueOf(param.get("managerId"))));
+            if (null!=param.get("managerId")){
+                User deviceManager = userRepository.findOne(Integer.valueOf(param.get("managerId")));
+                if (UserRoleDifferent.userFirmManagerConfirm(deviceManager)||UserRoleDifferent.userFirmWorkerConfirm(deviceManager))
+                    device.setManager(deviceManager);
+            }
             device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
             device.setName(param.get("name"));
             device.setRoom(room);
             device.setPushType("短信");
             device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
+            device.setEnable(1);
             deviceRepository.save(device);
             MonitorDevice monitorDevice = new MonitorDevice();
             monitorDevice.setBattery("100");
@@ -312,7 +327,23 @@ public class FileController {
             monitorDevice.setNumber(param.get("monitorCode"));
             monitorDevice.setOnline(1);
             monitorDeviceRepository.save(monitorDevice);
-
+            if (null!=param.get("scientist")) {
+                String[] scientist = param.get("scientist").split(",");
+                for (String id:scientist){
+                    if (null!=id||!"".equals(id)){
+                        ScientistDevice scientistDevice = null;
+                        User keeper = userRepository.findOne(Integer.valueOf(id));
+                        if (null==keeper)
+                            continue;
+                        scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
+                        if (null!=scientistDevice)
+                            continue;
+                        scientistDevice.setDevice(device);
+                        scientistDevice.setScientist(user);
+                        scientistDeviceRepository.save(scientistDevice);
+                    }
+                }
+            }
             if (null!=deviceType.getDeviceTypeInspectList()){
                 for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
                     DeviceInspect deviceInspect = new DeviceInspect();
@@ -410,7 +441,8 @@ public class FileController {
             room.setName(null == param.get("name") ? null : param.get("name"));
             room.setxPoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
             room.setyPoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
-
+            room.setEnable(1);
+            roomRepository.save(room);
             try {
                 MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                 MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -605,7 +637,7 @@ public class FileController {
                         company.setLng(Float.valueOf(location[1]));
                     }
                 }
-
+                company.setEnable(1);
                 firmManager = userRepository.findByName(param.get("account"));
                 if (null!=firmManager)
                     throw new RuntimeException("创建失败，管理员账号已存在！");
