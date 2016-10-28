@@ -116,7 +116,7 @@ public class FileController {
 
     /**
      *
-     * @param name
+     * @param 
      * @param param         type 0位新增，1为修改
      * @param request
      * @param response
@@ -568,11 +568,11 @@ public class FileController {
         }
     }
 
-    @RequestMapping(value = "/create/company/{name}")
-    public void createCompany(@PathVariable String name,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/company")
+    public void createCompany(Principal principal,@RequestParam Map<String,String> param,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -640,7 +640,7 @@ public class FileController {
                 }
                 firmManager = userRepository.findByName(param.get("account"));
                 if (null == firmManager)
-                    throw new RuntimeException("创建失败，管理员账号不存在！");
+                    throw new RuntimeException("修改失败，管理员账号不存在！");
                 companyRepository.save(company);
                 firmManager = company.getManager();
                 firmManager.setName(param.get("account"));
