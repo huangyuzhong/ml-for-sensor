@@ -671,6 +671,8 @@ public class FileController {
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
                         String fileName  = file.getOriginalFilename();
+                        if (null==fileName||fileName.equals(""))
+                            break;
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
