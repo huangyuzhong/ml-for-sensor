@@ -116,7 +116,7 @@ public class FileController {
 
     /**
      *
-     * @param name
+     * @param 
      * @param param         type 0位新增，1为修改
      * @param request
      * @param response
@@ -604,7 +604,7 @@ public class FileController {
                 }
 
                 firmManager = userRepository.findByName(param.get("account"));
-                if (null==firmManager)
+                if (null!=firmManager)
                     throw new RuntimeException("创建失败，管理员账号已存在！");
 
                 companyRepository.save(company);
@@ -640,7 +640,7 @@ public class FileController {
                 }
                 firmManager = userRepository.findByName(param.get("account"));
                 if (null == firmManager)
-                    throw new RuntimeException("创建失败，管理员账号不存在！");
+                    throw new RuntimeException("修改失败，管理员账号不存在！");
                 companyRepository.save(company);
                 firmManager = company.getManager();
                 firmManager.setName(param.get("account"));
