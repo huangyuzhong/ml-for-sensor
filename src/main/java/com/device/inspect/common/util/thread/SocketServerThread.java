@@ -58,7 +58,6 @@ public class SocketServerThread extends Thread {
                 byte[] data = new byte[512];
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
-                System.out.println(Thread.currentThread().getName()+"发来的内容是:" + result);
                 LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
 //                String flagString = result.substring(2,4);
                 String response = "";
@@ -66,7 +65,6 @@ public class SocketServerThread extends Thread {
                     flag = true;
                 }else {
                     response = get(result);
-                    System.out.println("11111111===="+response);
                 }
                 if (null==response){
                     flag = true;

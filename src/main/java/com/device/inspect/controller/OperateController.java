@@ -122,10 +122,10 @@ public class OperateController {
             deviceFloor.setDevice(device);
             deviceFloor.setFloorNum(null == map.get("floorNum") ? null : Integer.valueOf(map.get("floorNum")));
         }
-        deviceFloor.setScientist(map.get("scientist"));
+//        deviceFloor.setScientist(map.get("scientist"));
         deviceFloor.setName(map.get("name"));
-        deviceFloor.setEmail(map.get("email"));
-        deviceFloor.setMobile(map.get("mobile"));
+//        deviceFloor.setEmail(map.get("email"));
+//        deviceFloor.setMobile(map.get("mobile"));
         deviceFloor.setProductNum(map.get("productNum")==null?null:Integer.valueOf(map.get("productNum")));
         deviceFloorRepository.save(deviceFloor);
 
@@ -290,21 +290,22 @@ public class OperateController {
             role.setUser(child);
             roleRepository.save(role);
         }else {
-            String[] roles = map.get("role").split(",");
-            if (null!=roles&&roles.length>0){
-                for (String roleName:roles){
-                    RoleAuthority roleAuthority = roleAuthorityRepository.findByName(roleName);
-                    if (null!=roleAuthority){
-                        Role role = new Role();
-                        role.setAuthority(roleAuthorityList.get(0).getName());
-                        role.setRoleAuthority(roleAuthorityList.get(0));
-                        role.setUser(child);
-                        roleRepository.save(role);
+            if (UserRoleDifferent.userFirmManagerConfirm(user)){
+                String[] roles = map.get("role").split(",");
+                if (null!=roles&&roles.length>0){
+                    for (String roleName:roles){
+                        RoleAuthority roleAuthority = roleAuthorityRepository.findByName(roleName);
+                        if (null!=roleAuthority){
+                            Role role = new Role();
+                            role.setAuthority(roleAuthorityList.get(0).getName());
+                            role.setRoleAuthority(roleAuthorityList.get(0));
+                            role.setUser(child);
+                            roleRepository.save(role);
+                        }
                     }
                 }
             }
         }
-
         return new RestResponse("创建成功！",null);
     }
 
@@ -314,7 +315,7 @@ public class OperateController {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/update/user")
+    @RequestMapping(value = "/update/user",method = RequestMethod.POST)
     public RestResponse updateUserMessage(Principal principal,@RequestParam Map<String,String> param){
         User user = judgeByPrincipal(principal);
         if (null == user)

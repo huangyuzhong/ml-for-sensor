@@ -8,6 +8,8 @@ import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,7 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/api/rest")
 public class SocketMessageApi {
+    private static final Logger LOGGER = LogManager.getLogger(SocketMessageApi.class);
     @Autowired
     private  InspectDataRepository inspectDataRepository;
 

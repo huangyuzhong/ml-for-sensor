@@ -317,6 +317,7 @@ public class SelectApiController {
         if (UserRoleDifferent.userFirmManagerConfirm(user)){
             requestParam.put("companyId",user.getCompany().getId().toString());
         }
+
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 

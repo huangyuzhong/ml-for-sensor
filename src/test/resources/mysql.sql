@@ -421,7 +421,7 @@ SET FOREIGN_KEY_CHECKS=0;
   );
   ALTER TABLE `device_offline` ADD CONSTRAINT `device_offline_1` FOREIGN kEY (`device_id`) REFERENCES `device` (`id`);
 
-  ALTER TABLE `inspect`.`monitor_device`
+  ALTER TABLE `monitor_device`
   CHANGE COLUMN `online_status` `online_status` INT NULL DEFAULT 0 ;
 
   ALTER TABLE `monitor_device` ADD CONSTRAINT `monitor_device_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
@@ -439,6 +439,21 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `company` ADD `lat` FLOAT NULL;
   ALTER TABLE `company` ADD `lng` FLOAT NULL;
 
+  drop table if exists `scientist_device`;
+  create TABLE `scientist_device`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NULL,
+  `device_id` INT NULL,
+  PRIMARY KEY (`id`)
+  );
+
+  ALTER TABLE `scientist_device` ADD CONSTRAINT `scientist_device_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+  ALTER TABLE `scientist_device` ADD CONSTRAINT `scientist_device_2` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+
+  ALTER TABLE `device_floor`
+    DROP COLUMN `scientist_email`,
+    DROP COLUMN `scientist_mobile`,
+    DROP COLUMN `scientist`;
 
 
 SET FOREIGN_KEY_CHECKS=1;

@@ -14,13 +14,10 @@ public class DeviceFloor {
     private Integer id;
     private Device device;
     private Integer floorNum;
-    private String scientist;
     private String name;
     private Integer num;
-    private String mobile;
-    private String email;
     private Integer productNum;
-    private User user;
+    private User scientist;
     private String type;
     private Integer effective;
     private Date overDate;
@@ -54,14 +51,6 @@ public class DeviceFloor {
         this.floorNum = floorNum;
     }
 
-
-    public String getScientist() {
-        return scientist;
-    }
-
-    public void setScientist(String scientist) {
-        this.scientist = scientist;
-    }
     @Column(name = "subject_name")
     public String getName() {
         return name;
@@ -80,24 +69,6 @@ public class DeviceFloor {
         this.num = num;
     }
 
-    @Column(name = "scientist_mobile")
-    public String getMobile() {
-        return mobile;
-    }
-
-    public void setMobile(String mobile) {
-        this.mobile = mobile;
-    }
-
-    @Column(name = "scientist_email")
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     @Column(name = "product_num")
     public Integer getProductNum() {
         return productNum;
@@ -110,11 +81,11 @@ public class DeviceFloor {
     @ManyToOne()
     @JoinColumn(name = "user_id")
     public User getUser() {
-        return user;
+        return scientist;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(User scientist) {
+        this.scientist = scientist;
     }
 
     @Column(name = "type_name")
@@ -133,6 +104,7 @@ public class DeviceFloor {
     public void setEffective(Integer effective) {
         this.effective = effective;
     }
+
     @Column(name = "over_effective")
     public Date getOverDate() {
         return overDate;
@@ -141,4 +113,6 @@ public class DeviceFloor {
     public void setOverDate(Date overDate) {
         this.overDate = overDate;
     }
+
+
 }

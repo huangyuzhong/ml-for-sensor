@@ -25,11 +25,11 @@ public class RestDeviceFloor {
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
         this.floorNum = deviceFloor.getFloorNum();
-        this.scientist = deviceFloor.getScientist();
+//        this.scientist = deviceFloor.getScientist();
         this.name = deviceFloor.getName();
         this.num = deviceFloor.getNum();
-        this.mobile = deviceFloor.getMobile();
-        this.email = deviceFloor.getEmail();
+//        this.mobile = deviceFloor.getMobile();
+//        this.email = deviceFloor.getEmail();
         this.productNum = deviceFloor.getProductNum();
         this.user = null==deviceFloor.getUser()?null:new RestUser(deviceFloor.getUser());
     }

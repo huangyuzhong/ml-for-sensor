@@ -31,6 +31,7 @@ import com.device.inspect.controller.request.CompanyRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,6 +48,7 @@ import javax.sql.rowset.serial.SerialException;
 import java.io.*;
 import java.io.File;
 import java.net.URLEncoder;
+import java.security.Principal;
 import java.util.*;
 
 /**
@@ -103,7 +105,14 @@ public class FileController {
     @Autowired
     private DeviceFileRepository deviceFileRepository;
 
-
+    private User judgeByPrincipal(Principal principal){
+        if (null == principal||null==principal.getName())
+            throw new UsernameNotFoundException("You are not login!");
+        User user = userRepository.findByName(principal.getName());
+        if (null==user)
+            throw new UsernameNotFoundException("user not found!");
+        return user;
+    }
 
     /**
      *
@@ -115,11 +124,11 @@ public class FileController {
      * @throws IOException
      * @throws SerialException
      */
-    @RequestMapping(value = "/create/building/{name}")
-    public void createBuilding(@PathVariable String name,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/building")
+    public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         RestResponse restResponse = new RestResponse();
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -191,12 +200,11 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/floor/{name}")
-    public void createFloor(@PathVariable String name,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/floor")
+    public void createFloor(Principal principal,@RequestParam Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -267,11 +275,11 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/device/{name}")
-    public void createDevice(@PathVariable String name,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/device")
+    public void createDevice(Principal principal,@RequestParam Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -374,11 +382,11 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/room/{name}")
-    public void createRoom(@PathVariable String name,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/room")
+    public void createRoom(Principal principal,@RequestParam Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        User user = userRepository.findByName(name);
+        User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();

@@ -89,7 +89,8 @@ public abstract class Querier<T> {
                                 predicate = cb.and(predicate, newPredicate);
                         }
                 }
-                if (predicate != null) cq.where(predicate);
+                if (predicate != null)
+                        cq.where(predicate);
                 return objectRoot;
         }
 
