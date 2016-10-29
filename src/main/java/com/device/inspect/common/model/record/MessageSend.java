@@ -1,8 +1,10 @@
 package com.device.inspect.common.model.record;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.Device;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Created by Administrator on 2016/10/18.
@@ -15,6 +17,9 @@ public class MessageSend {
     private String type;
     private User user;
     private String error;
+    private Device device;
+    private Date create;
+    private Integer enable;
 
     @Id
     @GeneratedValue()
@@ -59,5 +64,32 @@ public class MessageSend {
 
     public void setError(String error) {
         this.error = error;
+    }
+
+    @ManyToOne()
+    @JoinColumn(name = "device_id")
+    public Device getDevice() {
+        return device;
+    }
+
+    public void setDevice(Device device) {
+        this.device = device;
+    }
+
+    @Column(name = "create_date")
+    public Date getCreate() {
+        return create;
+    }
+
+    public void setCreate(Date create) {
+        this.create = create;
+    }
+
+    public Integer getEnable() {
+        return enable;
+    }
+
+    public void setEnable(Integer enable) {
+        this.enable = enable;
     }
 }

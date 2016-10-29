@@ -457,4 +457,9 @@ SET FOREIGN_KEY_CHECKS=0;
 
   ALTER TABLE `device_floor` ADD `enable` INT NULL DEFAULT 1;
 
+  ALTER TABLE `message_send` ADD `device_id` INT NULL;
+  ALTER TABLE `message_send` ADD CONSTRAINT `message_send_device_1` FOREIGN KEY (`device_id`) REFERENCES `device` (`id`);
+  ALTER TABLE `message_send` ADD `create_date` DATETIME NULL;
+  ALTER TABLE `message_send` ADD `enable` INT NULL DEFAULT 1;
+
 SET FOREIGN_KEY_CHECKS=1;

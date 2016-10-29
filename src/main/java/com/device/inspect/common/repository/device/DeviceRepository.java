@@ -14,6 +14,7 @@ public interface DeviceRepository extends CrudRepository<Device,Integer> {
     public List<Device> findByRoomId(Integer RoomId);
 
     public List<Device> findByManagerId(Integer ManagerId);
+    public List<Device> findByEnable(Integer Enable);
 
 
 }

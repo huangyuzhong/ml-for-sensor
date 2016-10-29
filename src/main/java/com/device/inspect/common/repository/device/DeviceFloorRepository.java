@@ -10,4 +10,5 @@ import java.util.List;
  */
 public interface DeviceFloorRepository extends CrudRepository<DeviceFloor,Integer> {
     public List<DeviceFloor> findByScientistId(Integer ScientistId);
+    public List<DeviceFloor> findByDeviceId(Integer DeviceId);
 }
