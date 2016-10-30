@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -23,6 +24,8 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +44,8 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/api/rest/operate")
 public class OperateController {
+
+    private static final Logger LOGGER = LogManager.getLogger(OperateController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -577,54 +582,64 @@ public class OperateController {
      */
     @RequestMapping(value = "/delete/user/{userId}")
     public RestResponse deleteUserById(Principal principal, @PathVariable Integer userId,@RequestParam Integer takeId){
-        User manager = judgeByPrincipal(principal);
-        if (!UserRoleDifferent.userFirmManagerConfirm(manager))
-            return new RestResponse("权限不足，无法删除！",1005,null);
-        User old = userRepository.findOne(userId);
-        User take = userRepository.findOne(takeId);
-        if (null == old)
-            return new RestResponse("该员工不存在，无法删除！",1005,null);
-        if (null == take)
-            return new RestResponse("没有交接人，无法删除！",1005,null);
-        if (!take.getCompany().getId().equals(manager.getCompany().getId()))
-            return new RestResponse("交接人权限不足，无法删除！",1005,null);
-        boolean workerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
-        boolean scientistFlag = UserRoleDifferent.userScientistConfirm(old);
-        if (workerFlag){
-            if (!UserRoleDifferent.userFirmWorkerConfirm(take))
+        try {
+            User manager = judgeByPrincipal(principal);
+            if (!UserRoleDifferent.userFirmManagerConfirm(manager))
+                return new RestResponse("权限不足，无法删除！",1005,null);
+            User old = userRepository.findOne(userId);
+            User take = userRepository.findOne(takeId);
+            if (null == old)
+                return new RestResponse("该员工不存在，无法删除！",1005,null);
+            if (null == take)
+                return new RestResponse("没有交接人，无法删除！",1005,null);
+            if (!take.getCompany().getId().equals(manager.getCompany().getId()))
                 return new RestResponse("交接人权限不足，无法删除！",1005,null);
-        }
-        if (scientistFlag){
-            if (!UserRoleDifferent.userScientistConfirm(old))
-                return new RestResponse("交接人权限不足，无法删除！",1005,null);
-        }
-        if (workerFlag){
-            List<Device> deviceList = deviceRepository.findByManagerId(old.getId());
-            if (null!=deviceList)
-                for (Device device:deviceList){
-                    device.setManager(take);
-                    deviceRepository.save(device);
-                }
-        }
-        if (scientistFlag){
-            List<ScientistDevice> scientistDeviceList = scientistDeviceRepository.findByScientistId(old.getId());
-            if (null!=scientistDeviceList)
-                for (ScientistDevice scientistDevice:scientistDeviceList){
-                    ScientistDevice over = scientistDeviceRepository.findByScientistIdAndDeviceId(takeId,scientistDevice.getDevice().getId());
-                    if (null==over){
-                        scientistDevice.setScientist(take);
-                        scientistDeviceRepository.save(over);
+            boolean workerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
+            boolean scientistFlag = UserRoleDifferent.userScientistConfirm(old);
+            if (workerFlag){
+                if (!UserRoleDifferent.userFirmWorkerConfirm(take))
+                    return new RestResponse("交接人权限不足，无法删除！",1005,null);
+            }
+            if (scientistFlag){
+                if (!UserRoleDifferent.userScientistConfirm(old))
+                    return new RestResponse("交接人权限不足，无法删除！",1005,null);
+            }
+            if (workerFlag){
+                List<Device> deviceList = deviceRepository.findByManagerId(old.getId());
+                if (null!=deviceList)
+                    for (Device device:deviceList){
+                        device.setManager(take);
+                        deviceRepository.save(device);
                     }
+            }
+            if (scientistFlag){
+                List<ScientistDevice> scientistDeviceList = scientistDeviceRepository.findByScientistId(old.getId());
+                if (null!=scientistDeviceList)
+                    for (ScientistDevice scientistDevice:scientistDeviceList){
+                        ScientistDevice over = scientistDeviceRepository.findByScientistIdAndDeviceId(takeId,scientistDevice.getDevice().getId());
+                        if (null==over){
+                            scientistDevice.setScientist(take);
+                            scientistDeviceRepository.save(over);
+                        }
+                    }
+                List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByScientistId(old.getId());
+                if (null!=deviceFloorList)
+                    for (DeviceFloor deviceFloor:deviceFloorList){
+                        deviceFloor.setScientist(take);
+                        deviceFloorRepository.save(deviceFloor);
+                    }
+            }
+            if (null!=old.getRoles())
+                for (Role role : old.getRoles()){
+                    roleRepository.delete(role);
                 }
-            List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByScientistId(old.getId());
-            if (null!=deviceFloorList)
-                for (DeviceFloor deviceFloor:deviceFloorList){
-                    deviceFloor.setScientist(take);
-                    deviceFloorRepository.save(deviceFloor);
-                }
+            userRepository.delete(old);
+            return new RestResponse("删除成功！",null);
+        }catch (Exception e){
+            LOGGER.error(e.getMessage());
+            return new RestResponse("删除出错！",null);
         }
-        userRepository.delete(old);
-        return new RestResponse("删除成功！",null);
+
     }
 
 }
