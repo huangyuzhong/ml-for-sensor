@@ -530,4 +530,23 @@ public class SelectApiController {
         return new RestResponse(result);
     }
 
+    @RequestMapping(value = "/take/over/colleges")
+    public RestResponse getAllCompanyColleges(Principal principal,@RequestParam Integer userId){
+        User user = judgeByPrincipal(principal);
+        if (!UserRoleDifferent.userFirmManagerConfirm(user))
+            return new RestResponse("权限不足，无法查询！",1005,null);
+        User old = userRepository.findOne(userId);
+        if (null==old)
+            return new RestResponse("请选择要删除的人员！",1005,null);
+        List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
+        List<RestUser> result = new ArrayList<RestUser>();
+        for (User userEnch : list){
+            if (!userEnch.getId().equals(old.getId())) {
+                RestUser restUser = new RestUser(userEnch);
+                result.add(restUser);
+            }
+        }
+        return new RestResponse(result);
+    }
+
 }

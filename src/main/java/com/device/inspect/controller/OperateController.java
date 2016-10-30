@@ -623,6 +623,7 @@ public class OperateController {
                     deviceFloorRepository.save(deviceFloor);
                 }
         }
+        userRepository.delete(old);
         return new RestResponse("删除成功！",null);
     }
 
