@@ -597,7 +597,7 @@ public class OperateController {
             boolean workerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
             boolean scientistFlag = UserRoleDifferent.userScientistConfirm(old);
             if (workerFlag){
-                if (!UserRoleDifferent.userFirmWorkerConfirm(take))
+                if (!UserRoleDifferent.userFirmWorkerConfirm(take)&&!UserRoleDifferent.userFirmManagerConfirm(take))
                     return new RestResponse("交接人权限不足，无法删除！",1005,null);
             }
             if (scientistFlag){
