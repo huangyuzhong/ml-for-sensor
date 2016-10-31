@@ -334,8 +334,8 @@ public class OperateController {
                         RoleAuthority roleAuthority = roleAuthorityRepository.findByName(roleName);
                         if (null!=roleAuthority){
                             Role role = new Role();
-                            role.setAuthority(roleAuthorityList.get(0).getName());
-                            role.setRoleAuthority(roleAuthorityList.get(0));
+                            role.setAuthority(roleAuthority.getName());
+                            role.setRoleAuthority(roleAuthority);
                             role.setUser(child);
                             roleRepository.save(role);
                         }
