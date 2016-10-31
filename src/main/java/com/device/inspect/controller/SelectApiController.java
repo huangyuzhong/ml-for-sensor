@@ -522,7 +522,7 @@ public class SelectApiController {
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
-            if(UserRoleDifferent.userScientistConfirm(user)){
+            if(UserRoleDifferent.userScientistConfirm(userEnch)){
                 RestUser restUser = new RestUser(userEnch);
                 result.add(restUser);
             }
