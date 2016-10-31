@@ -340,7 +340,7 @@ public class FileController {
                             continue;
                         scientistDevice = new ScientistDevice();
                         scientistDevice.setDevice(device);
-                        scientistDevice.setScientist(user);
+                        scientistDevice.setScientist(keeper);
                         scientistDeviceRepository.save(scientistDevice);
                     }
                 }
