@@ -338,6 +338,7 @@ public class FileController {
                         scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
                         if (null!=scientistDevice)
                             continue;
+                        scientistDevice = new ScientistDevice();
                         scientistDevice.setDevice(device);
                         scientistDevice.setScientist(user);
                         scientistDeviceRepository.save(scientistDevice);
