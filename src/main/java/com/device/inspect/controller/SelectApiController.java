@@ -272,6 +272,10 @@ public class SelectApiController {
             requestParam.put("userId",user.getId().toString());
         }
 
+//        if (UserRoleDifferent.userScientistConfirm(user)){
+//            requestParam.put("scientistId",user.getId().toString());
+//        }
+
         Page<Device> devicePage = new DeviceQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
@@ -317,6 +321,7 @@ public class SelectApiController {
         if (UserRoleDifferent.userFirmManagerConfirm(user)){
             requestParam.put("companyId",user.getCompany().getId().toString());
         }
+
 
         Page<User> userPage = new UserQuery(entityManager)
                 .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));

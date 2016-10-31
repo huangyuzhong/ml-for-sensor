@@ -44,6 +44,7 @@ public class Device {
     private String score;
     private Integer enable;
     private Integer status;
+    private List<ScientistDevice> scientistDeviceList;
 
     @Id
     @GeneratedValue()
@@ -295,5 +296,14 @@ public class Device {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    @OneToMany(mappedBy = "device")
+    public List<ScientistDevice> getScientistDeviceList() {
+        return scientistDeviceList;
+    }
+
+    public void setScientistDeviceList(List<ScientistDevice> scientistDeviceList) {
+        this.scientistDeviceList = scientistDeviceList;
     }
 }
