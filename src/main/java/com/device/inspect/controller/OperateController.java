@@ -399,14 +399,17 @@ public class OperateController {
         DeviceType deviceType = new DeviceType();
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
 
-        if (UserRoleDifferent.userFirmManagerConfirm(user)) {
+        if (UserRoleDifferent.userFirmManagerConfirm(user)||UserRoleDifferent.userStartWithService(user)) {
             if (null != deviceTypeReq.getId()) {
                 deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
                 if (null==deviceType)
                     return new RestResponse("当前设备不存在！",1005,null);
+                if (deviceType.getCompany()==null&&!UserRoleDifferent.userStartWithService(user)){
+                    return new RestResponse("企业管理员无法修改平台设备种类！",1005,null);
+                }
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
-                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
+//                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
                 if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
                     for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
                         if (inspectTypeRequest.isChosed()){
@@ -422,14 +425,17 @@ public class OperateController {
                                 deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                                 deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                                 deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
-                                deviceTypeInspectRepository.save(deviceTypeInspect);
+                                deviceTypeInspects.add(deviceTypeInspect);
+//                                deviceTypeInspectRepository.save(deviceTypeInspect);
                             }
                         }
                     }
                 }
+                deviceTypeInspectRepository.save(deviceTypeInspects);
             } else {
                 deviceType.setEnable(1);
-                deviceType.setCompany(user.getCompany());
+                if (UserRoleDifferent.userFirmManagerConfirm(user))
+                    deviceType.setCompany(user.getCompany());
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
                 if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
@@ -445,10 +451,11 @@ public class OperateController {
                             deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                             deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                             deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
-                            deviceTypeInspectRepository.save(deviceTypeInspect);
+                            deviceTypeInspects.add(deviceTypeInspect);
                         }
                     }
                 }
+                deviceTypeInspectRepository.save(deviceTypeInspects);
             }
         } else {
             return new RestResponse("权限不足！",1005,null);
