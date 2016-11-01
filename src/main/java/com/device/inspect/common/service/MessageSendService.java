@@ -42,7 +42,7 @@ public class MessageSendService {
                 //短信签名
                 request.setSmsFreeSignName(MessageName);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+"'"+123456+"'"+"}");
+                request.setSmsParamString("{name:"+"'"+code+"'"+"}");
                 //手机号
                 request.setRecNum(user.getTelephone());
                 //短信模板ID
@@ -54,7 +54,6 @@ public class MessageSendService {
             }catch (Exception e){
                 return false;
             }
-
         }else {
             return false;
         }
