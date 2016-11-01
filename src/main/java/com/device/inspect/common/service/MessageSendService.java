@@ -14,6 +14,7 @@ import javax.mail.internet.*;
  * Created by Administrator on 2016/10/29.
  */
 public class MessageSendService {
+    //推送
     public static String push(User user){
         if (MessageSendService.shortMessage(user)){
             return "短信推送成功";
@@ -24,14 +25,19 @@ public class MessageSendService {
         }
     }
 
+    //发送验证码
+ 
 
     //阿里短信推送的appkey
      public static String appKey="23511383";
     //阿里短信推送的App Secret
      public static String appSecret="b9d6566fe254b76e94dbdfb99470c312";
+    //url
      public static String url="http://gw.api.taobao.com/router/rest";
     //模板ID
     public static String ModelID="SMS_25085037";
+    //短信签名
+    public static String MessageName="王康健";
     //短信推送
     public static boolean shortMessage(User user){
         if (user.getBindMobile()==1){
@@ -46,7 +52,7 @@ public class MessageSendService {
                 //短信类型
                 request.setSmsType("normal");
                 //短信签名
-                request.setSmsFreeSignName("王康健");
+                request.setSmsFreeSignName(MessageName);
                 //短信模板变量(验证码)
                 request.setSmsParam("");
                 //手机号
@@ -75,7 +81,7 @@ public class MessageSendService {
 
     // 发件人邮箱的 SMTP 服务器地址, 必须准确, 不同邮件服务器地址不同, 一般格式为: smtp.xxx.com
     // 网易163邮箱的 SMTP 服务器地址为: smtp.163.com
-    public static String myEmailSMTPHost = "smtp.163.com";
+    public static String myEmailSMTPHost = "smtp.mxhichina.com";
 
 
     public static boolean  sendEmai(User user)  {
