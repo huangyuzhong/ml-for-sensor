@@ -462,4 +462,8 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `message_send` ADD `create_date` DATETIME NULL;
   ALTER TABLE `message_send` ADD `enable` INT NULL DEFAULT 1;
 
+  ALTER TABLE `users` ADD `bind_mobile` INT NULL DEFAULT 0;
+  ALTER TABLE `users` ADD `bind_email` INT NULL DEFAULT 0;
+  ALTER TABLE `users` ADD `verify` INT NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

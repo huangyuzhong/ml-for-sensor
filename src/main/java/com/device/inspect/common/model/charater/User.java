@@ -28,6 +28,9 @@ public class User {
     private Company company;
     private List<Role> roles;
     private String jobNum;
+    private Integer bindMobile;
+    private Integer bindEmail;
+    private Integer verify;
 
     @Id
     @GeneratedValue()
@@ -156,5 +159,31 @@ public class User {
 
     public void setJobNum(String jobNum) {
         this.jobNum = jobNum;
+    }
+
+    @Column(name = "bind_mobile")
+    public Integer getBindMobile() {
+        return bindMobile;
+    }
+
+    public void setBindMobile(Integer bindMobile) {
+        this.bindMobile = bindMobile;
+    }
+
+    @Column(name = "bind_email")
+    public Integer getBindEmail() {
+        return bindEmail;
+    }
+
+    public void setBindEmail(Integer bindEmail) {
+        this.bindEmail = bindEmail;
+    }
+
+    public Integer getVerify() {
+        return verify;
+    }
+
+    public void setVerify(Integer verify) {
+        this.verify = verify;
     }
 }

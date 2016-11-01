@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
-import com.device.inspect.common.model.device.Device;
-import com.device.inspect.common.model.device.DeviceType;
-import com.device.inspect.common.model.device.DeviceTypeInspect;
-import com.device.inspect.common.model.device.InspectType;
+import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
@@ -18,6 +15,7 @@ import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
+import com.device.inspect.common.repository.device.DeviceFloorRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.device.DeviceTypeRepository;
 import com.device.inspect.common.repository.device.InspectTypeRepository;
@@ -87,6 +85,9 @@ public class SelectApiController {
 
     @Autowired
     private RoleAuthorityRepository roleAuthorityRepository;
+
+    @Autowired
+    private DeviceFloorRepository deviceFloorRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -187,6 +188,8 @@ public class SelectApiController {
         if (null == device|| null ==device.getId()){
             return  new RestResponse("device information correct!",1005,null);
         }
+        List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceIdAndEnable(deviceId,1);
+        device.setDeviceFloorList(deviceFloorList);
         return new RestResponse(new RestDevice(device));
     }
 

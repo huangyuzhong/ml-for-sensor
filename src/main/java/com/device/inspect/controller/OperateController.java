@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import java.io.File;
 import java.security.Principal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -145,6 +147,20 @@ public class OperateController {
 //        deviceFloor.setEmail(map.get("email"));
 //        deviceFloor.setMobile(map.get("mobile"));
         deviceFloor.setProductNum(map.get("productNum")==null?null:Integer.valueOf(map.get("productNum")));
+        deviceFloor.setType(map.get("productType")==null?null:map.get("productType"));
+        if (null!=map.get("effective")){
+            Date date = null;
+            try
+            {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd ");
+                date = sdf.parse(map.get("effective"));
+            }
+            catch (ParseException e)
+            {
+
+            }
+            deviceFloor.setOverDate(date);
+        }
         deviceFloorRepository.save(deviceFloor);
         return new RestResponse(new RestDevice(device));
     }
@@ -365,8 +381,6 @@ public class OperateController {
             user.setJobNum(param.get("jobNum"));
         if (null!=param.get("job"))
             user.setJob(param.get("job"));
-        if (null!=param.get("password"))
-            user.setPassword(param.get("password"));
         if (null!=param.get("mobile"))
             user.setMobile(param.get("mobile"));
         if (null!=param.get("telephone"))
@@ -639,7 +653,64 @@ public class OperateController {
             LOGGER.error(e.getMessage());
             return new RestResponse("删除出错！",null);
         }
+    }
 
+    /**
+     * 发送验证码
+     * @param principal
+     * @param
+     * @return
+     */
+    @RequestMapping(value = "/send/mobile/verify/{mobile}")
+    public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
+        User user = judgeByPrincipal(principal);
+        user.setMobile(mobile);
+        Double password = Math.random() * 9000 + 1000;
+        int verify = password.intValue();
+        //短信推送逻辑
+
+        user.setVerify(verify);
+        user.setBindMobile(1);
+        userRepository.save(user);
+        return new RestResponse(user);
+    }
+
+    /**
+     * 发送验证码
+     * @param principal
+     * @param
+     * @return
+     */
+    @RequestMapping(value = "/send/email/verify/{email}")
+    public RestResponse sendVerifyForEmail(Principal principal,@PathVariable String email){
+        User user = judgeByPrincipal(principal);
+        user.setEmail(email);
+        Double password = Math.random() * 9000 + 1000;
+        //邮箱推送逻辑
+
+        user.setVerify(password.intValue());
+        user.setBindEmail(1);
+        userRepository.save(user);
+        return new RestResponse(user);
+    }
+
+    /**
+     * 修改密码
+     * @param principal
+     * @param old
+     * @param password
+     * @return
+     */
+    @RequestMapping(value = "/modify/password/{old}")
+    public RestResponse modifyPassword(Principal principal,@PathVariable String old,@RequestParam String password){
+        User user = judgeByPrincipal(principal);
+        if (null==old||!old.equals(user.getPassword()))
+            return new RestResponse("原密码输入有误！",1005,null);
+        if (null==password||password.equals(""))
+            return new RestResponse("新密码不能为空！",1005,null);
+        user.setPassword(password);
+        userRepository.save(user);
+        return new RestResponse("修改成功！",null);
     }
 
 }
