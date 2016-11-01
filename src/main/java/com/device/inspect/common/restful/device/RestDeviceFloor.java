@@ -20,6 +20,7 @@ public class RestDeviceFloor {
     private String email;
     private Integer productNum;
     private RestUser scientist;
+    private String type;
 
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
@@ -28,6 +29,7 @@ public class RestDeviceFloor {
         this.num = deviceFloor.getNum();
         this.productNum = deviceFloor.getProductNum();
         this.scientist = null==deviceFloor.getScientist()?null:new RestUser(deviceFloor.getScientist());
+        this.type = deviceFloor.getType();
     }
 
     public Integer getId() {
@@ -92,5 +94,13 @@ public class RestDeviceFloor {
 
     public void setScientist(RestUser scientist) {
         this.scientist = scientist;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
