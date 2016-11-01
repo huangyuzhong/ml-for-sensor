@@ -27,7 +27,7 @@ public class MessageSendService {
     //验证码模板ID
     public static String messageModelID="SMS_25240076";
     //发送验证码
-    public static boolean yanzheng(User user){
+    public static boolean yanzheng(User user,String code){
         if (user.getBindMobile()==1){
             try {
                 String aliURL=url;
@@ -42,7 +42,7 @@ public class MessageSendService {
                 //短信签名
                 request.setSmsFreeSignName(MessageName);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+'123456'+"}");
+                request.setSmsParamString("{name:"+"'"+123456+"'"+"}");
                 //手机号
                 request.setRecNum(user.getTelephone());
                 //短信模板ID
@@ -58,8 +58,6 @@ public class MessageSendService {
         }else {
             return false;
         }
-
-
     }
 
     //阿里短信推送的appkey
@@ -104,8 +102,6 @@ public class MessageSendService {
         }else {
             return false;
         }
-
-
     }
 
 
