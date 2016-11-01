@@ -6,6 +6,7 @@ import com.device.inspect.common.restful.charater.RestUser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
  * Created by Administrator on 2016/7/20.
@@ -21,6 +22,7 @@ public class RestDeviceFloor {
     private Integer productNum;
     private RestUser scientist;
     private String type;
+    private Date overDate;
 
     public RestDeviceFloor(@NotNull DeviceFloor deviceFloor) {
         this.id = deviceFloor.getId();
@@ -30,6 +32,7 @@ public class RestDeviceFloor {
         this.productNum = deviceFloor.getProductNum();
         this.scientist = null==deviceFloor.getScientist()?null:new RestUser(deviceFloor.getScientist());
         this.type = deviceFloor.getType();
+        this.overDate = deviceFloor.getOverDate();
     }
 
     public Integer getId() {
@@ -102,5 +105,13 @@ public class RestDeviceFloor {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public Date getOverDate() {
+        return overDate;
+    }
+
+    public void setOverDate(Date overDate) {
+        this.overDate = overDate;
     }
 }
