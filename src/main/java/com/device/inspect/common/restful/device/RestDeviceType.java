@@ -20,6 +20,7 @@ public class RestDeviceType {
     private String name;
     private String logo;
     private List<RestInspectType> inspectTypes;
+    private boolean type;
 
     public RestDeviceType(@NotNull DeviceType deviceType) {
         this.id = deviceType.getId();
@@ -32,6 +33,9 @@ public class RestDeviceType {
                     inspectTypes.add(new RestInspectType(deviceTypeInspect.getInspectType()));
             }
         }
+        if (null==deviceType.getCompany())
+            this.type = true;
+        else this.type = false;
     }
 
     public Integer getId() {
@@ -66,4 +70,11 @@ public class RestDeviceType {
         this.inspectTypes = inspectTypes;
     }
 
+    public boolean isType() {
+        return type;
+    }
+
+    public void setType(boolean type) {
+        this.type = type;
+    }
 }
