@@ -701,7 +701,7 @@ public class OperateController {
         //短信推送逻辑
 
         user.setVerify(verify);
-        user.setBindMobile(1);
+//        user.setBindMobile(1);
         userRepository.save(user);
         return new RestResponse(user);
     }
@@ -720,7 +720,7 @@ public class OperateController {
         //邮箱推送逻辑
 
         user.setVerify(password.intValue());
-        user.setBindEmail(1);
+//        user.setBindEmail(1);
         userRepository.save(user);
         return new RestResponse(user);
     }
@@ -739,7 +739,7 @@ public class OperateController {
     @RequestMapping(value = "/update/email/{email}")
     public RestResponse updateEmailByEmail(Principal principal,@PathVariable String email,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (user.getMobile()!=email||!user.getVerify().equals(verify))
+        if (user.getEmail()!=email||!user.getVerify().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindEmail(1);
         user.setEmail(email);
