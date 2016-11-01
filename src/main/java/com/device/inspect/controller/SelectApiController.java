@@ -203,7 +203,7 @@ public class SelectApiController {
         if (null==user.getCompany())
             return new RestResponse("user's information wrong!",1005,null);
         List<DeviceType> list = new ArrayList<DeviceType>();
-        list.addAll(deviceTypeRepository.findByCompanyIdIsNull());
+        list.addAll(deviceTypeRepository.findByEnableAndCompanyIdIsNull(enable));
         if (UserRoleDifferent.userStartWithFirm(user)){
             list.addAll(deviceTypeRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable));
         }
