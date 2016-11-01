@@ -728,7 +728,7 @@ public class OperateController {
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (user.getMobile()!=mobile||!user.getVerify().equals(verify))
+        if (!user.getMobile().equals(mobile)||!user.getVerify().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindMobile(1);
         user.setMobile(mobile);
@@ -739,7 +739,7 @@ public class OperateController {
     @RequestMapping(value = "/update/email/{email}")
     public RestResponse updateEmailByEmail(Principal principal,@PathVariable String email,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (user.getEmail()!=email||!user.getVerify().equals(verify))
+        if (!user.getEmail().equals(email)||!user.getVerify().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindEmail(1);
         user.setEmail(email);
