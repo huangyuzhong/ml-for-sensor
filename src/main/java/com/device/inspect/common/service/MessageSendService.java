@@ -24,9 +24,43 @@ public class MessageSendService {
             return "推送失败";
         }
     }
-
+    //验证码模板ID
+    public static String messageModelID="SMS_25240076";
     //发送验证码
- 
+    public static boolean yanzheng(User user){
+        if (user.getBindMobile()==1){
+            try {
+                String aliURL=url;
+                //appkey
+                String key=appKey;
+                //App Secret
+                String secret=appSecret;
+                TaobaoClient client=new DefaultTaobaoClient(aliURL,key,secret);
+                AlibabaAliqinFcSmsNumSendRequest request = new AlibabaAliqinFcSmsNumSendRequest();
+                //短信类型
+                request.setSmsType("normal");
+                //短信签名
+                request.setSmsFreeSignName(MessageName);
+                //短信模板变量(验证码)
+                request.setSmsParamString("{name:"+'123456'+"}");
+                //手机号
+                request.setRecNum(user.getTelephone());
+                //短信模板ID
+                request.setSmsTemplateCode(messageModelID);
+                AlibabaAliqinFcSmsNumSendResponse rsp = client.execute(request);
+                //返回是否短信推送成功推送
+                return rsp.isSuccess();
+
+            }catch (Exception e){
+                return false;
+            }
+
+        }else {
+            return false;
+        }
+
+
+    }
 
     //阿里短信推送的appkey
      public static String appKey="23511383";
