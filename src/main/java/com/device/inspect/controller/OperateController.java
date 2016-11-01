@@ -152,7 +152,7 @@ public class OperateController {
             Date date = null;
             try
             {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd ");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
                 date = sdf.parse(map.get("effective"));
             }
             catch (ParseException e)
@@ -207,10 +207,34 @@ public class OperateController {
             device.setMaintainAlterDays(Integer.valueOf(map.get("maintainAlterDays")));
         if (null!=map.get("model"))
             device.setModel(map.get("model"));
-        if (null!=map.get("purchase"))
-            device.setPurchase(new Date());
-        if (null!=map.get("maintainDate"))
-            device.setMaintainDate(new Date());
+        if (null!=map.get("purchase")){
+            Date date = null;
+            try
+            {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+                date = sdf.parse(map.get("purchase"));
+            }
+            catch (ParseException e)
+            {
+
+            }
+            device.setPurchase(date);
+        }
+
+        if (null!=map.get("maintainDate")){
+            Date date = null;
+            try
+            {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+                date = sdf.parse(map.get("maintainDate"));
+            }
+            catch (ParseException e)
+            {
+
+            }
+            device.setMaintainDate(date);
+        }
+
         if(null!=map.get("managerId")){
             User user = userRepository.findOne(Integer.valueOf(map.get("managerId")));
             if (null!=user){
@@ -699,6 +723,28 @@ public class OperateController {
         user.setBindEmail(1);
         userRepository.save(user);
         return new RestResponse(user);
+    }
+
+    @RequestMapping(value = "/update/mobile/{mobile}")
+    public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
+        User user = judgeByPrincipal(principal);
+        if (user.getMobile()!=mobile||!user.getVerify().equals(verify))
+            return new RestResponse("绑定参数出错！",1005,null);
+        user.setBindMobile(1);
+        user.setMobile(mobile);
+        userRepository.save(user);
+        return new RestResponse(new RestUser(user));
+    }
+
+    @RequestMapping(value = "/update/email/{email}")
+    public RestResponse updateEmailByEmail(Principal principal,@PathVariable String email,@RequestParam String verify){
+        User user = judgeByPrincipal(principal);
+        if (user.getMobile()!=email||!user.getVerify().equals(verify))
+            return new RestResponse("绑定参数出错！",1005,null);
+        user.setBindEmail(1);
+        user.setEmail(email);
+        userRepository.save(user);
+        return new RestResponse(new RestUser(user));
     }
 
     /**

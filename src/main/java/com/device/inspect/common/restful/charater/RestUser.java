@@ -28,6 +28,7 @@ public class RestUser {
     private String jobNum;
     private RestRole role;
     private String companyName;
+    private String verify;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -46,6 +47,7 @@ public class RestUser {
         if (null!=user.getRoles()&&user.getRoles().size()>0)
             this.role = new RestRole(user.getRoles().get(0));
         this.companyName = user.getCompany().getName();
+        this.verify = user.getVerify().toString();
     }
 
 
@@ -168,5 +170,13 @@ public class RestUser {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
+    }
+
+    public String getVerify() {
+        return verify;
+    }
+
+    public void setVerify(String verify) {
+        this.verify = verify;
     }
 }
