@@ -29,6 +29,8 @@ public class RestUser {
     private RestRole role;
     private String companyName;
     private String verify;
+    private Integer bindMobile;
+    private Integer bindEmail;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -48,6 +50,8 @@ public class RestUser {
             this.role = new RestRole(user.getRoles().get(0));
         this.companyName = user.getCompany().getName();
         this.verify = user.getVerify().toString();
+        this.bindMobile = user.getBindMobile();
+        this.bindEmail = user.getBindEmail();
     }
 
 
@@ -178,5 +182,21 @@ public class RestUser {
 
     public void setVerify(String verify) {
         this.verify = verify;
+    }
+
+    public Integer getBindMobile() {
+        return bindMobile;
+    }
+
+    public void setBindMobile(Integer bindMobile) {
+        this.bindMobile = bindMobile;
+    }
+
+    public Integer getBindEmail() {
+        return bindEmail;
+    }
+
+    public void setBindEmail(Integer bindEmail) {
+        this.bindEmail = bindEmail;
     }
 }
