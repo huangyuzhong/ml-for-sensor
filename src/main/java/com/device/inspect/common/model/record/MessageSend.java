@@ -14,12 +14,12 @@ import java.util.Date;
 public class MessageSend {
     private Integer id;
     private String reason;
-    private String type;
+    private String type;        // email , mobile
     private User user;
     private String error;
     private Device device;
     private Date create;
-    private Integer enable;
+    private Integer enable;         //1成功,0失败
 
     @Id
     @GeneratedValue()

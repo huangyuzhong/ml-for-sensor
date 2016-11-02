@@ -16,10 +16,10 @@ import javax.mail.internet.*;
 public class MessageSendService {
     //推送报警信息
     //model短信模板ID/邮箱标题, message警报内容
-    public static String pushAlertMessge(User user,String model,String message){
-        if (MessageSendService.sendMessage(user,model,message,1)){
+    public static String pushAlertMessge(User user,String message){
+        if (MessageSendService.sendMessage(user,message,1)){
             return "短信推送成功";
-        }else if (MessageSendService.sendEmai(user,model,message,1)){
+        }else if (MessageSendService.sendEmai(user,message,1)){
             return "邮箱推送成功";
         }else {
             return "推送失败";
@@ -42,12 +42,11 @@ public class MessageSendService {
     //code短信模板ID alert短信内容
     /**
      * @param user    用户
-     * @param model  模板ID
      * @param message  信息内容
      * @param type  0是验证码  1是报警信息
      * @return
      */
-    public static boolean sendMessage(User user,String model,String message,Integer type){
+    public static boolean sendMessage(User user,String message,Integer type){
         if (type.equals(1)){
             if (user.getBindMobile()==1){
                 try {
@@ -67,7 +66,7 @@ public class MessageSendService {
                     //手机号
                     request.setRecNum(user.getMobile());
                         //调用短信报警推送模板
-                        request.setSmsTemplateCode(model);
+                        request.setSmsTemplateCode(MessageSendService.alertModelID);
                     AlibabaAliqinFcSmsNumSendResponse rsp = client.execute(request);
                     //返回是否短信推送成功推送
                     return rsp.isSuccess();
@@ -93,9 +92,9 @@ public class MessageSendService {
                 //短信模板变量(验证码)
                 request.setSmsParamString("{name:"+"'"+message+"'"+"}");
                 //手机号
-                request.setRecNum(user.getMobile());
+                request.setRecNum("15755350318");
                 //调用短信验证码模板
-                request.setSmsTemplateCode(model);
+                request.setSmsTemplateCode(MessageSendService.verifyModelID);
                 AlibabaAliqinFcSmsNumSendResponse rsp = client.execute(request);
                 //返回是否短信推送成功推送
                 return rsp.isSuccess();
@@ -115,15 +114,17 @@ public class MessageSendService {
     // 钉邮的smtp服务器地址
     public static String myEmailSMTPHost = "smtp.mxhichina.com";
 
+    //邮件标题
+    public static final String EmaliSubject="设备警报";
+    public static final String EmaliVerify="验证码";
     /**
      *
      * @param user   用户
-     * @param subject  邮件标题
      * @param content  邮件内容
      * @param type  0是验证码，1是报警信息
      * @return
      */
-    public static boolean  sendEmai(User user,String subject,String content,Integer type)  {
+    public static boolean  sendEmai(User user,String content,Integer type)  {
         if (type.equals(1)){
             //邮件报警
             if (user.getBindEmail()==1){
@@ -140,7 +141,7 @@ public class MessageSendService {
 
                     // 3. 创建一封邮件
                     MimeMessage mimeMessage =
-                            createMimeMessage(session, myEmailAccount, user.getEmail(),user ,subject,content);
+                            createMimeMessage(session, myEmailAccount, user.getEmail(),user ,MessageSendService.EmaliSubject,content);
 
                     // 4. 根据 Session 获取邮件传输对象
                     Transport transport = session.getTransport();
@@ -175,7 +176,7 @@ public class MessageSendService {
                 session.setDebug(true);                                 // 设置为debug模式, 可以查看详细的发送 log
 
                 // 3. 创建一封邮件
-                MimeMessage mimeMessage = createMimeMessage(session, myEmailAccount, user.getEmail(),user ,subject,content);
+                MimeMessage mimeMessage = createMimeMessage(session, myEmailAccount, user.getEmail(),user ,MessageSendService.EmaliVerify,content);
 
                 // 4. 根据 Session 获取邮件传输对象
                 Transport transport = session.getTransport();

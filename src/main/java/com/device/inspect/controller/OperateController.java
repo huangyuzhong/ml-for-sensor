@@ -9,6 +9,7 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
@@ -17,10 +18,12 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
@@ -96,6 +99,8 @@ public class OperateController {
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
+    @Autowired
+    private MessageSendRepository messageSendRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -693,12 +698,25 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/send/mobile/verify/{mobile}")
+
     public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
         User user = judgeByPrincipal(principal);
         user.setMobile(mobile);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
-        //短信推送逻辑
+        MessageSend messageSend = new MessageSend();
+        //短信发送验证码
+        boolean b=MessageSendService.sendMessage(user,String.valueOf(verify),0);
+        if (b)
+            messageSend.setEnable(1);
+        else
+            messageSend.setEnable(0);
+
+        messageSend.setUser(user);
+        messageSend.setReason("verify");
+        messageSend.setType("mobile");
+        messageSend.setCreate(new Date());
+        messageSendRepository.save(messageSend);
 
         user.setVerify(verify);
         user.setBindMobile(0);
@@ -717,9 +735,22 @@ public class OperateController {
         User user = judgeByPrincipal(principal);
         user.setEmail(email);
         Double password = Math.random() * 9000 + 1000;
-        //邮箱推送逻辑
+        int verify = password.intValue();
+        MessageSend messageSend = new MessageSend();
+        //邮箱发送验证码
+        boolean b=MessageSendService.sendEmai(user,String.valueOf(verify),0);
+        if (b)
+            messageSend.setEnable(1);
+        else
+            messageSend.setEnable(0);
 
-        user.setVerify(password.intValue());
+        messageSend.setReason("verify");
+        messageSend.setType("email");
+        messageSend.setCreate(new Date());
+        messageSend.setUser(user);
+        messageSendRepository.save(messageSend);
+
+        user.setVerify(verify);
         user.setBindEmail(0);
         userRepository.save(user);
         return new RestResponse(user);
