@@ -164,7 +164,7 @@ public class FileController {
                         path = request.getSession().getServletContext().getRealPath("/") + "photo/company/build/"+building.getId()+"/";
                         File add = new File(path);
                         if (!add.exists() && !add.isDirectory()) {
-                            add.mkdir();
+                            add.mkdirs();
                         }
 
                         List<MultipartFile> files = map.get(key);
@@ -245,7 +245,7 @@ public class FileController {
                     path = request.getSession().getServletContext().getRealPath("/") + "photo/company/floor/"+floor.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
+                        add.mkdirs();
                     }
 
                     List<MultipartFile> files = map.get(key);
@@ -372,7 +372,7 @@ public class FileController {
                     path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
+                        add.mkdirs();
                     }
 
                     List<MultipartFile> files = map.get(key);
@@ -455,7 +455,7 @@ public class FileController {
                     path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
+                        add.mkdirs();
                     }
 
                     List<MultipartFile> files = map.get(key);
@@ -516,7 +516,7 @@ public class FileController {
                     path = request.getSession().getServletContext().getRealPath("/") + "photo/company/deviceType/"+deviceType.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
+                        add.mkdirs();
                     }
 
                     List<MultipartFile> files = map.get(key);
@@ -574,7 +574,7 @@ public class FileController {
                 path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
                 File add = new File(path);
                 if (!add.exists() && !add.isDirectory()) {
-                    add.mkdir();
+                    add.mkdirs();
                 }
 
                 List<MultipartFile> files = map.get(key);
@@ -700,7 +700,7 @@ public class FileController {
                     path = request.getSession().getServletContext().getRealPath("/") + "photo/company/"+company.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
-                        add.mkdir();
+                        add.mkdirs();
                     }
 
                     List<MultipartFile> files = map.get(key);
@@ -764,7 +764,7 @@ public class FileController {
                 path = request.getSession().getServletContext().getRealPath("/") + "photo/file/"+device.getId()+"/";
                 File add = new File(path);
                 if (!add.exists() && !add.isDirectory()) {
-                    add.mkdir();
+                    add.mkdirs();
                 }
 
                 List<MultipartFile> files = map.get(key);
@@ -822,7 +822,7 @@ public class FileController {
                     path=request.getSession().getServletContext().getRealPath("/")+"photo/company/"+company.getId()+"/";
                     File add=new File(path);
                     if (!add.exists()&&!add.isDirectory()){
-                        add.mkdir();
+                        add.mkdirs();
                     }
                     List<MultipartFile> files=map.get(key);
                     if (null!=files&&files.size()>0){
