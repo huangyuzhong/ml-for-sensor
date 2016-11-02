@@ -463,7 +463,6 @@ public class FileController {
                         MultipartFile file = files.get(0);
                         String fileName  = file.getOriginalFilename();
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
-
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -475,7 +474,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        room.setBackground("/photo/company/room/"+room.getId() + fileName);
+                        room.setBackground("/photo/company/room/"+room.getId() +"/"+ fileName);
                     }
 //                    restResponse = new RestResponse("添加成功！",null);
                 }
@@ -535,7 +534,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        deviceType.setLogo("/photo/company/deviceType/"+deviceType.getId() + fileName);
+                        deviceType.setLogo("/photo/company/deviceType/"+deviceType.getId() +"/"+ fileName);
                     }
                 }
                 deviceTypeRepository.save(deviceType);
