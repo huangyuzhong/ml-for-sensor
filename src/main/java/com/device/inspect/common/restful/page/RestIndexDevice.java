@@ -33,7 +33,7 @@ public class RestIndexDevice {
     private Integer offline;
     private Integer total;
     private Float score;
-
+    private String background;
 
     public  RestIndexDevice(@NotNull Room room){
         this.id = room.getId();
@@ -50,6 +50,7 @@ public class RestIndexDevice {
         this.offline = room.getOffline();
         this.total = room.getTotal();
         this.score = room.getScore();
+        this.background = room.getBackground();
         if (null!=room.getCreateDate())
             days = MyCalendar.getDateSpace(room.getCreateDate(), new Date());
         if (null!=room.getDeviceList()&&room.getDeviceList().size()>0){
@@ -180,5 +181,13 @@ public class RestIndexDevice {
 
     public void setScore(Float score) {
         this.score = score;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 }

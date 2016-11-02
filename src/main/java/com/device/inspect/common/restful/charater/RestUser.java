@@ -31,6 +31,7 @@ public class RestUser {
     private String verify;
     private Integer bindMobile;
     private Integer bindEmail;
+    private String companyLogo;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -52,6 +53,8 @@ public class RestUser {
         this.verify = null==user.getVerify()?null:user.getVerify().toString();
         this.bindMobile = user.getBindMobile();
         this.bindEmail = user.getBindEmail();
+        if (null!=user.getCompany())
+            this.companyLogo = user.getCompany().getLogo();
     }
 
 
@@ -198,5 +201,13 @@ public class RestUser {
 
     public void setBindEmail(Integer bindEmail) {
         this.bindEmail = bindEmail;
+    }
+
+    public String getCompanyLogo() {
+        return companyLogo;
+    }
+
+    public void setCompanyLogo(String companyLogo) {
+        this.companyLogo = companyLogo;
     }
 }

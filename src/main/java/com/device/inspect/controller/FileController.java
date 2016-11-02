@@ -819,7 +819,7 @@ public class FileController {
                 for (String key:keys){
                     JSONObject jsonObject=new JSONObject();
                     String path="";
-                    path=request.getSession().getServletContext().getRealPath("/")+"company/"+company.getId()+"/";
+                    path=request.getSession().getServletContext().getRealPath("/")+"photo/company/"+company.getId()+"/";
                     File add=new File(path);
                     if (!add.exists()&&!add.isDirectory()){
                         add.mkdir();
@@ -838,7 +838,7 @@ public class FileController {
                         }
                         fos.close();
                         is.close();
-                        company.setLogo("/company/"+company.getId()+"/"+fileName);
+                        company.setLogo("/photo/company/"+company.getId()+"/"+fileName);
                         companyRepository.save(company);
                     }
                 }
