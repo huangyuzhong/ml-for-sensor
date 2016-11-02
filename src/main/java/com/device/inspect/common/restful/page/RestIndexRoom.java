@@ -29,6 +29,7 @@ public class RestIndexRoom {
     private Integer offline;
     private Integer total;
     private Float score;
+    private String background;
 
     public RestIndexRoom(@NotNull Storey floor) {
         this.id = floor.getId();
@@ -42,6 +43,7 @@ public class RestIndexRoom {
         this.offline = floor.getOffline();
         this.total = floor.getTotal();
         this.score = floor.getScore();
+        this.background = floor.getBackground();
         if (null!=floor.getCreateDate())
             days = MyCalendar.getDateSpace(floor.getCreateDate(), new Date());
         if (null!=floor.getRoomList()&&floor.getRoomList().size()>0){
@@ -154,5 +156,13 @@ public class RestIndexRoom {
 
     public void setScore(Float score) {
         this.score = score;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 }

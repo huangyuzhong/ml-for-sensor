@@ -29,6 +29,7 @@ public class RestIndexFloor {
     private Integer offline;
     private Integer total;
     private Float score;
+    private String background;
 
     public RestIndexFloor(@NotNull Building building){
         this.id = building.getId();
@@ -40,6 +41,7 @@ public class RestIndexFloor {
         this.offline = building.getOffline();
         this.total = building.getTotal();
         this.score = building.getScore();
+        this.background = building.getBackground();
 
         alertNum = 0 ;
         if (null!=building.getCreateDate())
@@ -146,5 +148,13 @@ public class RestIndexFloor {
 
     public void setScore(Float score) {
         this.score = score;
+    }
+
+    public String getBackground() {
+        return background;
+    }
+
+    public void setBackground(String background) {
+        this.background = background;
     }
 }
