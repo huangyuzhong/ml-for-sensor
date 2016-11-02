@@ -187,6 +187,15 @@
             <artifactId>mail</artifactId>
             <version>1.5.0-b01</version>
         </dependency>
+        <!-- 手动添加maven-->
+        <dependency>
+            <groupId>taobao</groupId>
+            <artifactId>taobao</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/taobao.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <properties>
