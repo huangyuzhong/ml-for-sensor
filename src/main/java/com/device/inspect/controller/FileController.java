@@ -161,7 +161,7 @@ public class FileController {
                         JSONObject jobj = new JSONObject();
                         String path = "";
 
-                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/build/"+building.getId()+"/";
                         File add = new File(path);
                         if (!add.exists() && !add.isDirectory()) {
                             add.mkdir();
@@ -170,8 +170,8 @@ public class FileController {
                         List<MultipartFile> files = map.get(key);
                         if (null != files && files.size() > 0) {
                             MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                            String fileName = UUID.randomUUID().toString() + ".jpg";
+                            String fileName  = file.getOriginalFilename();
+//                            String fileName = UUID.randomUUID().toString() + ".jpg";
                             InputStream is = file.getInputStream();
                             File f = new File(path + fileName);
                             FileOutputStream fos = new FileOutputStream(f);
@@ -183,7 +183,7 @@ public class FileController {
                             fos.close();
                             is.close();
 
-                            building.setBackground("/photo/company/" + fileName);
+                            building.setBackground("/photo/company/build/"+building.getId()+"/" + fileName);
 //                        userRepository.save(user);
                         }
 
@@ -242,7 +242,7 @@ public class FileController {
                     JSONObject jobj = new JSONObject();
                     String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/floor/"+floor.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
                         add.mkdir();
@@ -251,8 +251,8 @@ public class FileController {
                     List<MultipartFile> files = map.get(key);
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -264,7 +264,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        floor.setBackground("/photo/company/" + fileName);
+                        floor.setBackground("/photo/company/floor/" +floor.getId()+"/"+ fileName);
 //                    userRepository.save(user);
                     }
                 }
@@ -369,7 +369,7 @@ public class FileController {
                     JSONObject jobj = new JSONObject();
                     String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/device/";
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
                         add.mkdir();
@@ -378,8 +378,8 @@ public class FileController {
                     List<MultipartFile> files = map.get(key);
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -391,7 +391,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        device.setPhoto("/photo/device/" + fileName);
+                        device.setPhoto("/photo/device/" +device.getId()+"/"+ fileName);
 //                    userRepository.save(user);
                     }
                 }
@@ -452,7 +452,7 @@ public class FileController {
                     JSONObject jobj = new JSONObject();
                     String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
                         add.mkdir();
@@ -461,8 +461,8 @@ public class FileController {
                     List<MultipartFile> files = map.get(key);
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
 
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
@@ -475,7 +475,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        room.setBackground("/photo/company/" + fileName);
+                        room.setBackground("/photo/company/room/"+room.getId() + fileName);
                     }
 //                    restResponse = new RestResponse("添加成功！",null);
                 }
@@ -513,7 +513,7 @@ public class FileController {
                     JSONObject jobj = new JSONObject();
                     String path = "";
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/";
+                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/deviceType/"+deviceType.getId()+"/";
                     File add = new File(path);
                     if (!add.exists() && !add.isDirectory()) {
                         add.mkdir();
@@ -522,8 +522,8 @@ public class FileController {
                     List<MultipartFile> files = map.get(key);
                     if (null != files && files.size() > 0) {
                         MultipartFile file = files.get(0);
-//                String name  = file.getOriginalFilename();
-                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                        String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
                         InputStream is = file.getInputStream();
                         File f = new File(path + fileName);
                         FileOutputStream fos = new FileOutputStream(f);
@@ -535,7 +535,7 @@ public class FileController {
                         fos.close();
                         is.close();
 
-                        deviceType.setLogo("/photo/company/" + fileName);
+                        deviceType.setLogo("/photo/company/deviceType/"+deviceType.getId() + fileName);
                     }
                 }
                 deviceTypeRepository.save(deviceType);
