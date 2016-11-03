@@ -724,7 +724,7 @@ public class OperateController {
             user.setBindMobile(0);
 
         userRepository.save(user);
-        return new RestResponse(user);
+        return new RestResponse(new RestUser(user));
     }
 
     /**
@@ -734,7 +734,6 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/send/email/verify/{email}")
-    //Principal principal,@PathVariable String email
     public RestResponse sendVerifyForEmail(Principal principal,@PathVariable String email){
         User user = judgeByPrincipal(principal);
         Double password = Math.random() * 9000 + 1000;
@@ -759,7 +758,7 @@ public class OperateController {
         else
             user.setBindEmail(0);
         userRepository.save(user);
-        return new RestResponse(user);
+        return new RestResponse(new RestUser(user));
     }
 
     @RequestMapping(value = "/update/mobile/{mobile}")
