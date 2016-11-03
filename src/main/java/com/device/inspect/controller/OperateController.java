@@ -697,6 +697,7 @@ public class OperateController {
      * @param
      * @return
      */
+
     @RequestMapping(value = "/send/mobile/verify/{mobile}")
     public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
         User user = judgeByPrincipal(principal);
@@ -728,14 +729,14 @@ public class OperateController {
 
     /**
      * 发送验证码
-     * @param principal
+    // * @param principal
      * @param
      * @return
      */
     @RequestMapping(value = "/send/email/verify/{email}")
+    //Principal principal,@PathVariable String email
     public RestResponse sendVerifyForEmail(Principal principal,@PathVariable String email){
         User user = judgeByPrincipal(principal);
-        user.setEmail(email);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
