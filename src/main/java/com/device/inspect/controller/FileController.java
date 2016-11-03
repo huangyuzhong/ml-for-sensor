@@ -30,6 +30,7 @@ import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.CompanyRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
+import org.apache.poi.hssf.record.PageBreakRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
@@ -107,6 +108,9 @@ public class FileController {
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
+
+    @Autowired
+    private DeviceVersionRepository deviceVersionRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -848,5 +852,128 @@ public class FileController {
         }
         out.flush();
         out.close();
+    }
+
+    //硬件版本更新
+    @RequestMapping("/create/device/version")
+    public void updateVersion(Principal principal,@RequestParam Map<String ,String> param,
+                                      HttpServletRequest request,HttpServletResponse response) throws IOException {
+        //判断是否登陆
+        User user=judgeByPrincipal(principal);
+        PrintWriter out = response.getWriter();
+        try {
+            //平台管理员的判定
+            if (UserRoleDifferent.userServiceManagerConfirm(user)){
+                DeviceVersion deviceVersion=new DeviceVersion();
+                //判定param是否是空
+                if (param!=null){
+                    //分别判断每个参数是否是空
+                    if (param.get("name")!=null){
+                        deviceVersion.setName(param.get("name"));
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("设备版本的名称为空", 1005,null)));
+                        return;
+                    }
+                    if (param.get("code_first")!=null){
+                        deviceVersion.setFirstCode(param.get("code_first"));
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("版本号1为空", 1005,null)));
+                        return;
+                    }
+                    if (param.get("code_second")!=null){
+                        deviceVersion.setSecondCode(param.get("code_second"));
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("版本号2为空", 1005,null)));
+                        return;
+                    }
+                    if (param.get("code_third")!=null){
+                        deviceVersion.setThirdCode(param.get("code_third"));
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("版本号3为空", 1005,null)));
+                        return;
+                    }
+                    if (param.get("code_forth")!=null){
+                        deviceVersion.setForthCode(param.get("code_forth"));
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("版本号4为空", 1005,null)));
+                        return;
+                    }
+                    if (param.get("type")!=null){
+                        if (param.get("type").equals("01")){
+                            deviceVersion.setType(param.get("type"));
+                            //立即更新
+                        }else if (param.get("type").equals("02")){
+                            deviceVersion.setType(param.get("type"));
+                            //硬件自己判定更新
+                        }else {
+                            out.print(JSON.toJSONString(new RestResponse("更新机制不正确！", 1005,null)));
+                            return;
+                        }
+                    }else {
+                        out.print(JSON.toJSONString(new RestResponse("版本更新机制为空", 1005,null)));
+                        return;
+                    }
+                    deviceVersion.setCreateDate(new Date());
+                    //保存到数据库
+                    deviceVersion=deviceVersionRepository.save(deviceVersion);
+                    //上传文件
+                    uploadVersionFile(deviceVersion, request, response);
+                    //设置路径
+                    deviceVersion.getUrl();
+                    //更新数据库
+                    deviceVersionRepository.save(deviceVersion);
+                    out.print(JSON.toJSONString(new RestResponse("版本更新文件上传成功!", 0)));
+                }else {
+                    out.print(JSON.toJSONString(new RestResponse("硬件版本参数为空", 0)));
+                }
+            }else {
+                out.print(JSON.toJSONString(new RestResponse("用户权限不足，无法上传文件!", 1005,null)));
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+            out.print(JSON.toJSONString(new RestResponse("文件上传失败，无法更新", 1005,null)));
+        }
+        out.flush();
+        out.close();
+    }
+
+
+    public void uploadVersionFile(DeviceVersion deviceVersion,
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        response.setContentType("text/html");
+        PrintWriter out=response.getWriter();
+        RestResponse restResponse=null;
+        MultipartHttpServletRequest multipartHttpServletRequest=(MultipartHttpServletRequest ) request;
+        MultiValueMap<String,MultipartFile> map=multipartHttpServletRequest.getMultiFileMap();
+        Set<String> keys = map.keySet();
+        List<String> result=new ArrayList<String>();
+        for (String key:keys){
+            JSONObject jsonObject=new JSONObject();
+            String path="";
+            path=request.getSession().getServletContext().getRealPath("/")+"photo/version/"+deviceVersion.getId()+"/";
+            File add=new File(path);
+            if (!add.exists()&&!add.isDirectory()){
+                add.mkdirs();
+            }
+            List<MultipartFile> files=map.get(key);
+            if (null!=files&&files.size()>0){
+                MultipartFile file=files.get(0);
+                String fileName=file.getOriginalFilename();
+                InputStream is=file.getInputStream();
+                File f=new File(path+fileName);
+                FileOutputStream fos=new FileOutputStream(f);
+                int hasRead = 0;
+                byte[] buf = new byte[1024];
+                while ((hasRead=is.read(buf))>0){
+                    fos.write(buf, 0, hasRead);
+                }
+                fos.close();
+                is.close();
+                deviceVersion.setUrl(path+fileName);
+            }
+        }
+//        out.print(JSON.toJSONString(new RestResponse("版本文件上传成功！", 0)));
     }
 }

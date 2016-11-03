@@ -72,7 +72,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                     }else {
                         //添加发送
                         MessageSend messageSend = new MessageSend();
-                        String reason=MessageSendService.pushAlertMessge(device.getManager(),message);
+                        String reason=MessageSendService.pushAlertMessge(device.getManager(),"",message);
 
                         messageSend.setType(reason);
                         messageSend.setReason(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
@@ -96,7 +96,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                                 }else {
                                     //添加发送
                                    MessageSend messageSend = new MessageSend();
-                                    String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),message);
+                                    String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),"",message);
                                     messageSend.setReason(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
                                             "管理员"+deviceFloor.getScientist().getUserName());
                                     messageSend.setType(reason);

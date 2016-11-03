@@ -698,15 +698,13 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/send/mobile/verify/{mobile}")
-
     public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
         User user = judgeByPrincipal(principal);
-        user.setMobile(mobile);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
         //短信发送验证码
-        boolean b=MessageSendService.sendMessage(user,String.valueOf(verify),0);
+        boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else
@@ -719,7 +717,11 @@ public class OperateController {
         messageSendRepository.save(messageSend);
 
         user.setVerify(verify);
-        user.setBindMobile(0);
+        if (user.getMobile()!=null&&!user.getMobile().equals(""))
+            user.setBindMobile(1);
+        else
+            user.setBindMobile(0);
+
         userRepository.save(user);
         return new RestResponse(user);
     }
@@ -738,7 +740,7 @@ public class OperateController {
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
         //邮箱发送验证码
-        boolean b=MessageSendService.sendEmai(user,String.valueOf(verify),0);
+        boolean b=MessageSendService.sendEmai(user,email,String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else
@@ -751,7 +753,10 @@ public class OperateController {
         messageSendRepository.save(messageSend);
 
         user.setVerify(verify);
-        user.setBindEmail(0);
+        if (user.getEmail()!=null&&!user.getEmail().equals(""))
+            user.setBindEmail(1);
+        else
+            user.setBindEmail(0);
         userRepository.save(user);
         return new RestResponse(user);
     }
@@ -759,7 +764,7 @@ public class OperateController {
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (!user.getMobile().equals(mobile)||!user.getVerify().toString().equals(verify))
+        if (!user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindMobile(1);
         user.setMobile(mobile);
@@ -770,7 +775,7 @@ public class OperateController {
     @RequestMapping(value = "/update/email/{email}")
     public RestResponse updateEmailByEmail(Principal principal,@PathVariable String email,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (!user.getEmail().equals(email)||!user.getVerify().toString().equals(verify))
+        if (!user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindEmail(1);
         user.setEmail(email);
