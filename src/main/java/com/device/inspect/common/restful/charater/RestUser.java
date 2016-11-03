@@ -1,5 +1,6 @@
 package com.device.inspect.common.restful.charater;
 
+import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Company;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,6 +33,7 @@ public class RestUser {
     private Integer bindMobile;
     private Integer bindEmail;
     private String companyLogo;
+    private String roleNames;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -49,14 +51,17 @@ public class RestUser {
         this.jobNum = user.getJobNum();
         if (null!=user.getRoles()&&user.getRoles().size()>0)
             this.role = new RestRole(user.getRoles().get(0));
-
-
         this.verify = null==user.getVerify()?null:user.getVerify().toString();
         this.bindMobile = user.getBindMobile();
         this.bindEmail = user.getBindEmail();
         if (null!=user.getCompany()) {
             this.companyLogo = user.getCompany().getLogo();
             this.companyName = user.getCompany().getName();
+        }
+        if (null!=user.getRoles()){
+            for (Role role : user.getRoles()){
+                roleNames+=role.getRoleAuthority().getRoleName()+" ";
+            }
         }
     }
 
@@ -212,5 +217,13 @@ public class RestUser {
 
     public void setCompanyLogo(String companyLogo) {
         this.companyLogo = companyLogo;
+    }
+
+    public String getRoleNames() {
+        return roleNames;
+    }
+
+    public void setRoleNames(String roleNames) {
+        this.roleNames = roleNames;
     }
 }
