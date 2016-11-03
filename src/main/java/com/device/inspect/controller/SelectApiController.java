@@ -370,6 +370,8 @@ public class SelectApiController {
      */
     @RequestMapping(value = "/query/login/company")
     public RestResponse getCompanyById(@RequestParam String companyId){
+        if (null==companyId||companyId.equals(""))
+            return new RestResponse("没有正确的访问参数！",null);
         String realId = "";
         try {
             realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");
@@ -503,20 +505,20 @@ public class SelectApiController {
         return new RestResponse(deviceTypeRequest);
     }
 
-    @RequestMapping("/test/company")
-    public RestResponse updateCompanyURL(){
-        Iterable<Company> companies = companyRepository.findAll();
-        for (Company company:companies){
-
-            try {
-                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            companyRepository.save(company);
-        }
-        return new RestResponse();
-    }
+//    @RequestMapping("/test/company")
+//    public RestResponse updateCompanyURL(){
+//        Iterable<Company> companies = companyRepository.findAll();
+//        for (Company company:companies){
+//
+//            try {
+//                company.setLogin("http://inmycars.ihengtian.top/inspect/Lab_login.html?company="+ ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//            companyRepository.save(company);
+//        }
+//        return new RestResponse();
+//    }
 
     /**
      * 获取用户所在企业所有的科学家
