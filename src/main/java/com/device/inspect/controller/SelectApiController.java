@@ -200,7 +200,7 @@ public class SelectApiController {
     @RequestMapping(value = "/device/types",method = RequestMethod.GET)
     public RestResponse getAllDeviceTypes(Principal principal,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
-        if (null==user.getCompany())
+        if (null==user.getCompany()&&UserRoleDifferent.userStartWithFirm(user))
             return new RestResponse("user's information wrong!",1005,null);
         List<DeviceType> list = new ArrayList<DeviceType>();
         list.addAll(deviceTypeRepository.findByEnableAndCompanyIdIsNull(enable));

@@ -397,7 +397,7 @@ public class OperateController {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/update/user",method = RequestMethod.POST)
+    @RequestMapping(value = "/update/user",method = RequestMethod.GET)
     public RestResponse updateUserMessage(Principal principal,@RequestParam Map<String,String> param){
         User user = judgeByPrincipal(principal);
         if (null == user)
@@ -642,7 +642,7 @@ public class OperateController {
                 return new RestResponse("该员工不存在，无法删除！",1005,null);
             if (null == take)
                 return new RestResponse("没有交接人，无法删除！",1005,null);
-            if (!take.getCompany().getId().equals(manager.getCompany().getId()))
+            if (!take.getCompany().getId().toString().equals(manager.getCompany().getId().toString()))
                 return new RestResponse("交接人权限不足，无法删除！",1005,null);
             boolean workerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
             boolean scientistFlag = UserRoleDifferent.userScientistConfirm(old);
@@ -651,7 +651,7 @@ public class OperateController {
                     return new RestResponse("交接人权限不足，无法删除！",1005,null);
             }
             if (scientistFlag){
-                if (!UserRoleDifferent.userScientistConfirm(old))
+                if (!UserRoleDifferent.userScientistConfirm(take))
                     return new RestResponse("交接人权限不足，无法删除！",1005,null);
             }
             if (workerFlag){
