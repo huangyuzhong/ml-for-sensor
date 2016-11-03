@@ -18,7 +18,7 @@ public class LoginUser implements UserDetails {
     public LoginUser(User user) {
         this.username = user.getName();
         this.verify = user.getPassword().toString();
-        this.company = user.getCompany().getName();
+        this.company = null==user.getCompany()?null:user.getCompany().getName();
     }
 
 	private String username;
