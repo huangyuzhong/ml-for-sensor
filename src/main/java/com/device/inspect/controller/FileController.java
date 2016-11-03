@@ -334,7 +334,7 @@ public class FileController {
             if (null!=param.get("scientist")) {
                 String[] scientist = param.get("scientist").split(",");
                 for (String id:scientist){
-                    if (null!=id||!"".equals(id)){
+                    if (null!=id&&!"".equals(id)){
                         ScientistDevice scientistDevice = null;
                         User keeper = userRepository.findOne(Integer.valueOf(id));
                         if (null==keeper)

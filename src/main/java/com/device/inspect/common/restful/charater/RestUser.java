@@ -59,8 +59,10 @@ public class RestUser {
             this.companyName = user.getCompany().getName();
         }
         if (null!=user.getRoles()){
+            roleNames = "";
             for (Role role : user.getRoles()){
-                roleNames+=role.getRoleAuthority().getRoleName()+" ";
+                if (null!=role.getRoleAuthority()&&null!=role.getRoleAuthority().getRoleName())
+                    roleNames+=role.getRoleAuthority().getRoleName()+" ";
             }
         }
     }
