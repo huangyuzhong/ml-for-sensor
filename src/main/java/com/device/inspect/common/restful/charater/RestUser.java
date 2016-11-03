@@ -3,9 +3,12 @@ package com.device.inspect.common.restful.charater;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Company;
+import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 
 /**
@@ -34,6 +37,7 @@ public class RestUser {
     private Integer bindEmail;
     private String companyLogo;
     private String roleNames;
+    private String companyId;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -57,6 +61,11 @@ public class RestUser {
         if (null!=user.getCompany()) {
             this.companyLogo = user.getCompany().getLogo();
             this.companyName = user.getCompany().getName();
+            try {
+                this.companyId = ByteAndHex.convertMD5(URLEncoder.encode(user.getCompany().getId().toString(),"UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
         if (null!=user.getRoles()){
             roleNames = "";
