@@ -237,4 +237,12 @@ public class RestUser {
     public void setRoleNames(String roleNames) {
         this.roleNames = roleNames;
     }
+
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
+    }
 }
