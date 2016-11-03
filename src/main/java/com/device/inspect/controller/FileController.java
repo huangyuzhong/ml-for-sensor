@@ -637,8 +637,8 @@ public class FileController {
                 if (null!=param.get("location")){
                     String[] location = param.get("location").split(",");
                     if (location.length==2){
-                        company.setLat(Float.valueOf(location[0]));
-                        company.setLng(Float.valueOf(location[1]));
+                        company.setLng(Float.valueOf(location[0]));
+                        company.setLat(Float.valueOf(location[1]));
                     }
                 }
                 company.setEnable(1);
@@ -673,8 +673,8 @@ public class FileController {
                 if (null!=param.get("location")){
                     String[] location = param.get("location").split(",");
                     if (location.length==2){
-                        company.setLat(Float.valueOf(location[0]));
-                        company.setLng(Float.valueOf(location[1]));
+                        company.setLng(Float.valueOf(location[0]));
+                        company.setLat(Float.valueOf(location[1]));
                     }
                 }
                 firmManager = userRepository.findByName(param.get("account"));

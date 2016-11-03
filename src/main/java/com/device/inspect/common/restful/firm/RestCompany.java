@@ -24,7 +24,6 @@ public class RestCompany {
     private Date contractEndDate;
     private String background;
     private Date createDate;
-
     private Integer lowAlert;
     private Integer highAlert;
     private Integer online;
@@ -63,6 +62,8 @@ public class RestCompany {
         this.logo = company.getLogo();
         this.lat = company.getLat();
         this.lng = company.getLng();
+        if (null!=company.getLat()&&null!=company.getLng())
+            this.location=company.getLng()+","+company.getLat();
     }
 
     public Integer getId() {
@@ -247,5 +248,13 @@ public class RestCompany {
 
     public void setLng(Float lng) {
         this.lng = lng;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }
