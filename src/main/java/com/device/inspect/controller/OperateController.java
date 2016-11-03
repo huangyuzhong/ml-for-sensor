@@ -397,7 +397,7 @@ public class OperateController {
      * @param param
      * @return
      */
-    @RequestMapping(value = "/update/user",method = RequestMethod.POST)
+    @RequestMapping(value = "/update/user",method = RequestMethod.GET)
     public RestResponse updateUserMessage(Principal principal,@RequestParam Map<String,String> param){
         User user = judgeByPrincipal(principal);
         if (null == user)
