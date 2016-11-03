@@ -49,12 +49,15 @@ public class RestUser {
         this.jobNum = user.getJobNum();
         if (null!=user.getRoles()&&user.getRoles().size()>0)
             this.role = new RestRole(user.getRoles().get(0));
-        this.companyName = user.getCompany().getName();
+
+
         this.verify = null==user.getVerify()?null:user.getVerify().toString();
         this.bindMobile = user.getBindMobile();
         this.bindEmail = user.getBindEmail();
-        if (null!=user.getCompany())
+        if (null!=user.getCompany()) {
             this.companyLogo = user.getCompany().getLogo();
+            this.companyName = user.getCompany().getName();
+        }
     }
 
 
