@@ -72,14 +72,14 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                     }else {
                         //添加发送
                         MessageSend messageSend = new MessageSend();
-                        String Reason=MessageSendService.pushAlertMessge(device.getManager(),message);
+                        String reason=MessageSendService.pushAlertMessge(device.getManager(),message);
 
-                        messageSend.setType(Reason);
+                        messageSend.setType(reason);
                         messageSend.setReason(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
                         messageSend.setDevice(device);
                         messageSend.setCreate(new Date());
                         messageSend.setUser(device.getManager());
-                        if (Reason.equals("推送失败"))
+                        if (reason.equals("推送失败"))
                             messageSend.setEnable(0);
                         else
                             messageSend.setEnable(1);
@@ -96,14 +96,14 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                                 }else {
                                     //添加发送
                                    MessageSend messageSend = new MessageSend();
-                                    String Reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),message);
+                                    String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),message);
                                     messageSend.setReason(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
                                             "管理员"+deviceFloor.getScientist().getUserName());
-                                    messageSend.setType(Reason);
+                                    messageSend.setType(reason);
                                     messageSend.setDevice(device);
                                     messageSend.setCreate(new Date());
                                     messageSend.setUser(deviceFloor.getScientist());
-                                    if (Reason.equals("推送失败"))
+                                    if (reason.equals("推送失败"))
                                         messageSend.setEnable(0);
                                     else
                                         messageSend.setEnable(1);
