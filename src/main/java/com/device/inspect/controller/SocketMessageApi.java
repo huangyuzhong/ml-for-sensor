@@ -80,6 +80,8 @@ public class SocketMessageApi {
 
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
+            if (null==deviceInspect)
+                return new RestResponse(null);
 
             inspectData.setCreateDate(new Date());
             inspectData.setDevice(device);
