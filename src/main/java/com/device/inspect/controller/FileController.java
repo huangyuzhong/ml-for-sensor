@@ -803,7 +803,7 @@ public class FileController {
     }
 
 
-    @RequestMapping("/logo/company")
+    @RequestMapping(value="/logo/company")
     public void uploadLogo(Principal principal,HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
@@ -855,7 +855,7 @@ public class FileController {
     }
 
     //硬件版本更新
-    @RequestMapping("/create/device/version")
+    @RequestMapping(value="/create/device/version")
     public void updateVersion(Principal principal,@RequestParam Map<String ,String> param,
                                       HttpServletRequest request,HttpServletResponse response) throws IOException {
         //判断是否登陆
