@@ -47,13 +47,10 @@ public class ExportController {
         ServletOutputStream out;
         //通过文件路径获得File对象(假如此路径中有一个download.pdf文件)
         File file = new File(path + files.getUrl());
-
         try {
             FileInputStream inputStream = new FileInputStream(file);
-
             //3.通过response获取ServletOutputStream对象(out)
             out = response.getOutputStream();
-
             int b = 0;
             byte[] buffer = new byte[512];
             while (b != -1){
@@ -64,7 +61,6 @@ public class ExportController {
             inputStream.close();
             out.close();
             out.flush();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
