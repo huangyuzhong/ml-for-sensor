@@ -490,4 +490,6 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `users` ADD `bind_email` INT NULL DEFAULT 0;
   ALTER TABLE `users` ADD `verify` INT NULL;
 
+  ALTER TABLE `device_version` ADD `file_name` VARCHAR(255) NULL;
+
 SET FOREIGN_KEY_CHECKS=1;

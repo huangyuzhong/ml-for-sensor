@@ -18,6 +18,7 @@ public class DeviceVersion {
     private String forthCode;
     private String type;
     private Date createDate;
+    private String fileName;
 
     @Id
     @GeneratedValue()
@@ -93,5 +94,14 @@ public class DeviceVersion {
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "device_version")
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }
