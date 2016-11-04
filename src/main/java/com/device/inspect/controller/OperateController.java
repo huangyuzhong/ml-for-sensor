@@ -798,32 +798,35 @@ public class OperateController {
     /*
      *找回密码
      */
-    @RequestMapping(value="/forget/find/password/{name}")
-    public RestResponse findPassword(@PathVariable String name,@RequestParam String number){
+    @RequestMapping(value="/forget/find/password/{name}",method = RequestMethod.POST)
+    public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){
         User user=userRepository.findByName(name);
-        if (user!=null){
-            if (number.equals(user.getMobile())){
-                //用户输入手机号，发送短信密码
-                boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
-                if (b){
-                    return new RestResponse("密码已经发送到你的手机上！",0,null);
-                }else {
-                    return new RestResponse("短信发送失败",1005,null);
-                }
-            }else if (number.equals(user.getEmail())){
-                //用户输入的是邮箱，通过邮箱发送密码
-                boolean b=MessageSendService.sendEmai(user,number,user.getPassword(),2);
-                if (b){
-                    return new RestResponse("密码已经发送到你的邮箱上！",0,null);
-                }else {
-                    return new RestResponse("短信发送失败",1005,null);
-                }
+        if (null==user)
+            return new RestResponse("账号！",null);
+//        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
+//            return new RestResponse("您未绑定手机号或邮箱！请联系管理员！",null);
+        if(null==map.get("number")||"".equals(map.get("number")))
+            return new RestResponse("请输入正确的手机号或验证码！",null);
+        String number = map.get("number");
+        if (number.equals(user.getMobile())||user.getBindMobile()==1){
+            //用户输入手机号，发送短信密码
+            boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
+            if (b){
+                return new RestResponse("密码已经发送到你的手机上！",0,null);
             }else {
-                //用户未绑定手机号或者邮箱
-                return new RestResponse("未绑定手机号和邮箱，请联系管理员绑定手机号或者邮箱");
+                return new RestResponse("短信发送失败",1005,null);
+            }
+        }else if (number.equals(user.getEmail())&&user.getBindEmail()==1){
+            //用户输入的是邮箱，通过邮箱发送密码
+            boolean b=MessageSendService.sendEmai(user,number,user.getPassword(),2);
+            if (b){
+                return new RestResponse("密码已经发送到你的邮箱上！",0,null);
+            }else {
+                return new RestResponse("短信发送失败",1005,null);
             }
         }else {
-            return new RestResponse("用户名不正确！",1005,null);
+            //用户未绑定手机号或者邮箱
+            return new RestResponse("未绑定手机号和邮箱，请联系管理员！");
         }
     }
 }
