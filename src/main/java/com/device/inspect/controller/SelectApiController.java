@@ -15,10 +15,7 @@ import com.device.inspect.common.query.charater.UserQuery;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
-import com.device.inspect.common.repository.device.DeviceFloorRepository;
-import com.device.inspect.common.repository.device.DeviceRepository;
-import com.device.inspect.common.repository.device.DeviceTypeRepository;
-import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
@@ -30,11 +27,13 @@ import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.device.RestInspectType;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
+import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -89,6 +88,8 @@ public class SelectApiController {
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
 
+    @Autowired
+    private DeviceVersionRepository deviceVersionRepository;
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -557,6 +558,29 @@ public class SelectApiController {
             }
         }
         return new RestResponse(result);
+    }
+
+    /**
+     * 查询版本号接口
+     */
+    @RequestMapping(value = "/service/get/versions")
+    public RestResponse getAllVersion(Principal principal){
+        User user=judgeByPrincipal(principal);
+       if (UserRoleDifferent.userServiceManagerConfirm(user)){
+           Iterable<DeviceVersion> iterable=deviceVersionRepository.findAll();
+           List<RestDeviceVersion> list=new ArrayList<RestDeviceVersion>();
+           if (null!=iterable){
+
+               for (DeviceVersion deviceVersion:iterable){
+                   list.add(new RestDeviceVersion(deviceVersion));
+               }
+               return new RestResponse(list);
+           }else {
+               return new RestResponse("没有历史版本更新",1005,null);
+           }
+       }else {
+           return new RestResponse("权限不足！",1005,null);
+       }
     }
 
 }

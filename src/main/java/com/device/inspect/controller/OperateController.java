@@ -697,7 +697,6 @@ public class OperateController {
      * @param
      * @return
      */
-
     @RequestMapping(value = "/send/mobile/verify/{mobile}")
     public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
         User user = judgeByPrincipal(principal);
@@ -803,4 +802,24 @@ public class OperateController {
         return new RestResponse("修改成功！",null);
     }
 
+    /*
+     *找回密码
+     */
+    @RequestMapping(value="/forget/find/password/{name}")
+    public RestResponse findPassword(@PathVariable String name,@RequestParam String number){
+        User user=userRepository.findByName(name);
+        if (user!=null){
+            if (number.equals(user.getMobile())){
+                //用户输入手机号，发送短信密码
+            }else if (number.equals(user.getEmail())){
+                //用户输入的是邮箱，通过邮箱发送密码
+            }else {
+                //用户未绑定手机号或者邮箱
+                return new RestResponse("未绑定手机号和邮箱，请联系管理员绑定手机号或者邮箱");
+            }
+        }else {
+            return new RestResponse("用户名不正确！",1005,null);
+        }
+        return null;
+    }
 }
