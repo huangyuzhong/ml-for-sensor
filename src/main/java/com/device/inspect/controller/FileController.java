@@ -971,7 +971,7 @@ public class FileController {
                 }
                 fos.close();
                 is.close();
-                deviceVersion.setUrl(path+fileName);
+                deviceVersion.setUrl("/photo/version/"+deviceVersion.getId()+"/"+fileName);
                 deviceVersion.setFileName(fileName);
             }
         }
