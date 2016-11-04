@@ -214,28 +214,54 @@ public class MessageSendService {
      */
     public static MimeMessage createMimeMessage(Session session, String sendMail, String receiveMail,
                                                 String subject,String content) throws Exception {
-        // 1. 创建一封邮件
-        MimeMessage mimeMessage = new MimeMessage(session);
+        if (receiveMail.endsWith(".com")){
+            // 1. 创建一封邮件
+            MimeMessage mimeMessage = new MimeMessage(session);
 
-        // 2. From: 发件人
-        mimeMessage.setFrom(new InternetAddress(sendMail, "Intelab云服务", "UTF-8"));
+            // 2. From: 发件人
+            mimeMessage.setFrom(new InternetAddress(sendMail, "Intelab云服务", "UTF-8"));
 
-        // 3. To: 收件人（可以增加多个收件人、抄送、密送）
-        mimeMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(receiveMail+".com",receiveMail+".com", "UTF-8"));
+            // 3. To: 收件人（可以增加多个收件人、抄送、密送）
+            mimeMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(receiveMail,receiveMail, "UTF-8"));
 
-        // 4. Subject: 邮件主题
-        mimeMessage.setSubject(subject, "UTF-8");
+            // 4. Subject: 邮件主题
+            mimeMessage.setSubject(subject, "UTF-8");
 
-        // 5. Content: 邮件正文（可以使用html标签）
-        mimeMessage.setContent(content, "text/html;charset=UTF-8");
+            // 5. Content: 邮件正文（可以使用html标签）
+            mimeMessage.setContent(content, "text/html;charset=UTF-8");
 
-        // 6. 设置发件时间
-        mimeMessage.setSentDate(new Date());
+            // 6. 设置发件时间
+            mimeMessage.setSentDate(new Date());
 
-        // 7. 保存设置
-        mimeMessage.saveChanges();
+            // 7. 保存设置
+            mimeMessage.saveChanges();
 
-        return mimeMessage;
+            return mimeMessage;
+        }else {
+            // 1. 创建一封邮件
+            MimeMessage mimeMessage = new MimeMessage(session);
+
+            // 2. From: 发件人
+            mimeMessage.setFrom(new InternetAddress(sendMail, "Intelab云服务", "UTF-8"));
+
+            // 3. To: 收件人（可以增加多个收件人、抄送、密送）
+            mimeMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(receiveMail+".com",receiveMail+".com", "UTF-8"));
+
+            // 4. Subject: 邮件主题
+            mimeMessage.setSubject(subject, "UTF-8");
+
+            // 5. Content: 邮件正文（可以使用html标签）
+            mimeMessage.setContent(content, "text/html;charset=UTF-8");
+
+            // 6. 设置发件时间
+            mimeMessage.setSentDate(new Date());
+
+            // 7. 保存设置
+            mimeMessage.saveChanges();
+
+            return mimeMessage;
+        }
+
     }
 }
 
