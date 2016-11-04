@@ -979,22 +979,22 @@ public class FileController {
 
 
     //下载硬件版本文件,
-    @RequestMapping(value = "/download/device/version/file/{id}")
-    public void downloadVersion(Principal principal,@PathVariable String id,
-                                HttpServletRequest request,HttpServletResponse response) throws IOException {
-        User user=judgeByPrincipal(principal);
-        PrintWriter out=response.getWriter();
-        DeviceVersion deviceVersion=deviceVersionRepository.findOne()
-        try {
-            if (UserRoleDifferent.userServiceManagerConfirm(user)){
-
-            }else {
-                out.print(JSON.toJSONString(new RestResponse("权限不足，无法下载文件", 1005,null)));
-            }
-        }catch (Exception e){
-
-        }
-        out.flush();
-        out.close();
-    }
+//    @RequestMapping(value = "/download/device/version/file/{id}")
+//    public void downloadVersion(Principal principal,@PathVariable String id,
+//                                HttpServletRequest request,HttpServletResponse response) throws IOException {
+//        User user=judgeByPrincipal(principal);
+//        PrintWriter out=response.getWriter();
+//        DeviceVersion deviceVersion=deviceVersionRepository.findOne(id);
+//        try {
+//            if (UserRoleDifferent.userServiceManagerConfirm(user)){
+//
+//            }else {
+//                out.print(JSON.toJSONString(new RestResponse("权限不足，无法下载文件", 1005,null)));
+//            }
+//        }catch (Exception e){
+//
+//        }
+//        out.flush();
+//        out.close();
+//    }
 }
