@@ -342,21 +342,14 @@ public class OperateController {
         if (null==roleAuthorityList)
             return new RestResponse("权限不足，无法添加！",1005,null);
 
-        if (null==map.get("companyId"))
-            return new RestResponse("公司信息错误！",1005,null);
-
         if (null==map.get("name"))
             return new RestResponse("登录名不能为空！",1005,null);
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
-        Company company = new Company();
-        company = companyRepository.findOne(Integer.valueOf(map.get("companyId")));
-        if (UserRoleDifferent.userServiceWorkerConfirm(user))
-            if (company.getManager()!=null)
-                return new RestResponse("该公司已有管理员账号！",1005,null);
 
-        child.setCompany(company);
+        if(UserRoleDifferent.userFirmManagerConfirm(user))
+            child.setCompany(user.getCompany());
         child.setCreateDate(new Date());
         child.setName(map.get("name"));
         child.setPassword(null==map.get("password")?"123":map.get("password"));
