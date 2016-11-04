@@ -726,15 +726,17 @@ public class OperateController {
      * @param
      * @return
      */
-    @RequestMapping(value = "/send/email/verify/{email}")
+    @RequestMapping(value = "/send/email/verify",method = RequestMethod.POST)
     public RestResponse sendVerifyForEmail(Principal principal,
-                                           @PathVariable String email){
+                                           @RequestBody Map<String,String> map){
         User user = judgeByPrincipal(principal);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
+        if (null==map.get("email")||"".equals(map.get("email")))
+            return new RestResponse("参数为空！",null);
         //邮箱发送验证码
-        boolean b=MessageSendService.sendEmai(user,email,String.valueOf(verify),0);
+        boolean b=MessageSendService.sendEmai(user,map.get("email"),String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else
@@ -766,13 +768,15 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
-    @RequestMapping(value = "/update/email/{email}")
-    public RestResponse updateEmailByEmail(Principal principal,@PathVariable String email,@RequestParam String verify){
+    @RequestMapping(value = "/update/email",method = RequestMethod.POST)
+    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
         User user = judgeByPrincipal(principal);
-        if (!user.getVerify().toString().equals(verify))
+        if(null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
+            return new RestResponse("请求参数出错！",1005,null);
+        if (!user.getVerify().toString().equals(map.get("verify")))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindEmail(1);
-        user.setEmail(email);
+        user.setEmail(map.get("email"));
         userRepository.save(user);
         return new RestResponse(new RestUser(user));
     }
