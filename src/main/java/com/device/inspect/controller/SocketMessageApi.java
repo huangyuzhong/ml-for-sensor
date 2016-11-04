@@ -51,6 +51,7 @@ public class SocketMessageApi {
 
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
+        LOGGER.info(result);
         String monitorTypeCode = result.substring(6,8);
         String fisrtData = result.substring(48,56);
         int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
