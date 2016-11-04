@@ -734,7 +734,8 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/send/email/verify/{email}")
-    public RestResponse sendVerifyForEmail(Principal principal,@PathVariable String email){
+    public RestResponse sendVerifyForEmail(Principal principal,
+                                           @PathVariable String email){
         User user = judgeByPrincipal(principal);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
