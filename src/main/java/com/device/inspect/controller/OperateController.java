@@ -804,8 +804,20 @@ public class OperateController {
         if (user!=null){
             if (number.equals(user.getMobile())){
                 //用户输入手机号，发送短信密码
+                boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
+                if (b){
+                    return new RestResponse("密码已经发送到你的手机上！",0,null);
+                }else {
+                    return new RestResponse("短信发送失败",1005,null);
+                }
             }else if (number.equals(user.getEmail())){
                 //用户输入的是邮箱，通过邮箱发送密码
+                boolean b=MessageSendService.sendEmai(user,number,user.getPassword(),2);
+                if (b){
+                    return new RestResponse("密码已经发送到你的邮箱上！",0,null);
+                }else {
+                    return new RestResponse("短信发送失败",1005,null);
+                }
             }else {
                 //用户未绑定手机号或者邮箱
                 return new RestResponse("未绑定手机号和邮箱，请联系管理员绑定手机号或者邮箱");
@@ -813,6 +825,5 @@ public class OperateController {
         }else {
             return new RestResponse("用户名不正确！",1005,null);
         }
-        return null;
     }
 }
