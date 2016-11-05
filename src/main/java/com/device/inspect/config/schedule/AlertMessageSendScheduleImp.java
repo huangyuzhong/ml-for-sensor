@@ -14,6 +14,7 @@ import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.controller.OperateController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.List;
 /**
  * Created by Administrator on 2016/10/29.
  */
+@Component
 public class AlertMessageSendScheduleImp implements MySchedule {
 
     private static final int LOW_ALERT_NUMBER = 8;
