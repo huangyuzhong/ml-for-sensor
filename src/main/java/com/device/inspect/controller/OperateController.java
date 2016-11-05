@@ -806,13 +806,13 @@ public class OperateController {
     public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){
         User user=userRepository.findByName(name);
         if (null==user)
-            return new RestResponse("账号！",null);
+            return new RestResponse("账号输入有误！",null);
 //        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
 //            return new RestResponse("您未绑定手机号或邮箱！请联系管理员！",null);
         if(null==map.get("number")||"".equals(map.get("number")))
             return new RestResponse("请输入正确的手机号或验证码！",null);
         String number = map.get("number");
-        if (number.equals(user.getMobile())||user.getBindMobile()==1){
+        if (number.equals(user.getMobile())&&user.getBindMobile()==1){
             //用户输入手机号，发送短信密码
             boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
             if (b){
@@ -824,9 +824,9 @@ public class OperateController {
             //用户输入的是邮箱，通过邮箱发送密码
             boolean b=MessageSendService.sendEmai(user,number,user.getPassword(),2);
             if (b){
-                return new RestResponse("密码已经发送到你的邮箱上！",0,null);
+                return new RestResponse("密码已经发送到你的邮箱上！",null);
             }else {
-                return new RestResponse("短信发送失败",1005,null);
+                return new RestResponse("邮件发送失败!",1005,null);
             }
         }else {
             //用户未绑定手机号或者邮箱

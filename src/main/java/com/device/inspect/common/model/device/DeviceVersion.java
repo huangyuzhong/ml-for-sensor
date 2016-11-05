@@ -96,7 +96,7 @@ public class DeviceVersion {
         this.createDate = createDate;
     }
 
-    @Column(name = "device_version")
+    @Column(name = "file_name")
     public String getFileName() {
         return fileName;
     }
