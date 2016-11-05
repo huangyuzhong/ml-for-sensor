@@ -40,11 +40,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
 
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
-
-    public static void main(String[] args){
-        AlertMessageSendScheduleImp alertMessageSendScheduleImp=new AlertMessageSendScheduleImp();
-        alertMessageSendScheduleImp.scheduleTask();
-    }
+    
     @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {
