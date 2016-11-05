@@ -10,6 +10,7 @@ import com.device.inspect.common.repository.device.DeviceFloorRepository;
 import com.device.inspect.common.repository.device.DeviceRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.service.MessageSendService;
+import com.device.inspect.controller.OperateController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -39,7 +40,10 @@ public class AlertMessageSendScheduleImp implements MySchedule {
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
 
-
+    public static void main(String[] args){
+        AlertMessageSendScheduleImp alertMessageSendScheduleImp=new AlertMessageSendScheduleImp();
+        alertMessageSendScheduleImp.scheduleTask();
+    }
     @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {
@@ -81,8 +85,9 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                         messageSend.setUser(device.getManager());
                         if (reason.equals("推送失败"))
                             messageSend.setEnable(0);
-                        else
+                        else{
                             messageSend.setEnable(1);
+                        }
                         messageSendRepository.save(messageSend);
                     }
                     List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceId(device.getId());
