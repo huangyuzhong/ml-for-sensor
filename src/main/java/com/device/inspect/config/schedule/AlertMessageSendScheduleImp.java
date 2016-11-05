@@ -39,11 +39,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
 
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
-
-    public static void main(String[] args){
-        AlertMessageSendScheduleImp alertMessageSendScheduleImp=new AlertMessageSendScheduleImp();
-        alertMessageSendScheduleImp.scheduleTask();
-    }
+    
     @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {
@@ -85,9 +81,9 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                         messageSend.setUser(device.getManager());
                         if (reason.equals("推送失败"))
                             messageSend.setEnable(0);
-                        else{
+                         else
                             messageSend.setEnable(1);
-                        }
+
                         messageSendRepository.save(messageSend);
                     }
                     List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceId(device.getId());

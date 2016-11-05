@@ -700,9 +700,10 @@ public class OperateController {
         boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
-        else
+        else{
             messageSend.setEnable(0);
-
+            messageSend.setError("短信发送验证码失败");
+        }
         messageSend.setUser(user);
         messageSend.setReason("verify");
         messageSend.setType("mobile");
@@ -738,9 +739,10 @@ public class OperateController {
         boolean b=MessageSendService.sendEmai(user,map.get("email"),String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
-        else
+        else{
             messageSend.setEnable(0);
-
+            messageSend.setError("邮箱发送验证码失败");
+        }
         messageSend.setReason("verify");
         messageSend.setType("email");
         messageSend.setCreate(new Date());
