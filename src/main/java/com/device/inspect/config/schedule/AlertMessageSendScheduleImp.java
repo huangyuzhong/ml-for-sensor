@@ -1,5 +1,6 @@
 package com.device.inspect.config.schedule;
 
+import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.AlertCount;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceFloor;
@@ -39,7 +40,11 @@ public class AlertMessageSendScheduleImp implements MySchedule {
 
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
-    
+
+    public static void main(String[] args){
+        AlertMessageSendScheduleImp alertMessageSendScheduleImp=new AlertMessageSendScheduleImp();
+        alertMessageSendScheduleImp.scheduleTask();
+    }
     @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {
@@ -48,7 +53,6 @@ public class AlertMessageSendScheduleImp implements MySchedule {
             Date lastTime = new Date(new Date().getTime()-10*60*1000 );
             List<AlertCount> list = alertCountRepository.findByDeviceIdAndCreateDateAfter(device.getId(),lastTime);
             if (null!=list&&list.size()>0){
-
                 Integer sendType = 0;
                 String message = "设备编号为"+device.getCode();
                 String highMessage = "";
