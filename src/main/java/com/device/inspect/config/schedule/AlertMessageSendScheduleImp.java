@@ -43,7 +43,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
     
-    @Scheduled(cron = "0 5/10 * * * ? ")
+    @Scheduled(cron = "0 1/1 * * * ? ")
     @Override
     public void scheduleTask() {
         List<Device> deviceList = deviceRepository.findByEnable(1);
@@ -66,6 +66,9 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                             lowNum += 1;
                     }
                 }
+                System.out.println("highNum: "+highNum+"   "+"lowNum: "+lowNum);
+                System.out.println("device.getManager().getId(): "+device.getManager().getId());
+                System.out.println("device.getId(): "+device.getId());
                 if (highNum>0||lowNum>0){
                     MessageSend messageSendManager = messageSendRepository.
                             findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(),device.getId(),1) ;
@@ -77,7 +80,8 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                         String reason=MessageSendService.pushAlertMessge(device.getManager(),"",message);
 
                         messageSend.setType(reason);
-                        messageSend.setReason(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+                        messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+                        messageSend.setReason("alert");
                         messageSend.setDevice(device);
                         messageSend.setCreate(new Date());
                         messageSend.setUser(device.getManager());
@@ -100,9 +104,10 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                                     //添加发送
                                    MessageSend messageSend = new MessageSend();
                                     String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),"",message);
-                                    messageSend.setReason(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
-                                            "管理员"+deviceFloor.getScientist().getUserName());
+                                    messageSend.setReason("alert");
                                     messageSend.setType(reason);
+                                    messageSend.setError(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
+                                            "管理员"+deviceFloor.getScientist().getUserName());
                                     messageSend.setDevice(device);
                                     messageSend.setCreate(new Date());
                                     messageSend.setUser(deviceFloor.getScientist());
