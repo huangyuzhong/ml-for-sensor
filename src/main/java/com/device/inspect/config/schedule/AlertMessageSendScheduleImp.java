@@ -43,7 +43,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
     
-    @Scheduled(cron = "0 1/1 * * * ? ")
+    @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {
         List<Device> deviceList = deviceRepository.findByEnable(1);
