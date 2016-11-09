@@ -40,7 +40,7 @@ public class MessageSendService {
     public static final String MessageName2="找回密码";
     //设备警报模板ID
     public static final String alertModelID="SMS_25635204";
-    //验证码模板ID
+    //绑定手机号验证码模板ID
     public static final String verifyModelID="SMS_25665210";
     //找回密码模板ID
     public static final String PasswordID="SMS_25610360";
