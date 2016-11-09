@@ -27,19 +27,23 @@ public class MessageSendService {
     }
 
     //阿里短信推送的appkey
-    public static final String appKey="23511383";
+    public static final String appKey="23524999";
     //阿里短信推送的App Secret
-    public static final String appSecret="b9d6566fe254b76e94dbdfb99470c312";
+    public static final String appSecret="f37a86b1b0d2cef9670bf1c4ce1e23f2";
     //url
     public static final String url="http://gw.api.taobao.com/router/rest";
-    //短信签名
-    public static final String MessageName="王康健";
+    //验证码短信签名绑定手机号
+    public static final String MessageName0="绑定手机号";
+    //设备警报短信签名设备警报
+    public static final String MessageName1="设备报警";
+    //找回密码短信签名找回密码
+    public static final String MessageName2="找回密码";
     //设备警报模板ID
-    public static final String alertModelID="SMS_25255114";
+    public static final String alertModelID="SMS_25635204";
     //验证码模板ID
-    public static final String verifyModelID="SMS_25240076";
+    public static final String verifyModelID="SMS_25665210";
     //找回密码模板ID
-    public static final String PasswordID="SMS_25375117";
+    public static final String PasswordID="SMS_25610360";
     //发送短信
     //code短信模板ID alert短信内容
     /**
@@ -63,9 +67,9 @@ public class MessageSendService {
                     //短信类型
                     request.setSmsType("normal");
                     //短信签名
-                    request.setSmsFreeSignName(MessageName);
+                    request.setSmsFreeSignName(MessageName1);
                     //短信模板变量(验证码)
-                    request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                    request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                     //手机号
                     request.setRecNum(user.getMobile());
                     //调用短信报警推送模板
@@ -92,9 +96,9 @@ public class MessageSendService {
                 //短信类型
                 request.setSmsType("normal");
                 //短信签名
-                request.setSmsFreeSignName(MessageName);
+                request.setSmsFreeSignName(MessageName0);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                 //手机号
                 request.setRecNum(verfyMobile);
                 //调用短信验证码模板
@@ -118,9 +122,9 @@ public class MessageSendService {
                 //短信类型
                 request.setSmsType("normal");
                 //短信签名
-                request.setSmsFreeSignName(MessageName);
+                request.setSmsFreeSignName(MessageName2);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                 //手机号
                 request.setRecNum(verfyMobile);
                 //调用短信验证码模板
