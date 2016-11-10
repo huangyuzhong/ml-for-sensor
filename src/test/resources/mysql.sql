@@ -1,27 +1,27 @@
-delete from device_file;
-delete from device_floor;
-delete from device_offline;
-delete from device_type_inspect;
-delete from inspect_data;
-delete from device_inspect;
-delete from device_version;
-delete from monitor_device;
-delete from monitor_version;
-delete from alert_count;
-delete from scientist_device;
-delete from message_send;
-delete from device;
-
-delete from room_daily;
-delete from room;
-delete from floors_daily;
-delete from floors;
-delete from buildings_daily;
-delete from buildings;
-delete from device_type;
-delete from company;
-delete from roles;
-delete from users;
+--delete from device_file;
+--delete from device_floor;
+--delete from device_offline;
+--delete from device_type_inspect;
+--delete from inspect_data;
+--delete from device_inspect;
+--delete from device_version;
+--delete from monitor_device;
+--delete from monitor_version;
+--delete from alert_count;
+--delete from scientist_device;
+--delete from message_send;
+--delete from device;
+--
+--delete from room_daily;
+--delete from room;
+--delete from floors_daily;
+--delete from floors;
+--delete from buildings_daily;
+--delete from buildings;
+--delete from device_type;
+--delete from company;
+--delete from roles;
+--delete from users;
 
 SET FOREIGN_KEY_CHECKS=0;
 
