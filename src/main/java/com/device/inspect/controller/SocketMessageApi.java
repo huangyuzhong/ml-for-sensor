@@ -52,13 +52,18 @@ public class SocketMessageApi {
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
         LOGGER.info(result);
+
         String monitorTypeCode = result.substring(6,8);
+
         String fisrtData = result.substring(48,56);
         int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
         Device device = new Device();
         String mointorCode = result.substring(8,26);
+        LOGGER.info("终端编号是：：：：："+mointorCode);
         MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
-
+        if (null==monitorDevice)
+            LOGGER.info("终端是空：：：：：：：");
+        else LOGGER.info("终端id是：：：：："+monitorDevice.getId());
         if (null==monitorDevice)
             return new RestResponse(null);
         if(monitorTypeCode.equals("03")) {
