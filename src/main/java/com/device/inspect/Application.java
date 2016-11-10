@@ -32,7 +32,7 @@ import java.util.Date;
 @EnableScheduling
 public class Application {
 
-    private static final int SOCKET_PORT = 8193;
+    private static final int SOCKET_PORT = 8192;
     private static final Logger LOGGER = LogManager.getLogger(Application.class);
 
     public static void main(String[] args) throws Throwable {
