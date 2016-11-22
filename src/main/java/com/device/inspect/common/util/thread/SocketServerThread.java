@@ -45,6 +45,9 @@ public class SocketServerThread extends Thread {
         this.sock =s;
     }
 
+    /**
+     *
+     */
     public void run(){
         try {
 

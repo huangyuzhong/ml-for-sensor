@@ -31,6 +31,7 @@ public class ByteAndHex {
     }
     /**
      * Convert hex string to byte[]
+     * 将字符串转换成字节数组
      * @param hexString the hex string
      * @return byte[]
      */
@@ -49,6 +50,7 @@ public class ByteAndHex {
         return d;
     }
     /**
+     * 将字符转换成字节
      * Convert char to byte
      * @param c char
      * @return byte
@@ -59,6 +61,7 @@ public class ByteAndHex {
 
     /**
      * byte[]  convert to int
+     * 将字节数组转换成整形
      * @param b
      * @param offset
      * @param count
@@ -73,6 +76,12 @@ public class ByteAndHex {
         return value;
     }
 
+    /**
+     *  将整形转换成字节数组
+     * @param integer
+     * @return
+     * @throws Exception
+     */
     public static byte[] intToByteArray (int integer) throws Exception{
 //        int byteNum = (40 - Integer.numberOfLeadingZeros (integer < 0 ? ~integer : integer)) / 8;
 //        byte[] byteArray = new byte[4];
@@ -105,7 +114,6 @@ public class ByteAndHex {
 
     /**
      * 字符串转换为16进制字符串
-     *
      * @param s
      * @return
      */
@@ -121,7 +129,6 @@ public class ByteAndHex {
 
     /**
      * 16进制字符串转换为字符串
-     *
      * @param s
      * @return
      */
@@ -150,6 +157,8 @@ public class ByteAndHex {
 
     /**
      * 加密解密算法 执行一次加密，两次解密
+     * @param inStr
+     * @return
      */
     public static String convertMD5(String inStr){
 

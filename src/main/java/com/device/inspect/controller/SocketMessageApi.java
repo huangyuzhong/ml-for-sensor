@@ -49,6 +49,11 @@ public class SocketMessageApi {
 
     String unit = "s";
 
+    /**
+     * 更新数据
+     * @param result
+     * @return
+     */
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result){
         LOGGER.info(result);
@@ -296,6 +301,11 @@ public class SocketMessageApi {
 
     }
 
+    /**
+     * 设备绑定数据内容
+     * @param deviceId
+     * @return
+     */
     @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)
     public RestResponse getCurrentData(@RequestParam Integer deviceId){
         Device device = deviceRepository.findOne(deviceId);
@@ -332,6 +342,11 @@ public class SocketMessageApi {
 
     }
 
+    /**
+     * 设备警报图表
+     * @param deviceId
+     * @return
+     */
     @RequestMapping(value = "/device/chart/{deviceId}")
     public RestResponse getTopTwentyData(@PathVariable Integer deviceId){
         Device device = deviceRepository.findOne(deviceId);

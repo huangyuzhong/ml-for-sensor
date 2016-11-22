@@ -8,6 +8,12 @@ import java.util.Date;
  * Created by Administrator on 2016/8/23.
  */
 public class MyCalendar {
+    /**
+     * 获取开始日期和结束日期之间的天数
+     * @param start
+     * @param end
+     * @return
+     */
     public static int getDateSpace(Date start, Date end){
 
         int result = 0;

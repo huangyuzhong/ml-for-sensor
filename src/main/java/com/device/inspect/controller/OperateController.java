@@ -112,7 +112,8 @@ public class OperateController {
     }
 
     /**
-     * type 0 是添加  1是修改
+     * 操作设备层
+     * type 0 是添加设备层  1是修改设备层
      * @param deviceId
      * @param map
      * @return
@@ -289,6 +290,9 @@ public class OperateController {
 
     /**
      * 修改单个设备的参数
+     * @param deviceId
+     * @param request
+     * @return
      */
     @RequestMapping(value = "/device/parameter/{deviceId}")
     public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
@@ -413,6 +417,12 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
+    /**
+     * 修改设备种类及其参数
+     * @param principal
+     * @param deviceTypeReq
+     * @return
+     */
     @RequestMapping(value = "/deviceType")
     public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeReq){
         User user = judgeByPrincipal(principal);
@@ -485,6 +495,12 @@ public class OperateController {
         return new RestResponse(new RestDeviceType(deviceType));
     }
 
+    /**
+     * 删除设备文件
+     * @param fileId
+     * @param deviceId
+     * @return
+     */
     @RequestMapping(value = "/delete/file/{fileId}")
     public RestResponse deleteFileFromDevice(@PathVariable Integer fileId,@RequestParam Integer deviceId){
         Files files = fileRepository.findOne(fileId);
@@ -498,6 +514,13 @@ public class OperateController {
         return new RestResponse("删除成功！",null);
     }
 
+    /**
+     * 删除设备
+     * @param principal
+     * @param deviceId
+     * @param enable
+     * @return
+     */
     @RequestMapping(value = "/manager/device/{deviceId}")
     public RestResponse deleteDeviceById(Principal principal,@PathVariable Integer deviceId,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
@@ -513,6 +536,13 @@ public class OperateController {
         return new RestResponse("权限不足！",1005,null);
     }
 
+    /**
+     * 企业管理员删除室
+     * @param principal
+     * @param roomId
+     * @param enable
+     * @return
+     */
     @RequestMapping(value = "/manager/room/{roomId}")
     public RestResponse deleteRoomById(Principal principal,@PathVariable Integer roomId,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
@@ -533,6 +563,13 @@ public class OperateController {
         return new RestResponse("权限不足！",1005,null);
     }
 
+    /**
+     * 企业管理员删除楼层
+     * @param principal
+     * @param floorId
+     * @param enable
+     * @return
+     */
     @RequestMapping(value = "/manager/floor/{floorId}")
     public RestResponse deleteFloorById(Principal principal,@PathVariable Integer floorId,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
@@ -560,6 +597,13 @@ public class OperateController {
         return new RestResponse("权限不足！",1005,null);
     }
 
+    /**
+     * 企业管理员删除楼
+     * @param principal
+     * @param buildId
+     * @param enable
+     * @return
+     */
     @RequestMapping(value = "/manager/build/{buildId}")
     public RestResponse deleteBuildById(Principal principal,@PathVariable Integer buildId,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
@@ -594,6 +638,13 @@ public class OperateController {
         return new RestResponse("权限不足！",1005,null);
     }
 
+    /**
+     * 删除设备种类
+     * @param principal
+     * @param typeId
+     * @param enable
+     * @return
+     */
     @RequestMapping(value = "/manager/device/type/{typeId}")
     public RestResponse managerOperateDeviceTypeById(Principal principal,@PathVariable Integer typeId,@RequestParam Integer enable){
         User user = judgeByPrincipal(principal);
@@ -685,7 +736,7 @@ public class OperateController {
     }
 
     /**
-     * 发送验证码
+     * 发送手机验证码
      * @param principal
      * @param
      * @return
@@ -721,7 +772,7 @@ public class OperateController {
     }
 
     /**
-     * 发送验证码
+     * 发送邮箱验证码
     // * @param principal
      * @param
      * @return
@@ -758,6 +809,13 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
+    /**
+     * 绑定手机号
+     * @param principal
+     * @param mobile
+     * @param verify
+     * @return
+     */
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
@@ -769,6 +827,12 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
+    /**
+     * 绑定邮箱
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
     public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
         User user = judgeByPrincipal(principal);
@@ -801,8 +865,11 @@ public class OperateController {
         return new RestResponse("修改成功！",null);
     }
 
-    /*
-     *找回密码
+    /**
+     * 找回密码
+     * @param name
+     * @param map
+     * @return
      */
     @RequestMapping(value="/forget/find/password/{name}",method = RequestMethod.POST)
     public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){

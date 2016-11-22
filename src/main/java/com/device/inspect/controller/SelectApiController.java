@@ -99,6 +99,11 @@ public class SelectApiController {
         return user;
     }
 
+    /**
+     * 查询个人信息
+     * @param principal
+     * @return
+     */
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
         User user = userRepository.findOne(userId);
@@ -107,13 +112,23 @@ public class SelectApiController {
         return new RestResponse(new RestUser(user));
     }
 
+    /**
+     * 用户的个人信息
+     * @param principal
+     * @return 用户的个人信息
+     */
     @RequestMapping(value = "/person/mine/info")
     public RestResponse getMyMessage(Principal principal){
         User user = judgeByPrincipal(principal);
         return new RestResponse(new RestUser(user));
     }
 
-
+    /**
+     * 查询所有的楼
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/buildings")
     public RestResponse getBuildings(Principal principal,@RequestParam  Map<String,String> map){
         User user = judgeByPrincipal(principal);
@@ -129,6 +144,12 @@ public class SelectApiController {
         return new RestResponse(new RestIndexBuilding(user.getCompany()));
     }
 
+    /**
+     * 查询所有的层
+     * @param principal
+     * @param map
+     * @return
+     */
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
      public RestResponse getFloors(Principal principal,@RequestParam Map<String,String> map) {
          String buildId = map.get("buildId");
@@ -148,6 +169,12 @@ public class SelectApiController {
          return new RestResponse(new RestIndexFloor(build));
      }
 
+    /**
+     * 查询所有的室
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
     public  RestResponse getRooms(Principal principal,@RequestParam Map<String,String> map){
         String floorId = map.get("floorId");
@@ -165,7 +192,12 @@ public class SelectApiController {
         return new RestResponse(new RestIndexRoom(floor));
     }
 
-
+    /**
+     * 查询所有的设备
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/devices",method = RequestMethod.GET)
     public  RestResponse getDevices(Principal principal,@RequestParam Map<String,String> map){
         String roomId = map.get("roomId");
@@ -183,6 +215,12 @@ public class SelectApiController {
         return new RestResponse(new RestIndexDevice(room));
     }
 
+    /**
+     * 查询单个的设备
+     * @param principal
+     * @param deviceId
+     * @return
+     */
     @RequestMapping(value = "/device",method = RequestMethod.GET)
     public  RestResponse getDevice(Principal principal,@RequestParam Integer deviceId){
         Device device = deviceRepository.findOne(deviceId);
@@ -217,6 +255,11 @@ public class SelectApiController {
         return new RestResponse(deviceTypes);
     }
 
+    /**
+     * 修改设备类型参数
+     * @param deviceTypeId
+     * @return
+     */
     @RequestMapping(value = "/device/type/request/{deviceTypeId}")
     public RestResponse getCurrentDeviceTypeRequest(@PathVariable Integer deviceTypeId){
         DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
@@ -287,6 +330,12 @@ public class SelectApiController {
 
     }
 
+    /**
+     * 获取所有的员工
+     * @param principal
+     * @param requestParam
+     * @return
+     */
     @RequestMapping(value = "/employees",method = RequestMethod.GET)
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
@@ -482,6 +531,10 @@ public class SelectApiController {
         return new RestResponse(result);
     }
 
+    /**
+     * 获取设备的检测参数
+     * @return
+     */
     @RequestMapping(value = "/query/inspect/type")
     public RestResponse getAllInspectType(){
 //        if (null==principal)
@@ -541,6 +594,12 @@ public class SelectApiController {
         return new RestResponse(result);
     }
 
+    /**
+     * 删除公司人员
+     * @param principal
+     * @param userId
+     * @return
+     */
     @RequestMapping(value = "/take/over/colleges")
     public RestResponse getAllCompanyColleges(Principal principal,@RequestParam Integer userId){
         User user = judgeByPrincipal(principal);
@@ -561,7 +620,9 @@ public class SelectApiController {
     }
 
     /**
-     * 查询版本号接口
+     * 查询所有版本号接口
+     * @param principal 验证用户是否登陆
+     * @return
      */
     @RequestMapping(value = "/service/get/versions")
     public RestResponse getAllVersion(Principal principal){

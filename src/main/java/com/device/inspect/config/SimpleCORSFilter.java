@@ -13,6 +13,14 @@ import java.io.IOException;
 @Component
 public class SimpleCORSFilter implements Filter {
 
+    /**
+     * 设置响应头的参数信息，并且根据FilterChain中的doFilter()方法，用来过滤
+     * @param req
+     * @param res
+     * @param chain
+     * @throws IOException
+     * @throws ServletException
+     */
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain) throws IOException, ServletException {
 
         HttpServletResponse response = (HttpServletResponse) res;

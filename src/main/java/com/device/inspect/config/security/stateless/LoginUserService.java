@@ -30,6 +30,16 @@ public class LoginUserService {
 
 	private final AccountStatusUserDetailsChecker detailsChecker = new AccountStatusUserDetailsChecker();
 
+    /**
+     * 根据ByteAndHex中的convertMD5()方法，对companyId进行一次加密
+     * 两次解密，并通过UrlDecode对companyId按照UTF-8的编码进行解码
+     * @param name 用户名
+     * @param verify
+     * @param companyId
+     * @param roleNames
+     * @return
+     * @throws UsernameNotFoundException
+     */
 	public final LoginUser loadUserByName(String name,String verify, String companyId,Set<String> roleNames) throws UsernameNotFoundException {
         User user = userRepository.findByName(name);
         if (user == null) {

@@ -42,7 +42,12 @@ public class AlertMessageSendScheduleImp implements MySchedule {
 
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
-    
+
+    /**
+     * 发送报警信息，分别是短信推送和邮箱推送
+     * 5/10 发送的时间设置， 5为第一次发送时间是5分钟发送
+     * 然后后面是每隔10分钟发送一次
+     */
     @Scheduled(cron = "0 5/10 * * * ? ")
     @Override
     public void scheduleTask() {

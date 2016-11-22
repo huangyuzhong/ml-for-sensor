@@ -35,6 +35,13 @@ public class ExportController {
     @Autowired
     private DeviceVersionRepository deviceVersionRepository;
 
+    /**
+     * 文件下载接口
+     * @param fileId  文件id
+     * @param request
+     * @param response
+     * @throws Exception
+     */
     @RequestMapping(value = "/file/{fileId}")
     public void downloadDeviceFile(@PathVariable Integer fileId,
                                    HttpServletRequest request,HttpServletResponse response) throws Exception{
@@ -71,6 +78,13 @@ public class ExportController {
         }
     }
 
+    /**
+     * 硬件版本下载
+     * @param id 设备版本id
+     * @param request
+     * @param response
+     * @throws Exception
+     */
     @RequestMapping(value = "/device/version/{id}")
     public void downloadDeviceVersionFile(@PathVariable Integer id,
                                    HttpServletRequest request,HttpServletResponse response) throws Exception{

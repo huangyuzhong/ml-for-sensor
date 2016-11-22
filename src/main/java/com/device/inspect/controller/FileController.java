@@ -122,7 +122,7 @@ public class FileController {
     }
 
     /**
-     *
+     * 企业管理员创建楼
      * @param 
      * @param param         type 0位新增，1为修改
      * @param request
@@ -208,6 +208,16 @@ public class FileController {
         out.close();
     }
 
+    /**
+     * 企业管理员创建层
+     * @param principal
+     * @param param      type 0是新增 1是修改
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/create/floor")
     public void createFloor(Principal principal,@RequestParam Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
@@ -285,6 +295,16 @@ public class FileController {
         out.close();
     }
 
+    /**
+     * 企业管理员添加设备
+     * @param principal
+     * @param param     设备的信息
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/create/device")
     public void createDevice(Principal principal,@RequestParam Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
@@ -418,6 +438,16 @@ public class FileController {
         out.close();
     }
 
+    /**
+     * 平台管理员去添加室及其信息
+     * @param principal
+     * @param param  type  0是添加室  1是修改室
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/create/room")
     public void createRoom(Principal principal,@RequestParam Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
@@ -496,6 +526,15 @@ public class FileController {
         out.close();
     }
 
+    /**
+     *  根据设备类型的Id ,找到相应的设备类型，上传图片，更换设备类型的图标
+     * @param deviceTypeId  设备类型的Id
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/upload/deviceType/icon/{deviceTypeId}")
     public void createDeviceType(@PathVariable Integer deviceTypeId,
                                  HttpServletRequest request,HttpServletResponse response)
@@ -555,6 +594,15 @@ public class FileController {
         out.close();
     }
 
+    /**
+     * 根据参数设备Id,去更换设备的图片
+     * @param deviceId  设备Id
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/change/picture/{deviceId}")
     public void uploadPhoto(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
@@ -607,6 +655,17 @@ public class FileController {
         }
     }
 
+    /**
+     * 平台管理员和平台业务员新增企业并添加管理员信息
+     * 或者是修改企业信息并修改管理员信息
+     * @param principal
+     * @param param    id  为null或者是""则是新增企业   不为null或者""则是修改企业信息
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/create/company")
     public void createCompany(Principal principal,@RequestParam Map<String,String> param,
                                  HttpServletRequest request,HttpServletResponse response)
@@ -741,6 +800,15 @@ public class FileController {
         out.close();
     }
 
+    /**
+     * 上传设备文件
+     * @param deviceId   设备Id
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value = "/upload/device/file/{deviceId}")
     public void uploadDeviceFile(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
@@ -802,7 +870,15 @@ public class FileController {
         }
     }
 
-
+    /**
+     * 企业管理员更换公司logo
+     * @param principal
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
     @RequestMapping(value="/logo/company")
     public void uploadLogo(Principal principal,HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
@@ -854,7 +930,14 @@ public class FileController {
         out.close();
     }
 
-    //硬件版本更新
+    /**
+     * 硬件版本更新
+     * @param principal
+     * @param param  type 01是立即更新  02硬件自己判断更新
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     @RequestMapping(value="/create/device/version")
     public void updateVersion(Principal principal,@RequestParam Map<String ,String> param,
                                       HttpServletRequest request,HttpServletResponse response) throws IOException {

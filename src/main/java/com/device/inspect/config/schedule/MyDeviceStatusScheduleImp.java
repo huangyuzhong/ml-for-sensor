@@ -56,6 +56,14 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
 
+    /**
+     * 从当前时间开始定时每隔10分钟刷新一次
+     * 刷新设备的高级报警数量，低级报警数量，在线数量，掉线数量
+     * 刷新室的高级报警数量，低级报警数量，在线数量，掉线数量
+     * 刷新层的高级报警数量，低级报警数量，在线数量，掉线数量
+     * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
+     * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
+     */
     @Scheduled(cron = "0 0/10 * * * ? ")
     @Override
     public void scheduleTask() {

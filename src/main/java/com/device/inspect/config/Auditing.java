@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class Auditing {
 
+    /**
+     * 取到用户的值判断用户是否登陆
+     *@Aspect面向切面的注解
+     */
     //@After("execution(public * org.springframework.data.repository.Repository+.save(..))")
     public void myaspect() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

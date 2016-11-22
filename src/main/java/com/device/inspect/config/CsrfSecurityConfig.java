@@ -14,6 +14,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Order(4)
 public class CsrfSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    /**
+     *
+     * @param http
+     * @throws Exception
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http

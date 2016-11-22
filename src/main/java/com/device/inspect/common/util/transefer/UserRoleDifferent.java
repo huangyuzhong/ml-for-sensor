@@ -14,6 +14,11 @@ public class UserRoleDifferent {
     private static final String FIRMWORKER = "FIRM_WORKER";
     private static final String FIRMSCIENTIST = "FIRM_SCIENTIST";
 
+    /**
+     * 判断用户是不是平台用户
+     * @param user
+     * @return
+     */
     public static boolean userStartWithService(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -23,6 +28,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     * 判断用户是不是企业级用户
+     * @param user
+     * @return
+     */
     public static boolean userStartWithFirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -32,6 +42,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     *  判断用户是不是平台管理员
+     * @param user
+     * @return
+     */
     public static boolean userServiceManagerConfirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -41,6 +56,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     * 判断用户是不是平台业务员
+     * @param user
+     * @return
+     */
     public static boolean userServiceWorkerConfirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -50,6 +70,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     * 判断用户是不是企业管理员
+     * @param user
+     * @return
+     */
     public static boolean userFirmManagerConfirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -59,6 +84,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     * 判断用户是不是企业业务员
+     * @param user
+     * @return
+     */
     public static boolean userFirmWorkerConfirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -68,6 +98,11 @@ public class UserRoleDifferent {
         return false;
     }
 
+    /**
+     * 判断用户是不是实验品业务员
+     * @param user
+     * @return
+     */
     public static boolean userScientistConfirm(User user){
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){

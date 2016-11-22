@@ -21,7 +21,6 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 	private final LoginUserService loginUserService;
     private final Set<String> authorities;
 
-
 	public StatelessLoginFilter(String urlMapping,
 			LoginUserService loginUserService, AuthenticationManager authManager, Set<String> authorities) {
 		super(new AntPathRequestMatcher(urlMapping));

@@ -27,7 +27,9 @@ public class WebSecurityConfig {
     private DataSource dataSource;
 
 
-
+    /**
+     * @Order(1),通过此注解使bean的加载顺序得到控制
+     */
     @Configuration
     @Order(1)
     public static class RestApiSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter {
@@ -38,6 +40,11 @@ public class WebSecurityConfig {
         @Autowired
         private LoginUserService loginUserService;
 
+        /**
+         * 使用HttpSecurity和过滤器来限定用户的角色的登陆
+         * @param http
+         * @throws Exception
+         */
         protected void configure(HttpSecurity http) throws Exception {
 
             Set<String> roles = new HashSet<>();

@@ -14,8 +14,14 @@ import javax.mail.internet.*;
  * Created by Administrator on 2016/10/29.
  */
 public class MessageSendService {
-    //推送报警信息
-    //model短信模板ID/邮箱标题, message警报内容
+    /**
+     * 推送报警信息
+     * model短信模板ID/邮箱标题, message警报内容
+     * @param user
+     * @param verify
+     * @param message
+     * @return
+     */
     public static String pushAlertMessge(User user,String verify,String message){
         if (MessageSendService.sendMessage(user,verify,message,1)){
             return "短信推送成功";
@@ -44,9 +50,9 @@ public class MessageSendService {
     public static final String verifyModelID="SMS_25665210";
     //找回密码模板ID
     public static final String PasswordID="SMS_25610360";
-    //发送短信
-    //code短信模板ID alert短信内容
+
     /**
+     * 发送短信
      * @param user    用户
      * @param message  信息内容
      * @param type  0是验证码  1是报警信息 2是发送密码
@@ -153,7 +159,7 @@ public class MessageSendService {
     public static final String EmaliVerify="验证码";
     public static final String EmaliPassword="找回密码";
     /**
-     *
+     * 推送邮件
      * @param user   用户
      * @param content  邮件内容
      * @param type  0是验证码，1是报警信息
