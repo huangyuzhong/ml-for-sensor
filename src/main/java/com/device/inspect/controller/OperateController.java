@@ -789,8 +789,8 @@ public class OperateController {
      * @param password
      * @return
      */
-    @RequestMapping(value = "/modify/password/{old}")
-    public RestResponse modifyPassword(Principal principal,@PathVariable String old,@RequestParam String password){
+    @RequestMapping(value = "/modify/password")
+    public RestResponse modifyPassword(Principal principal,@RequestParam String old,@RequestParam String password){
         User user = judgeByPrincipal(principal);
         if (null==old||!old.equals(user.getPassword()))
             return new RestResponse("原密码输入有误！",1005,null);
