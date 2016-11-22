@@ -770,7 +770,7 @@ public class OperateController {
     }
 
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
-    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
+    public RestResponse updateEmailByEmail(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
         if(null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
             return new RestResponse("请求参数出错！",1005,null);
@@ -782,13 +782,13 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
-//    /**
-//     * 修改密码
-//     * @param principal
-//     * @param old
-//     * @param password
-//     * @return
-//     */
+
+    /**
+     * 修改密码
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/modify/password",method = RequestMethod.GET)
     public RestResponse modifyPassword(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
@@ -801,11 +801,18 @@ public class OperateController {
             userRepository.save(user);
             return new RestResponse("修改成功！",null);
         }else {
-            return new RestResponse("新密码不能为空！",1005,null);
+            return new RestResponse("原密码和新密码不能为空！",1005,null);
         }
     }
-//    @RequestMapping(value = "/modify/password")
-//    public RestResponse modifyPassword(Principal principal,@RequestParam String old,@RequestParam String password){
+    //    /**
+//     * 修改密码
+//     * @param principal
+//     * @param old
+//     * @param password
+//     * @return
+//     */
+//    @RequestMapping(value = "/modify/password/{old}")
+//    public RestResponse modifyPassword(Principal principal,@PathVariable String old,@RequestParam String password){
 //        User user = judgeByPrincipal(principal);
 //        if (null==old||!old.equals(user.getPassword()))
 //            return new RestResponse("原密码输入有误！",1005,null);
