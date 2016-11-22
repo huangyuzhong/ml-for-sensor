@@ -782,24 +782,39 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
-    /**
-     * 修改密码
-     * @param principal
-     * @param old
-     * @param password
-     * @return
-     */
-    @RequestMapping(value = "/modify/password")
-    public RestResponse modifyPassword(Principal principal,@RequestParam String old,@RequestParam String password){
+//    /**
+//     * 修改密码
+//     * @param principal
+//     * @param old
+//     * @param password
+//     * @return
+//     */
+    @RequestMapping(value = "/modify/password",method = RequestMethod.GET)
+    public RestResponse modifyPassword(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
-        if (null==old||!old.equals(user.getPassword()))
-            return new RestResponse("原密码输入有误！",1005,null);
-        if (null==password||password.equals(""))
+        if (map!=null){
+            if (map.get("old")==null||"".equals(map.get("old"))||!map.get("old").equals(user.getPassword()))
+                return new RestResponse("原密码输入有误！",1005,null);
+            if (map.get("password")==null||"".equals(map.get("password")))
+                return new RestResponse("新密码不能为空！",1005,null);
+            user.setPassword(map.get("password"));
+            userRepository.save(user);
+            return new RestResponse("修改成功！",null);
+        }else {
             return new RestResponse("新密码不能为空！",1005,null);
-        user.setPassword(password);
-        userRepository.save(user);
-        return new RestResponse("修改成功！",null);
+        }
     }
+//    @RequestMapping(value = "/modify/password")
+//    public RestResponse modifyPassword(Principal principal,@RequestParam String old,@RequestParam String password){
+//        User user = judgeByPrincipal(principal);
+//        if (null==old||!old.equals(user.getPassword()))
+//            return new RestResponse("原密码输入有误！",1005,null);
+//        if (null==password||password.equals(""))
+//            return new RestResponse("新密码不能为空！",1005,null);
+//        user.setPassword(password);
+//        userRepository.save(user);
+//        return new RestResponse("修改成功！",null);
+//    }
 
     /*
      *找回密码
