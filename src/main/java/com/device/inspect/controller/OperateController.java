@@ -789,7 +789,7 @@ public class OperateController {
      * @param map
      * @return
      */
-    @RequestMapping(value = "/modify/password",method = RequestMethod.GET)
+    @RequestMapping(value = "/modify/password?test="+"8",method = RequestMethod.GET)
     public RestResponse modifyPassword(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
         if (map!=null){
