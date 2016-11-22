@@ -33,7 +33,7 @@ public class MessageSendService {
     //url
     public static final String url="http://gw.api.taobao.com/router/rest";
     //短信签名
-    public static final String MessageName="王康健";
+    public static final String MessageName="Itelab员管";
     //设备警报模板ID
     public static final String alertModelID="SMS_25255114";
     //验证码模板ID
