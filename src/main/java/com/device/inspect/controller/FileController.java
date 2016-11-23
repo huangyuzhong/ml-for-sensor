@@ -327,6 +327,11 @@ public class FileController {
                 throw new RuntimeException("信息有误！");
             if(null == param.get("monitorCode")||"".equals(param.get("monitorCode")))
                 throw new RuntimeException("终端信号为空！");
+            MonitorDevice monitorDevice = null;
+
+            monitorDevice = monitorDeviceRepository.findByNumber(param.get("monitorCode"));
+            if (null!=monitorDevice)
+                throw new RuntimeException("该设备已存在，无法添加！");
 
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
@@ -345,7 +350,7 @@ public class FileController {
             device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
             device.setEnable(1);
             deviceRepository.save(device);
-            MonitorDevice monitorDevice = new MonitorDevice();
+            monitorDevice = new MonitorDevice();
             monitorDevice.setBattery("100");
             monitorDevice.setDevice(device);
             monitorDevice.setNumber(param.get("monitorCode"));
