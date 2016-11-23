@@ -307,7 +307,11 @@ public class FileController {
                 throw new RuntimeException("信息有误！");
             if(null == param.get("monitorCode")||"".equals(param.get("monitorCode")))
                 throw new RuntimeException("终端信号为空！");
-
+            MonitorDevice monitorDevice = null;
+            monitorDevice = monitorDeviceRepository.findByNumber(param.get("monitorCode"));
+            if (null!=monitorDevice)
+                throw new RuntimeException("设备已存在，无法添加！");
+            
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
