@@ -834,7 +834,7 @@ public class OperateController {
 //        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
 //            return new RestResponse("您未绑定手机号或邮箱！请联系管理员！",null);
         if(null==map.get("number")||"".equals(map.get("number")))
-            return new RestResponse("请输入正确的手机号或验证码！",null);
+            return new RestResponse("请输入正确的手机号或验证码！",1005,null);
         String number = map.get("number");
         if (number.equals(user.getMobile())&&user.getBindMobile()==1){
             //用户输入手机号，发送短信密码
@@ -854,7 +854,7 @@ public class OperateController {
             }
         }else {
             //用户未绑定手机号或者邮箱
-            return new RestResponse("未绑定手机号和邮箱，请联系管理员！");
+            return new RestResponse("未绑定手机号和邮箱，请联系管理员！",1005,null);
         }
     }
 }
