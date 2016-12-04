@@ -34,6 +34,7 @@ import java.util.Map;
 
 public class SocketServerThread extends Thread {
     private static final Logger LOGGER = LogManager.getLogger(SocketServerThread.class);
+    private static final String serverHost = "http://localhost:8999/api/rest/socket/insert/data?result=";
 
     private Socket sock;
 //    PrintWriter out = null;
@@ -96,7 +97,7 @@ public class SocketServerThread extends Thread {
 
     private String get(String message) throws Exception {
         HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod("http://localhost:8999/api/rest/socket/insert/data?result="+
+        GetMethod method = new GetMethod(serverHost+
         message);
 
         client.executeMethod(method);
