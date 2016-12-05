@@ -47,6 +47,9 @@ public class SocketMessageApi {
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
 
+    @Autowired
+    private Pt100Repository pt100Repository;
+
     String unit = "s";
 
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
@@ -82,14 +85,62 @@ public class SocketMessageApi {
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
             if (null==deviceInspect)
                 return new RestResponse(null);
+            float record;
+            //判断是否是PT100
+            if (monitorTypeCode.equals("00")){
+                inspectData.setCreateDate(new Date());
+                inspectData.setDevice(device);
+                inspectData.setDeviceInspect(deviceInspect);
+                //将int类型转换成两个doube类型的电压
 
-            inspectData.setCreateDate(new Date());
-            inspectData.setDevice(device);
-            inspectData.setDeviceInspect(deviceInspect);
-            float record = Float.valueOf(first)/1000;
-            inspectData.setResult(String.valueOf(record));
+                //通过电压换算成电阻
+                float r=5f;//带计算值
+                //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
+                if (pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null){
+                    Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
+                    //通过电阻找到对象的温度
+                    String temperature=pt100.getTemperature();
+                    record=Float.valueOf(temperature)/1000;
+                }else {
+                    //通过电阻找到对应的温度
+                    //从小到大
+                    List<Pt100> list1=new ArrayList<Pt100>();
+                    list1=pt100Repository.findByDeviceTypeIdAndResistanceAfterOrderByASC(device.getDeviceType().getId(),r);
+                    //找到对应的Pt100
+                    Pt100 one=list1.get(0);
+                    String temperature1=one.getTemperature();
+                    Float resistance1=one.getResistance();
+                    //从大到小
+                    List<Pt100> list2=new ArrayList<Pt100>();
+                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
+                    //找到对应的Pt100
+                    Pt100 two=list1.get(0);
+                    String temperature2=two.getTemperature();
+                    Float resistance2=two.getResistance();
+
+                    //进行线性公式计算出该r下面的温度
+                    
+
+                    //将温度存入record
+                    record = Float.valueOf(first)/1000;
+                }
+                //设置检测结果
+                inspectData.setResult(String.valueOf(record));
+            }else {
+                inspectData.setCreateDate(new Date());
+                inspectData.setDevice(device);
+                inspectData.setDeviceInspect(deviceInspect);
+                record = Float.valueOf(first)/1000;
+                inspectData.setResult(String.valueOf(record));
+            }
+
 
             inspectDataRepository.save(inspectData);
+
+
+
+
+
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
                 return new RestResponse(null);
             }
