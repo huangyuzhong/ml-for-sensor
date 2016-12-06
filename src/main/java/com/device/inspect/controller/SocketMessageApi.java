@@ -92,15 +92,17 @@ public class SocketMessageApi {
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 //将int类型转换成两个doube类型的电压
-
-                //通过电压换算成电阻
-                float r=5f;//带计算值
+                double AD0=((first>>16)&0xffff)*1.024/32768;//前两个字节转换成doube类型的电压
+                double AD1=(first&0xffff)*1.024/32768;//后两个字节转换成doube类型的电压
+                double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
+                //将double类型的电阻转换成float类型
+                float r=Float.valueOf(String.valueOf(R));
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null){
                     Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
                     //通过电阻找到对象的温度
                     String temperature=pt100.getTemperature();
-                    record=Float.valueOf(temperature)/1000;
+                    record=Float.valueOf(temperature);
                 }else {
                     //通过电阻找到对应的温度
                     //从小到大
@@ -118,11 +120,12 @@ public class SocketMessageApi {
                     String temperature2=two.getTemperature();
                     Float resistance2=two.getResistance();
 
-                    //进行线性公式计算出该r下面的温度
-
+                    //进行线性公式计算出改r下面的温度
+                    float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
+                    float b=Float.valueOf(temperature2)-(Float.valueOf(temperature2)*resistance2-Float.valueOf(temperature1)*resistance1)/(resistance2-resistance1);
 
                     //将温度存入record
-                    record = Float.valueOf(first)/1000;
+                    record = k*r+b;
                 }
                 //设置检测结果
                 inspectData.setResult(String.valueOf(record));
