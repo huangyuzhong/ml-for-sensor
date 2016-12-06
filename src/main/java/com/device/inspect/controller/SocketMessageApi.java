@@ -119,7 +119,7 @@ public class SocketMessageApi {
                     Float resistance2=two.getResistance();
 
                     //进行线性公式计算出该r下面的温度
-                    
+
 
                     //将温度存入record
                     record = Float.valueOf(first)/1000;
