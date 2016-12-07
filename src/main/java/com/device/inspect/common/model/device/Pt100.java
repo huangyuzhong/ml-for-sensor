@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Table(name = "pt100")
 public class Pt100 {
     private Integer id;
-//    private DeviceType deviceType;
+    private DeviceType deviceType;
     private String temperature;
     private Float resistance;
 
