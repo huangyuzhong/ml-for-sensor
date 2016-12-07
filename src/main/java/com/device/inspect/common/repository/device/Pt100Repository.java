@@ -13,7 +13,7 @@ import java.util.List;
 public interface Pt100Repository extends CrudRepository<Pt100,Float> {
     @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance=:resistance")
     Pt100 findByResistance(@Param("resistance")Float Resistance);
-    Pt100 findByDeviceTypeIdAndResistance(Integer DeviceTypeId,Float Resistance);
+//    Pt100 findByDeviceTypeIdAndResistance(Integer DeviceTypeId,Float Resistance);
     //使用默认表进行查询从大到小排列
     @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance <:resistance ORDER BY resistance DESC")
     List<Pt100> findByResistanceAfterOrderByResistanceDESC(@Param("resistance")Float Resistance);
