@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
 
@@ -96,7 +97,10 @@ public class SocketMessageApi {
                 double AD1=(first&0xffff)*1.024/32768;//后两个字节转换成doube类型的电压
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
                 //将double类型的电阻转换成float类型
-                float r=Float.valueOf(String.valueOf(R));
+                //将电阻四舍五入到小数点两位
+                BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
+
+                float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
 //                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
@@ -112,7 +116,7 @@ public class SocketMessageApi {
                     //从小到大
                     List<Pt100> list1=new ArrayList<Pt100>();
                     //使用默认表查询
-                    list1=pt100Repository.findByResistanceAfterOrderByResistanceASC(r);
+                    list1=pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
 //                    list1=pt100Repository.findByDeviceTypeIdAndResistanceAfterOrderByASC(device.getDeviceType().getId(),r);
                     //找到对应的Pt100
                     Pt100 one=list1.get(0);
@@ -121,7 +125,7 @@ public class SocketMessageApi {
                     //从大到小
                     List<Pt100> list2=new ArrayList<Pt100>();
                     //使用默认表查询
-                    list2=pt100Repository.findByResistanceBeforeOrderByResistanceDESC(r);
+                    list2=pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
 //                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
                     //找到对应的Pt100
                     Pt100 two=list1.get(0);
