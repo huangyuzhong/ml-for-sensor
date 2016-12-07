@@ -107,14 +107,18 @@ public class SocketMessageApi {
                     //通过电阻找到对应的温度
                     //从小到大
                     List<Pt100> list1=new ArrayList<Pt100>();
-                    list1=pt100Repository.findByDeviceTypeIdAndResistanceAfterOrderByASC(device.getDeviceType().getId(),r);
+                    //使用默认表查询
+                    list1=pt100Repository.findByResistanceAfterOrderByASC(r);
+//                    list1=pt100Repository.findByDeviceTypeIdAndResistanceAfterOrderByASC(device.getDeviceType().getId(),r);
                     //找到对应的Pt100
                     Pt100 one=list1.get(0);
                     String temperature1=one.getTemperature();
                     Float resistance1=one.getResistance();
                     //从大到小
                     List<Pt100> list2=new ArrayList<Pt100>();
-                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
+                    //使用默认表查询
+                    list2=pt100Repository.findByResistanceBeforeOrderByDESC(r);
+//                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
                     //找到对应的Pt100
                     Pt100 two=list1.get(0);
                     String temperature2=two.getTemperature();
