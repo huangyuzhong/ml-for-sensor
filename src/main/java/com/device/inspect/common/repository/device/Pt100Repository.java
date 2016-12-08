@@ -15,10 +15,10 @@ public interface Pt100Repository extends CrudRepository<Pt100,Float> {
     Pt100 findByResistance(@Param("resistance")Float Resistance);
 //    Pt100 findByDeviceTypeIdAndResistance(Integer DeviceTypeId,Float Resistance);
     //使用默认表进行查询从大到小排列
-    @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance <:resistance ORDER BY resistance DESC")
+    @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance <:resistance ORDER BY p.resistance DESC")
     List<Pt100> findByResistanceAfterOrderByResistanceDESC(@Param("resistance")Float Resistance);
     //使用默认表进行查询从小到大排列
-    @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance >:resistance ORDER BY resistance ASC")
+    @Query(value = "SELECT p FROM Pt100 p WHERE p.resistance >:resistance ORDER BY p.resistance ASC")
     List<Pt100> findByResistanceBeforeOrderByResistanceASC(@Param("resistance")Float Resistance);
 //    //查询出比传来电阻大的pt100然后按正序排列从小到大排列
 //    List<Pt100> findByDeviceTypeIdAndResistanceAfterOrderByASC(Integer DeviceTypeId,Float Resistance);

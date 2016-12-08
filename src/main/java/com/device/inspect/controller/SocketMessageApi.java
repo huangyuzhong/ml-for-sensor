@@ -66,7 +66,8 @@ public class SocketMessageApi {
         if (null==monitorDevice)
             return new RestResponse(null);
         if(monitorTypeCode.equals("03")) {
-            monitorDevice.setBattery(String.valueOf(Float.valueOf(first)/1000));
+            monitorDevice.setBattery(String.valueOf(Float.valueOf(first)/10));
+            monitorDeviceRepository.save(monitorDevice);
             return new RestResponse(null);
         }
 
@@ -99,7 +100,6 @@ public class SocketMessageApi {
                 //将double类型的电阻转换成float类型
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
-
                 float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
@@ -128,14 +128,12 @@ public class SocketMessageApi {
                     list2=pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
 //                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
                     //找到对应的Pt100
-                    Pt100 two=list1.get(0);
+                    Pt100 two=list2.get(0);
                     String temperature2=two.getTemperature();
                     Float resistance2=two.getResistance();
-
                     //进行线性公式计算出改r下面的温度
                     float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
-                    float b=Float.valueOf(temperature2)-(Float.valueOf(temperature2)*resistance2-Float.valueOf(temperature1)*resistance1)/(resistance2-resistance1);
-
+                    float b=Float.valueOf(temperature1)-(k*resistance1);
                     //将温度存入record
                     record = k*r+b;
                 }
@@ -149,12 +147,7 @@ public class SocketMessageApi {
                 inspectData.setResult(String.valueOf(record));
             }
 
-
             inspectDataRepository.save(inspectData);
-
-
-
-
 
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
                 return new RestResponse(null);
