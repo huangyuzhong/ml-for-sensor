@@ -54,6 +54,9 @@ public class SocketMessageApi {
     @Autowired
     private Pt100ZeroRepository pt100ZeroRepository;
 
+    @Autowired
+    private LogRepository logRepository;
+
     String unit = "s";
 
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
@@ -113,6 +116,9 @@ public class SocketMessageApi {
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
                 Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
+                Log log=new Log();
+                log.setR(String.valueOf(r));
+                logRepository.save(log);
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
 //                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
