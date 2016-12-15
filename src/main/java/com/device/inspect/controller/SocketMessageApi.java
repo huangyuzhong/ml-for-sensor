@@ -51,6 +51,9 @@ public class SocketMessageApi {
     @Autowired
     private Pt100Repository pt100Repository;
 
+    @Autowired
+    private Pt100ZeroRepository pt100ZeroRepository;
+
     String unit = "s";
 
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
@@ -97,10 +100,19 @@ public class SocketMessageApi {
                 double AD0=((first>>16)&0xffff)*1.024/32768;//前两个字节转换成doube类型的电压
                 double AD1=(first&0xffff)*1.024/32768;//后两个字节转换成doube类型的电压
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
+                Pt100Zero pt100Zero=new Pt100Zero();
+                //查询飘零表
+                pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+                if (pt100Zero!=null){
+                    if (pt100Zero.getZeroValue()!=null){
+                        R=R+pt100Zero.getZeroValue();
+                    }
+                }
+
                 //将double类型的电阻转换成float类型
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
-                float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
+                Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
 //                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
