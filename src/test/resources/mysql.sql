@@ -498,6 +498,14 @@ drop table if exists `pt100`;
 create table `pt100`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `temperature` VARCHAR(255) NULL,
-  `resistance`  DECIMAL(6,2),
+  `resistance`  DECIMAL(6,2) NULL,
+  PRIMARY KEY (`id`)
+);
+
+drop table if exists `pt100_zero`;
+create table `pt100`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `code` VARCHAR(255) NULL,
+  `zero_value`  DECIMAL(5,2) NULL,
   PRIMARY KEY (`id`)
 );
