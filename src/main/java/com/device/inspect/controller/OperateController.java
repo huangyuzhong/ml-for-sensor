@@ -834,7 +834,7 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
-    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
+    public RestResponse updateEmailByEmail(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
         if(null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
             return new RestResponse("请求参数出错！",1005,null);
@@ -846,24 +846,46 @@ public class OperateController {
         return new RestResponse(new RestUser(user));
     }
 
+
     /**
      * 修改密码
      * @param principal
-     * @param old
-     * @param password
+     * @param map
      * @return
      */
-    @RequestMapping(value = "/modify/password/{old}")
-    public RestResponse modifyPassword(Principal principal,@PathVariable String old,@RequestParam String password){
+    @RequestMapping(value = "/modify/password",method = RequestMethod.GET)
+    public RestResponse modifyPassword(Principal principal,@RequestParam Map<String,String> map){
         User user = judgeByPrincipal(principal);
-        if (null==old||!old.equals(user.getPassword()))
-            return new RestResponse("原密码输入有误！",1005,null);
-        if (null==password||password.equals(""))
-            return new RestResponse("新密码不能为空！",1005,null);
-        user.setPassword(password);
-        userRepository.save(user);
-        return new RestResponse("修改成功！",null);
+        if (map!=null){
+            if (map.get("old")==null||"".equals(map.get("old"))||!map.get("old").equals(user.getPassword()))
+                return new RestResponse("原密码输入有误！",1005,null);
+            if (map.get("password")==null||"".equals(map.get("password")))
+                return new RestResponse("新密码不能为空！",1005,null);
+            user.setPassword(map.get("password"));
+            userRepository.save(user);
+            return new RestResponse("修改成功！",null);
+        }else {
+            return new RestResponse("原密码和新密码不能为空！",1005,null);
+        }
     }
+    //    /**
+//     * 修改密码
+//     * @param principal
+//     * @param old
+//     * @param password
+//     * @return
+//     */
+//    @RequestMapping(value = "/modify/password/{old}")
+//    public RestResponse modifyPassword(Principal principal,@PathVariable String old,@RequestParam String password){
+//        User user = judgeByPrincipal(principal);
+//        if (null==old||!old.equals(user.getPassword()))
+//            return new RestResponse("原密码输入有误！",1005,null);
+//        if (null==password||password.equals(""))
+//            return new RestResponse("新密码不能为空！",1005,null);
+//        user.setPassword(password);
+//        userRepository.save(user);
+//        return new RestResponse("修改成功！",null);
+//    }
 
     /**
      * 找回密码
@@ -879,7 +901,7 @@ public class OperateController {
 //        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
 //            return new RestResponse("您未绑定手机号或邮箱！请联系管理员！",null);
         if(null==map.get("number")||"".equals(map.get("number")))
-            return new RestResponse("请输入正确的手机号或验证码！",null);
+            return new RestResponse("请输入正确的手机号或验证码！",1005,null);
         String number = map.get("number");
         if (number.equals(user.getMobile())&&user.getBindMobile()==1){
             //用户输入手机号，发送短信密码
@@ -899,7 +921,7 @@ public class OperateController {
             }
         }else {
             //用户未绑定手机号或者邮箱
-            return new RestResponse("未绑定手机号和邮箱，请联系管理员！");
+            return new RestResponse("未绑定手机号和邮箱，请联系管理员！",1005,null);
         }
     }
 }
