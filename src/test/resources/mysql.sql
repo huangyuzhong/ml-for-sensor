@@ -503,7 +503,7 @@ create table `pt100`(
 );
 
 drop table if exists `pt100_zero`;
-create table `pt100`(
+create table `pt100_zero`(
   `id` INT NOT NULL AUTO_INCREMENT,
   `code` VARCHAR(255) NULL,
   `zero_value`  DECIMAL(5,2) NULL,
