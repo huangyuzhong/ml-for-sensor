@@ -493,3 +493,11 @@ SET FOREIGN_KEY_CHECKS=0;
   ALTER TABLE `device_version` ADD `file_name` VARCHAR(255) NULL;
 
 SET FOREIGN_KEY_CHECKS=1;
+
+drop table if exists `pt100`;
+create table `pt100`(
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `temperature` VARCHAR(255) NULL,
+  `resistance`  DECIMAL(6,2),
+  PRIMARY KEY (`id`)
+);
