@@ -104,20 +104,21 @@ public class SocketMessageApi {
                 System.out.println("计算出来的AD0："+AD0);
                 System.out.println("计算出来的AD1："+AD1);
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
+                System.out.println("计算出来的标准电阻："+R);
                 Pt100Zero pt100Zero=new Pt100Zero();
                 //查询飘零表
                 pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
                 if (pt100Zero!=null){
                     if (pt100Zero.getZeroValue()!=null){
-                        R=R-pt100Zero.getZeroValue();
+                        R=R+(pt100Zero.getZeroValue());
                     }
                 }
-                System.out.println("计算出来的电阻"+R);
+                System.out.println("计算出来的电阻："+R);
                 //将double类型的电阻转换成float类型
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
                 Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
-                System.out.println("经过换算的电阻"+r);
+                System.out.println("经过换算的电阻："+r);
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
 //                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
@@ -150,9 +151,9 @@ public class SocketMessageApi {
                     Float resistance2=two.getResistance();
                     //进行线性公式计算出改r下面的温度
                     float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
-                    System.out.println("经过换算的k"+k);
+                    System.out.println("经过换算的k："+k);
                     float b=Float.valueOf(temperature1)-(k*resistance1);
-                    System.out.println("经过换算的b"+b);
+                    System.out.println("经过换算的b："+b);
                     //将温度存入record
                     record = k*r+b;
                 }
