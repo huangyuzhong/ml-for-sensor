@@ -119,7 +119,7 @@ public class SocketMessageApi {
                 pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
                 if (pt100Zero!=null){
                     if (pt100Zero.getZeroValue()!=null){
-                        R=R-pt100Zero.getZeroValue();
+                        R=R+(pt100Zero.getZeroValue());
                     }
                 }
                 System.out.println("计算出来的电阻"+R);
