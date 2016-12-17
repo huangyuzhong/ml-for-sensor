@@ -114,6 +114,7 @@ public class SocketMessageApi {
                 System.out.println("计算出来的AD0："+AD0);
                 System.out.println("计算出来的AD1："+AD1);
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
+                System.out.println("标准的电阻："+R);
                 Pt100Zero pt100Zero=new Pt100Zero();
                 //查询飘零表
                 pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
@@ -122,12 +123,12 @@ public class SocketMessageApi {
                         R=R+(pt100Zero.getZeroValue());
                     }
                 }
-                System.out.println("计算出来的电阻"+R);
+                System.out.println("计算出来的电阻："+R);
                 //将double类型的电阻转换成float类型
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
                 Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
-                System.out.println("经过换算的电阻"+r);
+                System.out.println("经过换算的电阻："+r);
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (
 //                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
