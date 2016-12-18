@@ -32,6 +32,7 @@ public class Pt100 {
 //        this.deviceType = deviceType;
 //    }
 
+
     public String getTemperature() {
         return temperature;
     }
