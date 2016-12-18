@@ -59,7 +59,7 @@ import java.util.*;
 @RequestMapping(value = "/api/rest/file")
 public class FileController {
 
-    private static final String SERVICE_PATH = "http://inmycars.ihengtian.top";
+    private static final String SERVICE_PATH = "http://intelab.ilabService.com";
 
     @Autowired
     private UserRepository userRepository;
