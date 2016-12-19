@@ -49,7 +49,7 @@ public class UserQuery extends Querier<User> {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<User> userRoot) {
                 List<Integer> list = JSON.parseObject(object,List.class);
-                Join<User, Role> userRoleJoin = userRoot.join("roles", JoinType.INNER);
+                Join<User, Role> userRoleJoin = userRoot.join("roles", JoinType.LEFT);
                 if (null!=list&&list.size()<=0)
                     return null;
                 Predicate predicate = cb.equal(userRoleJoin.get("roleAuthority").get("id"),list.get(0).toString());
@@ -67,7 +67,6 @@ public class UserQuery extends Querier<User> {
                 return cb.equal(userRoot.get("company").get("id"),object);
             }
         });
-
     }
 
     @Override
@@ -78,6 +77,7 @@ public class UserQuery extends Querier<User> {
         query = setOrderBy(query, sort, cb, objectRoot);
         query.select(objectRoot);
         objectRoot = setFetch(queryParamenter, objectRoot);
+
         query.groupBy(objectRoot.get("id"));
         TypedQuery<User> q = entityManager.createQuery(query);
         q = setLimit(q, start, limit);
