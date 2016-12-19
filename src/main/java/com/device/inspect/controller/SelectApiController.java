@@ -478,6 +478,7 @@ public class SelectApiController {
 
     private Map assembleUsers(User userRoot,Page<User> userPage){
         Map map = new HashMap();
+        map.put("pages",String.valueOf(userPage.getTotalPages()));
         map.put("total",String.valueOf(userPage.getTotalElements()));
         map.put("thisNum",String.valueOf(userPage.getNumberOfElements()));
         List<User> list = new ArrayList<User>();
