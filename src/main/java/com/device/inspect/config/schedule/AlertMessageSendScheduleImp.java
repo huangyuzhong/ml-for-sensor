@@ -77,7 +77,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                 if (highNum>0||lowNum>0){
                     MessageSend messageSendManager = messageSendRepository.
                             findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(),device.getId(),1) ;
-                    if (null!=message&&(new Date().getTime()-messageSendManager.getCreate().getTime())/(60*1000)<30){
+                    if (null!=messageSendManager&&(new Date().getTime()-messageSendManager.getCreate().getTime())/(60*1000)<30){
 
                     }else {
                         //添加发送
@@ -103,7 +103,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                             if (null!=deviceFloor.getScientist()){
                                 MessageSend messageSendScientist = messageSendRepository.
                                         findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(deviceFloor.getScientist().getId(),device.getId(),1) ;
-                                if (null!=message&&(new Date().getTime()-messageSendScientist.getCreate().getTime())/(60*1000)<30){
+                                if (null!=messageSendScientist&&(new Date().getTime()-messageSendScientist.getCreate().getTime())/(60*1000)<30){
 
                                 }else {
                                     //添加发送
