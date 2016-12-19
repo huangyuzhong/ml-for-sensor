@@ -287,6 +287,36 @@ public class SelectApiController {
 
     }
 
+    /**
+     * 平台用户查询设备列表
+     * @return
+     */
+    @RequestMapping(value = "/service/device",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByService(Principal principal,@RequestParam Map<String,String> requestParam){
+        User user=judgeByPrincipal(principal);
+        if (null == user){
+            return new RestResponse("没有此用户",1005,null);
+        }
+        Integer limit = 10;
+        Integer start = 0;
+        if (requestParam.containsKey("limit")) {
+            limit = Integer.valueOf(requestParam.get("limit"));
+            requestParam.remove("limit");
+        }
+
+        if (requestParam.containsKey("start")) {
+            start = Integer.valueOf(requestParam.get("start"));
+            requestParam.remove("start");
+        }
+
+        Page<Device> devicePage = new DeviceQuery(entityManager)
+                .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
+
+        return new RestResponse(assembleDevices(devicePage));
+    }
+
+
+
     @RequestMapping(value = "/employees",method = RequestMethod.GET)
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())

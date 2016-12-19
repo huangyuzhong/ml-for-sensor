@@ -104,14 +104,6 @@ public class SocketMessageApi {
 
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
 
-                Pt100Zero pt100Zero=new Pt100Zero();
-                //查询飘零表
-                pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-                if (pt100Zero!=null){
-                    if (pt100Zero.getZeroValue()!=null){
-                        R=R+(pt100Zero.getZeroValue());
-                    }
-                }
 
                 //将double类型的电阻转换成float类型
                 //将电阻四舍五入到小数点两位
@@ -127,7 +119,16 @@ public class SocketMessageApi {
 //                    Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
                     //通过电阻找到对象的温度
                     String temperature=pt100.getTemperature();
+
+
                     record=Float.valueOf(temperature);
+                    Pt100Zero pt100Zero=new Pt100Zero();
+                    //查询飘零表
+                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+                    if (pt100Zero!=null){
+                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+                    }
+
                 }else {
                     //通过电阻找到对应的温度
                     //从小到大
@@ -155,6 +156,12 @@ public class SocketMessageApi {
                   
                     //将温度存入record
                     record = k*r+b;
+                    Pt100Zero pt100Zero=new Pt100Zero();
+                    //查询飘零表
+                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+                    if (pt100Zero!=null){
+                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+                    }
                 }
                 //设置检测结果
                 inspectData.setResult(String.valueOf(record));

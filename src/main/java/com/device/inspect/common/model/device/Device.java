@@ -306,4 +306,5 @@ public class Device {
     public void setScientistDeviceList(List<ScientistDevice> scientistDeviceList) {
         this.scientistDeviceList = scientistDeviceList;
     }
+
 }

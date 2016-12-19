@@ -102,6 +102,15 @@ public class OperateController {
     @Autowired
     private MessageSendRepository messageSendRepository;
 
+    @Autowired
+    private MonitorDeviceRepository monitorDeviceRepository;
+
+    @Autowired
+    private Pt100ZeroRepository pt100ZeroRepository;
+
+    @Autowired
+    private DeviceVersionRepository deviceVersionRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -856,5 +865,70 @@ public class OperateController {
             //用户未绑定手机号或者邮箱
             return new RestResponse("未绑定手机号和邮箱，请联系管理员！",1005,null);
         }
+    }
+
+    /**
+     * 修改设备编号
+     */
+    @RequestMapping(value = "/device/code/{number}")
+    public RestResponse modifyDeviceCode(Principal principal,@PathVariable String number,@RequestParam String newNumber){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+//        if (map!=null){
+//            Device device=deviceRepository.findByCode(map.get("code"));
+//            if (device!=null){
+//                device.setCode(map.get("code"));
+//                device=deviceRepository.save(device);
+//            }else {
+//                return new RestResponse("设备编号出错");
+//            }
+            MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
+            if (monitorDevice!=null){
+                monitorDevice.setNumber(newNumber);
+                monitorDevice=monitorDeviceRepository.save(monitorDevice);
+            }else {
+                return new RestResponse("设备编号出错");
+            }
+            return new RestResponse("设备编号修改成功",null);
+//        }else {
+//            return new RestResponse("设备编号出错",null);
+//        }
+    }
+
+    /**
+     * 修改飘零值
+     */
+    @RequestMapping(value = "/modify/zero/{code}")
+    public RestResponse modifyZero(Principal principal,@PathVariable String code,@RequestParam String zero){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+        Pt100Zero pt100Zero=pt100ZeroRepository.findByCode(code);
+        if (pt100Zero!=null){
+            pt100Zero.setZeroValue(Double.valueOf(zero));
+            pt100ZeroRepository.save(pt100Zero);
+        }else {
+         Pt100Zero pt100Zero1=new Pt100Zero();
+            pt100Zero1.setCode(code);
+            pt100Zero1.setZeroValue(Double.valueOf(zero));
+            pt100ZeroRepository.save(pt100Zero1);
+        }
+        return new RestResponse("修改零飘值成功",null);
+    }
+
+    /**
+     * 选择版本接口
+     */
+    @RequestMapping(value = "/select/device/version")
+    public RestResponse selectDeviceVersion(Principal principal){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+        List<DeviceVersion> list=deviceVersionRepository.findAll();
+        if (list!=null&&list.size()>0)
+            return new RestResponse(list);
+        else
+            return new RestResponse("目前没有设备版本",1005,null);
     }
 }
