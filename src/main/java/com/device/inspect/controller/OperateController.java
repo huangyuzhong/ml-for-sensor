@@ -694,7 +694,7 @@ public class OperateController {
     }
 
     /**
-     * 发送验证码
+     * 发送短信验证码
      * @param principal
      * @param
      * @return
@@ -726,12 +726,11 @@ public class OperateController {
             user.setBindMobile(0);
 
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("短信验证码发送成功",new RestUser(user));
     }
 
     /**
-     * 发送验证码
-    // * @param principal
+     * 发送邮箱验证码
      * @param
      * @return
      */
@@ -764,9 +763,16 @@ public class OperateController {
         else
             user.setBindEmail(0);
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("邮箱验证码发送成功",null);
     }
 
+    /**
+     * 更换手机号
+     * @param principal
+     * @param mobile
+     * @param verify
+     * @return
+     */
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
@@ -775,20 +781,26 @@ public class OperateController {
         user.setBindMobile(1);
         user.setMobile(mobile);
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("更换手机号成功",null);
     }
 
+    /**
+     *  绑定邮箱
+     * @param principal
+     * @param map
+     * @return
+     */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
-    public RestResponse updateEmailByEmail(Principal principal,@RequestParam Map<String,String> map){
+    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
         User user = judgeByPrincipal(principal);
-        if(null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
-            return new RestResponse("请求参数出错！",1005,null);
+        if(map ==null||null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
+            return new RestResponse("邮箱或者验证码为空！",1005,null);
         if (!user.getVerify().toString().equals(map.get("verify")))
-            return new RestResponse("绑定参数出错！",1005,null);
+            return new RestResponse("验证码不正确！",1005,null);
         user.setBindEmail(1);
         user.setEmail(map.get("email"));
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("邮箱绑定成功",null);
     }
 
 
@@ -888,6 +900,10 @@ public class OperateController {
 
     /**
      * 修改飘零值
+     * @param principal
+     * @param code  终端编号
+     * @param zero  飘零值
+     * @return
      */
     @RequestMapping(value = "/modify/zero/{code}")
     public RestResponse modifyZero(Principal principal,@PathVariable String code,@RequestParam String zero){
