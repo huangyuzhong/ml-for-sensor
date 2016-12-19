@@ -868,32 +868,22 @@ public class OperateController {
     }
 
     /**
-     * 修改设备编号
+     * 修改终端编号
      */
     @RequestMapping(value = "/device/code/{number}")
     public RestResponse modifyDeviceCode(Principal principal,@PathVariable String number,@RequestParam String newNumber){
         User user=judgeByPrincipal(principal);
         if (user==null)
             return new RestResponse("用户未登陆",1005,null);
-//        if (map!=null){
-//            Device device=deviceRepository.findByCode(map.get("code"));
-//            if (device!=null){
-//                device.setCode(map.get("code"));
-//                device=deviceRepository.save(device);
-//            }else {
-//                return new RestResponse("设备编号出错");
-//            }
-            MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
-            if (monitorDevice!=null){
-                monitorDevice.setNumber(newNumber);
-                monitorDevice=monitorDeviceRepository.save(monitorDevice);
-            }else {
-                return new RestResponse("设备编号出错");
-            }
-            return new RestResponse("设备编号修改成功",null);
-//        }else {
-//            return new RestResponse("设备编号出错",null);
-//        }
+        MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
+        if (monitorDevice==null)
+            return new RestResponse("找不到终端编号",1005,null);
+        MonitorDevice monitorDevice1=monitorDeviceRepository.findByNumber(newNumber);
+        if (monitorDevice1!=null)
+            return new RestResponse("终端编号已经存在",1005,null);
+        monitorDevice.setNumber(newNumber);
+        monitorDeviceRepository.save(monitorDevice);
+        return new RestResponse("终端编号修改成功",null);
     }
 
     /**
