@@ -937,4 +937,9 @@ public class OperateController {
         else
             return new RestResponse("目前没有设备版本",1005,null);
     }
+
+    /**
+     * 版本更新接口
+     */
+
 }
