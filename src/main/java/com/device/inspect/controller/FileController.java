@@ -316,10 +316,13 @@ public class FileController {
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
             device.setDeviceType(deviceType);
-            if (null!=param.get("managerId")){
+            if (null!=param.get("managerId")&&!"".equals("managerId")&&!"undefined".equals("managerId")){
                 User deviceManager = userRepository.findOne(Integer.valueOf(param.get("managerId")));
                 if (UserRoleDifferent.userFirmManagerConfirm(deviceManager)||UserRoleDifferent.userFirmWorkerConfirm(deviceManager))
                     device.setManager(deviceManager);
+                else device.setManager(user);
+            }else {
+                device.setManager(user);
             }
             device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));

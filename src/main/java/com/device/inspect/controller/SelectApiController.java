@@ -578,14 +578,22 @@ public class SelectApiController {
         if (!UserRoleDifferent.userFirmManagerConfirm(user))
             return new RestResponse("权限不足，无法查询！",1005,null);
         User old = userRepository.findOne(userId);
+        boolean deviceManagerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
+        boolean scentistFlag = UserRoleDifferent.userScientistConfirm(old);
+
         if (null==old)
             return new RestResponse("请选择要删除的人员！",1005,null);
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
             if (!userEnch.getId().equals(old.getId())) {
-                RestUser restUser = new RestUser(userEnch);
-                result.add(restUser);
+                boolean overManageFlag = UserRoleDifferent.userFirmWorkerConfirm(userEnch);
+                boolean overScientist = UserRoleDifferent.userScientistConfirm(userEnch);
+                if (UserRoleDifferent.userFirmManagerConfirm(userEnch)||
+                        deviceManagerFlag==overManageFlag||scentistFlag==overScientist){
+                    RestUser restUser = new RestUser(userEnch);
+                    result.add(restUser);
+                }
             }
         }
         return new RestResponse(result);
