@@ -356,8 +356,8 @@ public class FileController {
                     }
                 }
             }
-            if (null==param.get("scientist")||"".equals(param.get("scientist"))||"undefined".equals("scientist")
-                    ||null==param.get("managerId")||"".equals(param.get("managerId"))||"undefined".equals(param.get("managerId"))){
+            if ((null==param.get("scientist")||"".equals(param.get("scientist"))||"undefined".equals("scientist"))
+                    &&(null==param.get("managerId")||"".equals(param.get("managerId"))||"undefined".equals(param.get("managerId")))){
                 if (UserRoleDifferent.userFirmManagerConfirm(user)||UserRoleDifferent.userFirmWorkerConfirm(user)){
                     device.setManager(user);
                 }
