@@ -316,7 +316,7 @@ public class FileController {
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
             device.setDeviceType(deviceType);
-            if (null!=param.get("managerId")&&!"".equals("managerId")&&!"undefined".equals("managerId")){
+            if (null!=param.get("managerId")&&!"".equals(param.get("managerId"))&&!"undefined".equals(param.get("managerId"))){
                 User deviceManager = userRepository.findOne(Integer.valueOf(param.get("managerId")));
                 if (UserRoleDifferent.userFirmManagerConfirm(deviceManager)||UserRoleDifferent.userFirmWorkerConfirm(deviceManager))
                     device.setManager(deviceManager);
