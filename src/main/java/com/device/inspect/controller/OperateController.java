@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
@@ -34,7 +35,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.rowset.serial.SerialException;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -883,19 +890,40 @@ public class OperateController {
      * 修改终端编号
      */
     @RequestMapping(value = "/device/code/{number}")
-    public RestResponse modifyDeviceCode(Principal principal,@PathVariable String number,@RequestParam String newNumber){
+    public void modifyDeviceCode(Principal principal, @PathVariable String number, @RequestParam String newNumber,
+                                         HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException,SerialException {
         User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
-        MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
-        if (monitorDevice==null)
-            return new RestResponse("找不到终端编号",1005,null);
-        MonitorDevice monitorDevice1=monitorDeviceRepository.findByNumber(newNumber);
-        if (monitorDevice1!=null)
-            return new RestResponse("终端编号已经存在",1005,null);
-        monitorDevice.setNumber(newNumber);
-        monitorDeviceRepository.save(monitorDevice);
-        return new RestResponse("终端编号修改成功",null);
+        RestResponse restResponse = null;
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        if (user==null){
+            restResponse= new RestResponse("用户未登陆",1005,null);
+        }else {
+            MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
+            MonitorDevice monitorDevice1=monitorDeviceRepository.findByNumber(newNumber);
+            if (monitorDevice==null){
+                restResponse=new RestResponse("找不到终端编号",1005,null);
+            }else if (monitorDevice1!=null){
+                restResponse=new RestResponse("你输入的终端编号已经存在",1005,null);
+            }else {
+                monitorDevice.setNumber(newNumber);
+                monitorDeviceRepository.save(monitorDevice);
+                restResponse=new RestResponse("终端编号修改成功",null);
+            }
+        }
+        out.print(JSON.toJSONString(restResponse));
+        out.flush();
+        out.close();
+//        MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
+//        if (monitorDevice==null)
+//            return new RestResponse("找不到终端编号",1005,null);
+//        MonitorDevice monitorDevice1=monitorDeviceRepository.findByNumber(newNumber);
+//        if (monitorDevice1!=null)
+//            return new RestResponse("终端编号已经存在",1005,null);
+//        monitorDevice.setNumber(newNumber);
+//        monitorDeviceRepository.save(monitorDevice);
+//        return new RestResponse("终端编号修改成功",null);
     }
 
     /**
