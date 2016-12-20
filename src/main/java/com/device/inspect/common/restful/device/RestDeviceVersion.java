@@ -2,7 +2,7 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.device.DeviceVersion;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sun.istack.internal.NotNull;
+import javax.validation.constraints.NotNull;
 
 import java.util.Date;
 
