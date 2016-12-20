@@ -950,5 +950,20 @@ public class OperateController {
     /**
      * 版本更新接口
      */
-
+     @RequestMapping(value = "/update/device/version/{id}")
+    public RestResponse updateDeviceVersion(Principal principal,@PathVariable String id,@RequestParam String deviceVersionId){
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
+         Device device=deviceRepository.findById(Integer.valueOf(id));
+         if (device==null)
+             return new RestResponse("没有此设备",1005,null);
+         DeviceVersion deviceVersion=deviceVersionRepository.findById(Integer.valueOf(deviceVersionId));
+         if (deviceVersion==null)
+             return new RestResponse("没有此设备版本",1005,null);
+         device.setDeviceVersion(deviceVersion);
+         deviceRepository.save(device);
+         System.out.println(device);
+         return new RestResponse("版本更新成功",null);
+     }
 }

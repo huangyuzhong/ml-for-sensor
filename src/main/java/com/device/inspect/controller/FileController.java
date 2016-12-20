@@ -356,7 +356,7 @@ public class FileController {
                     }
                 }
             }
-            
+
             if (null!=deviceType.getDeviceTypeInspectList()){
                 for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
                     DeviceInspect deviceInspect = new DeviceInspect();

@@ -14,4 +14,6 @@ public interface DeviceVersionRepository extends CrudRepository<DeviceVersion ,I
     public DeviceVersion findTopOrderByCreateDateDesc();
 
     public List<DeviceVersion> findAll();
+
+    public DeviceVersion findById(Integer Id);
 }

@@ -278,7 +278,8 @@ public class SocketMessageApi {
             }
             inspectDataRepository.save(inspectData);
 
-            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+//            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+            DeviceVersion deviceVersion=device.getDeviceVersion();
             String firstCode = result.substring(26,28);
             String secondCode = result.substring(28,30);
             String thirdCode = result.substring(30,32);

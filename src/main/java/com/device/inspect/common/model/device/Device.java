@@ -45,7 +45,7 @@ public class Device {
     private Integer enable;
     private Integer status;
     private List<ScientistDevice> scientistDeviceList;
-
+    private DeviceVersion deviceVersion;
     @Id
     @GeneratedValue()
     public Integer getId() {
@@ -307,4 +307,13 @@ public class Device {
         this.scientistDeviceList = scientistDeviceList;
     }
 
+    @ManyToOne
+    @JoinColumn(name = "device_version_id")
+    public DeviceVersion getDeviceVersion() {
+        return deviceVersion;
+    }
+
+    public void setDeviceVersion(DeviceVersion deviceVersion) {
+        this.deviceVersion = deviceVersion;
+    }
 }

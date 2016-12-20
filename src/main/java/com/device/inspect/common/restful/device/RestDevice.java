@@ -42,6 +42,7 @@ public class RestDevice {
     private String score;
     private Integer enable;
     private Integer days;
+    private RestDeviceVersion deviceVersion;
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -89,6 +90,7 @@ public class RestDevice {
         if (null!=device.getCreateDate())
             days = MyCalendar.getDateSpace(device.getCreateDate(),new Date());
 
+        this.deviceVersion = null==device.getDeviceVersion()?null:new RestDeviceVersion(device.getDeviceVersion());
     }
 
     public Integer getId() {
@@ -297,5 +299,13 @@ public class RestDevice {
 
     public void setDays(Integer days) {
         this.days = days;
+    }
+
+    public RestDeviceVersion getDeviceVersion() {
+        return deviceVersion;
+    }
+
+    public void setDeviceVersion(RestDeviceVersion deviceVersion) {
+        this.deviceVersion = deviceVersion;
     }
 }
