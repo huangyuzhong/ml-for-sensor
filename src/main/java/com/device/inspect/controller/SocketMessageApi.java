@@ -289,6 +289,7 @@ public class SocketMessageApi {
             responseByte.add((byte)0x02);
             responseByte.add((byte)0x05);
             boolean updateFlag = false;
+
             if (!firstCode.equals(deviceVersion.getFirstCode())||!secondCode.equals(deviceVersion.equals(deviceVersion.getSecondCode()))||
                     !thirdCode.equals(deviceVersion.getThirdCode())||!forthCode.equals(deviceVersion.getForthCode())){
                 updateFlag = true;
