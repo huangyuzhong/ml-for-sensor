@@ -364,15 +364,16 @@ public class OperateController {
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
         //同一个公司用户工号不能重复
-        Company company=user.getCompany();
-        List<User> list=userRepository.findByCompanyId(Integer.valueOf(company.getId()));
-        if (list!=null&&list.size()>0){
-            for (User user1:list){
-                if (user1.getJobNum().equals(map.get("jobNum"))){
-                    return new RestResponse("该工号已经存在",1005,null);
-                }
-            }
-        }
+//        Company company=user.getCompany();
+//        List<User> list=userRepository.findByCompanyId(Integer.valueOf(company.getId()));
+//        if (list!=null&&list.size()>0){
+//            for (User user1:list){
+//                System.out.println("user1.getJobNum()："+user1.getJobNum());
+//                if (user1.getJobNum().equals(map.get("jobNum"))){
+//                    return new RestResponse("该工号已经存在",1005,null);
+//                }
+//            }
+//        }
         if(UserRoleDifferent.userFirmManagerConfirm(user))
             child.setCompany(user.getCompany());
         child.setCreateDate(new Date());
