@@ -35,10 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -131,8 +128,8 @@ public class FileController {
      * @throws IOException
      * @throws SerialException
      */
-    @RequestMapping(value = "/create/building")
-    public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/building",method = RequestMethod.POST)
+    public void createBuilding(Principal principal,@RequestBody Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
@@ -140,10 +137,9 @@ public class FileController {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
-            restResponse = new RestResponse("该用户不存在！", null);
+            restResponse = new RestResponse("该用户不存在！",1005, null);
         else {
             if (UserRoleDifferent.userFirmManagerConfirm(user)) {
-
                 Building building = new Building();
                 if (null!=param.get("type")&&null!=param.get("buildId")&&param.get("type").equals("1")){
                     building = buildingRepository.findOne(Integer.valueOf(param.get("buildId")));
@@ -208,8 +204,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/floor")
-    public void createFloor(Principal principal,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/floor",method = RequestMethod.POST)
+    public void createFloor(Principal principal,@RequestBody Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -219,7 +215,7 @@ public class FileController {
         if (null == user)
             restResponse = new RestResponse("手机号出错！", null);
         else if(null==param.get("buildId")){
-            restResponse = new RestResponse("楼建筑信息出错！", null);
+            restResponse = new RestResponse("楼建筑信息出错！",1005, null);
         }
         else if (UserRoleDifferent.userFirmManagerConfirm(user)) {
 
@@ -285,8 +281,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/device")
-    public void createDevice(Principal principal,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/device",method = RequestMethod.POST)
+    public void createDevice(Principal principal,@RequestBody Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -295,11 +291,11 @@ public class FileController {
         PrintWriter out = response.getWriter();
         Device device = new Device();
         if (null == user)
-            restResponse = new RestResponse("用户信息出错！", null);
+            restResponse = new RestResponse("用户信息出错！",1005, null);
         else if(null==param.get("roomId"))
-            restResponse = new RestResponse("房间信息信息出错！", null);
+            restResponse = new RestResponse("房间信息信息出错！",1005, null);
         else if (null==param.get("typeId"))
-            restResponse = new RestResponse("设备种类信息出错！", null);
+            restResponse = new RestResponse("设备种类信息出错！", 1005,null);
         if (UserRoleDifferent.userFirmManagerConfirm(user)){
             Room room = roomRepository.findOne(Integer.valueOf(param.get("roomId")));
             DeviceType deviceType = deviceTypeRepository.findOne(Integer.valueOf(param.get("typeId")));
@@ -426,8 +422,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/room")
-    public void createRoom(Principal principal,@RequestParam Map<String,String> param,
+    @RequestMapping(value = "/create/room",method = RequestMethod.POST)
+    public void createRoom(Principal principal,@RequestBody Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -435,9 +431,9 @@ public class FileController {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
-            restResponse = new RestResponse("手机号出错！", null);
+            restResponse = new RestResponse("手机号出错！", 1005,null);
         else if(null==param.get("floorId")){
-            restResponse = new RestResponse("楼层信息出错！", null);
+            restResponse = new RestResponse("楼层信息出错！", 1005,null);
         }
         else if (UserRoleDifferent.userFirmManagerConfirm(user)) {
 
@@ -624,7 +620,7 @@ public class FileController {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
-            restResponse = new RestResponse("手机号出错！", null);
+            restResponse = new RestResponse("手机号出错！",1005, null);
 
         Company company = null;
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();

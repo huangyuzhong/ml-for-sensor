@@ -52,7 +52,7 @@ public class AlertMessageSendScheduleImp implements MySchedule {
             List<AlertCount> list = alertCountRepository.findByDeviceIdAndCreateDateAfter(device.getId(),lastTime);
             if (null!=list&&list.size()>0){
                 Integer sendType = 0;
-                String message = "设备编号为"+device.getCode();
+                String message = "设备："+device.getName();
                 String highMessage = "";
                 String lowMessage = "";
                 int highNum = 0;
