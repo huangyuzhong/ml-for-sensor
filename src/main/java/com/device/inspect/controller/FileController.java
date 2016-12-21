@@ -128,8 +128,8 @@ public class FileController {
      * @throws IOException
      * @throws SerialException
      */
-    @RequestMapping(value = "/create/building",method = RequestMethod.POST)
-    public void createBuilding(Principal principal,@RequestBody Map<String,String> param,
+    @RequestMapping(value = "/create/building")
+        public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
@@ -204,8 +204,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/floor",method = RequestMethod.POST)
-    public void createFloor(Principal principal,@RequestBody Map<String,String> param,
+    @RequestMapping(value = "/create/floor")
+    public void createFloor(Principal principal,@RequestParam Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -281,8 +281,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/device",method = RequestMethod.POST)
-    public void createDevice(Principal principal,@RequestBody Map<String,String> param,
+    @RequestMapping(value = "/create/device")
+    public void createDevice(Principal principal,@RequestParam Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -422,8 +422,8 @@ public class FileController {
         out.close();
     }
 
-    @RequestMapping(value = "/create/room",method = RequestMethod.POST)
-    public void createRoom(Principal principal,@RequestBody Map<String,String> param,
+    @RequestMapping(value = "/create/room")
+    public void createRoom(Principal principal,@RequestParam Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
