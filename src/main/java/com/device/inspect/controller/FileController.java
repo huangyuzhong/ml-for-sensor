@@ -229,9 +229,11 @@ public class FileController {
                     }catch (ClassCastException e){
                         e.printStackTrace();
                         LOGGER.error(e.getMessage());
+                    }finally {
+                        buildingRepository.save(building);
+                        restResponse = new RestResponse("操作成功！",new RestBuilding(building));
                     }
-                    buildingRepository.save(building);
-                    restResponse = new RestResponse("操作成功！",new RestBuilding(building));
+
                 }
 //                building.setEnable(1);
 //                building.setName(null == param.get("name") ? null : param.get("name"));
