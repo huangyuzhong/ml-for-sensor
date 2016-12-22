@@ -699,8 +699,6 @@ public class OperateController {
 
     @RequestMapping(value = "/manager/device/type/{typeId}")
     public RestResponse managerOperateDeviceTypeById(Principal principal,@PathVariable Integer typeId,@RequestParam Integer enable){
-        LOGGER.info(typeId);
-        LOGGER.info(enable);
         User user = judgeByPrincipal(principal);
         DeviceType deviceType = deviceTypeRepository.findOne(typeId);
         if (null==deviceType.getCompany()){
