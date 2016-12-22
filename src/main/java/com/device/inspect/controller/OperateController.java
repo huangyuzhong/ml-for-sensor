@@ -363,17 +363,28 @@ public class OperateController {
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
-        //同一个公司用户工号不能重复
-//        Company company=user.getCompany();
-//        List<User> list=userRepository.findByCompanyId(Integer.valueOf(company.getId()));
-//        if (list!=null&&list.size()>0){
-//            for (User user1:list){
-//                System.out.println("user1.getJobNum()："+user1.getJobNum());
-//                if (user1.getJobNum().equals(map.get("jobNum"))){
-//                    return new RestResponse("该工号已经存在",1005,null);
-//                }
-//            }
-//        }
+        //判断用户是企业管理员还是平台管理员
+        if (UserRoleDifferent.userFirmManagerConfirm(user)){
+            Company company=user.getCompany();
+            List<User> list=userRepository.findByCompanyId(company.getId());
+            if (list!=null&&list.size()>0){
+                for (User user1:list){
+                    if (user1.getJobNum()!=null&&!"".equals(user1.getJobNum())&&map.get("jobNum").equals(user1.getJobNum()))
+                        return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
+                }
+            }
+        }else if (UserRoleDifferent.userServiceManagerConfirm(user)){
+            List<User> list=userRepository.findAll();
+            if (list!=null&&list.size()>0){
+                for (User user2:list){
+                    if (UserRoleDifferent.userServiceWorkerConfirm(user2)){
+                        if (user2.getJobNum()!=null&&!"".equals(user2.getJobNum())&&map.get("jobNum").equals(user2.getJobNum()))
+                            return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
+                    }
+                }
+            }
+        }
+
         if(UserRoleDifferent.userFirmManagerConfirm(user))
             child.setCompany(user.getCompany());
         child.setCreateDate(new Date());
