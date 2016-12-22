@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +27,7 @@ import java.io.IOException;
 @RequestMapping(value = "/api/rest/download")
 public class ExportController {
     private static final String CONTENT_TYPE = "text/html; charset=GBK";
-
+    public static final Logger LOGGER=LogManager.getLogger(ExportController.class);
     @Autowired
     private FileRepository fileRepository;
 
@@ -38,6 +40,7 @@ public class ExportController {
     @RequestMapping(value = "/file/{fileId}")
     public void downloadDeviceFile(@PathVariable Integer fileId,
                                    HttpServletRequest request,HttpServletResponse response) throws Exception{
+        LOGGER.info(fileId);
         Files files = fileRepository.findOne(fileId);
         //获取网站部署路径(通过ServletContext对象)，用于确定下载文件位置，从而实现下载
         String path = request.getSession().getServletContext().getRealPath("/");
@@ -68,12 +71,14 @@ public class ExportController {
             out.flush();
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
     @RequestMapping(value = "/device/version/{id}")
     public void downloadDeviceVersionFile(@PathVariable Integer id,
                                    HttpServletRequest request,HttpServletResponse response) throws Exception{
+        LOGGER.info(id);
         DeviceVersion deviceVersion = deviceVersionRepository.findOne(id);
         //获取网站部署路径(通过ServletContext对象)，用于确定下载文件位置，从而实现下载
         String path = request.getSession().getServletContext().getRealPath("/");
@@ -108,6 +113,7 @@ public class ExportController {
 
         } catch (IOException e) {
             e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 }

@@ -12,4 +12,6 @@ import java.util.List;
 public interface DeviceTypeRepository extends CrudRepository<DeviceType,Integer> {
     public List<DeviceType> findByCompanyIdAndEnable(Integer CompanyId,Integer Enable);
     public List<DeviceType> findByEnableAndCompanyIdIsNull(Integer Enable);
+    public List<DeviceType> findAll();
+    public List<DeviceType> findByCompanyId(Integer CompanyId);
 }
