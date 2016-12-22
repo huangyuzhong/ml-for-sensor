@@ -59,7 +59,6 @@ import java.util.*;
 public class FileController {
 
     private static final String SERVICE_PATH = "http://inmycars.ihengtian.top:8998";
-    public static final Logger LOGGER= LogManager.getLogger(FileController.class);
     @Autowired
     private UserRepository userRepository;
 
@@ -134,7 +133,6 @@ public class FileController {
         public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
-        LOGGER.info(param);
         User user = judgeByPrincipal(principal);
         RestResponse restResponse = new RestResponse();
         response.setContentType("text/html");
@@ -228,7 +226,6 @@ public class FileController {
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
-                        LOGGER.error(e.getMessage());
                     }finally {
                         buildingRepository.save(building);
                         restResponse = new RestResponse("操作成功！",new RestBuilding(building));
@@ -305,7 +302,6 @@ public class FileController {
     public void createFloor(Principal principal,@RequestParam Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        LOGGER.info(param);
         User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
@@ -395,7 +391,6 @@ public class FileController {
                     }
                 }catch (ClassCastException e){
                     e.printStackTrace();
-                    LOGGER.error(e.getMessage());
                 }
                 storeyRepository.save(floor);
                 restResponse = new RestResponse("操作成功！",new RestFloor(floor));
@@ -458,7 +453,7 @@ public class FileController {
     public void createDevice(Principal principal,@RequestParam Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        LOGGER.info(param);
+
         User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
@@ -579,7 +574,6 @@ public class FileController {
                 }
             }catch (ClassCastException e){
                 e.printStackTrace();
-                LOGGER.error(e.getMessage());
             }
             deviceRepository.save(device);
             device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
@@ -601,7 +595,6 @@ public class FileController {
     public void createRoom(Principal principal,@RequestParam Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        LOGGER.info(param);
         User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
@@ -691,7 +684,6 @@ public class FileController {
                     }
                 }catch (ClassCastException e){
                     e.printStackTrace();
-                    LOGGER.error(e.getMessage());
                 }
 
                 roomRepository.save(room);
@@ -755,7 +747,6 @@ public class FileController {
     public void createDeviceType(@PathVariable Integer deviceTypeId,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        LOGGER.info(deviceTypeId);
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
@@ -801,7 +792,6 @@ public class FileController {
             }catch (ClassCastException e){
                 e.printStackTrace();
 //                deviceType.setLogo("/photo/company/" + fileName);
-                LOGGER.error(e.getMessage());
             }
 
             restResponse = new RestResponse("操作成功！",new RestDeviceType(deviceType));
@@ -815,7 +805,6 @@ public class FileController {
     @RequestMapping(value = "/change/picture/{deviceId}")
     public void uploadPhoto(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
-        LOGGER.info(deviceId);
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         RestResponse restResponse = null;
@@ -869,7 +858,6 @@ public class FileController {
     public void createCompany(Principal principal,@RequestParam Map<String,String> param,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
-        LOGGER.info(param);
         User user = judgeByPrincipal(principal);
         RestResponse restResponse = null;
         response.setContentType("text/html");
@@ -989,7 +977,6 @@ public class FileController {
             }catch (ClassCastException e){
                 e.printStackTrace();
 //                deviceType.setLogo("/photo/company/" + fileName);
-                LOGGER.error(e.getMessage());
             }
             companyRepository.save(company);
             restResponse = new RestResponse("操作成功！",new RestCompany(company));
@@ -1004,7 +991,6 @@ public class FileController {
     @RequestMapping(value = "/upload/device/file/{deviceId}")
     public void uploadDeviceFile(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
-        LOGGER.info(deviceId);
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         RestResponse restResponse = null;
@@ -1119,7 +1105,6 @@ public class FileController {
     @RequestMapping(value="/create/device/version")
     public void updateVersion(Principal principal,@RequestParam Map<String ,String> param,
                                       HttpServletRequest request,HttpServletResponse response) throws IOException {
-        LOGGER.info(param);
         //判断是否登陆
         User user=judgeByPrincipal(principal);
         PrintWriter out = response.getWriter();
@@ -1204,7 +1189,6 @@ public class FileController {
     public void uploadVersionFile(DeviceVersion deviceVersion,
             HttpServletRequest request,
             HttpServletResponse response) throws IOException {
-        LOGGER.info(deviceVersion);
         response.setContentType("text/html");
         PrintWriter out=response.getWriter();
         RestResponse restResponse=null;

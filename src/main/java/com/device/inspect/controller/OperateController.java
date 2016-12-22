@@ -57,8 +57,6 @@ import java.util.Map;
 @RequestMapping(value = "/api/rest/operate")
 public class OperateController {
 
-    private static final Logger LOGGER = LogManager.getLogger(OperateController.class);
-
     @Autowired
     private UserRepository userRepository;
 
@@ -135,8 +133,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/device/floor/{deviceId}")
     public RestResponse operateDeviceFloor(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
-        LOGGER.info(deviceId);
-        LOGGER.info(map);
         User user = judgeByPrincipal(principal);
         if (!UserRoleDifferent.userScientistConfirm(user))
             return new RestResponse("您的权限不足！",1005,null);
@@ -196,7 +192,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/delete/device/floor/{id}")
     public RestResponse deleteDeviceFloorById(Principal principal,@PathVariable Integer id){
-        LOGGER.info("删除设备层"+id);
         DeviceFloor deviceFloor = deviceFloorRepository.findOne(id);
         if (null==deviceFloor)
             return new RestResponse();
@@ -218,7 +213,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/device/{deviceId}")
     public RestResponse operateDevice(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
-        LOGGER.info("修改设备基本信息"+map);
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
@@ -278,7 +272,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/get/device/parameter/{deviceId}")
     public RestResponse getDeviceParameter(@PathVariable Integer deviceId){
-        LOGGER.info(deviceId);
         Device device = deviceRepository.findOne(deviceId);
         if (null==device)
             return new RestResponse("设备信息出错！",1005,null);
@@ -313,7 +306,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/device/parameter/{deviceId}")
     public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
-        LOGGER.info(deviceId);
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
@@ -347,7 +339,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/create/user")
     public RestResponse createNewUser(Principal principal,@RequestParam Map<String,String> map){
-        LOGGER.info(map);
         User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("用户信息错误！",1005,null);
@@ -436,7 +427,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/update/user",method = RequestMethod.GET)
     public RestResponse updateUserMessage(Principal principal,@RequestParam Map<String,String> param){
-        LOGGER.info(param);
         User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("用户信息错误！",1005,null);
@@ -460,7 +450,6 @@ public class OperateController {
 
     @RequestMapping(value = "/deviceType")
     public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeReq){
-        LOGGER.info(deviceTypeReq);
         User user = judgeByPrincipal(principal);
         if (null == user)
             return new RestResponse("手机号出错！", null);
@@ -580,8 +569,6 @@ public class OperateController {
 
     @RequestMapping(value = "/delete/file/{fileId}")
     public RestResponse deleteFileFromDevice(@PathVariable Integer fileId,@RequestParam Integer deviceId){
-        LOGGER.info(fileId);
-        LOGGER.info(deviceId);
         Files files = fileRepository.findOne(fileId);
         if (null==files)
             return new RestResponse("该文件不存在！",1005,null);
@@ -595,8 +582,6 @@ public class OperateController {
 
     @RequestMapping(value = "/manager/device/{deviceId}")
     public RestResponse deleteDeviceById(Principal principal,@PathVariable Integer deviceId,@RequestParam Integer enable){
-        LOGGER.info(deviceId);
-        LOGGER.info(enable);
         User user = judgeByPrincipal(principal);
         Device device = deviceRepository.findOne(deviceId);
         if (null==device)
@@ -612,8 +597,6 @@ public class OperateController {
 
     @RequestMapping(value = "/manager/room/{roomId}")
     public RestResponse deleteRoomById(Principal principal,@PathVariable Integer roomId,@RequestParam Integer enable){
-        LOGGER.info(roomId);
-        LOGGER.info(enable);
         User user = judgeByPrincipal(principal);
         Room room = roomRepository.findOne(roomId);
         if (null == room)
@@ -634,8 +617,6 @@ public class OperateController {
 
     @RequestMapping(value = "/manager/floor/{floorId}")
     public RestResponse deleteFloorById(Principal principal,@PathVariable Integer floorId,@RequestParam Integer enable){
-        LOGGER.info(floorId);
-        LOGGER.info(enable);
         User user = judgeByPrincipal(principal);
         Storey floor = storeyRepository.findOne(floorId);
         if (null==floor)
@@ -663,8 +644,6 @@ public class OperateController {
 
     @RequestMapping(value = "/manager/build/{buildId}")
     public RestResponse deleteBuildById(Principal principal,@PathVariable Integer buildId,@RequestParam Integer enable){
-        LOGGER.info(buildId);
-        LOGGER.info(enable);
         User user = judgeByPrincipal(principal);
         Building building = buildingRepository.findOne(buildId);
         if (null == building)
@@ -728,8 +707,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/delete/user/{userId}")
     public RestResponse deleteUserById(Principal principal, @PathVariable Integer userId,@RequestParam Integer takeId){
-        LOGGER.info(userId);
-        LOGGER.info(takeId);
         try {
             User manager = judgeByPrincipal(principal);
             if (!UserRoleDifferent.userFirmManagerConfirm(manager))
@@ -797,7 +774,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/send/mobile/verify/{mobile}")
     public RestResponse sendVerifyForMobile(Principal principal,@PathVariable String mobile){
-        LOGGER.info(mobile);
         User user = judgeByPrincipal(principal);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
@@ -834,7 +810,6 @@ public class OperateController {
     @RequestMapping(value = "/send/email/verify",method = RequestMethod.POST)
     public RestResponse sendVerifyForEmail(Principal principal,
                                            @RequestBody Map<String,String> map){
-        LOGGER.info(map);
         User user = judgeByPrincipal(principal);
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
@@ -873,8 +848,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
-        LOGGER.info(mobile);
-        LOGGER.info(verify);
         User user = judgeByPrincipal(principal);
         if (!user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
@@ -892,7 +865,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
     public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
-        LOGGER.info(map);
         User user = judgeByPrincipal(principal);
         if(map ==null||null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
             return new RestResponse("邮箱或者验证码为空！",1005,null);
@@ -913,7 +885,6 @@ public class OperateController {
      */
     @RequestMapping(value = "/modify/password",method = RequestMethod.GET)
     public RestResponse modifyPassword(Principal principal,@RequestParam Map<String,String> map){
-        LOGGER.info(map);
         User user = judgeByPrincipal(principal);
         if (map!=null){
             if (map.get("old")==null||"".equals(map.get("old"))||!map.get("old").equals(user.getPassword()))
@@ -951,7 +922,6 @@ public class OperateController {
      */
     @RequestMapping(value="/forget/find/password/{name}",method = RequestMethod.POST)
     public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){
-        LOGGER.info(map);
         User user=userRepository.findByName(name);
         if (null==user)
             return new RestResponse("账号输入有误！",null);
@@ -989,7 +959,6 @@ public class OperateController {
     public RestResponse modifyDeviceCode(Principal principal, @PathVariable String number, @RequestParam String newNumber,
                                          HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException,SerialException {
-        LOGGER.info(newNumber);
         User user=judgeByPrincipal(principal);
         if (user==null)
             return new RestResponse("用户未登录",1005,null);
