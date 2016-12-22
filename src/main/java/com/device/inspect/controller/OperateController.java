@@ -761,7 +761,6 @@ public class OperateController {
             userRepository.delete(old);
             return new RestResponse("删除成功！",null);
         }catch (Exception e){
-            LOGGER.error(e.getMessage());
             return new RestResponse("删除出错！",null);
         }
     }
