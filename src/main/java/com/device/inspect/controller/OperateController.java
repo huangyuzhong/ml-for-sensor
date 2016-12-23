@@ -254,7 +254,7 @@ public class OperateController {
             device.setMaintainDate(date);
         }
 
-        if(null!=map.get("managerId")){
+        if(null!=map.get("managerId")&&!"undefined".equals(map.get("managerId"))&&!"".equals(map.get("managerId"))){
             User user = userRepository.findOne(Integer.valueOf(map.get("managerId")));
             if (null!=user){
                 device.setManager(user);
