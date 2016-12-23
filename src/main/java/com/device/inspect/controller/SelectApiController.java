@@ -589,10 +589,23 @@ public class SelectApiController {
             if (!userEnch.getId().equals(old.getId())) {
                 boolean overManageFlag = UserRoleDifferent.userFirmWorkerConfirm(userEnch);
                 boolean overScientist = UserRoleDifferent.userScientistConfirm(userEnch);
-                if (UserRoleDifferent.userFirmManagerConfirm(userEnch)||
-                        deviceManagerFlag==overManageFlag||scentistFlag==overScientist){
-                    RestUser restUser = new RestUser(userEnch);
-                    result.add(restUser);
+                if(deviceManagerFlag&&scentistFlag) {
+                    if (overManageFlag && overScientist) {
+                        RestUser restUser = new RestUser(userEnch);
+                        result.add(restUser);
+                    }
+                }else {
+                    if (deviceManagerFlag){
+                        if (UserRoleDifferent.userFirmManagerConfirm(userEnch)||
+                                deviceManagerFlag==overManageFlag){
+                            RestUser restUser = new RestUser(userEnch);
+                            result.add(restUser);
+                        }
+                    }
+                    if (scentistFlag&&scentistFlag==overScientist){
+                        RestUser restUser = new RestUser(userEnch);
+                        result.add(restUser);
+                    }
                 }
             }
         }
