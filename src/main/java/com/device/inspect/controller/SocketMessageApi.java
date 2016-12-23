@@ -165,7 +165,34 @@ public class SocketMessageApi {
                 }
                 //设置检测结果
                 inspectData.setResult(String.valueOf(record));
-            }else {
+            }else if (monitorTypeCode.equals("07")){
+                //判断是不是甲烷
+                //根据上传的值算出电压
+                Float v=(Float.valueOf(first)*Float.valueOf(2.018f))/Float.valueOf(32768);
+                //算出的电压值如果小于0.4   record 都为百分之零
+                if (v<0.4){
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    record=0;
+                    inspectData.setResult(String.valueOf(record));
+                }else if (v<2){
+                    float b=0.4f;
+                    float k=1.6f;
+                    record=(v-b)/k;
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    inspectData.setResult(String.valueOf(record));
+                } else {
+                    record=10f;
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    inspectData.setResult(String.valueOf(record));
+                }
+
+            } else {
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);

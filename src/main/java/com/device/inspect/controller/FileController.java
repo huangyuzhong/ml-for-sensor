@@ -226,10 +226,9 @@ public class FileController {
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
-                    }finally {
-                        buildingRepository.save(building);
-                        restResponse = new RestResponse("操作成功！",new RestBuilding(building));
                     }
+                    buildingRepository.save(building);
+                    restResponse = new RestResponse("操作成功！",new RestBuilding(building));
 
                 }
 //                building.setEnable(1);
