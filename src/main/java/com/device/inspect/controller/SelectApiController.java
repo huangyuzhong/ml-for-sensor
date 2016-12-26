@@ -330,12 +330,39 @@ public class SelectApiController {
 
     }
 
+
+    
     /**
-     * 获取所有的员工
-     * @param principal
-     * @param requestParam
+     * 平台用户查询设备列表
      * @return
      */
+    @RequestMapping(value = "/service/device",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByService(Principal principal,@RequestParam Map<String,String> requestParam){
+        User user=judgeByPrincipal(principal);
+        if (null == user){
+            return new RestResponse("没有此用户",1005,null);
+        }
+        Integer limit = 10;
+        Integer start = 0;
+        if (requestParam.containsKey("limit")) {
+            limit = Integer.valueOf(requestParam.get("limit"));
+            requestParam.remove("limit");
+        }
+
+        if (requestParam.containsKey("start")) {
+            start = Integer.valueOf(requestParam.get("start"));
+            requestParam.remove("start");
+        }
+
+        Page<Device> devicePage = new DeviceQuery(entityManager)
+                .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
+
+        return new RestResponse(assembleDevices(devicePage));
+    }
+
+
+
+
     @RequestMapping(value = "/employees",method = RequestMethod.GET)
     public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
 //        if (null == principal || null ==principal.getName())
@@ -497,6 +524,7 @@ public class SelectApiController {
 
     private Map assembleUsers(User userRoot,Page<User> userPage){
         Map map = new HashMap();
+        map.put("pages",String.valueOf(userPage.getTotalPages()));
         map.put("total",String.valueOf(userPage.getTotalElements()));
         map.put("thisNum",String.valueOf(userPage.getNumberOfElements()));
         List<User> list = new ArrayList<User>();
@@ -606,14 +634,35 @@ public class SelectApiController {
         if (!UserRoleDifferent.userFirmManagerConfirm(user))
             return new RestResponse("权限不足，无法查询！",1005,null);
         User old = userRepository.findOne(userId);
+        boolean deviceManagerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
+        boolean scentistFlag = UserRoleDifferent.userScientistConfirm(old);
+
         if (null==old)
             return new RestResponse("请选择要删除的人员！",1005,null);
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
             if (!userEnch.getId().equals(old.getId())) {
-                RestUser restUser = new RestUser(userEnch);
-                result.add(restUser);
+                boolean overManageFlag = UserRoleDifferent.userFirmWorkerConfirm(userEnch);
+                boolean overScientist = UserRoleDifferent.userScientistConfirm(userEnch);
+                if(deviceManagerFlag&&scentistFlag) {
+                    if (overManageFlag && overScientist) {
+                        RestUser restUser = new RestUser(userEnch);
+                        result.add(restUser);
+                    }
+                }else {
+                    if (deviceManagerFlag){
+                        if (UserRoleDifferent.userFirmManagerConfirm(userEnch)||
+                                deviceManagerFlag==overManageFlag){
+                            RestUser restUser = new RestUser(userEnch);
+                            result.add(restUser);
+                        }
+                    }
+                    if (scentistFlag&&scentistFlag==overScientist){
+                        RestUser restUser = new RestUser(userEnch);
+                        result.add(restUser);
+                    }
+                }
             }
         }
         return new RestResponse(result);

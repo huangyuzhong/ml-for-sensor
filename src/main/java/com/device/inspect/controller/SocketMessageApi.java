@@ -114,14 +114,6 @@ public class SocketMessageApi {
 
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
 
-                Pt100Zero pt100Zero=new Pt100Zero();
-                //查询飘零表
-                pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-                if (pt100Zero!=null){
-                    if (pt100Zero.getZeroValue()!=null){
-                        R=R+(pt100Zero.getZeroValue());
-                    }
-                }
 
                 System.out.println("计算出来的电阻："+R);
 
@@ -141,7 +133,16 @@ public class SocketMessageApi {
 //                    Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
                     //通过电阻找到对象的温度
                     String temperature=pt100.getTemperature();
+
+
                     record=Float.valueOf(temperature);
+                    Pt100Zero pt100Zero=new Pt100Zero();
+                    //查询飘零表
+                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+                    if (pt100Zero!=null){
+                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+                    }
+
                 }else {
                     //通过电阻找到对应的温度
                     //从小到大
@@ -169,10 +170,43 @@ public class SocketMessageApi {
                   
                     //将温度存入record
                     record = k*r+b;
+                    Pt100Zero pt100Zero=new Pt100Zero();
+                    //查询飘零表
+                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+                    if (pt100Zero!=null){
+                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+                    }
                 }
                 //设置检测结果
                 inspectData.setResult(String.valueOf(record));
-            }else {
+            }else if (monitorTypeCode.equals("07")){
+                //判断是不是甲烷
+                //根据上传的值算出电压
+                Float v=(Float.valueOf(first)*Float.valueOf(2.018f))/Float.valueOf(32768);
+                //算出的电压值如果小于0.4   record 都为百分之零
+                if (v<0.4){
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    record=0;
+                    inspectData.setResult(String.valueOf(record));
+                }else if (v<2){
+                    float b=0.4f;
+                    float k=1.6f;
+                    record=(v-b)/k;
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    inspectData.setResult(String.valueOf(record));
+                } else {
+                    record=10f;
+                    inspectData.setCreateDate(new Date());
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    inspectData.setResult(String.valueOf(record));
+                }
+
+            } else {
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
@@ -285,7 +319,8 @@ public class SocketMessageApi {
             }
             inspectDataRepository.save(inspectData);
 
-            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+//            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+            DeviceVersion deviceVersion=device.getDeviceVersion();
             String firstCode = result.substring(26,28);
             String secondCode = result.substring(28,30);
             String thirdCode = result.substring(30,32);
@@ -296,6 +331,7 @@ public class SocketMessageApi {
             responseByte.add((byte)0x02);
             responseByte.add((byte)0x05);
             boolean updateFlag = false;
+
             if (!firstCode.equals(deviceVersion.getFirstCode())||!secondCode.equals(deviceVersion.equals(deviceVersion.getSecondCode()))||
                     !thirdCode.equals(deviceVersion.getThirdCode())||!forthCode.equals(deviceVersion.getForthCode())){
                 updateFlag = true;

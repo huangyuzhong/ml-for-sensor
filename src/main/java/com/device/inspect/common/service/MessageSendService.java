@@ -61,7 +61,7 @@ public class MessageSendService {
     public static boolean sendMessage(User user,String verfyMobile,String message,Integer type){
         if (type.equals(1)){
             //短信发送警报信息
-            if (user.getBindMobile()==1){
+            if (user.getBindMobile()!=null&&user.getBindMobile()==1){
                 try {
                     String aliURL=url;
                     //appkey
@@ -169,7 +169,7 @@ public class MessageSendService {
     public static boolean  sendEmai(User user,String verifyEmail,String content,Integer type)  {
         if (type.equals(1)){
             //邮件报警
-            if (user.getBindEmail()==1){
+            if (user.getBindEmail()!=null&&user.getBindEmail()==1){
                 try {
                     // 1. 创建参数配置, 用于连接邮件服务器的参数配置
                     Properties props = new Properties();                    // 参数配置
@@ -194,7 +194,7 @@ public class MessageSendService {
                     transport.connect(myEmailAccount, myEmailPassword);
 
                     // 6. 发送邮件, 发到所有的收件地址, message.getAllRecipients() 获取到的是在创建邮件对象时添加的所有收件人, 抄送人, 密送人
-                 //   transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
+                    transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
 
                     // 7. 关闭连接
                     transport.close();

@@ -13,6 +13,7 @@ public class RestInspectType {
     private Integer id;
     private String name;
     private String code;
+    private String unit;
 
     public RestInspectType() {
     }
@@ -21,6 +22,7 @@ public class RestInspectType {
         this.id = inspectType.getId();
         this.name = inspectType.getName();
         this.code = inspectType.getCode();
+        this.unit=inspectType.getUnit();
     }
 
     public Integer getId() {
@@ -45,5 +47,13 @@ public class RestInspectType {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 }

@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
@@ -34,7 +35,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.sql.rowset.serial.SerialException;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,8 +56,6 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/api/rest/operate")
 public class OperateController {
-
-    private static final Logger LOGGER = LogManager.getLogger(OperateController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -101,6 +106,15 @@ public class OperateController {
     private ScientistDeviceRepository scientistDeviceRepository;
     @Autowired
     private MessageSendRepository messageSendRepository;
+
+    @Autowired
+    private MonitorDeviceRepository monitorDeviceRepository;
+
+    @Autowired
+    private Pt100ZeroRepository pt100ZeroRepository;
+
+    @Autowired
+    private DeviceVersionRepository deviceVersionRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -241,7 +255,7 @@ public class OperateController {
             device.setMaintainDate(date);
         }
 
-        if(null!=map.get("managerId")){
+        if(null!=map.get("managerId")&&!"undefined".equals(map.get("managerId"))&&!"".equals(map.get("managerId"))){
             User user = userRepository.findOne(Integer.valueOf(map.get("managerId")));
             if (null!=user){
                 device.setManager(user);
@@ -351,6 +365,27 @@ public class OperateController {
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
+        //判断用户是企业管理员还是平台管理员
+        if (UserRoleDifferent.userFirmManagerConfirm(user)){
+            Company company=user.getCompany();
+            List<User> list=userRepository.findByCompanyId(company.getId());
+            if (list!=null&&list.size()>0){
+                for (User user1:list){
+                    if (user1.getJobNum()!=null&&!"".equals(user1.getJobNum())&&map.get("jobNum").equals(user1.getJobNum()))
+                        return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
+                }
+            }
+        }else if (UserRoleDifferent.userServiceManagerConfirm(user)){
+            List<User> list=userRepository.findAll();
+            if (list!=null&&list.size()>0){
+                for (User user2:list){
+                    if (UserRoleDifferent.userServiceWorkerConfirm(user2)){
+                        if (user2.getJobNum()!=null&&!"".equals(user2.getJobNum())&&map.get("jobNum").equals(user2.getJobNum()))
+                            return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
+                    }
+                }
+            }
+        }
 
         if(UserRoleDifferent.userFirmManagerConfirm(user))
             child.setCompany(user.getCompany());
@@ -439,6 +474,31 @@ public class OperateController {
                 if (deviceType.getCompany()==null&&!UserRoleDifferent.userStartWithService(user)){
                     return new RestResponse("企业管理员无法修改平台设备种类！",1005,null);
                 }
+
+
+                //如果是平台管理员
+                if (UserRoleDifferent.userStartWithService(user)){
+                    List<DeviceType> list=new ArrayList<DeviceType>();
+                    list=deviceTypeRepository.findAll();
+                    if (list!=null&&list.size()>0){
+                        for (DeviceType deviceType1:list){
+                            if (deviceType1.getCompany()==null&&!deviceType1.getId().equals(deviceTypeReq.getId()) &&deviceType1.getName().equals(deviceTypeReq.getName())){
+                                    return new RestResponse("该设备种类名称已存在",1005,null);
+                            }
+                        }
+                    }
+                }else if (UserRoleDifferent.userFirmManagerConfirm(user)){
+                    List<DeviceType> list=new ArrayList<DeviceType>();
+                    Company company=user.getCompany();
+                    list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
+                    if (list!=null&&list.size()>0){
+                        for (DeviceType deviceType1:list){
+                            if (!deviceType1.getId().equals(deviceTypeReq.getId())&&deviceType1.getName().equals(deviceTypeReq.getName())){
+                                    return new RestResponse("该设备种类名称已存在",1005,null);
+                            }
+                        }
+                    }
+                }
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
 //                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
@@ -465,6 +525,28 @@ public class OperateController {
                 }
                 deviceTypeInspectRepository.save(deviceTypeInspects);
             } else {
+                if (UserRoleDifferent.userStartWithService(user)){
+                    List<DeviceType> list=new ArrayList<DeviceType>();
+                    list=deviceTypeRepository.findAll();
+                    if (list!=null&&list.size()>0) {
+                        for (DeviceType deviceType1 : list) {
+                            if (deviceType1.getCompany() == null&&deviceType1.getName().equals(deviceTypeReq.getName())) {
+                                    return new RestResponse("该设备种类名称已存在", 1005, null);
+                            }
+                        }
+                    }
+                }else if (UserRoleDifferent.userFirmManagerConfirm(user)){
+                    List<DeviceType> list=new ArrayList<DeviceType>();
+                    Company company=user.getCompany();
+                    list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
+                    if (list!=null&&list.size()>0){
+                        for (DeviceType deviceType1:list){
+                            if (deviceType1.getName().equals(deviceTypeReq.getName())){
+                                return new RestResponse("该设备种类名称已存在",1005,null);
+                            }
+                        }
+                    }
+                }
                 deviceType.setEnable(1);
                 if (UserRoleDifferent.userFirmManagerConfirm(user))
                     deviceType.setCompany(user.getCompany());
@@ -492,7 +574,7 @@ public class OperateController {
         } else {
             return new RestResponse("权限不足！",1005,null);
         }
-        return new RestResponse(new RestDeviceType(deviceType));
+        return new RestResponse("操作成功",new RestDeviceType(deviceType));
     }
 
     /**
@@ -730,13 +812,12 @@ public class OperateController {
             userRepository.delete(old);
             return new RestResponse("删除成功！",null);
         }catch (Exception e){
-            LOGGER.error(e.getMessage());
             return new RestResponse("删除出错！",null);
         }
     }
 
     /**
-     * 发送手机验证码
+     * 发送短信验证码
      * @param principal
      * @param
      * @return
@@ -768,12 +849,11 @@ public class OperateController {
             user.setBindMobile(0);
 
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("短信验证码发送成功",new RestUser(user));
     }
 
     /**
      * 发送邮箱验证码
-    // * @param principal
      * @param
      * @return
      */
@@ -806,11 +886,11 @@ public class OperateController {
         else
             user.setBindEmail(0);
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("邮箱验证码发送成功",null);
     }
 
     /**
-     * 绑定手机号
+     * 更换手机号
      * @param principal
      * @param mobile
      * @param verify
@@ -824,26 +904,26 @@ public class OperateController {
         user.setBindMobile(1);
         user.setMobile(mobile);
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("更换手机号成功",null);
     }
 
     /**
-     * 绑定邮箱
+     *  绑定邮箱
      * @param principal
      * @param map
      * @return
      */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
-    public RestResponse updateEmailByEmail(Principal principal,@RequestParam Map<String,String> map){
+    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
         User user = judgeByPrincipal(principal);
-        if(null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
-            return new RestResponse("请求参数出错！",1005,null);
+        if(map ==null||null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
+            return new RestResponse("邮箱或者验证码为空！",1005,null);
         if (!user.getVerify().toString().equals(map.get("verify")))
-            return new RestResponse("绑定参数出错！",1005,null);
+            return new RestResponse("验证码不正确！",1005,null);
         user.setBindEmail(1);
         user.setEmail(map.get("email"));
         userRepository.save(user);
-        return new RestResponse(new RestUser(user));
+        return new RestResponse("邮箱绑定成功",null);
     }
 
 
@@ -924,4 +1004,85 @@ public class OperateController {
             return new RestResponse("未绑定手机号和邮箱，请联系管理员！",1005,null);
         }
     }
+
+    /**
+     * 修改终端编号
+     */
+    @RequestMapping(value = "/device/code/{number}")
+    public RestResponse modifyDeviceCode(Principal principal, @PathVariable String number, @RequestParam String newNumber,
+                                         HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException,SerialException {
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登录",1005,null);
+        MonitorDevice monitorDevice=monitorDeviceRepository.findByNumber(number);
+        if (monitorDevice==null)
+            return new RestResponse("找不到终端编号",1005,null);
+        MonitorDevice monitorDevice1=monitorDeviceRepository.findByNumber(newNumber);
+        if (monitorDevice1!=null)
+            return new RestResponse("终端编号已经存在",1005,null);
+        monitorDevice.setNumber(newNumber);
+        monitorDeviceRepository.save(monitorDevice);
+        return new RestResponse("终端编号修改成功",null);
+    }
+
+    /**
+     * 修改飘零值
+     * @param principal
+     * @param code  终端编号
+     * @param zero  飘零值
+     * @return
+     */
+    @RequestMapping(value = "/modify/zero/{code}")
+    public RestResponse modifyZero(Principal principal,@PathVariable String code,@RequestParam String zero){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+        Pt100Zero pt100Zero=pt100ZeroRepository.findByCode(code);
+        if (pt100Zero!=null){
+            pt100Zero.setZeroValue(Double.valueOf(zero));
+            pt100ZeroRepository.save(pt100Zero);
+        }else {
+         Pt100Zero pt100Zero1=new Pt100Zero();
+            pt100Zero1.setCode(code);
+            pt100Zero1.setZeroValue(Double.valueOf(zero));
+            pt100ZeroRepository.save(pt100Zero1);
+        }
+        return new RestResponse("修改零飘值成功",null);
+    }
+
+    /**
+     * 选择版本接口
+     */
+    @RequestMapping(value = "/select/device/version")
+    public RestResponse selectDeviceVersion(Principal principal){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+        List<DeviceVersion> list=deviceVersionRepository.findAll();
+        if (list!=null&&list.size()>0)
+            return new RestResponse(list);
+        else
+            return new RestResponse("目前没有设备版本",1005,null);
+    }
+
+    /**
+     * 版本更新接口
+     */
+     @RequestMapping(value = "/update/device/version/{id}")
+    public RestResponse updateDeviceVersion(Principal principal,@PathVariable String id,@RequestParam String deviceVersionId){
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
+         Device device=deviceRepository.findById(Integer.valueOf(id));
+         if (device==null)
+             return new RestResponse("没有此设备",1005,null);
+         DeviceVersion deviceVersion=deviceVersionRepository.findById(Integer.valueOf(deviceVersionId));
+         if (deviceVersion==null)
+             return new RestResponse("没有此设备版本",1005,null);
+         device.setDeviceVersion(deviceVersion);
+         deviceRepository.save(device);
+         System.out.println(device);
+         return new RestResponse("版本更新成功",null);
+     }
 }
