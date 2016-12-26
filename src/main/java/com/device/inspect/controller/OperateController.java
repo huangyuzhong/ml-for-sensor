@@ -472,8 +472,7 @@ public class OperateController {
                     list=deviceTypeRepository.findAll();
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getCompany()==null){
-                                if (deviceType1.getName().equals(deviceTypeReq.getName()))
+                            if (deviceType1.getCompany()==null&&!deviceType1.getId().equals(deviceTypeReq.getId()) &&deviceType1.getName().equals(deviceTypeReq.getName())){
                                     return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
@@ -484,8 +483,8 @@ public class OperateController {
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getName().equals(deviceTypeReq.getName())){
-                                return new RestResponse("该设备种类名称已存在",1005,null);
+                            if (!deviceType1.getId().equals(deviceTypeReq.getId())&&deviceType1.getName().equals(deviceTypeReq.getName())){
+                                    return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
                     }
@@ -519,10 +518,11 @@ public class OperateController {
                 if (UserRoleDifferent.userStartWithService(user)){
                     List<DeviceType> list=new ArrayList<DeviceType>();
                     list=deviceTypeRepository.findAll();
-                    for (DeviceType deviceType1:list){
-                        if (deviceType1.getCompany()==null){
-                            if (deviceType1.getName().equals(deviceTypeReq.getName()))
-                                return new RestResponse("该设备种类名称已存在",1005,null);
+                    if (list!=null&&list.size()>0) {
+                        for (DeviceType deviceType1 : list) {
+                            if (deviceType1.getCompany() == null&&deviceType1.getName().equals(deviceTypeReq.getName())) {
+                                    return new RestResponse("该设备种类名称已存在", 1005, null);
+                            }
                         }
                     }
                 }else if (UserRoleDifferent.userFirmManagerConfirm(user)){
@@ -564,7 +564,7 @@ public class OperateController {
         } else {
             return new RestResponse("权限不足！",1005,null);
         }
-        return new RestResponse(new RestDeviceType(deviceType));
+        return new RestResponse("操作成功",new RestDeviceType(deviceType));
     }
 
     @RequestMapping(value = "/delete/file/{fileId}")
