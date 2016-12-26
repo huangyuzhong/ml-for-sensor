@@ -511,5 +511,7 @@ create table `pt100_zero`(
   PRIMARY KEY (`id`)
 );
 
+ALTER TABLE `device` ADD `device_version_id` INT NULL;
+ALTER TABLE `device` ADD CONSTRAINT `device_5` FOREIGN KEY (`device_version_id`) REFERENCES `device_version` (`id`);
 
 SET FOREIGN_KEY_CHECKS=1;

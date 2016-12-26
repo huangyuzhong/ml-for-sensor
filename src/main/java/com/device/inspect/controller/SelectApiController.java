@@ -331,7 +331,7 @@ public class SelectApiController {
     }
 
 
-    
+
     /**
      * 平台用户查询设备列表
      * @return
