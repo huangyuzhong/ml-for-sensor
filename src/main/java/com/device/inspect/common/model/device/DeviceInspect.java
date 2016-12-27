@@ -19,6 +19,8 @@ public class DeviceInspect {
     private Float highDown;
     private Integer lowAlter;
     private String name;
+    private Float zero;
+    private Float realValue;
 
     @Id
     @GeneratedValue()
@@ -110,5 +112,22 @@ public class DeviceInspect {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Float getZero() {
+        return zero;
+    }
+
+    public void setZero(Float zero) {
+        this.zero = zero;
+    }
+
+    @Column(name = "real_value")
+    public Float getRealValue() {
+        return realValue;
+    }
+
+    public void setRealValue(Float realValue) {
+        this.realValue = realValue;
     }
 }

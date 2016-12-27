@@ -509,3 +509,8 @@ create table `pt100_zero`(
   `zero_value`  DECIMAL(5,2) NULL,
   PRIMARY KEY (`id`)
 );
+
+ALTER TABLE `device_inspect` ADD COLUMN `zero`  FLOAT NULL DEFAULT 0 ;
+
+ALTER TABLE `device_inspect` ADD COLUMN `real_value`  FLOAT NULL DEFAULT 0 ;
+

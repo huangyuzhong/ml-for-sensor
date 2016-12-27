@@ -31,7 +31,6 @@ public class DeviceQuery extends Querier<Device> {
                 return cb.equal(deviceRoot.get("code"), object);
             }
         });
-
         queryFilterMap.put("name", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {

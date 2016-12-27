@@ -23,6 +23,7 @@ import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
+import com.device.inspect.common.restful.device.RestDeviceInspect;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
@@ -361,7 +362,7 @@ public class OperateController {
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
-        //判断用户是企业管理员还是平台管理员
+        //判断用户是企业管理员
         if (UserRoleDifferent.userFirmManagerConfirm(user)){
             Company company=user.getCompany();
             List<User> list=userRepository.findByCompanyId(company.getId());
@@ -371,7 +372,9 @@ public class OperateController {
                         return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
                 }
             }
-        }else if (UserRoleDifferent.userServiceManagerConfirm(user)){
+        }
+        //判断用户是平台管理员
+        if (UserRoleDifferent.userServiceManagerConfirm(user)){
             List<User> list=userRepository.findAll();
             if (list!=null&&list.size()>0){
                 for (User user2:list){
@@ -972,30 +975,6 @@ public class OperateController {
         return new RestResponse("终端编号修改成功",null);
     }
 
-    /**
-     * 修改飘零值
-     * @param principal
-     * @param code  终端编号
-     * @param zero  飘零值
-     * @return
-     */
-    @RequestMapping(value = "/modify/zero/{code}")
-    public RestResponse modifyZero(Principal principal,@PathVariable String code,@RequestParam String zero){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
-        Pt100Zero pt100Zero=pt100ZeroRepository.findByCode(code);
-        if (pt100Zero!=null){
-            pt100Zero.setZeroValue(Double.valueOf(zero));
-            pt100ZeroRepository.save(pt100Zero);
-        }else {
-         Pt100Zero pt100Zero1=new Pt100Zero();
-            pt100Zero1.setCode(code);
-            pt100Zero1.setZeroValue(Double.valueOf(zero));
-            pt100ZeroRepository.save(pt100Zero1);
-        }
-        return new RestResponse("修改零飘值成功",null);
-    }
 
     /**
      * 选择版本接口
@@ -1031,4 +1010,52 @@ public class OperateController {
          System.out.println(device);
          return new RestResponse("版本更新成功",null);
      }
+
+    /**
+     * 零票设置
+     * @param principal
+     * @param id  设备的id
+     * @return
+     */
+     @RequestMapping(value = "/set/zero/{id}")
+    public RestResponse setZero(Principal principal,@PathVariable String id){
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
+         List<DeviceInspect> list=new ArrayList<DeviceInspect>();
+         list = deviceInspectRepository.findByDeviceId(Integer.valueOf(id));
+         List<RestDeviceInspect> deviceInspectList=new ArrayList<RestDeviceInspect>();
+         if (list!=null&&list.size()>0) {
+             for (DeviceInspect deviceInspect : list) {
+                 deviceInspectList.add(new RestDeviceInspect(deviceInspect));
+             }
+             return new RestResponse(deviceInspectList);
+         }
+         else
+             return new RestResponse("此设备没有添加参数",1005,null);
+     }
+
+    /**
+     * 修改零票值
+     * @param principal
+     * @param id   device_inspect的id
+     * @param zero 零票值
+     * @return
+     */
+     @RequestMapping(value = "/modify/zero/{id}")
+    public RestResponse modifyZero(Principal principal,@PathVariable String id,@RequestParam String zero){
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
+         DeviceInspect deviceInspect=deviceInspectRepository.findById(Integer.valueOf(id));
+         if (deviceInspect==null)
+             return new RestResponse("传感器不存在",1005,null);
+         if (zero==null||"".equals(zero))
+             return new RestResponse("零票值不正确",1005,null);
+         deviceInspect.setZero(Float.valueOf(zero));
+         deviceInspectRepository.save(deviceInspect);
+         return new RestResponse("零漂值修改成功",null);
+     }
+
+
 }
