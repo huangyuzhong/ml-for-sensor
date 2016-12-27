@@ -510,7 +510,9 @@ create table `pt100_zero`(
   PRIMARY KEY (`id`)
 );
 
-ALTER TABLE `device_inspect` ADD COLUMN `zero`  FLOAT NULL DEFAULT 0 ;
+ALTER TABLE `device_inspect` ADD  `zero`  FLOAT NULL DEFAULT 0 ;
 
-ALTER TABLE `device_inspect` ADD COLUMN `real_value`  FLOAT NULL DEFAULT 0 ;
+
+ALTER TABLE `inspect_date` ADD  `real_value`  VARCHAR(255) NULL ;
+
 

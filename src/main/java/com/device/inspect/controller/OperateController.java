@@ -480,7 +480,8 @@ public class OperateController {
                             }
                         }
                     }
-                }else if (UserRoleDifferent.userFirmManagerConfirm(user)){
+                }
+                if (UserRoleDifferent.userFirmManagerConfirm(user)){
                     List<DeviceType> list=new ArrayList<DeviceType>();
                     Company company=user.getCompany();
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
@@ -492,6 +493,8 @@ public class OperateController {
                         }
                     }
                 }
+                if (deviceTypeReq.getName()==null||"".equals(deviceTypeReq.getName()))
+                    return new RestResponse("设备种类名称不能为空",1005,null);
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
 //                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
@@ -528,7 +531,8 @@ public class OperateController {
                             }
                         }
                     }
-                }else if (UserRoleDifferent.userFirmManagerConfirm(user)){
+                }
+                if (UserRoleDifferent.userFirmManagerConfirm(user)){
                     List<DeviceType> list=new ArrayList<DeviceType>();
                     Company company=user.getCompany();
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
@@ -561,7 +565,8 @@ public class OperateController {
                             deviceTypeInspects.add(deviceTypeInspect);
                         }
                     }
-                }
+                }else
+                    return new RestResponse("设备参数为空",1005,null);
                 deviceTypeInspectRepository.save(deviceTypeInspects);
             }
         } else {
@@ -1056,6 +1061,5 @@ public class OperateController {
          deviceInspectRepository.save(deviceInspect);
          return new RestResponse("零漂值修改成功",null);
      }
-
 
 }

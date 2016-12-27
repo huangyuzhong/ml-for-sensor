@@ -26,7 +26,6 @@ public class RestDeviceInspect {
     private String value;
     private String end;
     private Float zero;
-    private Float realValue;
 
     public RestDeviceInspect() {
     }
@@ -51,7 +50,6 @@ public class RestDeviceInspect {
             this.value = "1";
         }
         this.zero=deviceInspect.getZero();
-        this.realValue=deviceInspect.getRealValue();
 
     }
 
@@ -159,11 +157,4 @@ public class RestDeviceInspect {
         this.zero = zero;
     }
 
-    public Float getRealValue() {
-        return realValue;
-    }
-
-    public void setRealValue(Float realValue) {
-        this.realValue = realValue;
-    }
 }
