@@ -144,7 +144,7 @@ public class FileController {
                 Building building = new Building();
                 //wkj添加  设置开关
                 boolean b=false;
-                //wkj添加 更具用户获取企业
+                //wkj添加 根据用户获取企业
                 Company company=user.getCompany();
                 //wkj添加
                 List<Building> list=new ArrayList<Building>();
@@ -157,7 +157,7 @@ public class FileController {
                         //修改楼名称
                         if (list!=null&&list.size()>0){
                             for (Building building1:list){
-                                if (building1.getName().equals(param.get("name"))){
+                                if (building1.getName()!=null&&!"".equals(building1.getName())&&building1.getName().equals(param.get("name"))){
                                     b=true;
                                     break;
                                 }
@@ -171,7 +171,7 @@ public class FileController {
                     //wkj添加
                     if (list!=null&&list.size()>0){
                         for (Building building2:list){
-                            if (building2.getName().equals(param.get("name"))){
+                            if (building2.getName()!=null&&!"".equals(building2.getName())&&building2.getName().equals(param.get("name"))){
                                 b=true;
                                 break;
                             }
@@ -182,7 +182,7 @@ public class FileController {
                 if (b){
                     restResponse=new RestResponse("该名称已经存在",1005,null);
                 }else {
-                    //楼名称不存在
+                    //楼名称不存在重复
                     building.setEnable(1);
                     building.setName(null == param.get("name") ? null : param.get("name"));
                     building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
@@ -325,7 +325,7 @@ public class FileController {
                 if (!floor.getName().equals(param.get("name"))){
                     if (list!=null&&list.size()>0){
                         for (Storey storey:list){
-                            if (storey.getName().equals(param.get("name"))){
+                            if (storey.getName()!=null&&!"".equals(storey.getName())&&storey.getName().equals(param.get("name"))){
                                 b=true;
                                 break;
                             }
@@ -338,7 +338,7 @@ public class FileController {
                 floor.setDeviceNum(0);
                 if (list!=null&&list.size()>0){
                     for (Storey storey:list){
-                        if (storey.getName().equals(param.get("name"))){
+                        if (storey.getName()!=null&&!"".equals(storey.getName())&&storey.getName().equals(param.get("name"))){
                             b=true;
                             break;
                         }
@@ -470,7 +470,7 @@ public class FileController {
             if (null==room||null==deviceType)
                 throw new RuntimeException("信息有误！");
             if(null == param.get("monitorCode")||"".equals(param.get("monitorCode")))
-                throw new RuntimeException("终端信号为空！");
+                throw new RuntimeException("终端编号为空！");
             MonitorDevice monitorDevice = null;
             monitorDevice = monitorDeviceRepository.findByNumber(param.get("monitorCode"));
             if (null!=monitorDevice)
@@ -618,7 +618,7 @@ public class FileController {
                 if (!room.getName().equals(param.get("name"))){
                     if (list!=null&&list.size()>0){
                         for (Room room1:list){
-                            if (room1.getName().equals(param.get("name"))){
+                            if (room1.getName()!=null&&!"".equals(room1.getName())&&room1.getName().equals(param.get("name"))){
                                 b=true;
                                 break;
                             }
@@ -630,7 +630,7 @@ public class FileController {
                 room.setDeviceNum(0);
                 if (list!=null&&list.size()>0){
                     for (Room room2:list){
-                        if (room2.getName().equals(param.get("name"))){
+                        if (room2.getName()!=null&&!"".equals(room2.getName())&&room2.getName().equals(param.get("name"))){
                             b=true;
                             break;
                         }
@@ -873,8 +873,14 @@ public class FileController {
                 company = new Company();
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
-                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account")))
+                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
+                    restResponse=new RestResponse("企业名不能为空",1005,null);
+                    out.print(JSON.toJSONString(restResponse));
+                    out.flush();
+                    out.close();
                     throw new RuntimeException("企业名不能为空");
+//                    return;
+                }
                 company.setName(param.get("name"));
 
                 company.setAddress(param.get("address"));
@@ -889,8 +895,14 @@ public class FileController {
                 }
                 company.setEnable(1);
                 firmManager = userRepository.findByName(param.get("account"));
-                if (null!=firmManager)
+                if (null!=firmManager) {
+                    restResponse=new RestResponse("创建失败，管理员账号已存在！",1005,null);
+                    out.print(JSON.toJSONString(restResponse));
+                    out.flush();
+                    out.close();
                     throw new RuntimeException("创建失败，管理员账号已存在！");
+//                    return;
+                }
 
                 companyRepository.save(company);
                 firmManager = new User();
@@ -909,8 +921,14 @@ public class FileController {
                 company.setManager(firmManager);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
-                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account")))
+                if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
                     throw new RuntimeException("企业名不能为空");
+//                    restResponse=new RestResponse("企业名不能为空",1005,null);
+//                    out.print(JSON.toJSONString(restResponse));
+//                    out.flush();
+//                    out.close();
+//                    return;
+                }
                 company.setName(param.get("name"));
 
                 company.setAddress(param.get("address"));
@@ -924,8 +942,14 @@ public class FileController {
                     }
                 }
                 firmManager = userRepository.findByName(param.get("account"));
-                if (null == firmManager)
+                if (null == firmManager) {
+                    restResponse=new RestResponse("修改失败，管理员账号不存在！",1005,null);
+                    out.print(JSON.toJSONString(restResponse));
+                    out.flush();
+                    out.close();
                     throw new RuntimeException("修改失败，管理员账号不存在！");
+//                    return;
+                }
                 companyRepository.save(company);
                 firmManager = company.getManager();
                 firmManager.setName(param.get("account"));
@@ -1165,7 +1189,8 @@ public class FileController {
                     //上传文件
                     uploadVersionFile(deviceVersion, request, response);
                     //设置路径
-                    deviceVersion.getUrl();
+                    String  suffix= deviceVersion.getUrl();
+                    System.out.println();
                     //更新数据库
                     deviceVersionRepository.save(deviceVersion);
                     out.print(JSON.toJSONString(new RestResponse("版本更新文件上传成功!", 0)));

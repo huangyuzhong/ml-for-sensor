@@ -362,7 +362,7 @@ public class OperateController {
         User judge = userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
-        //判断用户是企业管理员
+        //判断用户是企业管理员，同一个企业的的用户工号不能相同，
         if (UserRoleDifferent.userFirmManagerConfirm(user)){
             Company company=user.getCompany();
             List<User> list=userRepository.findByCompanyId(company.getId());
@@ -378,7 +378,8 @@ public class OperateController {
             List<User> list=userRepository.findAll();
             if (list!=null&&list.size()>0){
                 for (User user2:list){
-                    if (UserRoleDifferent.userServiceWorkerConfirm(user2)){
+                    //判断用户是不是平台用户
+                    if (UserRoleDifferent.userStartWithService(user2)){
                         if (user2.getJobNum()!=null&&!"".equals(user2.getJobNum())&&map.get("jobNum").equals(user2.getJobNum()))
                             return new RestResponse("该工号已经存在，请勿重复添加",1005,null);
                     }
@@ -460,6 +461,8 @@ public class OperateController {
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
 
         if (UserRoleDifferent.userFirmManagerConfirm(user)||UserRoleDifferent.userStartWithService(user)) {
+            if (deviceTypeReq.getName()==null||"".equals(deviceTypeReq.getName()))
+                return new RestResponse("设备种类名称不能为空",1005,null);
             if (null != deviceTypeReq.getId()) {
                 deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
                 if (null==deviceType)
@@ -475,7 +478,7 @@ public class OperateController {
                     list=deviceTypeRepository.findAll();
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getCompany()==null&&!deviceType1.getId().equals(deviceTypeReq.getId()) &&deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (deviceType1.getCompany()==null&&deviceType1.getName()!=null&&!deviceType1.getId().equals(deviceTypeReq.getId()) &&deviceType1.getName().equals(deviceTypeReq.getName())){
                                     return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
@@ -487,14 +490,12 @@ public class OperateController {
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (!deviceType1.getId().equals(deviceTypeReq.getId())&&deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (!deviceType1.getId().equals(deviceTypeReq.getId())&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())){
                                     return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
                     }
                 }
-                if (deviceTypeReq.getName()==null||"".equals(deviceTypeReq.getName()))
-                    return new RestResponse("设备种类名称不能为空",1005,null);
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
 //                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
@@ -526,7 +527,7 @@ public class OperateController {
                     list=deviceTypeRepository.findAll();
                     if (list!=null&&list.size()>0) {
                         for (DeviceType deviceType1 : list) {
-                            if (deviceType1.getCompany() == null&&deviceType1.getName().equals(deviceTypeReq.getName())) {
+                            if (deviceType1.getCompany() == null&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())) {
                                     return new RestResponse("该设备种类名称已存在", 1005, null);
                             }
                         }
@@ -538,7 +539,7 @@ public class OperateController {
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())){
                                 return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
@@ -549,6 +550,7 @@ public class OperateController {
                     deviceType.setCompany(user.getCompany());
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
+                System.out.println("deviceTypeReq.getList().size()："+deviceTypeReq.getList().size());
                 if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
                     for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
                         if (inspectTypeRequest.isChosed()){
@@ -565,8 +567,7 @@ public class OperateController {
                             deviceTypeInspects.add(deviceTypeInspect);
                         }
                     }
-                }else
-                    return new RestResponse("设备参数为空",1005,null);
+                }
                 deviceTypeInspectRepository.save(deviceTypeInspects);
             }
         } else {
