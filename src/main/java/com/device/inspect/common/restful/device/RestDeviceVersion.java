@@ -21,6 +21,7 @@ public class RestDeviceVersion {
     private String type;
     private Date createDate;
     private String fileName;
+    private String message;
 
     public RestDeviceVersion(@NotNull DeviceVersion deviceVersion) {
         this.id=deviceVersion.getId();
@@ -33,6 +34,7 @@ public class RestDeviceVersion {
         this.type=deviceVersion.getType();
         this.createDate=deviceVersion.getCreateDate();
         this.fileName=deviceVersion.getFileName();
+        this.message=deviceVersion.getMessage();
     }
 
     public Integer getId() {
@@ -113,5 +115,13 @@ public class RestDeviceVersion {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

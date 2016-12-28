@@ -25,6 +25,7 @@ import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceInspect;
 import com.device.inspect.common.restful.device.RestDeviceType;
+import com.device.inspect.common.restful.device.RestDeviceVersion;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
@@ -448,6 +449,8 @@ public class OperateController {
             user.setTelephone(param.get("telephone"));
         if (null!=param.get("email"))
             user.setEmail(param.get("email"));
+        if (null!=param.get("removeAlert")&&!"".equals(param.get("removeAlert")))
+            user.setRemoveAlert(param.get("removeAlert"));
         userRepository.save(user);
         return new RestResponse(new RestUser(user));
     }
@@ -1015,6 +1018,23 @@ public class OperateController {
          deviceRepository.save(device);
          System.out.println(device);
          return new RestResponse("版本更新成功",null);
+     }
+
+    /**
+     * 硬件版本说明接口
+     * @param principal
+     * @param id 版本的id
+     * @return
+     */
+     @RequestMapping(value = "/device/version/explain/{id}")
+     public RestResponse versionExplain(Principal principal,@PathVariable String id){
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
+         DeviceVersion deviceVersion=deviceVersionRepository.findById(Integer.valueOf(id));
+         if (deviceVersion==null)
+             return new RestResponse("硬件版本不正确",1005,null);
+         return new RestResponse(new RestDeviceVersion(deviceVersion));
      }
 
     /**

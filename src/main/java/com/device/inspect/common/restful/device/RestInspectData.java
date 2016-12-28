@@ -56,6 +56,7 @@ public class RestInspectData {
 
         }
         this.realValue=inspectData.getRealValue();
+//        this.realValue=inspectData.getResult()-inspectData.getDeviceInspect().getZero();
     }
 
     public Integer getId() {

@@ -515,4 +515,8 @@ ALTER TABLE `device_inspect` ADD  `zero`  FLOAT NULL DEFAULT 0 ;
 
 ALTER TABLE `inspect_date` ADD  `real_value`  VARCHAR(255) NULL ;
 
+ALTER TABLE `device_version` ADD `message` VARCHAR(255) NULL;
+
+ALTER TABLE `users` ADD `remove_alert` VARCHAR(255) NULL DEFAULT 0;
+
 

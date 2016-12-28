@@ -19,6 +19,7 @@ public class DeviceVersion {
     private String type;
     private Date createDate;
     private String fileName;
+    private String message;
 
     @Id
     @GeneratedValue()
@@ -103,5 +104,13 @@ public class DeviceVersion {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

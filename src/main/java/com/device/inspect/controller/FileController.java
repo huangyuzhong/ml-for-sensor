@@ -1130,6 +1130,7 @@ public class FileController {
                                       HttpServletRequest request,HttpServletResponse response) throws IOException {
         //判断是否登陆
         User user=judgeByPrincipal(principal);
+        response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         try {
             //平台管理员的判定
@@ -1184,15 +1185,26 @@ public class FileController {
                         return;
                     }
                     deviceVersion.setCreateDate(new Date());
+                    uploadVersionFile(deviceVersion, request, response);
+                    String  suffix= deviceVersion.getUrl();
+                    System.out.println("suffix："+suffix);
+                    if (!suffix.endsWith(".tar.gz")){
+                        out.print(JSON.toJSONString(new RestResponse("文件格式不正确，请上传以.tar.gz为后缀的文件",1005,null )));
+                        out.flush();
+                        out.close();
+                        return;
+                    }
+                    if (param.get("message")!=null&&!"".equals(param.get("message")))
+                        deviceVersion.setMessage(param.get("message"));
                     //保存到数据库
                     deviceVersion=deviceVersionRepository.save(deviceVersion);
                     //上传文件
-                    uploadVersionFile(deviceVersion, request, response);
-                    //设置路径
-                    String  suffix= deviceVersion.getUrl();
-                    System.out.println();
-                    //更新数据库
-                    deviceVersionRepository.save(deviceVersion);
+//                    uploadVersionFile(deviceVersion, request, response);
+//                    //设置路径
+//                    String  suffix= deviceVersion.getUrl();
+//                    System.out.println();
+//                    //更新数据库
+//                    deviceVersionRepository.save(deviceVersion);
                     out.print(JSON.toJSONString(new RestResponse("版本更新文件上传成功!", 0)));
                 }else {
                     out.print(JSON.toJSONString(new RestResponse("硬件版本参数为空", 0)));

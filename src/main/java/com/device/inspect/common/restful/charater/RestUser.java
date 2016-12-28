@@ -38,6 +38,7 @@ public class RestUser {
     private String companyLogo;
     private String roleNames;
     private String companyId;
+    private String removeAlert;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -74,6 +75,7 @@ public class RestUser {
                     roleNames+=role.getRoleAuthority().getRoleName()+" ";
             }
         }
+        this.removeAlert=user.getRemoveAlert();
     }
 
 
@@ -244,5 +246,13 @@ public class RestUser {
 
     public void setCompanyId(String companyId) {
         this.companyId = companyId;
+    }
+
+    public String getRemoveAlert() {
+        return removeAlert;
+    }
+
+    public void setRemoveAlert(String removeAlert) {
+        this.removeAlert = removeAlert;
     }
 }
