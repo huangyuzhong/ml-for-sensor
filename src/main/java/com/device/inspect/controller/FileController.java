@@ -496,6 +496,8 @@ public class FileController {
             device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
             device.setEnable(1);
             device.getRoom().setTotal(device.getRoom().getTotal()+1);
+            device.getRoom().getFloor().setTotal(device.getRoom().getFloor().getTotal()+1);
+            device.getRoom().getFloor().getBuild().setTotal(device.getRoom().getFloor().getBuild().getTotal()+1);
             deviceRepository.save(device);
             monitorDevice = new MonitorDevice();
             monitorDevice.setBattery("100");

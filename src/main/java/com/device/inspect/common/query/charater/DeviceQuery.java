@@ -67,7 +67,13 @@ public class DeviceQuery extends Querier<Device> {
                 return cb.equal(deviceRoot.get("manager").get("company").get("name"),object);
             }
         });
-
+        //根据设备种类查询
+//        queryFilterMap.put("unitType", new DeviceQueryFilter() {
+//            @Override
+//            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+//                return cb.equal(deviceRoot.get("deviceType").get("name"),object);
+//            }
+//        });
         queryFilterMap.put("enable", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {

@@ -1088,4 +1088,11 @@ public class OperateController {
          return new RestResponse("零漂值修改成功",null);
      }
 
+     @RequestMapping(value = "/is/login")
+    public RestResponse isLogin(Principal principal){
+         if(principal!=null)
+             return new RestResponse("已有用户登陆",1005,null);
+         return new RestResponse("无用户登陆登陆",null);
+     }
+
 }
