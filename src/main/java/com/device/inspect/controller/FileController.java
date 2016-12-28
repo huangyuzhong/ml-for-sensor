@@ -495,6 +495,7 @@ public class FileController {
             device.setPushType("短信");
             device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
             device.setEnable(1);
+            device.getRoom().setTotal(device.getRoom().getTotal()+1);
             deviceRepository.save(device);
             monitorDevice = new MonitorDevice();
             monitorDevice.setBattery("100");

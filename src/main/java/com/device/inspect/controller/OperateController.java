@@ -307,10 +307,15 @@ public class OperateController {
      * 修改单个设备的参数
      */
     @RequestMapping(value = "/device/parameter/{deviceId}")
-    public RestResponse operateDeviceData(@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
+    public RestResponse operateDeviceData(Principal principal,@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登录",1005,null);
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
+        if (user!=device.getManager())
+            return new RestResponse("只有设备管理员可以修改设备参数",1005,null);
         if (null!=request.getList()&&request.getList().size()>0){
             for (InspectTypeRequest inspectTypeRequest:request.getList()){
                 DeviceInspect deviceInspect = deviceInspectRepository.
