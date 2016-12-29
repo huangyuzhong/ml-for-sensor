@@ -263,7 +263,8 @@ public class OperateController {
         if (null!=map.get("xPoint")&&!"".equals(map.get("xPoint")))
             device.setxPoint(Float.valueOf(map.get("xPoint")));
         if (null!=map.get("yPoint")&&!"".equals(map.get("yPoint")))
-            device.setyPoint(Float.valueOf(map.get("ypoint")));
+            device.setyPoint(Float.valueOf(map.get("yPoint")));
+        //添加科学家
         if (null!=map.get("scientist")){
             String[] scientist = map.get("scientist").split(",");
             for (String id:scientist){
