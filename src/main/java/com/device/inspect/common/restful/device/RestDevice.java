@@ -308,4 +308,5 @@ public class RestDevice {
     public void setDeviceVersion(RestDeviceVersion deviceVersion) {
         this.deviceVersion = deviceVersion;
     }
+
 }

@@ -101,6 +101,9 @@ public class SelectApiController {
 
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登录",1005,null);
         User user = userRepository.findOne(userId);
         if (null==user)
             return new RestResponse("user not found!",1005,null);
@@ -110,6 +113,8 @@ public class SelectApiController {
     @RequestMapping(value = "/person/mine/info")
     public RestResponse getMyMessage(Principal principal){
         User user = judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户为登陆",1005,null);
         return new RestResponse(new RestUser(user));
     }
 
@@ -131,6 +136,9 @@ public class SelectApiController {
 
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
      public RestResponse getFloors(Principal principal,@RequestParam Map<String,String> map) {
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
          String buildId = map.get("buildId");
          Building build = null;
          if (null!=buildId){
