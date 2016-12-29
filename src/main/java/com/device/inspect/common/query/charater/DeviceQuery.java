@@ -71,7 +71,7 @@ public class DeviceQuery extends Querier<Device> {
         queryFilterMap.put("unitType", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("deviceType").get("name"),object);
+                return cb.equal(deviceRoot.get("deviceType").get("id"),object);
             }
         });
         queryFilterMap.put("enable", new DeviceQueryFilter() {
