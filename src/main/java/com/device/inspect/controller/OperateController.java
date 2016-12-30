@@ -1059,6 +1059,8 @@ public class OperateController {
         if (multi==null)
             return new RestResponse("设备选择有误",1005,null);
         for (String str:multi){
+            if (str==null||"".equals(str))
+                continue;
             Device device=deviceRepository.findById(Integer.valueOf(str));
             if (device==null)
                 continue;
