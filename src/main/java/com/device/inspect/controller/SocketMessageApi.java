@@ -164,13 +164,13 @@ public class SocketMessageApi {
                     float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
 
                     float b=Float.valueOf(temperature1)-(k*resistance1);
-                  
+
                     //将温度存入record
                     record = k*r+b;
                     System.out.println("测量原值："+record);
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
-
+                    System.out.println("矫正值："+deviceInspect.getZero());
                     //添加矫正值
                     check=record-(deviceInspect.getZero());
                     System.out.println("矫正值："+check);
