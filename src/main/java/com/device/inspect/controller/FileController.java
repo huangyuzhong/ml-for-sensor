@@ -188,45 +188,52 @@ public class FileController {
                     building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                     building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
                     buildingRepository.save(building);
-                    try {
-                        MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                        MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                        Set<String> keys = map.keySet();
-                        for (String key : keys) {
-                            JSONObject jobj = new JSONObject();
-                            String path = "";
+                    String pic=param.get("pic");
+                    if (pic.equals("0")){
+                        System.out.println("上传图片");
+                        try {
+                            MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                            MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                            Set<String> keys = map.keySet();
+                            for (String key : keys) {
+                                JSONObject jobj = new JSONObject();
+                                String path = "";
 
-                            path = request.getSession().getServletContext().getRealPath("/") + "photo/company/build/"+building.getId()+"/";
-                            File add = new File(path);
-                            if (!add.exists() && !add.isDirectory()) {
-                                add.mkdirs();
-                            }
-
-                            List<MultipartFile> files = map.get(key);
-                            if (null != files && files.size() > 0) {
-                                MultipartFile file = files.get(0);
-                                String fileName  = file.getOriginalFilename();
-//                            String fileName = UUID.randomUUID().toString() + ".jpg";
-                                InputStream is = file.getInputStream();
-                                File f = new File(path + fileName);
-                                FileOutputStream fos = new FileOutputStream(f);
-                                int hasRead = 0;
-                                byte[] buf = new byte[1024];
-                                while ((hasRead = is.read(buf)) > 0) {
-                                    fos.write(buf, 0, hasRead);
+                                path = request.getSession().getServletContext().getRealPath("/") + "photo/company/build/"+building.getId()+"/";
+                                File add = new File(path);
+                                if (!add.exists() && !add.isDirectory()) {
+                                    add.mkdirs();
                                 }
-                                fos.close();
-                                is.close();
 
-                                building.setBackground("/photo/company/build/"+building.getId()+"/" + fileName);
+                                List<MultipartFile> files = map.get(key);
+                                if (null != files && files.size() > 0) {
+                                    MultipartFile file = files.get(0);
+                                    String fileName  = file.getOriginalFilename();
+//                            String fileName = UUID.randomUUID().toString() + ".jpg";
+                                    InputStream is = file.getInputStream();
+                                    File f = new File(path + fileName);
+                                    FileOutputStream fos = new FileOutputStream(f);
+                                    int hasRead = 0;
+                                    byte[] buf = new byte[1024];
+                                    while ((hasRead = is.read(buf)) > 0) {
+                                        fos.write(buf, 0, hasRead);
+                                    }
+                                    fos.close();
+                                    is.close();
+
+                                    building.setBackground("/photo/company/build/"+building.getId()+"/" + fileName);
 //                        userRepository.save(user);
+                                }
+
+
                             }
-
-
+                        }catch (ClassCastException e){
+                            e.printStackTrace();
                         }
-                    }catch (ClassCastException e){
-                        e.printStackTrace();
+                    }else {
+                        System.out.println("没有上传图片");
                     }
+
                     buildingRepository.save(building);
                     restResponse = new RestResponse("操作成功！",new RestBuilding(building));
 
@@ -354,43 +361,52 @@ public class FileController {
                 floor.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
                 floor.setEnable(1);
                 storeyRepository.save(floor);
-                try {
-                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                    Set<String> keys = map.keySet();
-                    for (String key : keys) {
-                        JSONObject jobj = new JSONObject();
-                        String path = "";
+                //用来判断是否上传图片  0是上传图片  1是没有上传图片
+                String pic=param.get("pic");
+                System.out.println("pic："+pic);
+                if (pic.equals("0")){
+                    System.out.println("上传图片："+pic);
+                    try {
+                        MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                        MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                        Set<String> keys = map.keySet();
+                        for (String key : keys) {
+                            JSONObject jobj = new JSONObject();
+                            String path = "";
 
-                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/floor/"+floor.getId()+"/";
-                        File add = new File(path);
-                        if (!add.exists() && !add.isDirectory()) {
-                            add.mkdirs();
-                        }
-
-                        List<MultipartFile> files = map.get(key);
-                        if (null != files && files.size() > 0) {
-                            MultipartFile file = files.get(0);
-                            String fileName  = file.getOriginalFilename();
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                            InputStream is = file.getInputStream();
-                            File f = new File(path + fileName);
-                            FileOutputStream fos = new FileOutputStream(f);
-                            int hasRead = 0;
-                            byte[] buf = new byte[1024];
-                            while ((hasRead = is.read(buf)) > 0) {
-                                fos.write(buf, 0, hasRead);
+                            path = request.getSession().getServletContext().getRealPath("/") + "photo/company/floor/"+floor.getId()+"/";
+                            File add = new File(path);
+                            if (!add.exists() && !add.isDirectory()) {
+                                add.mkdirs();
                             }
-                            fos.close();
-                            is.close();
 
-                            floor.setBackground("/photo/company/floor/" +floor.getId()+"/"+ fileName);
+                            List<MultipartFile> files = map.get(key);
+                            if (null != files && files.size() > 0) {
+                                MultipartFile file = files.get(0);
+                                String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                                InputStream is = file.getInputStream();
+                                File f = new File(path + fileName);
+                                FileOutputStream fos = new FileOutputStream(f);
+                                int hasRead = 0;
+                                byte[] buf = new byte[1024];
+                                while ((hasRead = is.read(buf)) > 0) {
+                                    fos.write(buf, 0, hasRead);
+                                }
+                                fos.close();
+                                is.close();
+
+                                floor.setBackground("/photo/company/floor/" +floor.getId()+"/"+ fileName);
 //                    userRepository.save(user);
+                            }
                         }
+                    }catch (ClassCastException e){
+                        e.printStackTrace();
                     }
-                }catch (ClassCastException e){
-                    e.printStackTrace();
+                }else {
+                    System.out.println("没有上传图片："+pic);
                 }
+
                 storeyRepository.save(floor);
                 restResponse = new RestResponse("操作成功！",new RestFloor(floor));
             }
@@ -553,44 +569,51 @@ public class FileController {
                     deviceInspectRepository.save(deviceInspect);
                 }
             }
+            String pic=param.get("pic");
+            System.out.println("pic："+pic);
+            if (pic.equals("0")){
+                System.out.println("上传图片pic："+pic);
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        JSONObject jobj = new JSONObject();
+                        String path = "";
 
-            try {
-                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                Set<String> keys = map.keySet();
-                for (String key : keys) {
-                    JSONObject jobj = new JSONObject();
-                    String path = "";
-
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
-                    File add = new File(path);
-                    if (!add.exists() && !add.isDirectory()) {
-                        add.mkdirs();
-                    }
-
-                    List<MultipartFile> files = map.get(key);
-                    if (null != files && files.size() > 0) {
-                        MultipartFile file = files.get(0);
-                        String fileName  = file.getOriginalFilename();
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                        InputStream is = file.getInputStream();
-                        File f = new File(path + fileName);
-                        FileOutputStream fos = new FileOutputStream(f);
-                        int hasRead = 0;
-                        byte[] buf = new byte[1024];
-                        while ((hasRead = is.read(buf)) > 0) {
-                            fos.write(buf, 0, hasRead);
+                        path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
+                        File add = new File(path);
+                        if (!add.exists() && !add.isDirectory()) {
+                            add.mkdirs();
                         }
-                        fos.close();
-                        is.close();
 
-                        device.setPhoto("/photo/device/" +device.getId()+"/"+ fileName);
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                            InputStream is = file.getInputStream();
+                            File f = new File(path + fileName);
+                            FileOutputStream fos = new FileOutputStream(f);
+                            int hasRead = 0;
+                            byte[] buf = new byte[1024];
+                            while ((hasRead = is.read(buf)) > 0) {
+                                fos.write(buf, 0, hasRead);
+                            }
+                            fos.close();
+                            is.close();
+
+                            device.setPhoto("/photo/device/" +device.getId()+"/"+ fileName);
 //                    userRepository.save(user);
+                        }
                     }
+                }catch (ClassCastException e){
+                    e.printStackTrace();
                 }
-            }catch (ClassCastException e){
-                e.printStackTrace();
+            }else {
+                System.out.println("没有上传图片pic："+pic);
             }
+
             deviceRepository.save(device);
             device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
             roomRepository.save(device.getRoom());
@@ -664,43 +687,51 @@ public class FileController {
                 room.setyPoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
                 room.setEnable(1);
                 roomRepository.save(room);
-                try {
-                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                    Set<String> keys = map.keySet();
-                    for (String key : keys) {
-                        JSONObject jobj = new JSONObject();
-                        String path = "";
+                String pic=param.get("pic");
+                System.out.println("pic："+pic);
+                if (pic.equals("0")){
+                    System.out.println("上传图片pic："+pic);
+                    try {
+                        MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                        MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                        Set<String> keys = map.keySet();
+                        for (String key : keys) {
+                            JSONObject jobj = new JSONObject();
+                            String path = "";
 
-                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
-                        File add = new File(path);
-                        if (!add.exists() && !add.isDirectory()) {
-                            add.mkdirs();
-                        }
-
-                        List<MultipartFile> files = map.get(key);
-                        if (null != files && files.size() > 0) {
-                            MultipartFile file = files.get(0);
-                            String fileName  = file.getOriginalFilename();
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                            InputStream is = file.getInputStream();
-                            File f = new File(path + fileName);
-                            FileOutputStream fos = new FileOutputStream(f);
-                            int hasRead = 0;
-                            byte[] buf = new byte[1024];
-                            while ((hasRead = is.read(buf)) > 0) {
-                                fos.write(buf, 0, hasRead);
+                            path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
+                            File add = new File(path);
+                            if (!add.exists() && !add.isDirectory()) {
+                                add.mkdirs();
                             }
-                            fos.close();
-                            is.close();
 
-                            room.setBackground("/photo/company/room/"+room.getId() +"/"+ fileName);
-                        }
+                            List<MultipartFile> files = map.get(key);
+                            if (null != files && files.size() > 0) {
+                                MultipartFile file = files.get(0);
+                                String fileName  = file.getOriginalFilename();
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                                InputStream is = file.getInputStream();
+                                File f = new File(path + fileName);
+                                FileOutputStream fos = new FileOutputStream(f);
+                                int hasRead = 0;
+                                byte[] buf = new byte[1024];
+                                while ((hasRead = is.read(buf)) > 0) {
+                                    fos.write(buf, 0, hasRead);
+                                }
+                                fos.close();
+                                is.close();
+
+                                room.setBackground("/photo/company/room/"+room.getId() +"/"+ fileName);
+                            }
 //                    restResponse = new RestResponse("添加成功！",null);
+                        }
+                    }catch (ClassCastException e){
+                        e.printStackTrace();
                     }
-                }catch (ClassCastException e){
-                    e.printStackTrace();
+                }else {
+                    System.out.println("没有上传图片pic："+pic);
                 }
+
 
                 roomRepository.save(room);
                 restResponse = new RestResponse("操作成功！",new RestRoom(room));
@@ -978,46 +1009,53 @@ public class FileController {
             }
             company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
                     ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+            String pic=param.get("pic");
+            System.out.println("pic："+pic);
+            if (pic.equals("0")){
+                System.out.println("上传图片");
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        JSONObject jobj = new JSONObject();
+                        String path = "";
 
-            try {
-                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                Set<String> keys = map.keySet();
-                for (String key : keys) {
-                    JSONObject jobj = new JSONObject();
-                    String path = "";
-
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/"+company.getId()+"/";
-                    File add = new File(path);
-                    if (!add.exists() && !add.isDirectory()) {
-                        add.mkdirs();
-                    }
-
-                    List<MultipartFile> files = map.get(key);
-                    if (null != files && files.size() > 0) {
-                        MultipartFile file = files.get(0);
-                        String fileName  = file.getOriginalFilename();
-                        if (null==fileName||fileName.equals(""))
-                            break;
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                        InputStream is = file.getInputStream();
-                        File f = new File(path + fileName);
-                        FileOutputStream fos = new FileOutputStream(f);
-                        int hasRead = 0;
-                        byte[] buf = new byte[1024];
-                        while ((hasRead = is.read(buf)) > 0) {
-                            fos.write(buf, 0, hasRead);
+                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/"+company.getId()+"/";
+                        File add = new File(path);
+                        if (!add.exists() && !add.isDirectory()) {
+                            add.mkdirs();
                         }
-                        fos.close();
-                        is.close();
 
-                        company.setBackground("/photo/company/" +company.getId()+"/"+ fileName);
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName  = file.getOriginalFilename();
+                            if (null==fileName||fileName.equals(""))
+                                break;
+//                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                            InputStream is = file.getInputStream();
+                            File f = new File(path + fileName);
+                            FileOutputStream fos = new FileOutputStream(f);
+                            int hasRead = 0;
+                            byte[] buf = new byte[1024];
+                            while ((hasRead = is.read(buf)) > 0) {
+                                fos.write(buf, 0, hasRead);
+                            }
+                            fos.close();
+                            is.close();
+
+                            company.setBackground("/photo/company/" +company.getId()+"/"+ fileName);
+                        }
                     }
-                }
-            }catch (ClassCastException e){
-                e.printStackTrace();
+                }catch (ClassCastException e){
+                    e.printStackTrace();
 //                deviceType.setLogo("/photo/company/" + fileName);
+                }
+            }else {
+                System.out.println("没有上传图片");
             }
+
             companyRepository.save(company);
             restResponse = new RestResponse("操作成功！",new RestCompany(company));
         } else {
