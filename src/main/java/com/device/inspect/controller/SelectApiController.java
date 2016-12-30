@@ -654,7 +654,7 @@ public class SelectApiController {
         User user=judgeByPrincipal(principal);
         if (user==null)
             return new RestResponse("用户未登陆",1005,null);
-        
+
        if (UserRoleDifferent.userServiceManagerConfirm(user)){
            Iterable<DeviceVersion> iterable=deviceVersionRepository.findAll();
            List<RestDeviceVersion> list=new ArrayList<RestDeviceVersion>();

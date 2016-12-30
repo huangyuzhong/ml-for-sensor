@@ -1052,9 +1052,13 @@ public class OperateController {
         User user=judgeByPrincipal(principal);
         if (user==null)
             return new RestResponse("用户未登录",1005,null);
+        if (id==null||"".equals(id))
+            return new RestResponse("没有选择版本",1005,null);
         DeviceVersion deviceVersion=deviceVersionRepository.findById(Integer.valueOf(id));
         if (deviceVersion==null)
             return new RestResponse("版本选择有误",1005,null);
+        if (multiversion==null||"".equals(multiversion))
+            return new RestResponse("没有选择要更新的设备",1005,null);
         String[] multi=multiversion.split(",");
         if (multi==null)
             return new RestResponse("设备选择有误",1005,null);
