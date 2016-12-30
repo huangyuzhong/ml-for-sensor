@@ -541,9 +541,6 @@ public class SelectApiController {
 
     @RequestMapping(value = "/query/inspect/type")
     public RestResponse getAllInspectType(Principal principal){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
 //        if (null==principal)
 //            throw new UsernameNotFoundException("you are not login!");
 //        User user = userRepository.findByName(principal.getName());
