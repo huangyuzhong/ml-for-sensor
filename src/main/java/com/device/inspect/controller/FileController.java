@@ -549,6 +549,7 @@ public class FileController {
                     deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
                     deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
                     deviceInspect.setName(deviceTypeInspect.getInspectType().getName());
+                    deviceInspect.setZero(0f);
                     deviceInspectRepository.save(deviceInspect);
                 }
             }
