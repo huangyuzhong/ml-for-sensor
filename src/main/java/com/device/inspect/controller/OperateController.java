@@ -450,6 +450,7 @@ public class OperateController {
 
     /**
      * 修改用户信息
+     * 0 是短信  1是邮箱   2是不允许报警
      * @param
      * @param param
      * @return
@@ -473,8 +474,30 @@ public class OperateController {
             user.setTelephone(param.get("telephone"));
         if (null!=param.get("email"))
             user.setEmail(param.get("email"));
-        if (null!=param.get("removeAlert")&&!"".equals(param.get("removeAlert")))
+        if (null!=param.get("removeAlert")&&!"".equals(param.get("removeAlert"))) {
             user.setRemoveAlert(param.get("removeAlert"));
+            List<Device> list=deviceRepository.findByManagerId(user.getId());
+            if (list!=null&&list.size()>0){
+                if (param.get("removeAlert").equals("0")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("短信");
+                    }
+                }
+                if (param.get("removeAlert").equals("1")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("邮箱");
+                    }
+                }
+                if (param.get("removeAlert").equals("2")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("禁止推送");
+                    }
+                }
+            }
+        }
         userRepository.save(user);
         return new RestResponse(new RestUser(user));
     }
@@ -1139,9 +1162,10 @@ public class OperateController {
 
      @RequestMapping(value = "/is/login")
     public RestResponse isLogin(Principal principal){
-         if(principal!=null)
-             return new RestResponse("已有用户登陆",1005,null);
-         return new RestResponse("无用户登陆",null);
+         User user=judgeByPrincipal(principal);
+         if (user!=null)
+            throw new RuntimeException("已有用户登陆");
+         return new RestResponse("success",null);
      }
 
     /**
