@@ -989,6 +989,7 @@ public class OperateController {
             return new RestResponse("输入有误",1005,null);
         //根据用户名找回密码
         User user=null;
+        //判断是否是平台人员
         if (null==map.get("companyId")||"".equals(map.get("companyId"))||"undefined".equals(map.get("companyId")))
             user=userRepository.findByName(name);
         else
