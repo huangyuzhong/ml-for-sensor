@@ -4,6 +4,7 @@ import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
@@ -42,7 +43,11 @@ public class RestUser {
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
-        this.name = user.getName();
+        if (UserRoleDifferent.userStartWithService(user)){
+            this.name = user.getName();
+        }else {
+            this.name=user.getName().substring(0,user.getName().indexOf("@"));
+        }
         this.password = user.getPassword();
         this.userName = user.getUserName();
         this.mobile = user.getMobile();

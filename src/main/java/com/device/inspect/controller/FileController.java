@@ -498,17 +498,46 @@ public class FileController {
             device.setDeviceType(deviceType);
             if (null!=param.get("managerId")&&!"".equals(param.get("managerId"))&&!"undefined".equals(param.get("managerId"))){
                 User deviceManager = userRepository.findOne(Integer.valueOf(param.get("managerId")));
-                if (UserRoleDifferent.userFirmManagerConfirm(deviceManager)||UserRoleDifferent.userFirmWorkerConfirm(deviceManager))
+                if (UserRoleDifferent.userFirmManagerConfirm(deviceManager)||UserRoleDifferent.userFirmWorkerConfirm(deviceManager)) {
                     device.setManager(deviceManager);
-                else device.setManager(user);
+                    if (deviceManager.getRemoveAlert()!=null&&!"".equals(deviceManager.getRemoveAlert())&&deviceManager.getRemoveAlert().equals("0")){
+                        device.setPushType("短信");
+                    }
+                    if (deviceManager.getRemoveAlert()!=null&&!"".equals(deviceManager.getRemoveAlert())&&deviceManager.getRemoveAlert().equals("1")){
+                        device.setPushType("邮箱");
+                    }
+                    if (deviceManager.getRemoveAlert()!=null&&!"".equals(deviceManager.getRemoveAlert())&&deviceManager.getRemoveAlert().equals("2")){
+                        device.setPushType("禁止推送");
+                    }
+                }
+                else {
+                    device.setManager(user);
+                    if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("0")){
+                        device.setPushType("短信");
+                    }
+                    if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("1")){
+                        device.setPushType("邮箱");
+                    }
+                    if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("2")){
+                        device.setPushType("禁止推送");
+                    }
+                }
             }else {
                 device.setManager(user);
+                if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("0")){
+                    device.setPushType("短信");
+                }
+                if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("1")){
+                    device.setPushType("邮箱");
+                }
+                if (user.getRemoveAlert()!=null&&!"".equals(user.getRemoveAlert())&&user.getRemoveAlert().equals("2")){
+                    device.setPushType("禁止推送");
+                }
             }
             device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
             device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
             device.setName(param.get("name"));
             device.setRoom(room);
-            device.setPushType("短信");
             device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
             device.setEnable(1);
             Room room1=device.getRoom();
@@ -917,6 +946,7 @@ public class FileController {
         if (UserRoleDifferent.userServiceWorkerConfirm(user)||
                 UserRoleDifferent.userServiceManagerConfirm(user) ) {
             User firmManager = null;
+            //新增
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
                 company.setCreateDate(new Date());
@@ -952,13 +982,14 @@ public class FileController {
 //                    return;
                 }
 
-                companyRepository.save(company);
+                company=companyRepository.save(company);
                 firmManager = new User();
                 firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
                 firmManager.setCreateDate(new Date());
+                firmManager.setRemoveAlert("0");
                 userRepository.save(firmManager);
                 RoleAuthority roleAuthority = roleAuthorityRepository.findByName("FIRM_MANAGER");
                 Role role = new Role();
@@ -967,6 +998,16 @@ public class FileController {
                 role.setUser(firmManager);
                 roleRepository.save(role);
                 company.setManager(firmManager);
+
+                //给公司添加url
+                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                        ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+                //设置公司的companyId
+                company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
+                //给管理员账号加密
+                firmManager.setName(param.get("account")+"@"+company.getCompanyId());
+
+                userRepository.save(firmManager);
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
@@ -989,7 +1030,7 @@ public class FileController {
                         company.setLat(Float.valueOf(location[1]));
                     }
                 }
-                firmManager = userRepository.findByName(param.get("account"));
+                firmManager = userRepository.findByName(param.get("account")+"@"+company.getCompanyId());
                 if (null == firmManager) {
                     restResponse=new RestResponse("修改失败，管理员账号不存在！",1005,null);
                     out.print(JSON.toJSONString(restResponse));
@@ -998,17 +1039,16 @@ public class FileController {
                     throw new RuntimeException("修改失败，管理员账号不存在！");
 //                    return;
                 }
-                companyRepository.save(company);
+                company=companyRepository.save(company);
                 firmManager = company.getManager();
-                firmManager.setName(param.get("account"));
+//                firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
                 firmManager.setCreateDate(new Date());
                 userRepository.save(firmManager);
             }
-            company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
-                    ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+
             String pic=param.get("pic");
             System.out.println("pic："+pic);
             if (pic.equals("0")){

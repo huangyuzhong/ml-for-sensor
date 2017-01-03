@@ -414,8 +414,8 @@ public class OperateController {
 
         if(UserRoleDifferent.userFirmManagerConfirm(user)) {
             child.setCompany(user.getCompany());
-//            Company company=user.getCompany();
-//            child.setName(map.get("name")+"@"+company.getCompanyId());
+            Company company=user.getCompany();
+            child.setName(map.get("name")+"@"+company.getCompanyId());
         }else {
             child.setName(map.get("name"));
         }
@@ -1197,4 +1197,23 @@ public class OperateController {
         }
         return new RestResponse(deviceScientist);
     }
+
+    /**
+     * 内部测试接口
+     * @param
+     * @return
+     */
+//    @RequestMapping(value = "/test/user")
+//    public RestResponse testUser(){
+//        List<User> userList=userRepository.findAll();
+//        for (User user1:userList){
+//            Company company=user1.getCompany();
+//            if (company!=null){
+//                user1.setName(user1.getName()+"@"+company.getCompanyId());
+//                userRepository.save(user1);
+//            }
+//        }
+//        return new RestResponse("修改成功",null);
+//    }
+
 }
