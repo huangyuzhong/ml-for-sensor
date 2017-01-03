@@ -66,7 +66,6 @@ public class SocketMessageApi {
         Device device = new Device();
         String mointorCode = result.substring(8,26);
         MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
-
         if (null==monitorDevice)
             return new RestResponse(null);
         if(monitorTypeCode.equals("03")) {
@@ -84,14 +83,15 @@ public class SocketMessageApi {
         String response = null;
 
         InspectData inspectData = new InspectData();
-
         if (null != inspectType){
-
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
             if (null==deviceInspect)
                 return new RestResponse(null);
-            float record;
+            //测量原值
+            Float record;
+            //添加矫正值
+            Float check;
             //判断是否是PT100
             if (monitorTypeCode.equals("00")){
                 inspectData.setCreateDate(new Date());
@@ -110,7 +110,6 @@ public class SocketMessageApi {
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
                 Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
-
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                 if (pt100Repository.findByResistance(r)!=null){
                     Pt100 pt100=pt100Repository.findByResistance(r);
@@ -123,8 +122,7 @@ public class SocketMessageApi {
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
 
-                    //添加矫正值
-                    float check;
+
                     check=record-(deviceInspect.getZero());
                     inspectData.setResult(String.valueOf(check));
 
@@ -159,17 +157,13 @@ public class SocketMessageApi {
                     float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
 
                     float b=Float.valueOf(temperature1)-(k*resistance1);
-                  
+
                     //将温度存入record
                     record = k*r+b;
-
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
-
                     //添加矫正值
-                    float check;
                     check=record-(deviceInspect.getZero());
-
                     inspectData.setResult(String.valueOf(check));
 
 //                    Pt100Zero pt100Zero=new Pt100Zero();
@@ -180,7 +174,7 @@ public class SocketMessageApi {
 //                    }
                 }
                 //设置检测结果
-                inspectData.setResult(String.valueOf(record));
+//                inspectData.setResult(String.valueOf(record));
             }else if (monitorTypeCode.equals("07")){
                 //判断是不是甲烷
                 //根据上传的值算出电压
@@ -191,7 +185,8 @@ public class SocketMessageApi {
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
-                    record=0;
+                    record=0f;
+                    //添加校正值
                     inspectData.setResult(String.valueOf(record));
                     //甲烷添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
@@ -206,10 +201,7 @@ public class SocketMessageApi {
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
-                    //矫正值
-                    float check;
                     check=record-(deviceInspect.getZero());
-
                     inspectData.setResult(String.valueOf(check));
                 } else {
                     record=10f;
@@ -228,8 +220,6 @@ public class SocketMessageApi {
                 //添加测量原值
                 inspectData.setRealValue(String.valueOf(first));
                 record = Float.valueOf(first)/1000;
-                //矫正值
-                float check;
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
             }

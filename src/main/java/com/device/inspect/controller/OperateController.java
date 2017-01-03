@@ -47,10 +47,7 @@ import java.io.PrintWriter;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Administrator on 2016/8/1.
@@ -262,6 +259,30 @@ public class OperateController {
                 device.setManager(user);
             }
         }
+        //修改坐标
+        if (null!=map.get("xPoint")&&!"".equals(map.get("xPoint")))
+            device.setxPoint(Float.valueOf(map.get("xPoint")));
+        if (null!=map.get("yPoint")&&!"".equals(map.get("yPoint")))
+            device.setyPoint(Float.valueOf(map.get("yPoint")));
+        //添加科学家
+        if (null!=map.get("scientist")){
+            String[] scientist = map.get("scientist").split(",");
+            for (String id:scientist){
+                if (null!=id&&!"".equals(id)){
+                    ScientistDevice scientistDevice = null;
+                    User keeper = userRepository.findOne(Integer.valueOf(id));
+                    if (null==keeper)
+                        continue;
+                    scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
+                    if (null!=scientistDevice)
+                        continue;
+                    scientistDevice = new ScientistDevice();
+                    scientistDevice.setDevice(device);
+                    scientistDevice.setScientist(keeper);
+                    scientistDeviceRepository.save(scientistDevice);
+                }
+            }
+        }
         deviceRepository.save(device);
 
         return new RestResponse(new RestDevice(device));
@@ -314,8 +335,6 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
-        if (user!=device.getManager())
-            return new RestResponse("只有设备管理员可以修改设备参数",1005,null);
         if (null!=request.getList()&&request.getList().size()>0){
             for (InspectTypeRequest inspectTypeRequest:request.getList()){
                 DeviceInspect deviceInspect = deviceInspectRepository.
@@ -431,6 +450,7 @@ public class OperateController {
 
     /**
      * 修改用户信息
+     * 0 是短信  1是邮箱   2是不允许报警
      * @param
      * @param param
      * @return
@@ -454,8 +474,30 @@ public class OperateController {
             user.setTelephone(param.get("telephone"));
         if (null!=param.get("email"))
             user.setEmail(param.get("email"));
-        if (null!=param.get("removeAlert")&&!"".equals(param.get("removeAlert")))
+        if (null!=param.get("removeAlert")&&!"".equals(param.get("removeAlert"))) {
             user.setRemoveAlert(param.get("removeAlert"));
+            List<Device> list=deviceRepository.findByManagerId(user.getId());
+            if (list!=null&&list.size()>0){
+                if (param.get("removeAlert").equals("0")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("短信");
+                    }
+                }
+                if (param.get("removeAlert").equals("1")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("邮箱");
+                    }
+                }
+                if (param.get("removeAlert").equals("2")){
+                    for (Device device :list){
+                        if (device!=null)
+                            device.setPushType("禁止推送");
+                    }
+                }
+            }
+        }
         userRepository.save(user);
         return new RestResponse(new RestUser(user));
     }
@@ -1026,6 +1068,36 @@ public class OperateController {
      }
 
     /**
+     * 多选版本更新接口
+     */
+    @RequestMapping(value = "/update/multi/device/version/{id}")
+    public RestResponse multiDeviceVersion(Principal principal,@PathVariable String id,@RequestParam String multiversion){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登录",1005,null);
+        if (id==null||"".equals(id))
+            return new RestResponse("没有选择版本",1005,null);
+        DeviceVersion deviceVersion=deviceVersionRepository.findById(Integer.valueOf(id));
+        if (deviceVersion==null)
+            return new RestResponse("版本选择有误",1005,null);
+        if (multiversion==null||"".equals(multiversion))
+            return new RestResponse("没有选择要更新的设备",1005,null);
+        String[] multi=multiversion.split(",");
+        if (multi==null)
+            return new RestResponse("设备选择有误",1005,null);
+        for (String str:multi){
+            if (str==null||"".equals(str))
+                continue;
+            Device device=deviceRepository.findById(Integer.valueOf(str));
+            if (device==null)
+                continue;
+            device.setDeviceVersion(deviceVersion);
+            deviceRepository.save(device);
+        }
+        return new RestResponse("版本更新成功",null);
+    }
+
+    /**
      * 硬件版本说明接口
      * @param principal
      * @param id 版本的id
@@ -1088,4 +1160,40 @@ public class OperateController {
          return new RestResponse("零漂值修改成功",null);
      }
 
+     @RequestMapping(value = "/is/login")
+    public RestResponse isLogin(Principal principal){
+         User user=judgeByPrincipal(principal);
+         if (user!=null)
+            throw new RuntimeException("已有用户登陆");
+         return new RestResponse("success",null);
+     }
+
+    /**
+     * 查询设备没有绑定的科学家
+     */
+    @RequestMapping(value = "/is/device/sicentist/{deviceId}")
+    public RestResponse scientist(@PathVariable String deviceId){
+        Device device=deviceRepository.findById(Integer.valueOf(deviceId));
+        if (device==null)
+            return new RestResponse("设备不存在",1005,null);
+        User manager=device.getManager();
+        Company company=manager.getCompany();
+        //更具公司id找到所有的用户
+        List<User> list=userRepository.findByCompanyId(company.getId());
+        if (list==null)
+            return new RestResponse("公司不存在",1005,null);
+        //该设备科学家集合
+        List<RestUser> deviceScientist=new ArrayList<RestUser>();
+        //在判定用户是否是科学家
+        for (User user:list){
+            if (!UserRoleDifferent.userScientistConfirm(user))
+                continue;
+            //如果是科学家根据科学家的id和设备id找到ScientistDevice
+            ScientistDevice scientistDevice=scientistDeviceRepository.findByScientistIdAndDeviceId(user.getId(),Integer.valueOf(deviceId));
+            //如果ScientistDevice为空说明这个科学家没有绑定这个设备
+            if (scientistDevice==null)
+                deviceScientist.add(new RestUser(user));
+        }
+        return new RestResponse(deviceScientist);
+    }
 }

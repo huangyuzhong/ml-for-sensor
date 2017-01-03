@@ -50,11 +50,15 @@ public class WebSecurityConfig {
             http.csrf().disable().headers().cacheControl().and()
                     .antMatcher("/api/**").authorizeRequests()
                     .antMatchers("/api/rest/**").permitAll()
-                    .anyRequest().hasAnyRole("SERVICE_MANAGER", "SERVICE_BUSINESS","FIRM_MANAGER", "FIRM_WORKER","FIRM_SCIENTIST").and()
+                    .anyRequest().hasAnyRole("SERVICE_MANAGER", "SERVICE_BUSINESS", "FIRM_MANAGER", "FIRM_WORKER", "FIRM_SCIENTIST").and()
                     .exceptionHandling().and()
-                    .addFilterBefore(new StatelessLoginFilter("/api/rest/login",  loginUserService, authenticationManager(), roles),
+                    .addFilterBefore(new StatelessLoginFilter("/api/rest/login", loginUserService, authenticationManager(), roles),
                             UsernamePasswordAuthenticationFilter.class)
                     .logout()
+                    .logoutUrl("/api/rest/logout")
+                    .logoutSuccessUrl("/api/rest/firm/query/inspect/type")
+                    .deleteCookies("JSESSIONID")
+
                     .permitAll();
         }
 

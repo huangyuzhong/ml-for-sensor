@@ -101,6 +101,9 @@ public class SelectApiController {
 
     @RequestMapping(value = "/person/info/{userId}")
     public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登录",1005,null);
         User user = userRepository.findOne(userId);
         if (null==user)
             return new RestResponse("user not found!",1005,null);
@@ -110,6 +113,8 @@ public class SelectApiController {
     @RequestMapping(value = "/person/mine/info")
     public RestResponse getMyMessage(Principal principal){
         User user = judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登录",1005,null);
         return new RestResponse(new RestUser(user));
     }
 
@@ -131,6 +136,9 @@ public class SelectApiController {
 
      @RequestMapping(value = "/floors",method = RequestMethod.GET)
      public RestResponse getFloors(Principal principal,@RequestParam Map<String,String> map) {
+         User user=judgeByPrincipal(principal);
+         if (user==null)
+             return new RestResponse("用户未登录",1005,null);
          String buildId = map.get("buildId");
          Building build = null;
          if (null!=buildId){
@@ -150,6 +158,9 @@ public class SelectApiController {
 
     @RequestMapping(value = "/rooms",method = RequestMethod.GET)
     public  RestResponse getRooms(Principal principal,@RequestParam Map<String,String> map){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         String floorId = map.get("floorId");
         Storey floor = null;
         if (null!=floorId)
@@ -168,6 +179,9 @@ public class SelectApiController {
 
     @RequestMapping(value = "/devices",method = RequestMethod.GET)
     public  RestResponse getDevices(Principal principal,@RequestParam Map<String,String> map){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         String roomId = map.get("roomId");
         Room room = null;
         if (null!=roomId)
@@ -185,6 +199,9 @@ public class SelectApiController {
 
     @RequestMapping(value = "/device",method = RequestMethod.GET)
     public  RestResponse getDevice(Principal principal,@RequestParam Integer deviceId){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         Device device = deviceRepository.findOne(deviceId);
         if (null == device|| null ==device.getId()){
             return  new RestResponse("device information correct!",1005,null);
@@ -218,7 +235,10 @@ public class SelectApiController {
     }
 
     @RequestMapping(value = "/device/type/request/{deviceTypeId}")
-    public RestResponse getCurrentDeviceTypeRequest(@PathVariable Integer deviceTypeId){
+    public RestResponse getCurrentDeviceTypeRequest(Principal principal,@PathVariable Integer deviceTypeId){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
         if (null==deviceType)
             return new RestResponse("当前设备类型不存在！",1905,null);
@@ -322,7 +342,8 @@ public class SelectApiController {
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
         User user = judgeByPrincipal(principal);
-
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         List<RoleAuthority> roleAuthorities = new ArrayList<RoleAuthority>();
         if (null!=user.getRoles())
             for (Role role:user.getRoles()){
@@ -400,7 +421,10 @@ public class SelectApiController {
      * @return
      */
     @RequestMapping(value = "/query/login/company")
-    public RestResponse getCompanyById(@RequestParam String companyId){
+    public RestResponse getCompanyById(Principal principal,@RequestParam String companyId){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
         if (null==companyId||companyId.equals(""))
             return new RestResponse("没有正确的访问参数！",null);
         String realId = "";
@@ -424,6 +448,8 @@ public class SelectApiController {
     @RequestMapping(value = "/query/mine/company")
     public RestResponse getCompanyByUserName(Principal principal,@RequestParam Map<String,String> requestParam){
         User user = judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
 
         if (UserRoleDifferent.userServiceWorkerConfirm(user)){
             requestParam.put("businessId",user.getId().toString());
@@ -514,7 +540,7 @@ public class SelectApiController {
     }
 
     @RequestMapping(value = "/query/inspect/type")
-    public RestResponse getAllInspectType(){
+    public RestResponse getAllInspectType(Principal principal){
 //        if (null==principal)
 //            throw new UsernameNotFoundException("you are not login!");
 //        User user = userRepository.findByName(principal.getName());
@@ -560,6 +586,8 @@ public class SelectApiController {
     @RequestMapping("/colleges/scientist")
     public RestResponse getMyScientist(Principal principal){
         User user = judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
 
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
@@ -575,6 +603,9 @@ public class SelectApiController {
     @RequestMapping(value = "/take/over/colleges")
     public RestResponse getAllCompanyColleges(Principal principal,@RequestParam Integer userId){
         User user = judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+
         if (!UserRoleDifferent.userFirmManagerConfirm(user))
             return new RestResponse("权限不足，无法查询！",1005,null);
         User old = userRepository.findOne(userId);
@@ -618,6 +649,9 @@ public class SelectApiController {
     @RequestMapping(value = "/service/get/versions")
     public RestResponse getAllVersion(Principal principal){
         User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登陆",1005,null);
+
        if (UserRoleDifferent.userServiceManagerConfirm(user)){
            Iterable<DeviceVersion> iterable=deviceVersionRepository.findAll();
            List<RestDeviceVersion> list=new ArrayList<RestDeviceVersion>();

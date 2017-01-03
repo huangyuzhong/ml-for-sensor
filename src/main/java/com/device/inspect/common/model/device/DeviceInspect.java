@@ -113,6 +113,7 @@ public class DeviceInspect {
         this.name = name;
     }
 
+    @Column(name = "zero")
     public Float getZero() {
         return zero;
     }
