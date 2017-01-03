@@ -31,6 +31,7 @@ public class DeviceQuery extends Querier<Device> {
                 return cb.equal(deviceRoot.get("code"), object);
             }
         });
+
         queryFilterMap.put("name", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
@@ -38,17 +39,17 @@ public class DeviceQuery extends Querier<Device> {
             }
         });
 
-        queryFilterMap.put("typeId", new DeviceQueryFilter() {
-            @Override
-            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("deviceType").get("id"), object);
-            }
-        });
+//        queryFilterMap.put("typeId", new DeviceQueryFilter() {
+//            @Override
+//            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+//                return cb.equal(deviceRoot.get("deviceType").get("id"), object);
+//            }
+//        });
 
         queryFilterMap.put("userId", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                Join<Device, ScientistDevice> scientistDeviceJoin = deviceRoot.join("scientistDeviceList", JoinType.INNER);
+                Join<Device, ScientistDevice> scientistDeviceJoin = deviceRoot.join("scientistDeviceList", JoinType.LEFT);
                 Predicate predicate = cb.equal(deviceRoot.get("manager").get("id"),object);
                 predicate = cb.or(predicate,cb.equal(scientistDeviceJoin.<User>get("scientist").<String>get("id"),object));
                 return predicate;
