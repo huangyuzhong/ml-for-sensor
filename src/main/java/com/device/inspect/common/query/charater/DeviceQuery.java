@@ -60,11 +60,11 @@ public class DeviceQuery extends Querier<Device> {
                 return cb.equal(deviceRoot.get("monitorDevice").get("number"),object);
             }
         });
-        //根据公司名称查询
+        //根据公司名称模糊查询
         queryFilterMap.put("serchCompanyName", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
-                return cb.equal(deviceRoot.get("manager").get("company").get("name"),object);
+                return cb.like(deviceRoot.get("manager").get("company").<String>get("name"),'%' + (String) object + '%');
             }
         });
 //        根据设备种类查询

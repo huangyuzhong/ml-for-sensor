@@ -425,6 +425,7 @@ public class OperateController {
         child.setDepartment(map.get("department"));
         child.setJobNum(map.get("jobNum"));
         child.setJob(map.get("job"));
+        child.setRemoveAlert("0");
         userRepository.save(child);
         if (roleAuthorityList.size()==1){
             Role role = new Role();
@@ -984,7 +985,15 @@ public class OperateController {
      */
     @RequestMapping(value="/forget/find/password/{name}",method = RequestMethod.POST)
     public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){
-        User user=userRepository.findByName(name);
+        if (map==null)
+            return new RestResponse("输入有误",1005,null);
+        //根据用户名找回密码
+        User user=null;
+        if (null==map.get("companyId")||"".equals(map.get("companyId"))||"undefined".equals(map.get("companyId")))
+            user=userRepository.findByName(name);
+        else
+            user=userRepository.findByName(name+"@"+map.get("companyId"));
+
         if (null==user)
             return new RestResponse("账号输入有误！",null);
 //        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
