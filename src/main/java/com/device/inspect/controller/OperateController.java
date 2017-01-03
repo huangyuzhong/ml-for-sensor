@@ -412,10 +412,14 @@ public class OperateController {
             }
         }
 
-        if(UserRoleDifferent.userFirmManagerConfirm(user))
+        if(UserRoleDifferent.userFirmManagerConfirm(user)) {
             child.setCompany(user.getCompany());
+            Company company=user.getCompany();
+            child.setName(map.get("name")+"@"+company.getCompanyId());
+        }else {
+            child.setName(map.get("name"));
+        }
         child.setCreateDate(new Date());
-        child.setName(map.get("name"));
         child.setPassword(null==map.get("password")?"123":map.get("password"));
         child.setUserName(map.get("userName"));
         child.setDepartment(map.get("department"));
@@ -1161,11 +1165,8 @@ public class OperateController {
      }
 
      @RequestMapping(value = "/is/login")
-    public RestResponse isLogin(Principal principal){
-         User user=judgeByPrincipal(principal);
-         if (user!=null)
-            throw new RuntimeException("已有用户登陆");
-         return new RestResponse("success",null);
+    public void  isLogin(Principal principal){
+         judgeByPrincipal(principal);
      }
 
     /**
