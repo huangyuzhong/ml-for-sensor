@@ -414,8 +414,8 @@ public class OperateController {
 
         if(UserRoleDifferent.userFirmManagerConfirm(user)) {
             child.setCompany(user.getCompany());
-            Company company=user.getCompany();
-            child.setName(map.get("name")+"@"+company.getCompanyId());
+//            Company company=user.getCompany();
+//            child.setName(map.get("name")+"@"+company.getCompanyId());
         }else {
             child.setName(map.get("name"));
         }
