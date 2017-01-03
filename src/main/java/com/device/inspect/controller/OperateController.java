@@ -996,7 +996,7 @@ public class OperateController {
             user=userRepository.findByName(name+"@"+map.get("companyId"));
 
         if (null==user)
-            return new RestResponse("账号输入有误！",null);
+            return new RestResponse("账号输入有误",1005,null);
 //        if (user.getBindEmail()!=1&&user.getBindMobile()!=1)
 //            return new RestResponse("您未绑定手机号或邮箱！请联系管理员！",null);
         if(null==map.get("number")||"".equals(map.get("number")))
