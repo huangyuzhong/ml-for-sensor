@@ -518,4 +518,6 @@ ALTER TABLE `device_version` ADD `message` VARCHAR(255) NULL;
 
 ALTER TABLE `users` ADD `remove_alert` VARCHAR(255) NULL DEFAULT 0;
 
+ALTER TABLE `company` ADD `company_id` VARCHAR(255) NULL ;
+
 
