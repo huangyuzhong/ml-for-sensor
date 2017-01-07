@@ -1030,7 +1030,7 @@ public class FileController {
                 List<Company> list=companyRepository.findAll();
                 if (list!=null&&list.size()>0){
                     for (Company company1:list){
-                        if (company1.getName()!=null&&!"".equals(company1.getName())&&param.get("name").equals(company1.getName()))
+                        if (company1.getName()!=null&&!"".equals(company1.getName())&&!company1.getId().equals(company.getId())&&param.get("name").equals(company1.getName()))
                             throw new RuntimeException("企业名称不能相同");
                     }
                 }
