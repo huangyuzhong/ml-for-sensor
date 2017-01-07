@@ -205,16 +205,21 @@ public class OperateController {
     }
 
     /**
-     * 修改设备基本信息
+     * 修改设备基本概况
      * @param deviceId
      * @param map
      * @return
      */
     @RequestMapping(value = "/device/{deviceId}")
-    public RestResponse operateDevice(@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+    public RestResponse operateDevice(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登陆",1005,null);
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
+        if (device.getManager()!=user1)
+            return new RestResponse("你不是此设备的设备管理员",1005,null);
         if (null!=map.get("name"))
             device.setName(map.get("name"));
         if (null!=map.get("creator"))
@@ -1025,7 +1030,7 @@ public class OperateController {
             }
         }else {
             //用户未绑定手机号或者邮箱
-            return new RestResponse("未绑定手机号和邮箱，请联系管理员！",1005,null);
+            return new RestResponse("身份验证输入错误或未绑定，请核对！",1005,null);
         }
     }
 

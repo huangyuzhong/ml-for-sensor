@@ -618,7 +618,9 @@ public class SelectApiController {
         List<RestUser> result = new ArrayList<RestUser>();
         for (User userEnch : list){
             if (!userEnch.getId().equals(old.getId())) {
+                //判断是否是设备管理员
                 boolean overManageFlag = UserRoleDifferent.userFirmWorkerConfirm(userEnch);
+                //是否是科学家
                 boolean overScientist = UserRoleDifferent.userScientistConfirm(userEnch);
                 if(deviceManagerFlag&&scentistFlag) {
                     if (overManageFlag && overScientist) {
