@@ -384,7 +384,12 @@ public class OperateController {
 
         if (null==map.get("name"))
             return new RestResponse("登录名不能为空！",1005,null);
-        User judge = userRepository.findByName(map.get("name"));
+        //判断登录名已存在
+        User judge=null;
+        if(UserRoleDifferent.userStartWithFirm(user))
+            judge= userRepository.findByName(map.get("name")+"@"+user.getCompany().getCompanyId());
+        else
+            judge=userRepository.findByName(map.get("name"));
         if (judge!=null)
             return new RestResponse("登录名已存在！",1005,null);
         //判断用户是企业管理员，同一个企业的的用户工号不能相同，
