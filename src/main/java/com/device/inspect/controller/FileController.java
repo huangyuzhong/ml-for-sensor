@@ -490,7 +490,7 @@ public class FileController {
             MonitorDevice monitorDevice = null;
             monitorDevice = monitorDeviceRepository.findByNumber(param.get("monitorCode"));
             if (null!=monitorDevice)
-                throw new RuntimeException("设备已存在，无法添加！");
+                throw new RuntimeException("终端编号已存在，无法添加！");
 
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
