@@ -520,4 +520,7 @@ ALTER TABLE `users` ADD `remove_alert` VARCHAR(255) NULL DEFAULT 0;
 
 ALTER TABLE `company` ADD `company_id` VARCHAR(255) NULL ;
 
+ALTER TABLE `device_inspect` ADD `original_value` FLOAT NULL DEFAULT 0;
+
+ALTER TABLE `device_inspect` ADD `correction_value` FLOAT NULL DEFAULT 0;
 

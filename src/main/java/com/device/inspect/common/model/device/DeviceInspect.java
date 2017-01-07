@@ -20,6 +20,8 @@ public class DeviceInspect {
     private Integer lowAlter;
     private String name;
     private Float zero;
+    private Float originalValue;
+    private Float correctionValue;
 
     @Id
     @GeneratedValue()
@@ -122,4 +124,21 @@ public class DeviceInspect {
         this.zero = zero;
     }
 
+    @Column(name = "original_value")
+    public Float getOriginalValue() {
+        return originalValue;
+    }
+
+    public void setOriginalValue(Float originalValue) {
+        this.originalValue = originalValue;
+    }
+
+    @Column(name = "correction_value")
+    public Float getCorrectionValue() {
+        return correctionValue;
+    }
+
+    public void setCorrectionValue(Float correctionValue) {
+        this.correctionValue = correctionValue;
+    }
 }

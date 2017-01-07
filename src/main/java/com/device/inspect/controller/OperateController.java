@@ -421,7 +421,7 @@ public class OperateController {
                 }
             }
         }
-
+        //判断用户是平台管理员还是企业管理员
         if(UserRoleDifferent.userFirmManagerConfirm(user)) {
             child.setCompany(user.getCompany());
             Company company=user.getCompany();
@@ -1180,6 +1180,7 @@ public class OperateController {
          if (zero==null||"".equals(zero))
              return new RestResponse("零票值不正确",1005,null);
          deviceInspect.setZero(Float.valueOf(zero));
+         deviceInspect.setCorrectionValue(deviceInspect.getOriginalValue()-(Float.valueOf(zero)));
          deviceInspectRepository.save(deviceInspect);
          return new RestResponse("零漂值修改成功",null);
      }

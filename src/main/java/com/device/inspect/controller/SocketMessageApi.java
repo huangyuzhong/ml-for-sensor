@@ -121,11 +121,11 @@ public class SocketMessageApi {
                     record=Float.valueOf(temperature);
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
-
-
+                    deviceInspect.setOriginalValue(record);
+                    //矫正值
                     check=record-(deviceInspect.getZero());
                     inspectData.setResult(String.valueOf(check));
-
+                    deviceInspect.setCorrectionValue(check);
 //                    Pt100Zero pt100Zero=new Pt100Zero();
 //                    //查询飘零表
 //                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
@@ -162,10 +162,11 @@ public class SocketMessageApi {
                     record = k*r+b;
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
                     //添加矫正值
                     check=record-(deviceInspect.getZero());
                     inspectData.setResult(String.valueOf(check));
-
+                    deviceInspect.setCorrectionValue(check);
 //                    Pt100Zero pt100Zero=new Pt100Zero();
 //                    //查询飘零表
 //                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
@@ -188,8 +189,10 @@ public class SocketMessageApi {
                     record=0f;
                     //添加校正值
                     inspectData.setResult(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
                     //甲烷添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setCorrectionValue(record);
                 }else if (v<2){
                     float b=0.4f;
                     float k=1.6f;
@@ -197,12 +200,13 @@ public class SocketMessageApi {
 
                     //甲烷添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
-
+                    deviceInspect.setOriginalValue(record);
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     check=record-(deviceInspect.getZero());
                     inspectData.setResult(String.valueOf(check));
+                    deviceInspect.setCorrectionValue(check);
                 } else {
                     record=10f;
                     inspectData.setCreateDate(new Date());
@@ -211,6 +215,7 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(record));
                     //甲烷添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
                 }
 
             } else {
@@ -220,10 +225,12 @@ public class SocketMessageApi {
                 //添加测量原值
                 inspectData.setRealValue(String.valueOf(first));
                 record = Float.valueOf(first)/1000;
+                deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
+                deviceInspect.setCorrectionValue(check);
             }
-
+            deviceInspectRepository.save(deviceInspect);
             inspectDataRepository.save(inspectData);
 
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
