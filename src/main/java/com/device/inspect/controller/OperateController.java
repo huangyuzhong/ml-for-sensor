@@ -851,6 +851,8 @@ public class OperateController {
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
+        if (mobile.length()!=11)
+            return new RestResponse("手机号格式不正确");
         //短信发送验证码
         boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
         if (b)

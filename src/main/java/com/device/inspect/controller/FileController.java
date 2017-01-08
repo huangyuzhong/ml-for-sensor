@@ -958,8 +958,8 @@ public class FileController {
                     out.print(JSON.toJSONString(restResponse));
                     out.flush();
                     out.close();
-                    throw new RuntimeException("企业名不能为空");
-//                    return;
+//                    throw new RuntimeException("企业名不能为空");
+                    return;
                 }
                 //企业名称不能相同
                 List<Company> list=companyRepository.findAll();
@@ -988,8 +988,8 @@ public class FileController {
                     out.print(JSON.toJSONString(restResponse));
                     out.flush();
                     out.close();
-                    throw new RuntimeException("创建失败，管理员账号已存在！");
-//                    return;
+//                    throw new RuntimeException("创建失败，管理员账号已存在！");
+                    return;
                 }
 
                 company=companyRepository.save(company);
@@ -1021,12 +1021,12 @@ public class FileController {
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
-                    throw new RuntimeException("企业名不能为空");
-//                    restResponse=new RestResponse("企业名不能为空",1005,null);
-//                    out.print(JSON.toJSONString(restResponse));
-//                    out.flush();
-//                    out.close();
-//                    return;
+//                    throw new RuntimeException("企业名不能为空");
+                    restResponse=new RestResponse("企业名不能为空",1005,null);
+                    out.print(JSON.toJSONString(restResponse));
+                    out.flush();
+                    out.close();
+                    return;
                 }
                 //企业名称不能相同
                 List<Company> list=companyRepository.findAll();
@@ -1054,8 +1054,8 @@ public class FileController {
                     out.print(JSON.toJSONString(restResponse));
                     out.flush();
                     out.close();
-                    throw new RuntimeException("修改失败，管理员账号不存在！");
-//                    return;
+//                    throw new RuntimeException("修改失败，管理员账号不存在！");
+                    return;
                 }
                 company=companyRepository.save(company);
                 firmManager = company.getManager();
