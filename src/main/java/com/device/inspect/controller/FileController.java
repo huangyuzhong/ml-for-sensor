@@ -1032,8 +1032,14 @@ public class FileController {
                 List<Company> list=companyRepository.findAll();
                 if (list!=null&&list.size()>0){
                     for (Company company1:list){
-                        if (company1.getName()!=null&&!"".equals(company1.getName())&&!company1.getId().equals(company.getId())&&param.get("name").equals(company1.getName()))
-                            throw new RuntimeException("企业名称不能相同");
+                        if (company1.getName()!=null&&!"".equals(company1.getName())&&!company1.getId().equals(company.getId())&&param.get("name").equals(company1.getName())) {
+//                            throw new RuntimeException("企业名称不能相同");
+                            restResponse=new RestResponse("企业名称不能相同",1005,null);
+                            out.print(JSON.toJSONString(restResponse));
+                            out.flush();
+                            out.close();
+                            return;
+                        }
                     }
                 }
                 company.setName(param.get("name"));
