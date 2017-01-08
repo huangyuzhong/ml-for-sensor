@@ -218,7 +218,7 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
-        if (device.getManager()!=user1)
+        if (device.getManager()!=null&&device.getManager()!=user1)
             return new RestResponse("你不是此设备的设备管理员",1005,null);
         if (null!=map.get("name"))
             device.setName(map.get("name"));
