@@ -954,12 +954,12 @@ public class FileController {
                 company.setCreateDate(new Date());
                 company.setBusinessMan(user);
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
-                    restResponse=new RestResponse("企业名不能为空",1005,null);
-                    out.print(JSON.toJSONString(restResponse));
-                    out.flush();
-                    out.close();
-//                    throw new RuntimeException("企业名不能为空");
-                    return;
+                    throw new RuntimeException("企业名不能为空");
+//                    restResponse=new RestResponse("企业名不能为空",1005,null);
+//                    out.print(JSON.toJSONString(restResponse));
+//                    out.flush();
+//                    out.close();
+//                    return;
                 }
                 //企业名称不能相同
                 List<Company> list=companyRepository.findAll();
@@ -984,12 +984,12 @@ public class FileController {
                 company.setEnable(1);
                 firmManager = userRepository.findByName(param.get("account"));
                 if (null!=firmManager) {
-                    restResponse=new RestResponse("创建失败，管理员账号已存在！",1005,null);
-                    out.print(JSON.toJSONString(restResponse));
-                    out.flush();
-                    out.close();
-//                    throw new RuntimeException("创建失败，管理员账号已存在！");
-                    return;
+                    throw new RuntimeException("创建失败，管理员账号已存在！");
+//                    restResponse=new RestResponse("创建失败，管理员账号已存在！",1005,null);
+//                    out.print(JSON.toJSONString(restResponse));
+//                    out.flush();
+//                    out.close();
+//                    return;
                 }
 
                 company=companyRepository.save(company);
@@ -1021,24 +1021,24 @@ public class FileController {
             }else {
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
-//                    throw new RuntimeException("企业名不能为空");
-                    restResponse=new RestResponse("企业名不能为空",1005,null);
-                    out.print(JSON.toJSONString(restResponse));
-                    out.flush();
-                    out.close();
-                    return;
+                    throw new RuntimeException("企业名不能为空");
+//                    restResponse=new RestResponse("企业名不能为空",1005,null);
+//                    out.print(JSON.toJSONString(restResponse));
+//                    out.flush();
+//                    out.close();
+//                    return;
                 }
                 //企业名称不能相同
                 List<Company> list=companyRepository.findAll();
                 if (list!=null&&list.size()>0){
                     for (Company company1:list){
                         if (company1.getName()!=null&&!"".equals(company1.getName())&&!company1.getId().equals(company.getId())&&param.get("name").equals(company1.getName())) {
-//                            throw new RuntimeException("企业名称不能相同");
-                            restResponse=new RestResponse("企业名称不能相同",1005,null);
-                            out.print(JSON.toJSONString(restResponse));
-                            out.flush();
-                            out.close();
-                            return;
+                            throw new RuntimeException("企业名称不能相同");
+//                            restResponse=new RestResponse("企业名称不能相同",1005,null);
+//                            out.print(JSON.toJSONString(restResponse));
+//                            out.flush();
+//                            out.close();
+//                            return;
                         }
                     }
                 }
@@ -1056,12 +1056,12 @@ public class FileController {
                 }
                 firmManager = userRepository.findByName(param.get("account")+"@"+company.getCompanyId());
                 if (null == firmManager) {
-                    restResponse=new RestResponse("修改失败，管理员账号不存在！",1005,null);
-                    out.print(JSON.toJSONString(restResponse));
-                    out.flush();
-                    out.close();
-//                    throw new RuntimeException("修改失败，管理员账号不存在！");
-                    return;
+                    throw new RuntimeException("修改失败，管理员账号不存在！");
+//                    restResponse=new RestResponse("修改失败，管理员账号不存在！",1005,null);
+//                    out.print(JSON.toJSONString(restResponse));
+//                    out.flush();
+//                    out.close();
+//                    return;
                 }
                 company=companyRepository.save(company);
                 firmManager = company.getManager();
