@@ -852,7 +852,7 @@ public class OperateController {
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
         if (mobile.length()!=11)
-            return new RestResponse("手机号格式不正确");
+            return new RestResponse("手机号格式不正确",1005,null);
         //短信发送验证码
         boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
         if (b)
@@ -890,7 +890,7 @@ public class OperateController {
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
         if (null==map.get("email")||"".equals(map.get("email")))
-            return new RestResponse("参数为空！",null);
+            return new RestResponse("参数为空！",1005,null);
         //邮箱发送验证码
         boolean b=MessageSendService.sendEmai(user,map.get("email"),String.valueOf(verify),0);
         if (b)
