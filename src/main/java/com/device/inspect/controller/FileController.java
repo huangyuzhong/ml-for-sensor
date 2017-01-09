@@ -1244,7 +1244,7 @@ public class FileController {
     }
 
     //硬件版本更新
-    @RequestMapping(value="/create/device/version",method = RequestMethod.POST)
+    @RequestMapping(value="/create/device/version")
     public void updateVersion(Principal principal,@RequestParam Map<String ,String> param,
                                       HttpServletRequest request,HttpServletResponse response) throws IOException {
         //判断是否登陆
