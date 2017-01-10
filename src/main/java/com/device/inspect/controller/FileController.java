@@ -386,6 +386,8 @@ public class FileController {
                             if (null != files && files.size() > 0) {
                                 MultipartFile file = files.get(0);
                                 String fileName  = file.getOriginalFilename();
+                                Date date=new Date();
+                                fileName=String.valueOf(date.getTime());
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
                                 InputStream is = file.getInputStream();
                                 File f = new File(path + fileName);
@@ -624,6 +626,8 @@ public class FileController {
                         if (null != files && files.size() > 0) {
                             MultipartFile file = files.get(0);
                             String fileName  = file.getOriginalFilename();
+                            Date date=new Date();
+                            fileName=String.valueOf(date.getTime());
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
                             InputStream is = file.getInputStream();
                             File f = new File(path + fileName);
@@ -742,6 +746,8 @@ public class FileController {
                             if (null != files && files.size() > 0) {
                                 MultipartFile file = files.get(0);
                                 String fileName  = file.getOriginalFilename();
+                                Date date=new Date();
+                                fileName=String.valueOf(date.getTime());
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
                                 InputStream is = file.getInputStream();
                                 File f = new File(path + fileName);
@@ -913,6 +919,8 @@ public class FileController {
                 if (null != files && files.size() > 0) {
                     MultipartFile file = files.get(0);
                     String fileName  = file.getOriginalFilename();
+                    Date date=new Date();
+                    fileName=String.valueOf(date.getTime());
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     if (null==fileName||fileName.equals(""))
                         break;
@@ -1102,6 +1110,8 @@ public class FileController {
                             if (null==fileName||fileName.equals(""))
                                 break;
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
+                            Date date=new Date();
+                            fileName=String.valueOf(date.getTime());
                             InputStream is = file.getInputStream();
                             File f = new File(path + fileName);
                             FileOutputStream fos = new FileOutputStream(f);
@@ -1170,6 +1180,8 @@ public class FileController {
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     if (null==fileName||fileName.equals(""))
                         break;
+                    Date date=new Date();
+                    fileName=String.valueOf(date.getTime());
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
@@ -1224,6 +1236,8 @@ public class FileController {
                     if (null!=files&&files.size()>0){
                         MultipartFile file=files.get(0);
                         String fileName=file.getOriginalFilename();
+                        Date date=new Date();
+                        fileName=String.valueOf(date.getTime());
                         InputStream is=file.getInputStream();
                         File f=new File(path+fileName);
                         FileOutputStream fos=new FileOutputStream(f);
