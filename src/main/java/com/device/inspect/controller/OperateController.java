@@ -340,6 +340,8 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
+        if (device.getManager()!=null&&device.getManager()!=user)
+            return new RestResponse("非设备管理员不能修改设备报警参数",1005,null);
         if (null!=request.getList()&&request.getList().size()>0){
             for (InspectTypeRequest inspectTypeRequest:request.getList()){
                 DeviceInspect deviceInspect = deviceInspectRepository.
