@@ -209,6 +209,8 @@ public class FileController {
                                 if (null != files && files.size() > 0) {
                                     MultipartFile file = files.get(0);
                                     String fileName  = file.getOriginalFilename();
+                                    Date date=new Date();
+                                    fileName=String.valueOf(date.getTime());
 //                            String fileName = UUID.randomUUID().toString() + ".jpg";
                                     InputStream is = file.getInputStream();
                                     File f = new File(path + fileName);
