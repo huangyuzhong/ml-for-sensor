@@ -14,8 +14,14 @@ import javax.mail.internet.*;
  * Created by Administrator on 2016/10/29.
  */
 public class MessageSendService {
-    //推送报警信息
-    //model短信模板ID/邮箱标题, message警报内容
+    /**
+     * 推送报警信息
+     * model短信模板ID/邮箱标题, message警报内容
+     * @param user
+     * @param verify
+     * @param message
+     * @return
+     */
     public static String pushAlertMessge(User user,String verify,String message){
         if (MessageSendService.sendMessage(user,verify,message,1)){
             return "短信推送成功";
@@ -27,22 +33,26 @@ public class MessageSendService {
     }
 
     //阿里短信推送的appkey
-    public static final String appKey="23511383";
+    public static final String appKey="23524999";
     //阿里短信推送的App Secret
-    public static final String appSecret="b9d6566fe254b76e94dbdfb99470c312";
+    public static final String appSecret="f37a86b1b0d2cef9670bf1c4ce1e23f2";
     //url
     public static final String url="http://gw.api.taobao.com/router/rest";
-    //短信签名
-    public static final String MessageName="王康健";
+    //验证码短信签名绑定手机号
+    public static final String MessageName0="绑定手机号";
+    //设备警报短信签名设备警报
+    public static final String MessageName1="设备报警";
+    //找回密码短信签名找回密码
+    public static final String MessageName2="找回密码";
     //设备警报模板ID
-    public static final String alertModelID="SMS_25255114";
-    //验证码模板ID
-    public static final String verifyModelID="SMS_25240076";
+    public static final String alertModelID="SMS_25635204";
+    //绑定手机号验证码模板ID
+    public static final String verifyModelID="SMS_25665210";
     //找回密码模板ID
-    public static final String PasswordID="SMS_25375117";
-    //发送短信
-    //code短信模板ID alert短信内容
+    public static final String PasswordID="SMS_25610360";
+
     /**
+     * 发送短信
      * @param user    用户
      * @param message  信息内容
      * @param type  0是验证码  1是报警信息 2是发送密码
@@ -63,9 +73,9 @@ public class MessageSendService {
                     //短信类型
                     request.setSmsType("normal");
                     //短信签名
-                    request.setSmsFreeSignName(MessageName);
+                    request.setSmsFreeSignName(MessageName1);
                     //短信模板变量(验证码)
-                    request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                    request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                     //手机号
                     request.setRecNum(user.getMobile());
                     //调用短信报警推送模板
@@ -92,9 +102,9 @@ public class MessageSendService {
                 //短信类型
                 request.setSmsType("normal");
                 //短信签名
-                request.setSmsFreeSignName(MessageName);
+                request.setSmsFreeSignName(MessageName0);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                 //手机号
                 request.setRecNum(verfyMobile);
                 //调用短信验证码模板
@@ -118,9 +128,9 @@ public class MessageSendService {
                 //短信类型
                 request.setSmsType("normal");
                 //短信签名
-                request.setSmsFreeSignName(MessageName);
+                request.setSmsFreeSignName(MessageName2);
                 //短信模板变量(验证码)
-                request.setSmsParamString("{name:"+"'"+message+"'"+"}");
+                request.setSmsParamString("{code:"+"'"+message+"'"+"}");
                 //手机号
                 request.setRecNum(verfyMobile);
                 //调用短信验证码模板
@@ -149,7 +159,7 @@ public class MessageSendService {
     public static final String EmaliVerify="验证码";
     public static final String EmaliPassword="找回密码";
     /**
-     *
+     * 推送邮件
      * @param user   用户
      * @param content  邮件内容
      * @param type  0是验证码，1是报警信息
@@ -173,7 +183,7 @@ public class MessageSendService {
 
                     // 3. 创建一封邮件
                     MimeMessage mimeMessage =
-                           createMimeMessage(session, myEmailAccount, user.getEmail(),MessageSendService.EmaliSubject,content);
+                            createMimeMessage(session, myEmailAccount, user.getEmail(),MessageSendService.EmaliSubject,content);
 
 
                     // 4. 根据 Session 获取邮件传输对象
@@ -278,28 +288,28 @@ public class MessageSendService {
      */
     public static MimeMessage createMimeMessage(Session session, String sendMail, String receiveMail,
                                                 String subject,String content) throws Exception {
-            // 1. 创建一封邮件
-            MimeMessage mimeMessage = new MimeMessage(session);
+        // 1. 创建一封邮件
+        MimeMessage mimeMessage = new MimeMessage(session);
 
-            // 2. From: 发件人
-            mimeMessage.setFrom(new InternetAddress(sendMail, "Intelab云服务", "UTF-8"));
+        // 2. From: 发件人
+        mimeMessage.setFrom(new InternetAddress(sendMail, "Intelab云服务", "UTF-8"));
 
-            // 3. To: 收件人（可以增加多个收件人、抄送、密送）
-            mimeMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(receiveMail,receiveMail, "UTF-8"));
+        // 3. To: 收件人（可以增加多个收件人、抄送、密送）
+        mimeMessage.setRecipient(MimeMessage.RecipientType.TO, new InternetAddress(receiveMail,receiveMail, "UTF-8"));
 
-            // 4. Subject: 邮件主题
-            mimeMessage.setSubject(subject, "UTF-8");
+        // 4. Subject: 邮件主题
+        mimeMessage.setSubject(subject, "UTF-8");
 
-            // 5. Content: 邮件正文（可以使用html标签）
-            mimeMessage.setContent(content, "text/html;charset=UTF-8");
+        // 5. Content: 邮件正文（可以使用html标签）
+        mimeMessage.setContent(content, "text/html;charset=UTF-8");
 
-            // 6. 设置发件时间
-            mimeMessage.setSentDate(new Date());
+        // 6. 设置发件时间
+        mimeMessage.setSentDate(new Date());
 
-            // 7. 保存设置
-            mimeMessage.saveChanges();
+        // 7. 保存设置
+        mimeMessage.saveChanges();
 
-            return mimeMessage;
+        return mimeMessage;
     }
 }
 

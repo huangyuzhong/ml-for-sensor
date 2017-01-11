@@ -1111,8 +1111,9 @@ public class FileController {
                                 break;
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
                             Date date=new Date();
-                            fileName=String.valueOf(date.getTime());
-                            InputStream is = file.getInputStream();
+//                            fileName=String.valueOf(date.getTime());
+//                            InputStream is = file.getInputStream();
+                            fileName=new String(fileName.getBytes("UTF-8"));
                             File f = new File(path + fileName);
                             FileOutputStream fos = new FileOutputStream(f);
                             int hasRead = 0;
