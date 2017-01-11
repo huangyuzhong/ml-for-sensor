@@ -1180,8 +1180,8 @@ public class FileController {
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     if (null==fileName||fileName.equals(""))
                         break;
-                    Date date=new Date();
-                    fileName=String.valueOf(date.getTime());
+//                    Date date=new Date();
+//                    fileName=String.valueOf(date.getTime());
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
