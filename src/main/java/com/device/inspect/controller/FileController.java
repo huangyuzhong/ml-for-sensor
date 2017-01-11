@@ -1112,7 +1112,7 @@ public class FileController {
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
 //                            Date date=new Date();
 //                            fileName=String.valueOf(date.getTime());
-                            String newfileName=new String(fileName.getBytes("UTF-8"),"UTF-8");
+                            String newfileName=new String(fileName.getBytes("GBK"),"UTF-8");
                             InputStream is = file.getInputStream();
                             File f = new File(path + newfileName);
                             FileOutputStream fos = new FileOutputStream(f);
