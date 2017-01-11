@@ -1110,10 +1110,10 @@ public class FileController {
                             if (null==fileName||fileName.equals(""))
                                 break;
 //                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                            Date date=new Date();
+//                            Date date=new Date();
 //                            fileName=String.valueOf(date.getTime());
-//                            InputStream is = file.getInputStream();
                             fileName=new String(fileName.getBytes("UTF-8"));
+                            InputStream is = file.getInputStream();
                             File f = new File(path + fileName);
                             FileOutputStream fos = new FileOutputStream(f);
                             int hasRead = 0;
