@@ -511,7 +511,25 @@ create table `pt100_zero`(
   PRIMARY KEY (`id`)
 );
 
+
 ALTER TABLE `device` ADD `device_version_id` INT NULL;
 ALTER TABLE `device` ADD CONSTRAINT `device_5` FOREIGN KEY (`device_version_id`) REFERENCES `device_version` (`id`);
 
 SET FOREIGN_KEY_CHECKS=1;
+
+
+ALTER TABLE `device_inspect` ADD  `zero`  FLOAT NULL DEFAULT 0 ;
+
+ALTER TABLE `inspect_data` ADD  `real_value`  VARCHAR(255) NULL ;
+
+ALTER TABLE `device_version` ADD `message` VARCHAR(255) NULL;
+
+ALTER TABLE `users` ADD `remove_alert` VARCHAR(255) NULL DEFAULT 0;
+
+ALTER TABLE `company` ADD `company_id` VARCHAR(255) NULL ;
+
+ALTER TABLE `device_inspect` ADD `original_value` FLOAT NULL DEFAULT 0;
+
+ALTER TABLE `device_inspect` ADD `correction_value` FLOAT NULL DEFAULT 0;
+
+

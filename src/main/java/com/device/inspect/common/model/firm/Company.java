@@ -37,6 +37,7 @@ public class Company {
     private String login;
     private Float lat;
     private Float lng;
+    private String companyId;
 
 
     @Id
@@ -246,5 +247,14 @@ public class Company {
 
     public void setLng(Float lng) {
         this.lng = lng;
+    }
+
+    @Column(name = "company_id")
+    public String getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(String companyId) {
+        this.companyId = companyId;
     }
 }

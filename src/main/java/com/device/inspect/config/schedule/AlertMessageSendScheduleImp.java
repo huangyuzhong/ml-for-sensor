@@ -80,20 +80,43 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                     if (null!=messageSendManager&&(new Date().getTime()-messageSendManager.getCreate().getTime())/(60*1000)<30){
 
                     }else {
-                        //添加发送
+                        System.out.println("校验");
+                        //0是允许报警  1，是允许邮箱报警
                         MessageSend messageSend = new MessageSend();
-                        String reason=MessageSendService.pushAlertMessge(device.getManager(),"",message);
-
-                        messageSend.setType(reason);
-                        messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
-                        messageSend.setReason("alert");
                         messageSend.setDevice(device);
                         messageSend.setCreate(new Date());
                         messageSend.setUser(device.getManager());
-                        if (reason.equals("推送失败"))
+                        if (device.getManager().getRemoveAlert()!=null&&!"".equals(device.getManager().getRemoveAlert())&&device.getManager().getRemoveAlert().equals("0")){
+                            //允许发送报警信息
+                            //添加发送
+                            String reason=MessageSendService.pushAlertMessge(device.getManager(),"",message);
+                            messageSend.setType(reason);
+                            messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+                            messageSend.setReason("alert");
+                            if (reason.equals("推送失败"))
+                                messageSend.setEnable(0);
+                            else
+                                messageSend.setEnable(1);
+                        }else if (device.getManager().getRemoveAlert()!=null&&!"".equals(device.getManager().getRemoveAlert())&&device.getManager().getRemoveAlert().equals("1")){
+                            //允许邮箱推送报警信息
+                            if (device.getManager().getEmail()!=null&&!"".equals(device.getManager().getEmail())){
+                                Boolean reason=MessageSendService.sendEmai(device.getManager(),device.getManager().getEmail(),message,1);
+                                messageSend.setType("email");
+                                messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+                                messageSend.setReason("alert");
+                                if (reason)
+                                    messageSend.setEnable(1);
+                                else
+                                    messageSend.setEnable(0);
+                            }else {
+                                messageSend.setReason("管理员没有绑定邮箱");
+                                messageSend.setEnable(0);
+                            }
+                        }else {
+                            //不推送报警信息
+                            messageSend.setReason("管理员设置了不允许报警推送");
                             messageSend.setEnable(0);
-                         else
-                            messageSend.setEnable(1);
+                        }
 
                         messageSendRepository.save(messageSend);
                     }
@@ -106,20 +129,44 @@ public class AlertMessageSendScheduleImp implements MySchedule {
                                 if (null!=messageSendScientist&&(new Date().getTime()-messageSendScientist.getCreate().getTime())/(60*1000)<30){
 
                                 }else {
-                                    //添加发送
-                                   MessageSend messageSend = new MessageSend();
-                                    String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),"",message);
-                                    messageSend.setReason("alert");
-                                    messageSend.setType(reason);
-                                    messageSend.setError(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
-                                            "管理员"+deviceFloor.getScientist().getUserName());
+                                    MessageSend messageSend = new MessageSend();
                                     messageSend.setDevice(device);
                                     messageSend.setCreate(new Date());
                                     messageSend.setUser(deviceFloor.getScientist());
-                                    if (reason.equals("推送失败"))
+                                    if (deviceFloor.getScientist().getRemoveAlert()!=null&&!"".equals(deviceFloor.getScientist().getRemoveAlert())&&deviceFloor.getScientist().getRemoveAlert().equals("0")){
+                                        //允许发送报警信息
+                                        //添加发送
+                                        String reason=MessageSendService.pushAlertMessge(deviceFloor.getScientist(),"",message);
+                                        messageSend.setReason("alert");
+                                        messageSend.setType(reason);
+                                        messageSend.setError(device.getId()+"报警,发送给实验品"+deviceFloor.getType()+
+                                                "管理员"+deviceFloor.getScientist().getUserName());
+
+                                        if (reason.equals("推送失败"))
+                                            messageSend.setEnable(0);
+                                        else
+                                            messageSend.setEnable(1);
+                                    }else if (deviceFloor.getScientist().getRemoveAlert()!=null&&!"".equals(deviceFloor.getScientist().getRemoveAlert())&&deviceFloor.getScientist().getRemoveAlert().equals("1")){
+                                        //云巽邮箱推送报警信息
+                                        if (deviceFloor.getScientist().getEmail()!=null&&!"".equals(deviceFloor.getScientist().getEmail())){
+                                            Boolean reason=MessageSendService.sendEmai(deviceFloor.getScientist(),deviceFloor.getScientist().getEmail(),message,1);
+                                            messageSend.setType("email");
+                                            messageSend.setError(device.getId()+"报警,发送给给实验品管理员"+deviceFloor.getScientist().getUserName());
+                                            messageSend.setReason("alert");
+                                            if (reason)
+                                                messageSend.setEnable(1);
+                                            else
+                                                messageSend.setEnable(0);
+                                        }else {
+                                            messageSend.setReason("实验品管理员没有绑定邮箱");
+                                            messageSend.setEnable(0);
+                                        }
+                                    }else {
+                                        //不推送报警信息
+                                        messageSend.setReason("实验品管理员设置了不允许报警推送");
                                         messageSend.setEnable(0);
-                                    else
-                                        messageSend.setEnable(1);
+                                    }
+
                                     messageSendRepository.save(messageSend);
                                 }
                             }

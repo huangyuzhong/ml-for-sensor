@@ -31,6 +31,7 @@ public class User {
     private Integer bindMobile;
     private Integer bindEmail;
     private Integer verify;
+    private String removeAlert;
 
     @Id
     @GeneratedValue()
@@ -185,5 +186,14 @@ public class User {
 
     public void setVerify(Integer verify) {
         this.verify = verify;
+    }
+
+    @Column(name = "remove_alert")
+    public String getRemoveAlert() {
+        return removeAlert;
+    }
+
+    public void setRemoveAlert(String removeAlert) {
+        this.removeAlert = removeAlert;
     }
 }

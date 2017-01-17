@@ -45,4 +45,5 @@ public class DeviceTypeRequest {
     public void setList(List<InspectTypeRequest> list) {
         this.list = list;
     }
+
 }

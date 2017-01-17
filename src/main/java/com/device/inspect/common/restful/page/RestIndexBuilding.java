@@ -46,9 +46,9 @@ public class RestIndexBuilding {
         if (null!=company.getCreateDate())
             days = MyCalendar.getDateSpace(company.getCreateDate(),new Date());
         if (null!=company.getBuildings()&&company.getBuildings().size()>0){
-            list = new ArrayList<RestBuilding>();
+            this.list = new ArrayList<RestBuilding>();
             for (Building building:company.getBuildings()) {
-                list.add(new RestBuilding(building));
+                this.list.add(new RestBuilding(building));
             }
         }
     }

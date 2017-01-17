@@ -41,6 +41,9 @@ public class LoginUserService {
      * @throws UsernameNotFoundException
      */
 	public final LoginUser loadUserByName(String name,String verify, String companyId,Set<String> roleNames) throws UsernameNotFoundException {
+        //判断是否有companyId
+        if (companyId!=null&&!"".equals(companyId))
+            name= name+"@"+companyId;
         User user = userRepository.findByName(name);
         if (user == null) {
             throw new UsernameNotFoundException("user not found!");

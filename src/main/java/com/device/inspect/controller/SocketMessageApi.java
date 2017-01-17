@@ -74,9 +74,6 @@ public class SocketMessageApi {
         String mointorCode = result.substring(8,26);
 //        LOGGER.info("终端编号是：：：：："+mointorCode);
         MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
-//        if (null==monitorDevice)
-//            LOGGER.info("终端是空：：：：：：：");
-//        else LOGGER.info("终端id是：：：：："+monitorDevice.getId());
         if (null==monitorDevice)
             return new RestResponse(null);
         if(monitorTypeCode.equals("03")) {
@@ -94,19 +91,21 @@ public class SocketMessageApi {
         String response = null;
 
         InspectData inspectData = new InspectData();
-
         if (null != inspectType){
-
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
             if (null==deviceInspect)
                 return new RestResponse(null);
-            float record;
+            //测量原值
+            Float record;
+            //添加矫正值
+            Float check;
             //判断是否是PT100
             if (monitorTypeCode.equals("00")){
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
+
 
                 //将int类型转换成两个doube类型的电压
                 double AD0=((first>>16)&0xffff)*1.024/32768;//前两个字节转换成doube类型的电压
@@ -121,14 +120,8 @@ public class SocketMessageApi {
                 //将电阻四舍五入到小数点两位
                 BigDecimal bigDecimal=new BigDecimal(Float.valueOf(String.valueOf(R)));
                 Float r=bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).floatValue();
-
-                System.out.println("经过换算的电阻："+r);
-
                 //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
-                if (
-//                        pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r)!=null
-                        pt100Repository.findByResistance(r)!=null
-                        ){
+                if (pt100Repository.findByResistance(r)!=null){
                     Pt100 pt100=pt100Repository.findByResistance(r);
 //                    Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
                     //通过电阻找到对象的温度
@@ -136,12 +129,19 @@ public class SocketMessageApi {
 
 
                     record=Float.valueOf(temperature);
-                    Pt100Zero pt100Zero=new Pt100Zero();
-                    //查询飘零表
-                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-                    if (pt100Zero!=null){
-                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
-                    }
+                    //添加测量原值
+                    inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
+                    //矫正值
+                    check=record-(deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(check));
+                    deviceInspect.setCorrectionValue(check);
+//                    Pt100Zero pt100Zero=new Pt100Zero();
+//                    //查询飘零表
+//                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+//                    if (pt100Zero!=null){
+//                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+//                    }
 
                 }else {
                     //通过电阻找到对应的温度
@@ -167,53 +167,80 @@ public class SocketMessageApi {
                     float k=(Float.valueOf(temperature2)-Float.valueOf(temperature1))/(resistance2-resistance1);
 
                     float b=Float.valueOf(temperature1)-(k*resistance1);
-                  
+
                     //将温度存入record
                     record = k*r+b;
-                    Pt100Zero pt100Zero=new Pt100Zero();
-                    //查询飘零表
-                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-                    if (pt100Zero!=null){
-                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
-                    }
+                    //添加测量原值
+                    inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
+                    //添加矫正值
+                    check=record-(deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(check));
+                    deviceInspect.setCorrectionValue(check);
+//                    Pt100Zero pt100Zero=new Pt100Zero();
+//                    //查询飘零表
+//                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
+//                    if (pt100Zero!=null){
+//                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
+//                    }
                 }
                 //设置检测结果
-                inspectData.setResult(String.valueOf(record));
+//                inspectData.setResult(String.valueOf(record));
             }else if (monitorTypeCode.equals("07")){
                 //判断是不是甲烷
                 //根据上传的值算出电压
                 Float v=(Float.valueOf(first)*Float.valueOf(2.018f))/Float.valueOf(32768);
+
                 //算出的电压值如果小于0.4   record 都为百分之零
                 if (v<0.4){
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
-                    record=0;
+                    record=0f;
+                    //添加校正值
                     inspectData.setResult(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
+                    //甲烷添加测量原值
+                    inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setCorrectionValue(record);
                 }else if (v<2){
                     float b=0.4f;
                     float k=1.6f;
                     record=(v-b)/k;
+
+                    //甲烷添加测量原值
+                    inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
-                    inspectData.setResult(String.valueOf(record));
+                    check=record-(deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(check));
+                    deviceInspect.setCorrectionValue(check);
                 } else {
                     record=10f;
                     inspectData.setCreateDate(new Date());
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     inspectData.setResult(String.valueOf(record));
+                    //甲烷添加测量原值
+                    inspectData.setRealValue(String.valueOf(record));
+                    deviceInspect.setOriginalValue(record);
                 }
 
             } else {
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
+                //添加测量原值
+                inspectData.setRealValue(String.valueOf(first));
                 record = Float.valueOf(first)/1000;
-                inspectData.setResult(String.valueOf(record));
+                deviceInspect.setOriginalValue(record);
+                check=record-(deviceInspect.getZero());
+                inspectData.setResult(String.valueOf(check));
+                deviceInspect.setCorrectionValue(check);
             }
-
+            deviceInspectRepository.save(deviceInspect);
             inspectDataRepository.save(inspectData);
 
             if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){

@@ -19,6 +19,7 @@ public class RestInspectData {
     private Date createDate;
     private Integer judge;
     private String picResult;
+    private String realValue;
 
     public RestInspectData() {
     }
@@ -54,6 +55,8 @@ public class RestInspectData {
                 judge = 2;
 
         }
+        this.realValue=inspectData.getRealValue();
+//        this.realValue=inspectData.getResult()-inspectData.getDeviceInspect().getZero();
     }
 
     public Integer getId() {
@@ -102,5 +105,13 @@ public class RestInspectData {
 
     public void setPicResult(String picResult) {
         this.picResult = picResult;
+    }
+
+    public String getRealValue() {
+        return realValue;
+    }
+
+    public void setRealValue(String realValue) {
+        this.realValue = realValue;
     }
 }

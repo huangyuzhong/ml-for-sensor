@@ -25,6 +25,9 @@ public class RestDeviceInspect {
     private String start;
     private String value;
     private String end;
+    private Float zero;
+    private Float originalValue;
+    private Float correctionValue;
 
     public RestDeviceInspect() {
     }
@@ -48,7 +51,9 @@ public class RestDeviceInspect {
             this.end = "1";
             this.value = "1";
         }
-
+        this.zero=deviceInspect.getZero();
+        this.originalValue=deviceInspect.getOriginalValue();
+        this.correctionValue=deviceInspect.getCorrectionValue();
     }
 
     public Integer getId() {
@@ -147,6 +152,27 @@ public class RestDeviceInspect {
         this.end = end;
     }
 
+    public Float getZero() {
+        return zero;
+    }
 
+    public void setZero(Float zero) {
+        this.zero = zero;
+    }
 
+    public Float getOriginalValue() {
+        return originalValue;
+    }
+
+    public void setOriginalValue(Float originalValue) {
+        this.originalValue = originalValue;
+    }
+
+    public Float getCorrectionValue() {
+        return correctionValue;
+    }
+
+    public void setCorrectionValue(Float correctionValue) {
+        this.correctionValue = correctionValue;
+    }
 }

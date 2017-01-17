@@ -16,6 +16,7 @@ public class InspectData {
     private String result;
     private Date createDate;
     private String type;
+    private String realValue;
 
     @Id
     @GeneratedValue()
@@ -70,5 +71,14 @@ public class InspectData {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Column(name = "real_value")
+    public String getRealValue() {
+        return realValue;
+    }
+
+    public void setRealValue(String realValue) {
+        this.realValue = realValue;
     }
 }
