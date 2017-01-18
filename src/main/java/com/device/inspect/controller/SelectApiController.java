@@ -468,9 +468,9 @@ public class SelectApiController {
      */
     @RequestMapping(value = "/query/login/company")
     public RestResponse getCompanyById(Principal principal,@RequestParam String companyId){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+//        User user=judgeByPrincipal(principal);
+//        if (user==null)
+//            return new RestResponse("用户未登陆",1005,null);
         if (null==companyId||companyId.equals(""))
             return new RestResponse("没有正确的访问参数！",null);
         String realId = "";
