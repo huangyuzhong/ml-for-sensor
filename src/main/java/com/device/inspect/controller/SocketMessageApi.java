@@ -228,7 +228,20 @@ public class SocketMessageApi {
                     deviceInspect.setOriginalValue(record);
                 }
 
-            } else {
+            }
+            else if(monitorTypeCode.equals("06")){
+                inspectData.setCreateDate(new Date());
+                inspectData.setDevice(device);
+                inspectData.setDeviceInspect(deviceInspect);
+                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
+                value = (~value)/60;
+                inspectData.setRealValue(String.valueOf(value));
+                record = Float.valueOf(value)/60;
+                deviceInspect.setOriginalValue(record);
+                check=record*(float)1.04;
+                inspectData.setResult(String.valueOf(check));
+                deviceInspect.setCorrectionValue(check);
+            } else{
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);

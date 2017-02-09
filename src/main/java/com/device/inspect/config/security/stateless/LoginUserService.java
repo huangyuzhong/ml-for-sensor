@@ -48,12 +48,13 @@ public class LoginUserService {
         if (user == null) {
             throw new UsernameNotFoundException("user not found!");
         }
-        if (!String.valueOf(user.getPassword()).equals(verify))
+        if (!String.valueOf(user.getPassword()).equals(verify)){
             throw new UsernameNotFoundException("user's password isn't correct!");
-        
+        }
+
         List<Role> roles = roleRepository.findByUserId(user.getId());
         user.setRoles(roles);
-
+//        System.out.println(roles.toString());
         List<Role> newRoles = new ArrayList<>(roleNames.size());
 //        if (null != role&&roleNames.contains(role.getAuthority()))
 //            newRoles.add(role);
@@ -76,18 +77,20 @@ public class LoginUserService {
         }
 
 
-//        for(Role role:roles) {
-//            if(roleNames.contains(role.getAuthority())) {
-//                newRoles.add(role);
-//            }
-//        }
-//        if(newRoles.size() == 0) {
-//            throw new UsernameNotFoundException("user not have correct role");
-//        }
+        for(Role role:roles) {
+            if(roleNames.contains(role.getAuthority())) {
+                newRoles.add(role);
+            }
+        }
+        if(newRoles.size() == 0) {
+            throw new UsernameNotFoundException("user not have correct role");
+        }
 
 		final LoginUser loginUser =  new LoginUser(user);
 		loginUser.setRoles(newRoles);
         detailsChecker.check(loginUser);
+//        System.out.println(loginUser.getRoles().toString());
+//        System.out.println(loginUser.getUsername());
 		return loginUser;
 	}
 }
