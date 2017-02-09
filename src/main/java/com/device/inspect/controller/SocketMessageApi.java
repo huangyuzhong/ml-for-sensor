@@ -233,12 +233,17 @@ public class SocketMessageApi {
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
+                System.out.println("first data: " + fisrtData);
+                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 4, 4);
+                System.out.println("part value: " + value);
                 value = (~value)/60;
+                System.out.println("real value: " + value);
                 inspectData.setRealValue(String.valueOf(value));
                 record = Float.valueOf(value)/60;
+                System.out.println("filted record: " + record);
                 deviceInspect.setOriginalValue(record);
                 check=record*(float)1.04;
+                System.out.println("checked record: " + check);
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
             } else{
