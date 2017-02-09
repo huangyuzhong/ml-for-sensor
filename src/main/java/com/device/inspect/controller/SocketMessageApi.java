@@ -238,7 +238,7 @@ public class SocketMessageApi {
                 int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData.substring(4)), 0, 2);
                 System.out.println("part value: " + value);
                 if(value > 32767){
-                    value = 65536 - 32767;
+                    value = value - 65536;
                 }
                 value = ~value/60;
                 System.out.println("real value: " + value);
