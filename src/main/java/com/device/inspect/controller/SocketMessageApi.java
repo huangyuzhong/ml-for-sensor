@@ -240,7 +240,6 @@ public class SocketMessageApi {
                 if(value > 32767){
                     value = value - 65536;
                 }
-                value = value/60;
                 System.out.println("real value: " + value);
                 inspectData.setRealValue(String.valueOf(value));
                 record = Float.valueOf(value)/60;
