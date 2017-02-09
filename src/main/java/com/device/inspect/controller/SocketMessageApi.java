@@ -237,7 +237,10 @@ public class SocketMessageApi {
                 System.out.println(fisrtData.length());
                 int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData.substring(4)), 0, 2);
                 System.out.println("part value: " + value);
-                value = (~value)/60;
+                if(value > 32767){
+                    value = 65536 - 32767;
+                }
+                value = ~value/60;
                 System.out.println("real value: " + value);
                 inspectData.setRealValue(String.valueOf(value));
                 record = Float.valueOf(value)/60;
