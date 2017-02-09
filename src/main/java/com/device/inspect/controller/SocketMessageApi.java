@@ -234,6 +234,7 @@ public class SocketMessageApi {
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 System.out.println("first data: " + fisrtData);
+                System.out.println(fisrtData.length());
                 int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 4, 4);
                 System.out.println("part value: " + value);
                 value = (~value)/60;
