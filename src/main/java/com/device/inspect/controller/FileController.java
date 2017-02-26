@@ -51,6 +51,9 @@ import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
+import com.microsoft.azure.storage.*;
+import com.microsoft.azure.storage.blob.*;
+
 /**
  * Created by Administrator on 2016/8/16.
  */
@@ -58,7 +61,9 @@ import java.util.*;
 @RequestMapping(value = "/api/rest/file")
 public class FileController {
 
-    private static final String SERVICE_PATH = "http://intelab.ilabservice.cloud";
+    private static final String SERVICE_PATH = "http://ilabservice.chinaeast.cloudapp.chinacloudapi.cn";
+
+    protected static Logger logger = LogManager.getLogger();
 
     @Autowired
     private UserRepository userRepository;
@@ -950,8 +955,11 @@ public class FileController {
                 JSONObject jobj = new JSONObject();
                 String path = "";
                 path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
+
+                logger.info(String.format("update file %s to folder %s", key, path));
                 File add = new File(path);
                 if (!add.exists() && !add.isDirectory()) {
+                    logger.info("create directory for this folder");
                     add.mkdirs();
                 }
 
@@ -959,8 +967,10 @@ public class FileController {
                 if (null != files && files.size() > 0) {
                     MultipartFile file = files.get(0);
                     String fileName  = file.getOriginalFilename();
+                    logger.info("original file name is " + fileName);
                     Date date=new Date();
                     fileName=String.valueOf(date.getTime());
+                    logger.info("save file as date string " + fileName);
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     if (null==fileName||fileName.equals(""))
                         break;
@@ -974,6 +984,8 @@ public class FileController {
                     }
                     fos.close();
                     is.close();
+
+                    logger.info(String.format("file %s saved, and update path to db", key));
                     device.setPhoto("/photo/device/"+device.getId()+"/"+fileName);
                     deviceRepository.save(device);
                 }
@@ -1073,7 +1085,7 @@ public class FileController {
                 company.setManager(firmManager);
 
                 //给公司添加url
-                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
                         ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
                 //设置公司的companyId
                 company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
