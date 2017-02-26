@@ -58,7 +58,7 @@ import java.util.*;
 @RequestMapping(value = "/api/rest/file")
 public class FileController {
 
-    private static final String SERVICE_PATH = "http://intelab.ilabservice.cloud";
+    private static final String SERVICE_PATH = "http://ilabservice.chinaeast.cloudapp.chinacloudapi.cn";
 
     @Autowired
     private UserRepository userRepository;
@@ -1073,7 +1073,7 @@ public class FileController {
                 company.setManager(firmManager);
 
                 //给公司添加url
-                company.setLogin(SERVICE_PATH+"/inspect/Lab_login.html?company="+
+                company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
                         ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
                 //设置公司的companyId
                 company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
