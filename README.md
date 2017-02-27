@@ -10,20 +10,24 @@
 
 
 2. 克隆代码 包括intelab-wbe, intelab-configs
-  ```
+  
+  ```
   cd /*the directory you want to put the code*/
   ```
 
 3. 编译生成运行包
+  
   ```
   mvn package
   ```
 
 4. 进入target目录并运行
+  
   ```
   cd ./target
   nohup java -jar /*target .jar file*/ &
   ```
+  
   使用nohup可以使退出ssh时后端依然在运行
 
 5. 改动
