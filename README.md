@@ -6,7 +6,7 @@
   export INTELAB_ENV={azure intelab env name}
   ```
 
-重新打开shell。
+ * 重新打开shell。
 
 
 2. 克隆代码 包括intelab-wbe, intelab-configs
