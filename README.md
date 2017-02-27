@@ -1,13 +1,15 @@
 ##后端运行步骤
 
-0. 设置环境变量为环境名称， 对应为config的名字。 例如， 产品环境为prod， 测试环境为test。 在linux里， 在~/.bash_profile里加入
-  ```
-  export INTELAB_ENV={环境名称}
-  ```
+1. 设置环境变量为环境名称， 对应为config的名字。 例如， 产品环境为prod， 测试环境为test。 在linux里， 在~/.bash_profile里加入
+
+```
+export INTELAB_ENV={azure intelab env name}
+```
+
 重新打开shell。
 
 
-1. 克隆代码 包括intelab-wbe, intelab-configs
+2. 克隆代码 包括intelab-wbe, intelab-configs
   ```
   cd /*the directory you want to put the code*/
   ```
