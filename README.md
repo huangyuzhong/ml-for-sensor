@@ -2,9 +2,9 @@
 
 1. 设置环境变量为环境名称， 对应为config的名字。 例如， 产品环境为prod， 测试环境为test。 在linux里， 在~/.bash_profile里加入
 
-```
-export INTELAB_ENV={azure intelab env name}
-```
+  ```
+  export INTELAB_ENV={azure intelab env name}
+  ```
 
 重新打开shell。
 
