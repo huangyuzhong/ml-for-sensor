@@ -27,12 +27,9 @@ import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
-import com.device.inspect.controller.request.CompanyRequest;
-import com.device.inspect.controller.request.DeviceTypeRequest;
-import com.device.inspect.controller.request.InspectTypeRequest;
+import com.device.inspect.Application;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.hssf.record.PageBreakRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
@@ -51,8 +48,6 @@ import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
-import com.microsoft.azure.storage.*;
-import com.microsoft.azure.storage.blob.*;
 
 /**
  * Created by Administrator on 2016/8/16.
@@ -974,6 +969,7 @@ public class FileController {
 //                    String fileName = UUID.randomUUID().toString() + ".jpg";
                     if (null==fileName||fileName.equals(""))
                         break;
+                    /*
                     InputStream is = file.getInputStream();
                     File f = new File(path + fileName);
                     FileOutputStream fos = new FileOutputStream(f);
@@ -984,10 +980,16 @@ public class FileController {
                     }
                     fos.close();
                     is.close();
+                    */
 
-                    logger.info(String.format("file %s saved, and update path to db", key));
-                    device.setPhoto("/photo/device/"+device.getId()+"/"+fileName);
-                    deviceRepository.save(device);
+                    String photoUrl = Application.intelabStorageManager.uploadDevicePictureToDefaultContainer(file, deviceId.toString());
+                    if(photoUrl != null) {
+                        logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
+                        //device.setPhoto("/photo/device/"+device.getId()+"/"+fileName);
+                        device.setPhoto(photoUrl);
+                        deviceRepository.save(device);
+                    }
+
                 }
             }
             out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
