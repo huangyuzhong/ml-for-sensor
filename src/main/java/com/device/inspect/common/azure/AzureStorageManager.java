@@ -29,11 +29,9 @@ public class AzureStorageManager extends AzureServiceManager {
 
         logger.info(String.format("connection string of storage is %s", azureStorageConnectionString));
         this.defaultContainerName = defaultContainerName;
-        CloudBlobContainer container = createContainer(defaultContainerName);
+        createContainer(defaultContainerName);
 
-        if(container != null){
-            setContainerAccessiblility(container, BlobContainerPublicAccessType.BLOB);
-        }
+
     }
 
     private CloudStorageAccount getStorageAccount(){
@@ -105,6 +103,7 @@ public class AzureStorageManager extends AzureServiceManager {
                  // Create the container if it does not exist.
                 container.createIfNotExists();
 
+                setContainerAccessiblility(container, BlobContainerPublicAccessType.BLOB);
 
             } catch (Exception e) {
                 // Output the stack trace.
@@ -153,11 +152,11 @@ public class AzureStorageManager extends AzureServiceManager {
         }
     }
 
-    public String uploadBlobToContainer(String containerName, MultipartFile file){
-        CloudBlobContainer container = getContainer(containerName);
+    public String uploadBlobToContainer(String containerName, MultipartFile file, String blobName){
+        //CloudBlobContainer container = getContainer(containerName);
+        CloudBlobContainer container = createContainer(containerName);
         if(container != null) {
             try {
-                String blobName = UUID.randomUUID().toString();
                 CloudBlockBlob blob = container.getBlockBlobReference(blobName);
 
                 blob.upload(file.getInputStream(), file.getSize());
@@ -171,6 +170,7 @@ public class AzureStorageManager extends AzureServiceManager {
             return null;
         }
     }
+
 
     public String uploadBlobToDefaultContainer(MultipartFile file, String blobName){
         logger.info(String.format("get container %s", this.defaultContainerName));
@@ -190,12 +190,6 @@ public class AzureStorageManager extends AzureServiceManager {
         }else{
             return null;
         }
-    }
-
-    public String uploadDevicePictureToDefaultContainer(MultipartFile file, String deviceId){
-        String blobName = String.format("devices/%s/%s", deviceId, UUID.randomUUID().toString());
-
-        return uploadBlobToDefaultContainer(file, blobName);
     }
 
 }

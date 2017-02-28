@@ -28,6 +28,8 @@ import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.Application;
+import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -210,22 +212,20 @@ public class FileController {
                                 if (null != files && files.size() > 0) {
                                     MultipartFile file = files.get(0);
                                     String fileName  = file.getOriginalFilename();
-                                    Date date=new Date();
-                                    fileName=String.valueOf(date.getTime());
-//                            String fileName = UUID.randomUUID().toString() + ".jpg";
-                                    InputStream is = file.getInputStream();
-                                    File f = new File(path + fileName);
-                                    FileOutputStream fos = new FileOutputStream(f);
-                                    int hasRead = 0;
-                                    byte[] buf = new byte[1024];
-                                    while ((hasRead = is.read(buf)) > 0) {
-                                        fos.write(buf, 0, hasRead);
-                                    }
-                                    fos.close();
-                                    is.close();
 
-                                    building.setBackground("/photo/company/build/"+building.getId()+"/" + fileName);
-//                        userRepository.save(user);
+                                    String companyContainerName = String.format("company%s", company.getId());
+                                    String blobName = String.format("buildings/%s/%s", building.getId(), UUID.randomUUID().toString());
+                                    String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                                    if (photoUrl != null) {
+                                        logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                        building.setBackground(photoUrl);
+
+                                    } else {
+                                        logger.error(String.format("Failed to save file %s to blob", fileName));
+
+                                    }
+
+
                                 }
 
 
@@ -389,78 +389,32 @@ public class FileController {
                                 String fileName  = file.getOriginalFilename();
                                 Date date=new Date();
                                 fileName=String.valueOf(date.getTime());
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                                InputStream is = file.getInputStream();
-                                File f = new File(path + fileName);
-                                FileOutputStream fos = new FileOutputStream(f);
-                                int hasRead = 0;
-                                byte[] buf = new byte[1024];
-                                while ((hasRead = is.read(buf)) > 0) {
-                                    fos.write(buf, 0, hasRead);
-                                }
-                                fos.close();
-                                is.close();
 
-                                floor.setBackground("/photo/company/floor/" +floor.getId()+"/"+ fileName);
-//                    userRepository.save(user);
+                                String companyContainerName = String.format("company%s", user.getCompany().getId());
+                                String blobName = String.format("floors/%s/%s", floor.getId(), UUID.randomUUID().toString());
+                                String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                                if (photoUrl != null) {
+                                    logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                    floor.setBackground(photoUrl);
+
+                                } else {
+                                    logger.error(String.format("Failed to save file %s to blob", fileName));
+
+                                }
+
                             }
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
                     }
                 }else {
-                    System.out.println("没有上传图片："+pic);
+                   logger.info("没有上传图片："+pic);
                 }
 
                 storeyRepository.save(floor);
                 restResponse = new RestResponse("操作成功！",new RestFloor(floor));
             }
 
-//            floor.setBuild(param.get("buildId") == null ? null : buildingRepository.findOne(Integer.valueOf(param.get("buildId"))));
-//            floor.setName(null == param.get("name") ? null : param.get("name"));
-//            floor.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
-//            floor.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
-//            floor.setEnable(1);
-//            storeyRepository.save(floor);
-//            try {
-//                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-//                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-//                Set<String> keys = map.keySet();
-//                for (String key : keys) {
-//                    JSONObject jobj = new JSONObject();
-//                    String path = "";
-//
-//                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/floor/"+floor.getId()+"/";
-//                    File add = new File(path);
-//                    if (!add.exists() && !add.isDirectory()) {
-//                        add.mkdirs();
-//                    }
-//
-//                    List<MultipartFile> files = map.get(key);
-//                    if (null != files && files.size() > 0) {
-//                        MultipartFile file = files.get(0);
-//                        String fileName  = file.getOriginalFilename();
-////                        String fileName = UUID.randomUUID().toString() + ".jpg";
-//                        InputStream is = file.getInputStream();
-//                        File f = new File(path + fileName);
-//                        FileOutputStream fos = new FileOutputStream(f);
-//                        int hasRead = 0;
-//                        byte[] buf = new byte[1024];
-//                        while ((hasRead = is.read(buf)) > 0) {
-//                            fos.write(buf, 0, hasRead);
-//                        }
-//                        fos.close();
-//                        is.close();
-//
-//                        floor.setBackground("/photo/company/floor/" +floor.getId()+"/"+ fileName);
-////                    userRepository.save(user);
-//                    }
-//                }
-//            }catch (ClassCastException e){
-//                e.printStackTrace();
-//            }
-//            storeyRepository.save(floor);
-//            restResponse = new RestResponse("操作成功！",new RestFloor(floor));
         } else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
@@ -625,42 +579,33 @@ public class FileController {
                     MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
                     Set<String> keys = map.keySet();
                     for (String key : keys) {
-                        JSONObject jobj = new JSONObject();
-                        String path = "";
-
-                        path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
-                        File add = new File(path);
-                        if (!add.exists() && !add.isDirectory()) {
-                            add.mkdirs();
-                        }
-
                         List<MultipartFile> files = map.get(key);
                         if (null != files && files.size() > 0) {
                             MultipartFile file = files.get(0);
                             String fileName  = file.getOriginalFilename();
-                            Date date=new Date();
-                            fileName=String.valueOf(date.getTime());
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                            InputStream is = file.getInputStream();
-                            File f = new File(path + fileName);
-                            FileOutputStream fos = new FileOutputStream(f);
-                            int hasRead = 0;
-                            byte[] buf = new byte[1024];
-                            while ((hasRead = is.read(buf)) > 0) {
-                                fos.write(buf, 0, hasRead);
-                            }
-                            fos.close();
-                            is.close();
 
-                            device.setPhoto("/photo/device/" +device.getId()+"/"+ fileName);
-//                    userRepository.save(user);
+                            logger.info(String.format("uploading file %s", fileName));
+
+                            String containerName = String.format("company%s", user.getCompany().getId());
+
+                            String blobName = String.format("devices/%s/%s", device.getId(), UUID.randomUUID().toString());
+
+                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+
+                            if(photoUrl != null){
+                                device.setPhoto("photoUrl");
+                                logger.info(String.format("successfully upload file %s to blob storage at %s", fileName, photoUrl));
+                            }else{
+                                logger.error(String.format("Failed upload file %s to blob storage at %s", fileName));
+                            }
+
                         }
                     }
                 }catch (ClassCastException e){
                     e.printStackTrace();
                 }
             }else {
-                System.out.println("没有上传图片pic："+pic);
+                logger.info("没有上传图片pic："+pic);
             }
 
             deviceRepository.save(device);
@@ -698,11 +643,14 @@ public class FileController {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
-            restResponse = new RestResponse("手机号出错！", 1005,null);
+            restResponse = new RestResponse("用户未登陆！", 1005,null);
         else if(null==param.get("floorId")){
             restResponse = new RestResponse("楼层信息出错！", 1005,null);
         }
-        else if (UserRoleDifferent.userFirmManagerConfirm(user)) {
+        else if (!UserRoleDifferent.userFirmManagerConfirm(user)) {
+            restResponse = new RestResponse("权限不足！",1005,null);
+        }
+        else {
 
             Room room = new Room();
 
@@ -747,104 +695,49 @@ public class FileController {
                 room.setEnable(1);
                 roomRepository.save(room);
                 String pic=param.get("pic");
-                System.out.println("pic："+pic);
+                logger.info("pic："+pic);
                 if (pic.equals("0")){
-                    System.out.println("上传图片pic："+pic);
+                    logger.info("上传图片pic："+pic);
                     try {
                         MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                         MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
                         Set<String> keys = map.keySet();
                         for (String key : keys) {
-                            JSONObject jobj = new JSONObject();
-                            String path = "";
-
-                            path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
-                            File add = new File(path);
-                            if (!add.exists() && !add.isDirectory()) {
-                                add.mkdirs();
-                            }
 
                             List<MultipartFile> files = map.get(key);
                             if (null != files && files.size() > 0) {
                                 MultipartFile file = files.get(0);
                                 String fileName  = file.getOriginalFilename();
-                                Date date=new Date();
-                                fileName=String.valueOf(date.getTime());
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                                InputStream is = file.getInputStream();
-                                File f = new File(path + fileName);
-                                FileOutputStream fos = new FileOutputStream(f);
-                                int hasRead = 0;
-                                byte[] buf = new byte[1024];
-                                while ((hasRead = is.read(buf)) > 0) {
-                                    fos.write(buf, 0, hasRead);
-                                }
-                                fos.close();
-                                is.close();
 
-                                room.setBackground("/photo/company/room/"+room.getId() +"/"+ fileName);
+                                logger.info(String.format("uploading file %s", fileName));
+
+                                String containerName = String.format("company%s", user.getCompany().getId());
+
+                                String blobName = String.format("rooms/%s/%s", room.getId(), UUID.randomUUID().toString());
+
+                                String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+
+                                if(photoUrl != null){
+                                    room.setBackground(photoUrl);
+                                    logger.info(String.format("successfully upload file to blob storage at %s", photoUrl));
+                                }else{
+                                    logger.error(String.format("Failed upload file to blob storage at %s", photoUrl));
+                                }
                             }
-//                    restResponse = new RestResponse("添加成功！",null);
+
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
                     }
                 }else {
-                    System.out.println("没有上传图片pic："+pic);
+                    logger.info("没有上传图片pic："+pic);
                 }
 
 
                 roomRepository.save(room);
                 restResponse = new RestResponse("操作成功！",new RestRoom(room));
             }
-//            room.setFloor(null == param.get("floorId") ? null : storeyRepository.findOne(Integer.valueOf(param.get("floorId"))));
-//            room.setName(null == param.get("name") ? null : param.get("name"));
-//            room.setxPoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
-//            room.setyPoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
-//            room.setEnable(1);
-//            roomRepository.save(room);
-//            try {
-//                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-//                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-//                Set<String> keys = map.keySet();
-//                for (String key : keys) {
-//                    JSONObject jobj = new JSONObject();
-//                    String path = "";
-//
-//                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/room/"+room.getId()+"/";
-//                    File add = new File(path);
-//                    if (!add.exists() && !add.isDirectory()) {
-//                        add.mkdirs();
-//                    }
-//
-//                    List<MultipartFile> files = map.get(key);
-//                    if (null != files && files.size() > 0) {
-//                        MultipartFile file = files.get(0);
-//                        String fileName  = file.getOriginalFilename();
-////                        String fileName = UUID.randomUUID().toString() + ".jpg";
-//                        InputStream is = file.getInputStream();
-//                        File f = new File(path + fileName);
-//                        FileOutputStream fos = new FileOutputStream(f);
-//                        int hasRead = 0;
-//                        byte[] buf = new byte[1024];
-//                        while ((hasRead = is.read(buf)) > 0) {
-//                            fos.write(buf, 0, hasRead);
-//                        }
-//                        fos.close();
-//                        is.close();
-//
-//                        room.setBackground("/photo/company/room/"+room.getId() +"/"+ fileName);
-//                    }
-////                    restResponse = new RestResponse("添加成功！",null);
-//                }
-//            }catch (ClassCastException e){
-//                e.printStackTrace();
-//            }
-//
-//            roomRepository.save(room);
-//            restResponse = new RestResponse("操作成功！",new RestRoom(room));
-        } else {
-            restResponse = new RestResponse("权限不足！",1005,null);
+
         }
         out.print(JSON.toJSONString(restResponse));
         out.flush();
@@ -861,61 +754,60 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/upload/deviceType/icon/{deviceTypeId}")
-    public void createDeviceType(@PathVariable Integer deviceTypeId,
+    public void createDeviceType(Principal principal, @PathVariable Integer deviceTypeId,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
+        User user = judgeByPrincipal(principal);
+        if (null == user) {
+            // TODO: add user role validation
+            restResponse  = new RestResponse("用户未登录！", 1005, null);
+        }else {
 
-        DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
-        if (null==deviceType)
-            restResponse = new RestResponse("设备类型不存在！",1005,null);
-        else {
-            try {
-                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                Set<String> keys = map.keySet();
-                for (String key : keys) {
-                    JSONObject jobj = new JSONObject();
-                    String path = "";
+            DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
+            if (null == deviceType)
+                restResponse = new RestResponse("设备类型不存在！", 1005, null);
+            else {
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName = file.getOriginalFilename();
 
-                    path = request.getSession().getServletContext().getRealPath("/") + "photo/company/deviceType/"+deviceType.getId()+"/";
-                    File add = new File(path);
-                    if (!add.exists() && !add.isDirectory()) {
-                        add.mkdirs();
-                    }
+                            logger.info("original file name is " + fileName);
 
-                    List<MultipartFile> files = map.get(key);
-                    if (null != files && files.size() > 0) {
-                        MultipartFile file = files.get(0);
-                        String fileName  = file.getOriginalFilename();
-                        Date date=new Date();
-                        fileName=String.valueOf(date.getTime());
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                        InputStream is = file.getInputStream();
-                        File f = new File(path + fileName);
-                        FileOutputStream fos = new FileOutputStream(f);
-                        int hasRead = 0;
-                        byte[] buf = new byte[1024];
-                        while ((hasRead = is.read(buf)) > 0) {
-                            fos.write(buf, 0, hasRead);
+                            String deviceTypeContainerName = "devicetypes";
+                            String blobName = String.format("%s/%s", deviceTypeId, UUID.randomUUID().toString());
+                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(deviceTypeContainerName, file, blobName);
+                            if (photoUrl != null) {
+                                logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
+                                deviceType.setLogo(photoUrl);
+                                restResponse = new RestResponse("操作成功！", new RestDeviceType(deviceType));
+                            } else {
+                                logger.error(String.format("Failed to save file %s to blob", fileName));
+                                restResponse = new RestResponse("Failed to upload file", new RestDeviceType(deviceType));
+
+                            }
+
+
                         }
-                        fos.close();
-                        is.close();
-
-                        deviceType.setLogo("/photo/company/deviceType/"+deviceType.getId() +"/"+ fileName);
                     }
+                    deviceTypeRepository.save(deviceType);
+                } catch (ClassCastException e) {
+                    e.printStackTrace();
+                    restResponse = new RestResponse("Exception happens when upload file", new RestDeviceType(deviceType));
+
                 }
-                deviceTypeRepository.save(deviceType);
-            }catch (ClassCastException e){
-                e.printStackTrace();
-//                deviceType.setLogo("/photo/company/" + fileName);
+
+
             }
-
-            restResponse = new RestResponse("操作成功！",new RestDeviceType(deviceType));
         }
-
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
@@ -931,71 +823,65 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/change/picture/{deviceId}")
-    public void uploadPhoto(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
+    public void uploadPhoto(Principal principal, @PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
+        User user = judgeByPrincipal(principal);
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         RestResponse restResponse = null;
-
-        Device device = deviceRepository.findOne(deviceId);
-        if (null==device){
-            restResponse = new RestResponse("当前设备有误！",1005,null);
-        }else {
-            MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-
-            MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-            Set<String> keys = map.keySet();
-            List<String> result = new ArrayList<String>();
-            for (String key : keys) {
-                JSONObject jobj = new JSONObject();
-                String path = "";
-                path = request.getSession().getServletContext().getRealPath("/") + "photo/device/"+device.getId()+"/";
-
-                logger.info(String.format("update file %s to folder %s", key, path));
-                File add = new File(path);
-                if (!add.exists() && !add.isDirectory()) {
-                    logger.info("create directory for this folder");
-                    add.mkdirs();
-                }
-
-                List<MultipartFile> files = map.get(key);
-                if (null != files && files.size() > 0) {
-                    MultipartFile file = files.get(0);
-                    String fileName  = file.getOriginalFilename();
-                    logger.info("original file name is " + fileName);
-                    Date date=new Date();
-                    fileName=String.valueOf(date.getTime());
-                    logger.info("save file as date string " + fileName);
-//                    String fileName = UUID.randomUUID().toString() + ".jpg";
-                    if (null==fileName||fileName.equals(""))
-                        break;
-                    /*
-                    InputStream is = file.getInputStream();
-                    File f = new File(path + fileName);
-                    FileOutputStream fos = new FileOutputStream(f);
-                    int hasRead = 0;
-                    byte[] buf = new byte[1024];
-                    while ((hasRead = is.read(buf)) > 0) {
-                        fos.write(buf, 0, hasRead);
-                    }
-                    fos.close();
-                    is.close();
-                    */
-
-                    String photoUrl = Application.intelabStorageManager.uploadDevicePictureToDefaultContainer(file, deviceId.toString());
-                    if(photoUrl != null) {
-                        logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
-                        //device.setPhoto("/photo/device/"+device.getId()+"/"+fileName);
-                        device.setPhoto(photoUrl);
-                        deviceRepository.save(device);
-                    }
-
-                }
-            }
-            out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestDevice(device))));
-            out.flush();
-            out.close();
+        if (null == user) {
+            restResponse  = new RestResponse("用户未登录！", 1005, null);
         }
+        else {
+
+            Integer companyId = user.getCompany().getId();
+            Application.LOGGER.info(String.format("update device %d of company %d", deviceId, companyId));
+
+            Device device = deviceRepository.findOne(deviceId);
+            if (null == device) {
+                restResponse = new RestResponse("当前设备有误！", 1005, null);
+            } else {
+                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+
+                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                Set<String> keys = map.keySet();
+                Boolean existFailure = false;
+                for (String key : keys) {
+                    List<MultipartFile> files = map.get(key);
+                    if (null != files && files.size() > 0) {
+                        MultipartFile file = files.get(0);
+                        String fileName = file.getOriginalFilename();
+                        logger.info("original file name is " + fileName);
+
+                        String companyContainerName = String.format("company%s", companyId);
+                        String blobName = String.format("devices/%s/%s", deviceId, UUID.randomUUID().toString());
+                        String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                        if (photoUrl != null) {
+                            logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
+                            device.setPhoto(photoUrl);
+                            deviceRepository.save(device);
+
+                        } else {
+                            logger.error(String.format("Failed to save file %s to blob", fileName));
+                            existFailure = true;
+
+                        }
+
+                    }
+                }
+
+                if(existFailure){
+                    restResponse = new RestResponse("Failed to upload picture", 1005, new RestDevice(device));
+                }else{
+                    restResponse = new RestResponse("图片上传成功！", 0, new RestDevice(device));
+                }
+
+            }
+        }
+        out.print(JSON.toJSONString(restResponse));
+        out.flush();
+        out.close();
+
     }
 
     /**
@@ -1018,7 +904,7 @@ public class FileController {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         if (null == user)
-            restResponse = new RestResponse("手机号出错！",1005, null);
+            restResponse = new RestResponse("用户未登陆！",1005, null);
 
         Company company = null;
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
@@ -1159,14 +1045,6 @@ public class FileController {
                     MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
                     Set<String> keys = map.keySet();
                     for (String key : keys) {
-                        JSONObject jobj = new JSONObject();
-                        String path = "";
-
-                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/"+company.getId()+"/";
-                        File add = new File(path);
-                        if (!add.exists() && !add.isDirectory()) {
-                            add.mkdirs();
-                        }
 
                         List<MultipartFile> files = map.get(key);
                         if (null != files && files.size() > 0) {
@@ -1174,26 +1052,29 @@ public class FileController {
                             String fileName  = file.getOriginalFilename();
                             if (null==fileName||fileName.equals(""))
                                 break;
-//                        String fileName = UUID.randomUUID().toString() + ".jpg";
-                            Date date=new Date();
-                            fileName=String.valueOf(date.getTime());
-                            InputStream is = file.getInputStream();
-                            File f = new File(path + fileName);
-                            FileOutputStream fos = new FileOutputStream(f);
-                            int hasRead = 0;
-                            byte[] buf = new byte[1024];
-                            while ((hasRead = is.read(buf)) > 0) {
-                                fos.write(buf, 0, hasRead);
-                            }
-                            fos.close();
-                            is.close();
 
-                            company.setBackground("/photo/company/" +company.getId()+"/"+ fileName);
+                            logger.info("original file name is " + fileName);
+
+                            String companyContainerName = String.format("company%s", company.getId());
+                            String blobName = String.format("company/%s", UUID.randomUUID().toString());
+
+                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                            if (photoUrl != null) {
+                                logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                company.setBackground(photoUrl);
+
+
+                            } else {
+                                logger.error(String.format("Failed to save file %s to blob", fileName));
+
+
+                            }
+
                         }
                     }
                 }catch (ClassCastException e){
                     e.printStackTrace();
-//                deviceType.setLogo("/photo/company/" + fileName);
+
                 }
             }else {
                 System.out.println("没有上传图片");
@@ -1219,11 +1100,19 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/upload/device/file/{deviceId}")
-    public void uploadDeviceFile(@PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
+    public void uploadDeviceFile(Principal principal, @PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
+
+        User user = judgeByPrincipal(principal);
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         RestResponse restResponse = null;
+        if (null == user) {
+            restResponse = new RestResponse("用户未登录！", 1005, null);
+            return;
+        }
+
+        logger.info(String.format("update device %d of company %d", deviceId, user.getCompany().getId()));
 
         Device device = deviceRepository.findOne(deviceId);
         if (null==device){
@@ -1237,42 +1126,38 @@ public class FileController {
 
             MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
             Set<String> keys = map.keySet();
-            List<String> result = new ArrayList<String>();
             for (String key : keys) {
-                JSONObject jobj = new JSONObject();
-                String path = "";
-                path = request.getSession().getServletContext().getRealPath("/") + "photo/file/"+device.getId()+"/";
-                File add = new File(path);
-                if (!add.exists() && !add.isDirectory()) {
-                    add.mkdirs();
-                }
 
                 List<MultipartFile> files = map.get(key);
                 if (null != files && files.size() > 0) {
                     MultipartFile file = files.get(0);
                     String fileName  = file.getOriginalFilename();
-//                    String fileName = UUID.randomUUID().toString() + ".jpg";
+
                     if (null==fileName||fileName.equals(""))
                         break;
-//                    Date date=new Date();
-//                    fileName=String.valueOf(date.getTime());
-                    InputStream is = file.getInputStream();
-                    File f = new File(path + fileName);
-                    FileOutputStream fos = new FileOutputStream(f);
-                    int hasRead = 0;
-                    byte[] buf = new byte[1024];
-                    while ((hasRead = is.read(buf)) > 0) {
-                        fos.write(buf, 0, hasRead);
+
+                    logger.info("original file name is " + fileName);
+
+                    String companyContainerName = String.format("company%s", user.getCompany().getId());
+                    // we don't use uuid, because we want to keep its file type info
+                    String blobName = String.format("devices/%s", fileName);
+
+                    String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                    if (photoUrl != null) {
+                        logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                        createFile.setName(fileName);
+                        createFile.setUrl(photoUrl);
+                        fileRepository.save(createFile);
+                        DeviceFile deviceFile = new DeviceFile();
+                        deviceFile.setDevice(device);
+                        deviceFile.setFile(createFile);
+                        deviceFileRepository.save(deviceFile);
+
+                    } else {
+                        logger.error(String.format("Failed to save file %s to blob", fileName));
+
+
                     }
-                    fos.close();
-                    is.close();
-                    createFile.setName(fileName);
-                    createFile.setUrl("/photo/file/" + device.getId() + "/" + fileName);
-                    fileRepository.save(createFile);
-                    DeviceFile deviceFile = new DeviceFile();
-                    deviceFile.setDevice(device);
-                    deviceFile.setFile(createFile);
-                    deviceFileRepository.save(deviceFile);
                 }
             }
             out.print(JSON.toJSONString(new RestResponse("文件上传成功！", 0, new RestDevice(device))));
@@ -1305,33 +1190,28 @@ public class FileController {
                 MultipartHttpServletRequest multipartHttpServletRequest=(MultipartHttpServletRequest ) request;
                 MultiValueMap<String,MultipartFile> map=multipartHttpServletRequest.getMultiFileMap();
                 Set<String> keys = map.keySet();
-                List<String> result=new ArrayList<String>();
                 for (String key:keys){
-                    JSONObject jsonObject=new JSONObject();
-                    String path="";
-                    path=request.getSession().getServletContext().getRealPath("/")+"photo/company/"+company.getId()+"/";
-                    File add=new File(path);
-                    if (!add.exists()&&!add.isDirectory()){
-                        add.mkdirs();
-                    }
                     List<MultipartFile> files=map.get(key);
                     if (null!=files&&files.size()>0){
                         MultipartFile file=files.get(0);
                         String fileName=file.getOriginalFilename();
-                        Date date=new Date();
-                        fileName=String.valueOf(date.getTime());
-                        InputStream is=file.getInputStream();
-                        File f=new File(path+fileName);
-                        FileOutputStream fos=new FileOutputStream(f);
-                        int hasRead = 0;
-                        byte[] buf = new byte[1024];
-                        while ((hasRead=is.read(buf))>0){
-                            fos.write(buf, 0, hasRead);
+
+                        logger.info("original file name is " + fileName);
+
+                        String companyContainerName = String.format("company%s", company.getId());
+                        // we don't use uuid, because we want to keep its file type info
+                        String blobName = String.format("company/%s", UUID.randomUUID().toString());
+
+                        String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                        if (photoUrl != null) {
+                            logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                            company.setLogo(photoUrl);
+                            companyRepository.save(company);
+
+                        } else {
+                            logger.error(String.format("Failed to save file %s to blob", fileName));
                         }
-                        fos.close();
-                        is.close();
-                        company.setLogo("/photo/company/"+company.getId()+"/"+fileName);
-                        companyRepository.save(company);
+
                     }
                 }
                 out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestCompany(company))));
@@ -1459,33 +1339,28 @@ public class FileController {
         Set<String> keys = map.keySet();
         List<String> result=new ArrayList<String>();
         for (String key:keys){
-            JSONObject jsonObject=new JSONObject();
-            String path="";
-            path=request.getSession().getServletContext().getRealPath("/")+"photo/version/"+deviceVersion.getId()+"/";
-            File add=new File(path);
-            if (!add.exists()&&!add.isDirectory()){
-                add.mkdirs();
-            }
             List<MultipartFile> files=map.get(key);
             if (null!=files&&files.size()>0){
                 MultipartFile file=files.get(0);
                 String fileName=file.getOriginalFilename();
-                InputStream is=file.getInputStream();
-                File f=new File(path+fileName);
-                FileOutputStream fos=new FileOutputStream(f);
-                int hasRead = 0;
-                byte[] buf = new byte[1024];
-                while ((hasRead=is.read(buf))>0){
-                    fos.write(buf, 0, hasRead);
+
+                logger.info("original file name is " + fileName);
+
+                String containerName = "version";
+                // we don't use uuid, because we want to keep its file type info
+                String blobName = String.format("%s/%s", deviceVersion.getId(), fileName);
+
+                String fileUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+                if (fileUrl != null) {
+                    logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, fileUrl));
+                    deviceVersion.setUrl(fileUrl);
+                    deviceVersion.setFileName(fileName);
+
+                } else {
+                    logger.error(String.format("Failed to save file %s to blob", fileName));
                 }
-                fos.close();
-                is.close();
-                deviceVersion.setUrl("/photo/version/"+deviceVersion.getId()+"/"+fileName);
-                deviceVersion.setFileName(fileName);
+
             }
         }
-     //        out.print(JSON.toJSONString(new RestResponse("版本文件上传成功！", 0)));
     }
-
-
 }

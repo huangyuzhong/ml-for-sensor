@@ -40,7 +40,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public class Application {
 
     private static final int SOCKET_PORT = 8193;
-    private static final Logger LOGGER = LogManager.getLogger(Application.class);
+    public static final Logger LOGGER = LogManager.getLogger(Application.class);
 
     public static AzureConfig azureConfig;
     public static AzureStorageManager intelabStorageManager = null;

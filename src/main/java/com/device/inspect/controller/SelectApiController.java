@@ -25,6 +25,7 @@ import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.device.RestInspectType;
+import com.device.inspect.Application;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
@@ -138,8 +139,10 @@ public class SelectApiController {
     public RestResponse getBuildings(Principal principal,@RequestParam  Map<String,String> map){
         User user = judgeByPrincipal(principal);
         if (null == user.getCompany()){
-            return new RestResponse("user's information correct!",1005,null);
+            return new RestResponse("user's information incorrect!",1005,null);
         }
+
+        Application.LOGGER.info(String.format("Find buildings of company %s, %s", user.getCompany().getName(), user.getCompany().getId()));
         List<Building> list = new ArrayList<Building>();
         if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
             list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(),Integer.valueOf(map.get("enable")));
