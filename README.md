@@ -9,7 +9,7 @@
  * 重新打开shell。
 
 
-2. 克隆代码 包括intelab-wbe, intelab-configs
+2. 克隆代码 包括两个repo。 intelab-wbe, intelab-configs。 其中intelab-configs要clone到环境变量HOME所在的目录。
   
   ```
   cd /*the directory you want to put the code*/
