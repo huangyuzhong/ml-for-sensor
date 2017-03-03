@@ -1,3 +1,7 @@
+##后端开发
+1. IDE， Intellij
+2. JAVA  1.8 +
+
 ##后端运行步骤
 
 1. 设置环境变量为环境名称， 对应为config的名字。 例如， 产品环境为prod， 测试环境为test。 在linux里， 在~/.bash_profile里加入
