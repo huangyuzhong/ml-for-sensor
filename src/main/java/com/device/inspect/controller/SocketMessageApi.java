@@ -266,55 +266,35 @@ public class SocketMessageApi {
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
-                //添加测量原值
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 2);
-                inspectData.setRealValue(String.valueOf(value));
-                record = Float.valueOf(value)*250;
+                inspectData.setRealValue(String.valueOf(first));
+                record = Float.valueOf(first)*250/10000;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
-
-                DeviceInspect deviceInspect2 = deviceInspectRepository.
-                        findByInspectTypeIdAndDeviceId(13, device.getId());
-                InspectData inspectData2 = new InspectData();
-                inspectData2.setCreateDate(new Date());
-                inspectData2.setDevice(device);
-                inspectData2.setDeviceInspect(deviceInspect2);
-                value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
-                record = Float.valueOf(value)*250;
-                check=record-(deviceInspect.getZero());
-                inspectData2.setRealValue(String.valueOf(value));
-                deviceInspect2.setOriginalValue(record);
-                inspectData2.setResult(String.valueOf(check));
-                deviceInspect2.setCorrectionValue(check);
             }
-            else if(monitorTypeCode.equals("0b")){
+	    else if(monitorTypeCode.equals("0b")){
+                inspectData.setCreateDate(new Date());
+                inspectData.setDevice(device);
+                inspectData.setDeviceInspect(deviceInspect);
+                inspectData.setRealValue(String.valueOf(first));
+                record = Float.valueOf(first)*20/10000;
+                deviceInspect.setOriginalValue(record);
+                check=record-(deviceInspect.getZero());
+                inspectData.setResult(String.valueOf(check));
+                deviceInspect.setCorrectionValue(check);
+            }
+            else if(monitorTypeCode.equals("0c") || monitorTypeCode.equals("0d")){
                 inspectData.setCreateDate(new Date());
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 //添加测量原值
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 2);
-                inspectData.setRealValue(String.valueOf(value));
-                record = Float.valueOf(value)*250*20;
+                inspectData.setRealValue(String.valueOf(first));
+                record = Float.valueOf(first)*20*250/10000;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
-
-                DeviceInspect deviceInspect2 = deviceInspectRepository.
-                        findByInspectTypeIdAndDeviceId(15, device.getId());
-                InspectData inspectData2 = new InspectData();
-                inspectData2.setCreateDate(new Date());
-                inspectData2.setDevice(device);
-                inspectData2.setDeviceInspect(deviceInspect2);
-                value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
-                record = Float.valueOf(value)*250*20;
-                check=record-(deviceInspect.getZero());
-                inspectData2.setRealValue(String.valueOf(value));
-                deviceInspect2.setOriginalValue(record);
-                inspectData2.setResult(String.valueOf(check));
-                deviceInspect2.setCorrectionValue(check);
             }
             else{
                 inspectData.setCreateDate(new Date());

@@ -134,8 +134,8 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 }
                                                 InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
                                                 if (null!=inspectData&&null!=inspectData.getCreateDate()){
-                                                    long minutes = (new Date().getTime()-inspectData.getCreateDate().getTime())/(1000*60);
-                                                    if (minutes>5){
+						     long minutes = (new Date().getTime()-inspectData.getCreateDate().getTime())/(1000*60);
+						     if (minutes>5){
                                                         DeviceOffline deviceOffline = new DeviceOffline();
                                                         deviceOffline.setDevice(device);
                                                         deviceOffline.setOfflineDate(new Date());
