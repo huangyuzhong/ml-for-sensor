@@ -64,7 +64,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
      * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
      * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
      */
-    @Scheduled(cron = "0 0/10 * * * ? ")
+    @Scheduled(cron = "0 0/1 * * * ? ")
     @Override
     public void scheduleTask() {
         Iterable<Company> companies = companyRepository.findAll();
@@ -134,7 +134,10 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 }
                                                 InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
                                                 if (null!=inspectData&&null!=inspectData.getCreateDate()){
-						     long minutes = (new Date().getTime()-inspectData.getCreateDate().getTime())/(1000*60);
+						     long currentTime = new Date().getTime();
+						     long reportTime = inspectData.getCreateDate().getTime();
+						     long minutes = (currentTime - reportTime)/(1000*60);
+						     System.out.println("Device Id: " + device.getId() + ", minutes: " + minutes + ", report time: " + reportTime + ", current time: " + currentTime);
 						     if (minutes>5){
                                                         DeviceOffline deviceOffline = new DeviceOffline();
                                                         deviceOffline.setDevice(device);
