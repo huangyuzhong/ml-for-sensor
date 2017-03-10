@@ -9,6 +9,7 @@ import java.util.StringTokenizer;
 public class AzureConfig {
     private Map<String, String> storage;
     private Map<String, String> streamAnalysis;
+    private Map<String, String> powerbi;
 
     public void setStorage(Map<String, String> mediaStorage){
         this.storage = mediaStorage;
@@ -25,4 +26,8 @@ public class AzureConfig {
     public Map<String, String> getStreamAnalysis(){
         return this.streamAnalysis;
     }
+
+    public void setPowerbi(Map<String, String> powerbiSettings){ this.powerbi = powerbiSettings;}
+
+    public Map<String, String> getPowerbi(){ return this.powerbi;}
 }
