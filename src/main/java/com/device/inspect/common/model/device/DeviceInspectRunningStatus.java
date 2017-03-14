@@ -44,7 +44,7 @@ public class DeviceInspectRunningStatus {
     }
 
     @Column(name = "threshold")
-    public Float getThreShold(){
+    public Float getThreshold(){
         return this.threshold;
     }
     public void setThreshold(Float threshold){
