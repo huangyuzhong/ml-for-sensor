@@ -1,13 +1,7 @@
 package com.device.inspect;
 
-import com.device.inspect.common.model.device.Device;
-import com.device.inspect.common.model.device.DeviceInspect;
-import com.device.inspect.common.model.device.InspectData;
-import com.device.inspect.common.model.device.InspectType;
-import com.device.inspect.common.repository.device.DeviceInspectRepository;
-import com.device.inspect.common.repository.device.DeviceRepository;
-import com.device.inspect.common.repository.device.InspectDataRepository;
-import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.StringDate;
@@ -20,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -47,6 +42,7 @@ public class Application {
 
     public static void main(String[] args) throws Throwable
     {
+
         loadAppConfig();
         initializeAzureServices();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
