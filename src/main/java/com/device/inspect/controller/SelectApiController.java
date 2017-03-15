@@ -22,9 +22,7 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
-import com.device.inspect.common.restful.device.RestDevice;
-import com.device.inspect.common.restful.device.RestDeviceType;
-import com.device.inspect.common.restful.device.RestInspectType;
+import com.device.inspect.common.restful.device.*;
 import com.device.inspect.Application;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
@@ -33,6 +31,7 @@ import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
+import com.device.inspect.controller.request.RunningStatusRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.Page;
@@ -91,6 +90,16 @@ public class SelectApiController {
 
     @Autowired
     private DeviceVersionRepository deviceVersionRepository;
+
+    @Autowired
+    private DeviceRunningStatusRepository deviceRunningStatusRepository;
+
+    @Autowired
+    private DeviceTypeInspectRunningStatusRepository deviceTypeInspectRunningStatusRepository;
+
+    @Autowired
+    private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -732,4 +741,72 @@ public class SelectApiController {
        }
     }
 
+
+    /**
+     * 获取所有运行状态
+     * @param principal
+     * @return
+     */
+    @RequestMapping(value = "/device/status", method = RequestMethod.GET)
+    public RestResponse getDeviceRunningStatus(Principal principal){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        Iterable<DeviceRunningStatus> iterable = deviceRunningStatusRepository.findAll();
+
+        List<RunningStatusRequest> list = new ArrayList<RunningStatusRequest>();
+        if (null!=iterable){
+            for (DeviceRunningStatus status:iterable){
+                RunningStatusRequest runningStatusRequest = new RunningStatusRequest();
+                runningStatusRequest.setId(status.getId());
+                runningStatusRequest.setName(status.getName());
+                runningStatusRequest.setLevel(status.getLevel());
+                runningStatusRequest.setDescription(status.getDescription());
+                list.add(runningStatusRequest);
+            }
+        }
+        return new RestResponse(list);
+    }
+
+    /**
+     * 获取设备种类监控参数对应状态
+     * @param deviceTypeInspectId
+     * @return
+     */
+    @RequestMapping(value = "/device/type/status", method = RequestMethod.GET)
+    public RestResponse getDeviceTypeInspectRunningStatus(Principal principal, @RequestParam Integer deviceTypeInspectId){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        List<DeviceTypeInspectRunningStatus> iterable = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspectId);
+        List<RestDeviceTypeInspectRunningStatus> list = new ArrayList<>();
+        if(null!=iterable){
+            for(DeviceTypeInspectRunningStatus status: iterable){
+                RestDeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = new RestDeviceTypeInspectRunningStatus(status);
+                list.add(deviceTypeInspectRunningStatus);
+            }
+        }
+        return new RestResponse(list);
+    }
+
+    /**
+     * 获取设备监控参数对应状态
+     * @param deviceInspectId
+     * @return
+     */
+    @RequestMapping(value = "/device/inspect/status", method = RequestMethod.GET)
+    public RestResponse getDeviceInspectRunningStatus(Principal principal, @RequestParam Integer deviceInspectId){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        List<DeviceInspectRunningStatus> iterable = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspectId);
+        List<RestDeviceInspectRunningStatus> list = new ArrayList<>();
+        if(null!=iterable){
+            for(DeviceInspectRunningStatus status: iterable){
+                RestDeviceInspectRunningStatus deviceInspectRunningStatus = new RestDeviceInspectRunningStatus(status);
+                list.add(deviceInspectRunningStatus);
+            }
+        }
+        return new RestResponse(list);
+    }
 }
