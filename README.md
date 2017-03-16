@@ -13,7 +13,9 @@
   ```
   cd /*the directory you want to put the code*/
   ```
-
+  
+ * 修改application.properties里的数据库地址指向该环境的数据库。
+ 
 3. 编译生成运行包
   
   ```
