@@ -23,7 +23,7 @@ public class InspectTypeRequest {
     private String standard;
     private Integer lowAlter;
     private boolean chosed;
-    private List<RestDeviceTypeInspectRunningStatus> runningStatus;
+    private List<DeviceTypeInspectRunningStatusRequest> runningStatus;
 
     public Integer getId() {
         return id;
@@ -97,11 +97,11 @@ public class InspectTypeRequest {
         this.chosed = chosed;
     }
 
-    public List<RestDeviceTypeInspectRunningStatus> getRunningStatus(){
+    public List<DeviceTypeInspectRunningStatusRequest> getRunningStatus(){
         return this.runningStatus;
     }
 
-    public void setRunningStatus(List<RestDeviceTypeInspectRunningStatus> status){
+    public void setRunningStatus(List<DeviceTypeInspectRunningStatusRequest> status){
         this.runningStatus = status;
     }
 }

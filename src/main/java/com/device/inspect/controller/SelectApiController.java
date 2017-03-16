@@ -29,6 +29,7 @@ import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
+import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import com.device.inspect.controller.request.RunningStatusRequest;
@@ -326,9 +327,14 @@ public class SelectApiController {
                 request.setLowUp(null == deviceTypeInspect.getLowUp() ? null : deviceTypeInspect.getLowUp().toString());
 
                 List<DeviceTypeInspectRunningStatus> statuses = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspect.getId());
-                List<RestDeviceTypeInspectRunningStatus> restStatus = new ArrayList<>();
+                List<DeviceTypeInspectRunningStatusRequest> restStatus = new ArrayList<>();
                 for(DeviceTypeInspectRunningStatus status : statuses){
-                    restStatus.add(new RestDeviceTypeInspectRunningStatus(status));
+                    DeviceTypeInspectRunningStatusRequest statusRequest = new DeviceTypeInspectRunningStatusRequest();
+                    statusRequest.setId(status.getId());
+                    statusRequest.setThreshold(status.getThreshold());
+                    statusRequest.setDeviceTypeInspectId(status.getDeviceTypeInspect().getId());
+                    statusRequest.setRunningStatusId(status.getDeviceRunningStatus().getId());
+                    restStatus.add(statusRequest);
                 }
                 request.setRunningStatus(restStatus);
                 requests.add(request);
@@ -639,6 +645,15 @@ public class SelectApiController {
                 InspectTypeRequest inspectTypeRequest = new InspectTypeRequest();
                 inspectTypeRequest.setId(inspectType.getId());
                 inspectTypeRequest.setName(inspectType.getName());
+                List<DeviceTypeInspectRunningStatus> runningStatuses =
+                        deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(inspectType.getId());
+                List<DeviceTypeInspectRunningStatusRequest> runningStatusRequests = new ArrayList<>();
+                if(null!=runningStatuses){
+                    for(DeviceTypeInspectRunningStatus status : runningStatuses){
+                        runningStatusRequests.add(new DeviceTypeInspectRunningStatusRequest(status));
+                    }
+                    inspectTypeRequest.setRunningStatus(runningStatusRequests);
+                }
                 list.add(inspectTypeRequest);
             }
         }

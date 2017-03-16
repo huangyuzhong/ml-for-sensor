@@ -8,5 +8,6 @@ import org.springframework.data.repository.CrudRepository;
  * Created by Administrator on 2016/7/8.
  */
 public interface DeviceTypeInspectRepository extends CrudRepository<DeviceTypeInspect,Integer> {
+    public DeviceTypeInspect findById(Integer Id);
     public DeviceTypeInspect findByDeviceTypeIdAndInspectTypeId(Integer DeviceTypeId,Integer InspectTypeId);
 }

@@ -9,7 +9,7 @@ import java.util.List;
  * Created by zyclincoln on 3/14/17.
  */
 public interface DeviceTypeInspectRunningStatusRepository extends CrudRepository<DeviceTypeInspectRunningStatus, Integer> {
-    public DeviceTypeInspectRunningStatus findById(DeviceTypeInspectRunningStatus id);
+    public DeviceTypeInspectRunningStatus findById(Integer id);
     public List<DeviceTypeInspectRunningStatus> findByDeviceTypeInspectId(Integer DeviceTypeInspectId);
     public DeviceTypeInspectRunningStatus save(DeviceTypeInspectRunningStatus status);
 }

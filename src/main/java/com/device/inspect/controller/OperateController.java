@@ -22,12 +22,10 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
-import com.device.inspect.common.restful.device.RestDevice;
-import com.device.inspect.common.restful.device.RestDeviceInspect;
-import com.device.inspect.common.restful.device.RestDeviceType;
-import com.device.inspect.common.restful.device.RestDeviceVersion;
+import com.device.inspect.common.restful.device.*;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
+import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusRequest;
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +41,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.rowset.serial.SerialException;
+import javax.validation.constraints.Null;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -116,6 +115,15 @@ public class OperateController {
 
     @Autowired
     private DeviceVersionRepository deviceVersionRepository;
+
+    @Autowired
+    private DeviceRunningStatusRepository deviceRunningStatusRepository;
+
+    @Autowired
+    private DeviceTypeInspectRunningStatusRepository deviceTypeInspectRunningStatusRepository;
+
+    @Autowired
+    private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -538,7 +546,7 @@ public class OperateController {
             return new RestResponse("手机号出错！", null);
         DeviceType deviceType = new DeviceType();
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
-
+        List<DeviceTypeInspectRunningStatus> runningStatuses = new ArrayList<>();
         if (UserRoleDifferent.userFirmManagerConfirm(user)||UserRoleDifferent.userStartWithService(user)) {
             if (deviceTypeReq.getName()==null||"".equals(deviceTypeReq.getName()))
                 return new RestResponse("设备种类名称不能为空",1005,null);
@@ -577,7 +585,6 @@ public class OperateController {
                 }
                 deviceType.setName(deviceTypeReq.getName());
                 deviceTypeRepository.save(deviceType);
-//                deviceTypeInspects = deviceType.getDeviceTypeInspectList();
                 if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
                     for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
                         if (inspectTypeRequest.isChosed()){
@@ -594,12 +601,42 @@ public class OperateController {
                                 deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                                 deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
                                 deviceTypeInspects.add(deviceTypeInspect);
-//                                deviceTypeInspectRepository.save(deviceTypeInspect);
                             }
                         }
                     }
                 }
                 deviceTypeInspectRepository.save(deviceTypeInspects);
+
+                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                        if (inspectTypeRequest.isChosed()) {
+                            if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {
+                                runningStatuses.clear();
+                                for (DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()) {
+                                    DeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = deviceTypeInspectRunningStatusRepository.findById(status.getId());
+                                    if (deviceTypeInspectRunningStatus == null) {
+                                        deviceTypeInspectRunningStatus = new DeviceTypeInspectRunningStatus();
+                                    }
+                                    DeviceRunningStatus runningStatus = deviceRunningStatusRepository.findById(status.getRunningStatusId());
+                                    if (runningStatus == null) {
+                                        continue;
+                                    } else {
+                                        deviceTypeInspectRunningStatus.setDeviceRunningStatus(runningStatus);
+                                    }
+                                    DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findById(status.getDeviceTypeInspectId());
+                                    if (deviceTypeInspect == null) {
+                                        continue;
+                                    } else {
+                                        deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
+                                    }
+                                    deviceTypeInspectRunningStatus.setThreshold(status.getThreshold());
+                                    runningStatuses.add(deviceTypeInspectRunningStatus);
+                                }
+                                deviceTypeInspectRunningStatusRepository.save(runningStatuses);
+                            }
+                        }
+                    }
+                }
             } else {
                 if (UserRoleDifferent.userStartWithService(user)){
                     List<DeviceType> list=new ArrayList<DeviceType>();
@@ -648,6 +685,34 @@ public class OperateController {
                     }
                 }
                 deviceTypeInspectRepository.save(deviceTypeInspects);
+
+                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                        if (inspectTypeRequest.isChosed()) {
+                            if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {
+                                runningStatuses.clear();
+                                for (DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()) {
+                                    DeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = new DeviceTypeInspectRunningStatus();
+                                    DeviceRunningStatus runningStatus = deviceRunningStatusRepository.findById(status.getRunningStatusId());
+                                    if (runningStatus == null) {
+                                        continue;
+                                    } else {
+                                        deviceTypeInspectRunningStatus.setDeviceRunningStatus(runningStatus);
+                                    }
+                                    DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findById(status.getDeviceTypeInspectId());
+                                    if (deviceTypeInspect == null) {
+                                        continue;
+                                    } else {
+                                        deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
+                                    }
+                                    deviceTypeInspectRunningStatus.setThreshold(status.getThreshold());
+                                    runningStatuses.add(deviceTypeInspectRunningStatus);
+                                }
+                                deviceTypeInspectRunningStatusRepository.save(runningStatuses);
+                            }
+                        }
+                    }
+                }
             }
         } else {
             return new RestResponse("权限不足！",1005,null);
