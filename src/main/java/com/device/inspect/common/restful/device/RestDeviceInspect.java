@@ -2,10 +2,12 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceInspect;
+import com.device.inspect.common.model.device.DeviceInspectRunningStatus;
 import com.device.inspect.common.model.device.InspectType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/7/20.
@@ -28,6 +30,7 @@ public class RestDeviceInspect {
     private Float zero;
     private Float originalValue;
     private Float correctionValue;
+    private List<RestDeviceInspectRunningStatus> runningStatus;
 
     public RestDeviceInspect() {
     }
@@ -174,5 +177,13 @@ public class RestDeviceInspect {
 
     public void setCorrectionValue(Float correctionValue) {
         this.correctionValue = correctionValue;
+    }
+
+    public List<RestDeviceInspectRunningStatus> getRunningStatus(){
+        return runningStatus;
+    }
+
+    public void setRunningStatus(List<RestDeviceInspectRunningStatus> statuses){
+        this.runningStatus = statuses;
     }
 }

@@ -258,7 +258,21 @@ public class SelectApiController {
         }
         List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceIdAndEnable(deviceId,1);
         device.setDeviceFloorList(deviceFloorList);
-        return new RestResponse(new RestDevice(device));
+
+        RestDevice response = new RestDevice(device);
+        List<RestDeviceInspect> restDeviceInspects = new ArrayList<>();
+        for(DeviceInspect inspect : device.getDeviceInspectList()){
+            List<DeviceInspectRunningStatus> statuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(inspect.getId());
+            RestDeviceInspect restInspect = new RestDeviceInspect(inspect);
+            List<RestDeviceInspectRunningStatus> restStatuses = new ArrayList<>();
+            for(DeviceInspectRunningStatus status : statuses){
+                restStatuses.add(new RestDeviceInspectRunningStatus(status));
+            }
+            restInspect.setRunningStatus(restStatuses);
+            restDeviceInspects.add(restInspect);
+        }
+        response.setDeviceInspects(restDeviceInspects);
+        return new RestResponse(response);
     }
 
     /**
