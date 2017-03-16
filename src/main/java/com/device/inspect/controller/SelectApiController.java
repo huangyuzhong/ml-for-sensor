@@ -285,7 +285,7 @@ public class SelectApiController {
     }
 
     /**
-     * 修改设备类型参数
+     * 查询设备类型参数
      * @param deviceTypeId
      * @return
      */
@@ -310,6 +310,13 @@ public class SelectApiController {
                 request.setStandard(null == deviceTypeInspect.getStandard() ? null : deviceTypeInspect.getStandard().toString());
                 request.setLowDown(null == deviceTypeInspect.getLowDown() ? null : deviceTypeInspect.getLowDown().toString());
                 request.setLowUp(null == deviceTypeInspect.getLowUp() ? null : deviceTypeInspect.getLowUp().toString());
+
+                List<DeviceTypeInspectRunningStatus> statuses = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspect.getId());
+                List<RestDeviceTypeInspectRunningStatus> restStatus = new ArrayList<>();
+                for(DeviceTypeInspectRunningStatus status : statuses){
+                    restStatus.add(new RestDeviceTypeInspectRunningStatus(status));
+                }
+                request.setRunningStatus(restStatus);
                 requests.add(request);
             }
         }
@@ -747,7 +754,7 @@ public class SelectApiController {
      * @param principal
      * @return
      */
-    @RequestMapping(value = "/device/status", method = RequestMethod.GET)
+    @RequestMapping(value = "/device/running_status", method = RequestMethod.GET)
     public RestResponse getDeviceRunningStatus(Principal principal){
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)

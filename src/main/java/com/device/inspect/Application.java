@@ -60,7 +60,7 @@ public class Application {
             String homePath = env.get("HOME");
             String intelabEnvironmentName = env.get("INTELAB_ENV");
 
-            String configFilePath = String.format("%s/intelab-configs/%s/azure.yaml", homePath, intelabEnvironmentName);
+            String configFilePath = String.format("%s/WorkSpace/Project/InteLAB/intelab-configs/%s/azure.yaml", homePath, intelabEnvironmentName);
 
             LOGGER.info(String.format("Loading Azure config from file %s", configFilePath));
 

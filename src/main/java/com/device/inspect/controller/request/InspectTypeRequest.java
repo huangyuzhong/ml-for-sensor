@@ -1,10 +1,13 @@
 package com.device.inspect.controller.request;
 
 import com.device.inspect.common.model.device.DeviceType;
+import com.device.inspect.common.model.device.DeviceTypeInspectRunningStatus;
 import com.device.inspect.common.model.device.InspectType;
+import com.device.inspect.common.restful.device.RestDeviceTypeInspectRunningStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Created by Administrator on 2016/8/29.
@@ -20,6 +23,7 @@ public class InspectTypeRequest {
     private String standard;
     private Integer lowAlter;
     private boolean chosed;
+    private List<RestDeviceTypeInspectRunningStatus> runningStatus;
 
     public Integer getId() {
         return id;
@@ -91,5 +95,13 @@ public class InspectTypeRequest {
 
     public void setChosed(boolean chosed) {
         this.chosed = chosed;
+    }
+
+    public List<RestDeviceTypeInspectRunningStatus> getRunningStatus(){
+        return this.runningStatus;
+    }
+
+    public void setRunningStatus(List<RestDeviceTypeInspectRunningStatus> status){
+        this.runningStatus = status;
     }
 }
