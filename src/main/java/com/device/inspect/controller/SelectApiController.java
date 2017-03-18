@@ -325,6 +325,7 @@ public class SelectApiController {
                 request.setStandard(null == deviceTypeInspect.getStandard() ? null : deviceTypeInspect.getStandard().toString());
                 request.setLowDown(null == deviceTypeInspect.getLowDown() ? null : deviceTypeInspect.getLowDown().toString());
                 request.setLowUp(null == deviceTypeInspect.getLowUp() ? null : deviceTypeInspect.getLowUp().toString());
+                request.setInspectPurpose(null == deviceTypeInspect.getInspectPurpose() ? null : deviceTypeInspect.getInspectPurpose());
 
                 List<DeviceTypeInspectRunningStatus> statuses = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspect.getId());
                 List<DeviceTypeInspectRunningStatusRequest> restStatus = new ArrayList<>();

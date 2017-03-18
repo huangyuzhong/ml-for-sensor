@@ -18,6 +18,7 @@ public class DeviceTypeInspect {
     private Float highUp;
     private Float highDown;
     private Integer lowAlter;
+    private Integer inspectPurpose;
 
     @Id
     @GeneratedValue()
@@ -101,5 +102,14 @@ public class DeviceTypeInspect {
 
     public void setLowAlter(Integer lowAlter) {
         this.lowAlter = lowAlter;
+    }
+
+    @Column(name = "inspect_purpose")
+    public Integer getInspectPurpose(){
+        return this.inspectPurpose;
+    }
+
+    public void setInspectPurpose(Integer inspectPurpose){
+        this.inspectPurpose = inspectPurpose;
     }
 }

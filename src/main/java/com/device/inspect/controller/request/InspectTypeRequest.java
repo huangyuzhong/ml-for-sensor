@@ -24,6 +24,7 @@ public class InspectTypeRequest {
     private Integer lowAlter;
     private boolean chosed;
     private List<DeviceTypeInspectRunningStatusRequest> runningStatus;
+    private Integer inspectPurpose;
 
     public Integer getId() {
         return id;
@@ -104,4 +105,13 @@ public class InspectTypeRequest {
     public void setRunningStatus(List<DeviceTypeInspectRunningStatusRequest> status){
         this.runningStatus = status;
     }
+
+    public Integer getInspectPurpose(){
+        return this.inspectPurpose;
+    }
+
+    public void setInspectPurpose(Integer inspectPurpose){
+        this.inspectPurpose = inspectPurpose;
+    }
+
 }

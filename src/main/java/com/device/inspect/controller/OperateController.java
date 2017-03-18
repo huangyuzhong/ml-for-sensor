@@ -332,6 +332,7 @@ public class OperateController {
             request.setStandard(deviceInspect.getStandard()==null?null:deviceInspect.getStandard().toString());
             request.setId(deviceInspect.getInspectType().getId());
             request.setName(deviceInspect.getInspectType().getName());
+            request.setInspectPurpose(deviceInspect.getInspectPurpose());
 
             List<DeviceTypeInspectRunningStatusRequest> runningStatusesRequest= new ArrayList<>();
             List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
@@ -403,7 +404,8 @@ public class OperateController {
                     deviceInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                 if (null!=inspectTypeRequest.getLowDown())
                     deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
-
+                if(null!=inspectTypeRequest.getInspectPurpose())
+                    deviceInspect.setInspectPurpose(Integer.valueOf(inspectTypeRequest.getInspectPurpose()));
                 deviceInspectRepository.save(deviceInspect);
 
                 List<DeviceInspectRunningStatus> runningStatuses = new ArrayList<>();
@@ -688,6 +690,7 @@ public class OperateController {
                                 deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                                 deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                                 deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
+                                deviceTypeInspect.setInspectPurpose(null == inspectTypeRequest.getInspectPurpose() ? 0 : inspectTypeRequest.getInspectPurpose());
                                 deviceTypeInspects.add(deviceTypeInspect);
                             }
                         }
@@ -783,6 +786,7 @@ public class OperateController {
                             deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                             deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                             deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
+                            deviceTypeInspect.setInspectPurpose(null == inspectTypeRequest.getInspectPurpose() ? 0 : inspectTypeRequest.getInspectPurpose());
                             deviceTypeInspectRepository.save(deviceTypeInspect);
 
                             if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {

@@ -31,6 +31,7 @@ public class RestDeviceInspect {
     private Float originalValue;
     private Float correctionValue;
     private List<RestDeviceInspectRunningStatus> runningStatus;
+    private Integer inspectPurpose;
 
     public RestDeviceInspect() {
     }
@@ -57,6 +58,7 @@ public class RestDeviceInspect {
         this.zero=deviceInspect.getZero();
         this.originalValue=deviceInspect.getOriginalValue();
         this.correctionValue=deviceInspect.getCorrectionValue();
+        this.inspectPurpose = deviceInspect.getInspectPurpose();
     }
 
     public Integer getId() {
@@ -185,5 +187,13 @@ public class RestDeviceInspect {
 
     public void setRunningStatus(List<RestDeviceInspectRunningStatus> statuses){
         this.runningStatus = statuses;
+    }
+
+    public Integer getInspectPurpose(){
+        return this.inspectPurpose;
+    }
+
+    public void setInspectPurpose(Integer inspectPurpose){
+        this.inspectPurpose = inspectPurpose;
     }
 }

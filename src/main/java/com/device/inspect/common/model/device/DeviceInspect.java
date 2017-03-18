@@ -22,6 +22,7 @@ public class DeviceInspect {
     private Float zero;
     private Float originalValue;
     private Float correctionValue;
+    private Integer inspectPurpose;
 
     @Id
     @GeneratedValue()
@@ -141,4 +142,14 @@ public class DeviceInspect {
     public void setCorrectionValue(Float correctionValue) {
         this.correctionValue = correctionValue;
     }
+
+    @Column(name = "inspect_purpose")
+    public Integer getInspectPurpose(){
+        return this.inspectPurpose;
+    }
+
+    public void setInspectPurpose(Integer inspectPurpose){
+        this.inspectPurpose = inspectPurpose;
+    }
+
 }
