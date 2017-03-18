@@ -36,8 +36,8 @@ public class DeviceHourlyUtilization {
     public Device getDeviceId(){
         return this.deviceId;
     }
-    public void setDeviceId(Device device){
-        this.deviceId = device;
+    public void setDeviceId(Device deviceId){
+        this.deviceId = deviceId;
     }
 
     @NotNull

@@ -3,6 +3,7 @@ package com.device.inspect.common.repository.device;
 import com.device.inspect.common.model.device.InspectData;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,4 +14,6 @@ public interface InspectDataRepository extends CrudRepository<InspectData,Intege
     public InspectData findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
     public List<InspectData> findTop7ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
     public List<InspectData> findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
+    public List<InspectData> findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(Integer DeviceInspectId, Date BeginTime, Date EndTime);
+    public List<InspectData> findByDeviceInspectIdAndCreateDateBetweenOrderByRealValueDesc(Integer DeviceInspectId, Date BeginTime, Date EndTime);
 }

@@ -65,7 +65,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
      * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
      * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
      */
-    @Scheduled(cron = "0 0/1 * * * ? ")
+    @Scheduled(cron = "0 0/3 * * * ? ")
     @Override
     public void scheduleTask() {
         Iterable<Company> companies = companyRepository.findAll();
