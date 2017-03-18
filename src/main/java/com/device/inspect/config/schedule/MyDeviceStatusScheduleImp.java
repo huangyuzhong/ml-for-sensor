@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.text.DateFormat;
 
 /**
  * Created by Administrator on 2016/10/18.
@@ -134,11 +135,13 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 }
                                                 InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
                                                 if (null!=inspectData&&null!=inspectData.getCreateDate()){
-						     long currentTime = new Date().getTime();
-						     long reportTime = inspectData.getCreateDate().getTime();
-						     long minutes = (currentTime - reportTime)/(1000*60);
-						     System.out.println("Device Id: " + device.getId() + ", minutes: " + minutes + ", report time: " + reportTime + ", current time: " + currentTime);
-						     if (minutes>5){
+                                                    Date currentTime = new Date();
+                                                    Date reportTime = inspectData.getCreateDate();
+
+						                            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+						                            long minutes = (currentTime.getTime() - reportTime.getTime())/(1000*60);
+                                                    System.out.println("Device Life -- Id: " + device.getId() + ", minutes since last report: " + minutes + ", report time: " + df.format(reportTime) + ", current time: " + df.format(currentTime));
+						                            if (minutes>5){
                                                         DeviceOffline deviceOffline = new DeviceOffline();
                                                         deviceOffline.setDevice(device);
                                                         deviceOffline.setOfflineDate(new Date());
