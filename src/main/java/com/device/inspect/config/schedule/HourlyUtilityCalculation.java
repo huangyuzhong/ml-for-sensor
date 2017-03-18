@@ -133,6 +133,11 @@ public class HourlyUtilityCalculation implements MySchedule{
             if (powerInspectData != null && !powerInspectData.isEmpty()) {
                 powerUpper = Float.parseFloat(powerInspectData.get(0).getResult());
                 powerLower = Float.parseFloat(powerInspectData.get(powerInspectData.size() - 1).getResult());
+                if(powerLower < powerUpper){
+                    Float temp = powerUpper;
+                    powerUpper = powerLower;
+                    powerLower = temp;
+                }
             }
 
             DeviceHourlyUtilization hourlyUtilization = new DeviceHourlyUtilization();
