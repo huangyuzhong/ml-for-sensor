@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 @RequestMapping(value = "/api/rest")
 public class SocketMessageApi {
     private static final Logger LOGGER = LogManager.getLogger(SocketMessageApi.class);
-    public static Date DeviceDate;
     @Autowired
     private  InspectDataRepository inspectDataRepository;
 
@@ -68,26 +67,24 @@ public class SocketMessageApi {
         String monitorTypeCode = result.substring(6, 8);
 
         //直接获取解析终端时间报文
-        String firstDeviceDate = result.substring(34, 36);
-        String secondDeviceDate = result.substring(36, 38);
-        String thirdDeviceDate = result.substring(38, 40);
-        String forthDeviceDate = result.substring(40, 42);
-        String fifthDeviceDate = result.substring(42, 44);
-        String sixthDeviceDate = result.substring(44, 46);
-        String Devicetime = 20 + "" + firstDeviceDate + "" + secondDeviceDate + "" + thirdDeviceDate + "" + forthDeviceDate + "" + fifthDeviceDate + "" + sixthDeviceDate;
-        //SimpleDateFormat sfd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String deviceDateYear = result.substring(34, 36);
+        String deviceDateMonth = result.substring(36, 38);
+        String deviceDateDay = result.substring(38, 40);
+        String deviceDateHour = result.substring(40, 42);
+        String deviceDateMinute = result.substring(42, 44);
+        String deviceDateSecond = result.substring(44, 46);
+        String strDeviceDate = 20 + "" + deviceDateYear + deviceDateMonth + deviceDateDay + deviceDateHour + deviceDateMinute + deviceDateSecond;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        Date deviceSamplingTime = new Date();
         try {
-            Date DeviceDate = sdf.parse(Devicetime);
-            //SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            //String date2 = sdf2.format(date);
-            System.out.println(DeviceDate);
+            deviceSamplingTime = sdf.parse(strDeviceDate);
+
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error("parsing device time string error: " + e.getMessage());
         }
-        String fisrtData = result.substring(48,56);
-        int first = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 4);
+
+        String deviceSamplingData = result.substring(48,56);
+        int iDeviceSamplingData = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData), 0, 4);
         Device device = new Device();
         String mointorCode = result.substring(8,26);
        //LOGGER.info("终端编号是：：：：："+mointorCode);
@@ -95,7 +92,7 @@ public class SocketMessageApi {
         if (null==monitorDevice)
             return new RestResponse(null);
         if(monitorTypeCode.equals("03")) {
-            monitorDevice.setBattery(String.valueOf(Float.valueOf(first)/10));
+            monitorDevice.setBattery(String.valueOf(Float.valueOf(iDeviceSamplingData)/10));
             monitorDeviceRepository.save(monitorDevice);
             return new RestResponse(null);
         }
@@ -119,14 +116,14 @@ public class SocketMessageApi {
             Float check;
             //判断是否是PT100
             if (monitorTypeCode.equals("00")){
-                inspectData.setCreateDate(DeviceDate);
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
 
 
                 //将int类型转换成两个doube类型的电压
-                double AD0=((first>>16)&0xffff)*1.024/32768;//前两个字节转换成doube类型的电压
-                double AD1=(first&0xffff)*1.024/32768;//后两个字节转换成doube类型的电压
+                double AD0=((iDeviceSamplingData>>16)&0xffff)*1.024/32768;//前两个字节转换成doube类型的电压
+                double AD1=(iDeviceSamplingData&0xffff)*1.024/32768;//后两个字节转换成doube类型的电压
 
                 double R=(1000*AD0-1000*AD1)/(3.38-AD0-AD1);//生成double类型的电阻
 
@@ -206,11 +203,11 @@ public class SocketMessageApi {
             }else if (monitorTypeCode.equals("07")){
                 //判断是不是甲烷
                 //根据上传的值算出电压
-                Float v=(Float.valueOf(first)*Float.valueOf(2.018f))/Float.valueOf(32768);
+                Float v=(Float.valueOf(iDeviceSamplingData)*Float.valueOf(2.018f))/Float.valueOf(32768);
 
                 //算出的电压值如果小于0.4   record 都为百分之零
                 if (v<0.4){
-                    inspectData.setCreateDate(DeviceDate);
+                    inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     record=0f;
@@ -228,7 +225,7 @@ public class SocketMessageApi {
                     //甲烷添加测量原值
                     inspectData.setRealValue(String.valueOf(record));
                     deviceInspect.setOriginalValue(record);
-                    inspectData.setCreateDate(DeviceDate);
+                    inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     check=record-(deviceInspect.getZero());
@@ -236,7 +233,7 @@ public class SocketMessageApi {
                     deviceInspect.setCorrectionValue(check);
                 } else {
                     record=10f;
-                    inspectData.setCreateDate(DeviceDate);
+                    inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     inspectData.setResult(String.valueOf(record));
@@ -247,12 +244,12 @@ public class SocketMessageApi {
 
             }
             else if(monitorTypeCode.equals("06")){
-                inspectData.setCreateDate(DeviceDate);
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
-                System.out.println("first data: " + fisrtData);
-                System.out.println(fisrtData.length());
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData.substring(4)), 0, 2);
+                System.out.println("first data: " + deviceSamplingData);
+                System.out.println(deviceSamplingData.length());
+                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData.substring(4)), 0, 2);
                 System.out.println("part value: " + value);
                 if(value > 32767){
                     value = value - 65536;
@@ -268,78 +265,58 @@ public class SocketMessageApi {
                 deviceInspect.setCorrectionValue(check);
             }
             else if(monitorTypeCode.equals("08") || monitorTypeCode.equals("09")){
-                inspectData.setCreateDate(DeviceDate);
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 //添加测量原值
-                inspectData.setRealValue(String.valueOf(first));
-                record = Float.valueOf(first)*250*20/18000000;
+                inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                record = Float.valueOf(iDeviceSamplingData)*250*20/18000000;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
             }
-            else if(monitorTypeCode.equals("0a")){
-                inspectData.setCreateDate(DeviceDate);
+            else if(monitorTypeCode.equals("0a")) {
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
-                //添加测量原值
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 2);
-                inspectData.setRealValue(String.valueOf(value));
-                record = Float.valueOf(value)*250;
+                inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                record = Float.valueOf(iDeviceSamplingData) * 250 / 10000;
+                deviceInspect.setOriginalValue(record);
+                check = record - (deviceInspect.getZero());
+                inspectData.setResult(String.valueOf(check));
+                deviceInspect.setCorrectionValue(check);
+            }else if(monitorTypeCode.equals("0b")){
+                inspectData.setCreateDate(new Date());
+                inspectData.setDevice(device);
+                inspectData.setDeviceInspect(deviceInspect);
+                inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                record = Float.valueOf(iDeviceSamplingData)*20/10000;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
 
-                DeviceInspect deviceInspect2 = deviceInspectRepository.
-                        findByInspectTypeIdAndDeviceId(13, device.getId());
-                InspectData inspectData2 = new InspectData();
-                inspectData2.setCreateDate(DeviceDate);
-                inspectData2.setDevice(device);
-                inspectData2.setDeviceInspect(deviceInspect2);
-                value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
-                record = Float.valueOf(value)*250;
-                check=record-(deviceInspect.getZero());
-                inspectData2.setRealValue(String.valueOf(value));
-                deviceInspect2.setOriginalValue(record);
-                inspectData2.setResult(String.valueOf(check));
-                deviceInspect2.setCorrectionValue(check);
             }
-            else if(monitorTypeCode.equals("0b")){
-                inspectData.setCreateDate(DeviceDate);
+            else if(monitorTypeCode.equals("0c") || monitorTypeCode.equals("0d")){
+                inspectData.setCreateDate(deviceSamplingTime);
+                inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                record = Float.valueOf(iDeviceSamplingData)*20*250/10000;
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
-                //添加测量原值
-                int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 0, 2);
-                inspectData.setRealValue(String.valueOf(value));
-                record = Float.valueOf(value)*250*20;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
 
-                DeviceInspect deviceInspect2 = deviceInspectRepository.
-                        findByInspectTypeIdAndDeviceId(15, device.getId());
-                InspectData inspectData2 = new InspectData();
-                inspectData2.setCreateDate(DeviceDate);
-                inspectData2.setDevice(device);
-                inspectData2.setDeviceInspect(deviceInspect2);
-                value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(fisrtData), 2, 2);
-                record = Float.valueOf(value)*250*20;
-                check=record-(deviceInspect.getZero());
-                inspectData2.setRealValue(String.valueOf(value));
-                deviceInspect2.setOriginalValue(record);
-                inspectData2.setResult(String.valueOf(check));
-                deviceInspect2.setCorrectionValue(check);
             }
             else{
-                inspectData.setCreateDate(DeviceDate);
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 //添加测量原值
-                inspectData.setRealValue(String.valueOf(first));
-                record = Float.valueOf(first)/1000;
+                inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                record = Float.valueOf(iDeviceSamplingData)/1000;
                 deviceInspect.setOriginalValue(record);
                 check=record-(deviceInspect.getZero());
                 inspectData.setResult(String.valueOf(check));
@@ -358,7 +335,7 @@ public class SocketMessageApi {
 
             if (deviceInspect.getHighUp()<record||record<deviceInspect.getHighDown()){
                 if (null!=low&&low.getNum()>0){
-                    low.setFinish(DeviceDate);
+                    low.setFinish(deviceSamplingTime);
                     alertCountRepository.save(low);
                     AlertCount newLow = new AlertCount();
                     newLow.setDevice(device);
@@ -366,7 +343,7 @@ public class SocketMessageApi {
                     newLow.setNum(0);
                     newLow.setType(1);
                     newLow.setUnit(unit);
-                    newLow.setCreateDate(DeviceDate);
+                    newLow.setCreateDate(deviceSamplingTime);
                     alertCountRepository.save(newLow);
                 }
 
@@ -376,11 +353,11 @@ public class SocketMessageApi {
                     high.setInspectType(deviceInspect.getInspectType());
                     high.setNum(0);
                     high.setType(2);
-                    high.setCreateDate(DeviceDate);
+                    high.setCreateDate(deviceSamplingTime);
                     high.setUnit(unit);
                 }
                 if (high.getNum()==0){
-                    high.setCreateDate(DeviceDate);
+                    high.setCreateDate(deviceSamplingTime);
                 }
                 high.setNum(high.getNum() + 1);
                 alertCountRepository.save(high);
@@ -388,7 +365,7 @@ public class SocketMessageApi {
             }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
                     (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
                 if (null!=high&&high.getNum()>0){
-                    high.setFinish(DeviceDate);
+                    high.setFinish(deviceSamplingTime);
                     alertCountRepository.save(high);
                     AlertCount newHigh = new AlertCount();
                     newHigh.setDevice(device);
@@ -396,20 +373,20 @@ public class SocketMessageApi {
                     newHigh.setNum(0);
                     newHigh.setType(2);
                     newHigh.setUnit(unit);
-                    newHigh.setCreateDate(DeviceDate);
+                    newHigh.setCreateDate(deviceSamplingTime);
                     alertCountRepository.save(newHigh);
                 }
                 if (null == low){
                     low = new AlertCount();
                     low.setDevice(device);
                     low.setInspectType(deviceInspect.getInspectType());
-                    low.setCreateDate(DeviceDate);
+                    low.setCreateDate(deviceSamplingTime);
                     low.setNum(0);
                     low.setType(1);
                     low.setUnit(unit);
                 }
                 if (low.getNum()==0){
-                    low.setCreateDate(DeviceDate);
+                    low.setCreateDate(deviceSamplingTime);
                 }
                 low.setNum(low.getNum()+1);
                 alertCountRepository.save(low);
@@ -417,7 +394,7 @@ public class SocketMessageApi {
             }else {
                 if (null==low||low.getNum()>0){
                     if (null!=low){
-                        low.setFinish(DeviceDate);
+                        low.setFinish(deviceSamplingTime);
                         alertCountRepository.save(low);
                     }
 
@@ -427,13 +404,13 @@ public class SocketMessageApi {
                     newLow.setNum(0);
                     newLow.setType(1);
                     newLow.setUnit(unit);
-                    newLow.setCreateDate(DeviceDate);
+                    newLow.setCreateDate(deviceSamplingTime);
                     alertCountRepository.save(newLow);
                 }
 
                 if (null==high||high.getNum()>0){
                     if (null!=high){
-                        high.setFinish(DeviceDate);
+                        high.setFinish(deviceSamplingTime);
                         alertCountRepository.save(high);
                     }
 
@@ -444,7 +421,7 @@ public class SocketMessageApi {
                     newHigh.setNum(0);
                     newHigh.setType(2);
                     newHigh.setUnit(unit);
-                    newHigh.setCreateDate(DeviceDate);
+                    newHigh.setCreateDate(deviceSamplingTime);
                     alertCountRepository.save(newHigh);
                 }
                 inspectData.setType("normal");
@@ -459,7 +436,7 @@ public class SocketMessageApi {
             String forthCode = result.substring(32,34);
 
             List<Byte> responseByte = new ArrayList<Byte>();
-            responseByte.add((byte)0xEF);//239
+            responseByte.add((byte)0xEF);
             responseByte.add((byte)0x02);
             responseByte.add((byte)0x05);
             boolean updateFlag = false;
@@ -468,6 +445,7 @@ public class SocketMessageApi {
                     !thirdCode.equals(deviceVersion.getThirdCode())||!forthCode.equals(deviceVersion.getForthCode())){
                 updateFlag = true;
                 if (deviceVersion.getType().equals("1")){
+                    responseByte.add((byte)0x01);
                 }else {
                     responseByte.add((byte)0x02);
                 }
