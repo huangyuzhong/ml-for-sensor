@@ -104,6 +104,7 @@ public class OperateController {
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
+
     @Autowired
     private MessageSendRepository messageSendRepository;
 
@@ -332,6 +333,20 @@ public class OperateController {
             request.setId(deviceInspect.getInspectType().getId());
             request.setName(deviceInspect.getInspectType().getName());
 
+            List<DeviceTypeInspectRunningStatusRequest> runningStatusesRequest= new ArrayList<>();
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+            if(runningStatuses != null && runningStatuses.size() > 0){
+                for(DeviceInspectRunningStatus status : runningStatuses){
+                    DeviceTypeInspectRunningStatusRequest statusRequest = new DeviceTypeInspectRunningStatusRequest();
+                    statusRequest.setId(status.getId());
+                    statusRequest.setRunningStatusId(status.getDeviceRunningStatus().getId());
+                    statusRequest.setDeviceTypeInspectId(status.getDeviceInspect().getId());
+                    statusRequest.setThreshold(status.getThreshold());
+                    runningStatusesRequest.add(statusRequest);
+                }
+                request.setRunningStatus(runningStatusesRequest);
+            }
+
             list.add(request);
         }
         deviceTypeRequest.setId(deviceId);
@@ -346,6 +361,24 @@ public class OperateController {
      * @param request
      * @return
      */
+
+    /**
+     * Test Example: curl -H "Content-Type: application/json" -X POST
+     * --data '{"id":215,"name":"温度+ 门+压差+电表","list":[{"id":1,"name":"温度（PT100）",
+     * "lowUp":"30.0","lowDown":"10.0","highUp":"40.0","highDown":"0.0","standard":"20.0",
+     * "chosed":true},{"id":6,"name":"房间压差","lowUp":"50.0","lowDown":"-10.0","highUp":"50.0",
+     * "highDown":"-10.0","standard":"10.0","chosed":true},{"id":8,"name":"设备门状态","lowUp":"0.0",
+     * "lowDown":"0.0","highUp":"5.0","highDown":"5.0","standard":"1.0","chosed":true},{"id":10,
+     * "name":"有功电能","lowUp":"20.0","lowDown":"0.0","highUp":"20.0","highDown":"0.0","standard":"10.0",
+     * "chosed":true},{"id":12,"name":"电压","lowUp":"250.0","lowDown":"200.0","highUp":"260.0","highDown":"190.0",
+     * "standard":"220.0","chosed":true},{"id":13,"name":"电流","lowUp":"3.0","lowDown":"0.0","highUp":"3.0",
+     * "highDown":"-1.0","standard":"0.0","chosed":true, "runningStatus":[{"id":4,"runningStatusId":1,
+     * "deviceTypeInspectId":246,"threshold":1.0},{"id":5,"runningStatusId":2,"deviceTypeInspectId":246,
+     * "threshold":2.0},{"id":6,"runningStatusId":3,"deviceTypeInspectId":246,"threshold":4.5}]},{"id":14,
+     * "name":"有功功率","lowUp":"10.0","lowDown":"2.0","highUp":"50.0","highDown":"0.0","standard":"5.0","chosed":true}]}'
+     * http://localhost/api/rest/operate/device/parameter/215
+    */
+
     @RequestMapping(value = "/device/parameter/{deviceId}")
     public RestResponse operateDeviceData(Principal principal,@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
         User user=judgeByPrincipal(principal);
@@ -372,6 +405,41 @@ public class OperateController {
                     deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
 
                 deviceInspectRepository.save(deviceInspect);
+
+                List<DeviceInspectRunningStatus> runningStatuses = new ArrayList<>();
+                Set<Integer> statusInPost = new HashSet<>();
+                List<DeviceTypeInspectRunningStatusRequest> runningStatusRequests = inspectTypeRequest.getRunningStatus();
+                if(runningStatusRequests != null && runningStatusRequests.size() > 0){
+                    Iterable<DeviceInspectRunningStatus> dbStatusList = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+                    for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
+                        if (status.getId() != null) {
+                            statusInPost.add(status.getId());
+                        }
+                    }
+
+                    for(DeviceInspectRunningStatus status : dbStatusList){
+                        if(!statusInPost.contains(status.getId())){
+                            deviceInspectRunningStatusRepository.delete(status);
+                        }
+                    }
+
+                    for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
+                        DeviceInspectRunningStatus deviceInspectRunningStatus = deviceInspectRunningStatusRepository.findById(status.getId());
+                        if(deviceInspectRunningStatus == null){
+                            deviceInspectRunningStatus = new DeviceInspectRunningStatus();
+                        }
+                        DeviceRunningStatus runningStatus = deviceRunningStatusRepository.findById(status.getRunningStatusId());
+                        if (runningStatus == null) {
+                            continue;
+                        } else {
+                            deviceInspectRunningStatus.setDeviceRunningStatus(runningStatus);
+                        }
+                        deviceInspectRunningStatus.setDeviceInspect(deviceInspect);
+                        deviceInspectRunningStatus.setThreshold(status.getThreshold());
+                        runningStatuses.add(deviceInspectRunningStatus);
+                    }
+                    deviceInspectRunningStatusRepository.save(runningStatuses);
+                }
             }
         }
         return new RestResponse(new RestDevice(device));
@@ -539,6 +607,26 @@ public class OperateController {
      * @param deviceTypeReq
      * @return
      */
+
+    /**
+     * Test Example: curl -H "Content-Type: application/json"
+     * -X POST  --data '{"id":132,"name":"家用冰箱","list":[{"id":1,"name":"温度（PT100）",
+     * "lowUp":"-15.0","lowDown":"-25.0","highUp":"-10.0","highDown":"-30.0","standard":"-20.0",
+     * "chosed":true,"runningStatus":[]},{"id":8,"name":"设备门状态","lowUp":"0.0","lowDown":"0.0",
+     * "highUp":"5.0","highDown":"5.0","standard":"1.0","chosed":true,"runningStatus":[]},{"id":10,
+     * "name":"有功电能","lowUp":"15.0","lowDown":"5.0","highUp":"20.0","highDown":"0.0","standard":"10.0",
+     * "chosed":true,"runningStatus":[]},{"id":11,"name":"无功电能","lowUp":"15.0","lowDown":"5.0",
+     * "highUp":"20.0","highDown":"0.0","standard":"10.0","chosed":true,"runningStatus":[]},{"id":12,
+     * "name":"电压","lowUp":"15.0","lowDown":"5.0","highUp":"20.0","highDown":"0.0","standard":"10.0",
+     * "chosed":true,"runningStatus":[]},{"id":13,"name":"电流","lowUp":"15.0","lowDown":"5.0","highUp":"20.0",
+     * "highDown":"0.0","standard":"10.0","chosed":true,"runningStatus":[{"id":4,"runningStatusId":1,
+     * "deviceTypeInspectId":205,"threshold":1},{"id":5,"runningStatusId":2,"deviceTypeInspectId":205,
+     * "threshold":2},{"runningStatusId":3,"deviceTypeInspectId":205,"threshold":4}]},{"id":14,"name":"有功功率",
+     * "lowUp":"15.0","lowDown":"5.0","highUp":"20.0","highDown":"0.0","standard":"10.0","chosed":true,
+     * "runningStatus":[]},{"id":15,"name":"无功功率","lowUp":"15.0","lowDown":"5.0","highUp":"20.0","highDown":"0.0",
+     * "standard":"10.0","chosed":true,"runningStatus":[]}]}' http://localhost/api/rest/operate/deviceType/
+     */
+
     @RequestMapping(value = "/deviceType")
     public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeReq){
         User user = judgeByPrincipal(principal);
@@ -612,6 +700,25 @@ public class OperateController {
                         if (inspectTypeRequest.isChosed()) {
                             if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {
                                 runningStatuses.clear();
+                                Set<Integer> statusInPost = new HashSet<>();
+
+                                for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
+                                    if (status.getId() != null) {
+                                        statusInPost.add(status.getId());
+                                    }
+                                }
+                                DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findByDeviceTypeIdAndInspectTypeId(deviceTypeReq.getId(), inspectTypeRequest.getId());
+                                if(deviceTypeInspect == null){
+                                    continue;
+                                }
+
+                                Iterable<DeviceTypeInspectRunningStatus> dbStatusList = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspect.getId());
+                                for(DeviceTypeInspectRunningStatus status : dbStatusList){
+                                    if(!statusInPost.contains(status.getId())){
+                                        deviceTypeInspectRunningStatusRepository.delete(status);
+                                    }
+                                }
+
                                 for (DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()) {
                                     DeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = deviceTypeInspectRunningStatusRepository.findById(status.getId());
                                     if (deviceTypeInspectRunningStatus == null) {
@@ -623,16 +730,12 @@ public class OperateController {
                                     } else {
                                         deviceTypeInspectRunningStatus.setDeviceRunningStatus(runningStatus);
                                     }
-                                    DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findById(status.getDeviceTypeInspectId());
-                                    if (deviceTypeInspect == null) {
-                                        continue;
-                                    } else {
-                                        deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
-                                    }
+                                    deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
                                     deviceTypeInspectRunningStatus.setThreshold(status.getThreshold());
                                     runningStatuses.add(deviceTypeInspectRunningStatus);
                                 }
                                 deviceTypeInspectRunningStatusRepository.save(runningStatuses);
+
                             }
                         }
                     }
@@ -680,17 +783,11 @@ public class OperateController {
                             deviceTypeInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                             deviceTypeInspect.setLowUp(Float.valueOf(inspectTypeRequest.getLowUp()));
                             deviceTypeInspect.setLowAlter(null == inspectTypeRequest.getLowAlter() ? 10 : inspectTypeRequest.getLowAlter());
-                            deviceTypeInspects.add(deviceTypeInspect);
-                        }
-                    }
-                }
-                deviceTypeInspectRepository.save(deviceTypeInspects);
+                            deviceTypeInspectRepository.save(deviceTypeInspect);
 
-                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
-                        if (inspectTypeRequest.isChosed()) {
                             if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {
                                 runningStatuses.clear();
+
                                 for (DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()) {
                                     DeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = new DeviceTypeInspectRunningStatus();
                                     DeviceRunningStatus runningStatus = deviceRunningStatusRepository.findById(status.getRunningStatusId());
@@ -699,17 +796,19 @@ public class OperateController {
                                     } else {
                                         deviceTypeInspectRunningStatus.setDeviceRunningStatus(runningStatus);
                                     }
-                                    DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findById(status.getDeviceTypeInspectId());
-                                    if (deviceTypeInspect == null) {
-                                        continue;
-                                    } else {
-                                        deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
-                                    }
+                                    deviceTypeInspectRunningStatus.setDeviceTypeInspect(deviceTypeInspect);
                                     deviceTypeInspectRunningStatus.setThreshold(status.getThreshold());
                                     runningStatuses.add(deviceTypeInspectRunningStatus);
                                 }
                                 deviceTypeInspectRunningStatusRepository.save(runningStatuses);
                             }
+                        }
+                    }
+                }
+
+                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                        if (inspectTypeRequest.isChosed()) {
                         }
                     }
                 }
