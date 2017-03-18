@@ -55,6 +55,15 @@ public class SocketMessageApi {
     @Autowired
     private Pt100ZeroRepository pt100ZeroRepository;
 
+    @Autowired
+    private DeviceRunningStatusRepository deviceRunningStatusRepository;
+
+    @Autowired
+    private DeviceTypeInspectRunningStatusRepository deviceTypeInspectRunningStatusRepository;
+
+    @Autowired
+    private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
+
     String unit = "s";
 
     /**
@@ -562,6 +571,7 @@ public class SocketMessageApi {
         Map map = new HashMap();
         List<List> list = new ArrayList<List>();
         Float  score = Float.valueOf(100);
+        Integer runningLevel = -1;
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
                 List<InspectData> inspectDatas = inspectDataRepository.
@@ -571,7 +581,7 @@ public class SocketMessageApi {
                     for (InspectData inspectData : inspectDatas) {
                         insertDatas.add(new RestInspectData(inspectData));
                         if(null!=inspectData.getDeviceInspect().getHighDown()){
-                            float m=0;
+                            float m = 0;
                             if (Float.valueOf(inspectData.getResult())>inspectData.getDeviceInspect().getStandard()){
                                 m = Float.valueOf(inspectData.getResult())-inspectData.getDeviceInspect().getStandard();
                             }else {
@@ -580,13 +590,25 @@ public class SocketMessageApi {
                             score = score - m/(inspectData.getDeviceInspect().getHighUp()-inspectData.getDeviceInspect().getStandard());
                         }
                     }
+                    //device running status
+                    if(deviceInspect.getInspectPurpose() == 1){ // this inspect is used to guide running status
+                        List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+                        for(DeviceInspectRunningStatus status : runningStatuses){
+                            if(Float.parseFloat(inspectDatas.get(0).getResult()) > status.getThreshold()){
+                                if(status.getDeviceRunningStatus().getLevel() > runningLevel){
+                                    runningLevel = status.getDeviceRunningStatus().getLevel();
+                                }
+                            }
+                        }
+                    }
+
                     list.add(insertDatas);
                 }
             }
         }
-        map.put("list",list);
-        map.put("score",score);
-
+        map.put("list", list);
+        map.put("score", score);
+        map.put("runningStatus", runningLevel);
         return new RestResponse(map);
 
     }
