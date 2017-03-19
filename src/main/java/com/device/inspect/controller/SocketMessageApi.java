@@ -337,6 +337,7 @@ public class SocketMessageApi {
                 }
             }catch (Exception e){
                 LOGGER.error("failed to parse datagram from remote device: " + e.getLocalizedMessage());
+                LOGGER.error("exception stack: ", e);
                 return new RestResponse(null);
             }
 
@@ -347,6 +348,7 @@ public class SocketMessageApi {
                 inspectDataRepository.save(inspectData);
             }catch (Exception e){
                 LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
+                LOGGER.error("exception stack: ", e);
                 return new RestResponse(null);
             }
 
@@ -459,31 +461,40 @@ public class SocketMessageApi {
             LOGGER.info("datagram alert type set and updating to db");
             inspectDataRepository.save(inspectData);
 
-            LOGGER.info("generating response code");
-//            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
+            LOGGER.info("add response datagram head");
+            List<Byte> responseByte = new ArrayList<Byte>();
+            responseByte.add((byte)0xEF);
+            responseByte.add((byte)0x02);
+            responseByte.add((byte)0x05);
+
+            // version update
+
+            boolean updateFlag = false;
+            //            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
             DeviceVersion deviceVersion=device.getDeviceVersion();
             String firstCode = result.substring(26,28);
             String secondCode = result.substring(28,30);
             String thirdCode = result.substring(30,32);
             String forthCode = result.substring(32,34);
 
-            LOGGER.info("add response datagram head");
-            List<Byte> responseByte = new ArrayList<Byte>();
-            responseByte.add((byte)0xEF);
-            responseByte.add((byte)0x02);
-            responseByte.add((byte)0x05);
-            boolean updateFlag = false;
-
-            if (!firstCode.equals(deviceVersion.getFirstCode())||!secondCode.equals(deviceVersion.equals(deviceVersion.getSecondCode()))||
-                    !thirdCode.equals(deviceVersion.getThirdCode())||!forthCode.equals(deviceVersion.getForthCode())){
-                updateFlag = true;
-                if (deviceVersion.getType().equals("1")){
-                    responseByte.add((byte)0x01);
-                }else {
-                    responseByte.add((byte)0x02);
+            try {
+                if (!firstCode.equals(deviceVersion.getFirstCode())
+                        || !secondCode.equals(deviceVersion.getSecondCode())
+                        || !thirdCode.equals(deviceVersion.getThirdCode())
+                        || !forthCode.equals(deviceVersion.getForthCode())) {
+                    updateFlag = true;
+                    if (deviceVersion.getType().equals("1")) {
+                        responseByte.add((byte) 0x01);
+                    } else {
+                        responseByte.add((byte) 0x02);
+                    }
+                } else {
+                    responseByte.add((byte) 0x00);       //版本号更新确定
                 }
-            }else {
-                responseByte.add((byte)0x00);       //版本号更新确定
+            }catch (Exception e){
+                LOGGER.error("failed to set version type in response datagram. " + e.getLocalizedMessage());
+                LOGGER.error("exception stack: ", e);
+
             }
             try {
                 if (null!=deviceInspect.getStandard()&&null!=deviceInspect.getLowDown()&&null!=deviceInspect.getLowUp()&&
@@ -530,7 +541,7 @@ public class SocketMessageApi {
                 response = ByteAndHex.bytesToHexString(message);
             } catch (Exception e) {
                 LOGGER.error("Failed to generate response message. " + e.getLocalizedMessage());
-                e.printStackTrace();
+                LOGGER.error("exception stack: ", e);
             }
         }
 
