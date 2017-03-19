@@ -296,7 +296,7 @@ public class SocketMessageApi {
                 inspectData.setResult(String.valueOf(check));
                 deviceInspect.setCorrectionValue(check);
             }else if(monitorTypeCode.equals("0b")){
-                inspectData.setCreateDate(new Date());
+                inspectData.setCreateDate(deviceSamplingTime);
                 inspectData.setDevice(device);
                 inspectData.setDeviceInspect(deviceInspect);
                 inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
