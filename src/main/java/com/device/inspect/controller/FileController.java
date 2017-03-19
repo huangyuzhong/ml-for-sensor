@@ -28,8 +28,6 @@ import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.Application;
-import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1270,7 +1268,7 @@ public class FileController {
                         return;
                     }
                     if (param.get("code_forth")!=null){
-                        deviceVersion.setForthCode(param.get("code_forth"));
+                        deviceVersion.setFourthCode(param.get("code_forth"));
                     }else {
                         out.print(JSON.toJSONString(new RestResponse("版本号4为空", 1005,null)));
                         return;

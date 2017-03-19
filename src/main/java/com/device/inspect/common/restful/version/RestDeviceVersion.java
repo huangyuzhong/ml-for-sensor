@@ -27,7 +27,7 @@ public class RestDeviceVersion {
         this.firstCode=deviceVersion.getFirstCode();
         this.secondCode=deviceVersion.getSecondCode();
         this.thirdCode=deviceVersion.getThirdCode();
-        this.forthCode=deviceVersion.getForthCode();
+        this.forthCode=deviceVersion.getFourthCode();
         this.type=deviceVersion.getType();
         this.createDate=deviceVersion.getCreateDate();
     }

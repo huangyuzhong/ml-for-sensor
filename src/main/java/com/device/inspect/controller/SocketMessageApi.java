@@ -7,7 +7,6 @@ import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -472,16 +471,18 @@ public class SocketMessageApi {
             boolean updateFlag = false;
             //            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
             DeviceVersion deviceVersion=device.getDeviceVersion();
+
+            LOGGER.info("device version is " + deviceVersion.toString());
             String firstCode = result.substring(26,28);
             String secondCode = result.substring(28,30);
             String thirdCode = result.substring(30,32);
-            String forthCode = result.substring(32,34);
+            String fourthCode = result.substring(32,34);
 
             try {
                 if (!firstCode.equals(deviceVersion.getFirstCode())
                         || !secondCode.equals(deviceVersion.getSecondCode())
                         || !thirdCode.equals(deviceVersion.getThirdCode())
-                        || !forthCode.equals(deviceVersion.getForthCode())) {
+                        || !fourthCode.equals(deviceVersion.getFourthCode())) {
                     updateFlag = true;
                     if (deviceVersion.getType().equals("1")) {
                         responseByte.add((byte) 0x01);

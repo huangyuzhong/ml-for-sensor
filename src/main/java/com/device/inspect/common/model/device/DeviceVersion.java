@@ -15,7 +15,7 @@ public class DeviceVersion {
     private String firstCode;        //版本号
     private String secondCode;
     private String thirdCode;
-    private String forthCode;
+    private String fourthCode;
     private String type;
     private Date createDate;
     private String fileName;
@@ -49,7 +49,12 @@ public class DeviceVersion {
 
     @Column(name = "code_first")
     public String getFirstCode() {
-        return firstCode;
+        if(firstCode != null) {
+            return firstCode;
+        }
+        else{
+            return "00";
+        }
     }
 
     public void setFirstCode(String firstCode) {
@@ -57,7 +62,11 @@ public class DeviceVersion {
     }
     @Column(name = "code_second")
     public String getSecondCode() {
-        return secondCode;
+        if(secondCode != null) {
+            return secondCode;
+        }else{
+            return "00";
+        }
     }
 
     public void setSecondCode(String secondCode) {
@@ -65,19 +74,27 @@ public class DeviceVersion {
     }
     @Column(name = "code_third")
     public String getThirdCode() {
-        return thirdCode;
+        if(thirdCode!=null) {
+            return thirdCode;
+        }else{
+            return "00";
+        }
     }
 
     public void setThirdCode(String thirdCode) {
         this.thirdCode = thirdCode;
     }
     @Column(name = "code_forth")
-    public String getForthCode() {
-        return forthCode;
+    public String getFourthCode() {
+        if(fourthCode !=null) {
+            return fourthCode;
+        }else{
+            return "00";
+        }
     }
 
-    public void setForthCode(String forthCode) {
-        this.forthCode = forthCode;
+    public void setFourthCode(String fourthCode) {
+        this.fourthCode = fourthCode;
     }
 
     public String getType() {
@@ -112,5 +129,24 @@ public class DeviceVersion {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String toString() {
+        String str = "";
+        if (this.firstCode != null){
+            str += this.firstCode;
+
+        }
+        if(this.secondCode != null){
+            str += " " + this.secondCode;
+        }
+        if(this.thirdCode != null){
+            str += " " + this.thirdCode;
+        }
+        if(this.fourthCode != null){
+            str += " " + this.fourthCode;
+        }
+
+        return str;
     }
 }
