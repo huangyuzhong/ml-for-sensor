@@ -35,7 +35,7 @@ public class HourlyUtilityCalculation implements MySchedule{
     private final static Integer scanScope = 3600 * 1000;
     private final static Integer timeStep = 20 * 1000;
     private final static Integer powerInspectTypeId = 14;
-
+    private final static Integer powerInspectSampleTime = 60*1000;
     @Scheduled(cron = "0 0 */1 * * ? ")
     @Override
     public void scheduleTask() {
@@ -140,6 +140,12 @@ public class HourlyUtilityCalculation implements MySchedule{
                 }
             }
 
+            Float energy = new Float(0);
+            for(InspectData powerData : powerInspectData){
+                energy += Float.parseFloat(powerData.getResult()) * powerInspectSampleTime;
+            }
+            energy /= 1000;
+
             DeviceHourlyUtilization hourlyUtilization = new DeviceHourlyUtilization();
             hourlyUtilization.setDeviceId(device);
             hourlyUtilization.setStartHour(currentHour);
@@ -149,7 +155,7 @@ public class HourlyUtilityCalculation implements MySchedule{
             hourlyUtilization.setPowerUpperBound(powerUpper);
             hourlyUtilization.setPowerLowerBound(powerLower);
 
-            hourlyUtilization.setConsumedEnergy(new Float(0));
+            hourlyUtilization.setConsumedEnergy(energy);
             deviceHourlyUtilizationRepository.save(hourlyUtilization);
         }
 
