@@ -851,6 +851,64 @@ public class SelectApiController {
     }
 
     /**
+     * 获取最近一周的某设备的hourly设备利用率
+     */
+    @RequestMapping(value = "/device/utilization", method = RequestMethod.GET)
+    public RestResponse getWeekUtilization(Principal principal, @RequestParam Map<String, String> requestParam){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        if(!requestParam.containsKey("deviceId")){
+            return new RestResponse("设备id为空", 1006, null);
+        }
+        Device device;
+        device = deviceRepository.findById(Integer.parseInt(requestParam.get("deviceId")));
+        if(device == null){
+            return new RestResponse("设备不存在", 1006, null);
+        }
+
+        Date beginTime, endTime;
+        if(requestParam.containsKey("startTime")){
+            beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
+            if(requestParam.containsKey("endTime")){
+                endTime = new Date(Long.parseLong(requestParam.get("endTime")));
+            }
+            else{
+                Calendar endCalendar = Calendar.getInstance();
+                endCalendar.setTime(beginTime);
+                endCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) + 6);
+                endCalendar.set(Calendar.HOUR, 23);
+                endCalendar.set(Calendar.MINUTE, 59);
+                endTime = endCalendar.getTime();
+            }
+        }
+        else{
+            Calendar endCalendar = Calendar.getInstance();
+            endTime = endCalendar.getTime();
+            Calendar beginCalendar = Calendar.getInstance();
+            beginCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) - 6);
+            beginCalendar.set(Calendar.HOUR, 0);
+            beginCalendar.set(Calendar.MINUTE, 0);
+            beginCalendar.set(Calendar.SECOND, 0);
+            beginCalendar.set(Calendar.MILLISECOND, 0);
+            beginTime = beginCalendar.getTime();
+        }
+        System.out.println("begin time: " + beginTime + ", end time: " + endTime);
+
+        List<DeviceHourlyUtilization> utilizations = deviceHourlyUtilizationRepository.
+                findByDeviceIdIdAndStartHourBetweenOrderByStartHourAsc(device.getId(), beginTime, endTime);
+
+        List<RestHourlyUtilization> restHourlyUtilizations = new ArrayList<>();
+        for(DeviceHourlyUtilization utilization : utilizations){
+            RestHourlyUtilization restHourlyUtilization = new RestHourlyUtilization(utilization.getStartHour().getTime(),
+                    (float)utilization.getRunningTime()/3600, (float)(utilization.getIdleTime())/3600);
+            restHourlyUtilizations.add(restHourlyUtilization);
+        }
+
+        return new RestResponse(new RestHourlyUtilizationList(device.getId(), restHourlyUtilizations));
+    }
+
+    /**
      * 获取昨日设备利用率情况
      */
     @RequestMapping(value = "/device/daily/utilization", method = RequestMethod.GET)
