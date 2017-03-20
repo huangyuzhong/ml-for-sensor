@@ -101,6 +101,9 @@ public class SelectApiController {
     @Autowired
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
 
+    @Autowired
+    private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -845,5 +848,100 @@ public class SelectApiController {
             }
         }
         return new RestResponse(list);
+    }
+
+    /**
+     * 获取昨日设备利用率情况
+     */
+    @RequestMapping(value = "/device/daily/utilization", method = RequestMethod.GET)
+    public RestResponse getYesterdayUtilization(Principal principal, @RequestParam Map<String,String> requestParam){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        if(!requestParam.containsKey("deviceId")){
+            return new RestResponse("设备id为空", 1006, null);
+        }
+        Device device;
+        device = deviceRepository.findById(Integer.parseInt(requestParam.get("deviceId")));
+        if(device == null){
+            return new RestResponse("设备不存在", 1006, null);
+        }
+
+
+        Date beginTime, endTime;
+        if(requestParam.containsKey("date")){
+            beginTime = new Date(Long.parseLong(requestParam.get("date")));
+            Calendar endCalendar = Calendar.getInstance();
+            endCalendar.setTime(beginTime);
+            endCalendar.set(Calendar.HOUR, 23);
+            endCalendar.set(Calendar.MINUTE, 59);
+            endTime = endCalendar.getTime();
+        }
+        else{
+            Calendar beginCalendar = Calendar.getInstance();
+            beginCalendar.set(Calendar.MINUTE, 0);
+            beginCalendar.set(Calendar.SECOND, 0);
+            beginCalendar.set(Calendar.MILLISECOND, 0);
+            beginCalendar.set(Calendar.HOUR, 0);
+            beginCalendar.set(Calendar.DATE, beginCalendar.get(Calendar.DATE) - 1);
+            beginTime = beginCalendar.getTime();
+            beginCalendar.set(Calendar.HOUR, 23);
+            beginCalendar.set(Calendar.MINUTE, 59);
+            endTime = beginCalendar.getTime();
+        }
+        System.out.println("begin time: " + beginTime + ", end time: " + endTime);
+        List<DeviceHourlyUtilization> utilizations = deviceHourlyUtilizationRepository.
+                findByDeviceIdIdAndStartHourBetweenOrderByStartHourAsc(device.getId(), beginTime, endTime);
+
+        Float totalRunningHours = new Float(0);
+        Float totalIdleHours = new Float(0);
+        Float powerLowerBound = new Float(Float.MAX_VALUE);
+        Float powerUpperBound = new Float(-1);
+        Float totalConsumedEnergy = new Float(0);
+        Integer mostOftenUsedHour = new Integer(-1);
+        Integer mostOftenUsedHourUsedTime = new Integer(-1);
+        Integer leastOftenUsedHour = new Integer(-1);
+        Integer leastOftenUsedHourUsedTime = new Integer(Integer.MAX_VALUE);
+        Float offTimeHours = new Float(0);
+
+        for(DeviceHourlyUtilization utilization : utilizations){
+            System.out.println(utilization.getStartHour() + ", " + utilization.getConsumedEnergy());
+            totalRunningHours += (float)utilization.getRunningTime()/3600;
+            totalIdleHours += (float)utilization.getIdleTime()/3600;
+            if(utilization.getPowerLowerBound() < powerLowerBound){
+                powerLowerBound = utilization.getPowerLowerBound();
+            }
+            if(utilization.getPowerUpperBound() > powerUpperBound){
+                powerUpperBound = utilization.getPowerUpperBound();
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(utilization.getStartHour());
+            Integer currentHour = calendar.get(Calendar.HOUR);
+            totalConsumedEnergy += utilization.getConsumedEnergy();
+            if(utilization.getRunningTime() > mostOftenUsedHourUsedTime){
+                mostOftenUsedHourUsedTime = utilization.getRunningTime();
+                mostOftenUsedHour = currentHour;
+            }
+            if(utilization.getRunningTime() < leastOftenUsedHourUsedTime){
+                leastOftenUsedHourUsedTime = utilization.getRunningTime();
+                leastOftenUsedHour = currentHour;
+            }
+
+            if(currentHour < 9 || currentHour >= 18){
+                offTimeHours += (float)utilization.getRunningTime()/3600;
+            }
+        }
+
+        Map map = new HashMap();
+        map.put("totalRunningHours", totalRunningHours);
+        map.put("totalIdleHours", totalIdleHours);
+        map.put("powerLowerBound", powerLowerBound);
+        map.put("powerUpperBound", powerUpperBound);
+        map.put("totalConsumedEnergy", totalConsumedEnergy);
+        map.put("mostOftenUsedHour", mostOftenUsedHour);
+        map.put("leastOftenUsedHour", leastOftenUsedHour);
+        map.put("offTimeHours", offTimeHours);
+        return new RestResponse(map);
     }
 }
