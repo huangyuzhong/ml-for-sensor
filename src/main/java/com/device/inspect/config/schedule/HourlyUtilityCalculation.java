@@ -155,7 +155,7 @@ public class HourlyUtilityCalculation implements MySchedule{
             hourlyUtilization.setPowerUpperBound(powerUpper);
             hourlyUtilization.setPowerLowerBound(powerLower);
 
-            hourlyUtilization.setConsumedEnergy(energy);
+            hourlyUtilization.setConsumedEnergy(energy/1000);
             deviceHourlyUtilizationRepository.save(hourlyUtilization);
         }
 
