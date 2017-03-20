@@ -468,7 +468,10 @@ public class SocketMessageApi {
 
             // version update
 
+            /*
+            // skip update device version for now.
             boolean updateFlag = false;
+
             //            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
             DeviceVersion deviceVersion=device.getDeviceVersion();
 
@@ -497,6 +500,8 @@ public class SocketMessageApi {
                 LOGGER.error("exception stack: ", e);
 
             }
+            */
+            responseByte.add((byte) 0x00);
             try {
                 if (null!=deviceInspect.getStandard()&&null!=deviceInspect.getLowDown()&&null!=deviceInspect.getLowUp()&&
                         null!=deviceInspect.getHighDown()&&null!=deviceInspect.getHighUp()){
@@ -518,6 +523,7 @@ public class SocketMessageApi {
                 }else responseByte.add((byte)0x00);
 
 
+                /*
                 if (updateFlag){
                     int length = deviceVersion.getUrl().length();
                     String confirm = "";
@@ -532,7 +538,7 @@ public class SocketMessageApi {
                     for (char cc : deviceVersion.getUrl().toCharArray())
                         responseByte.add((byte)cc);
                 }
-
+                */
                 responseByte.add((byte)0xFF);
                 responseByte.add((byte)0x02);
                 byte[] message = new byte[responseByte.size()];
