@@ -963,7 +963,6 @@ public class SelectApiController {
         Float offTimeHours = new Float(0);
 
         for(DeviceHourlyUtilization utilization : utilizations){
-            System.out.println(utilization.getStartHour() + ", " + utilization.getConsumedEnergy());
             totalRunningHours += (float)utilization.getRunningTime()/3600;
             totalIdleHours += (float)utilization.getIdleTime()/3600;
             if(utilization.getPowerLowerBound() < powerLowerBound){
