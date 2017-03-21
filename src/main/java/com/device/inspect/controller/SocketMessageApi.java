@@ -76,6 +76,7 @@ public class SocketMessageApi {
 
 
         //直接获取解析终端时间报文
+        Integer timeZone = (int)result.charAt(5);
         String deviceDateYear = result.substring(34, 36);
         String deviceDateMonth = result.substring(36, 38);
         String deviceDateDay = result.substring(38, 40);
@@ -87,7 +88,7 @@ public class SocketMessageApi {
         Date deviceSamplingTime = new Date();
         try {
             deviceSamplingTime = sdf.parse(strDeviceDate);
-
+            deviceSamplingTime.setTime(deviceSamplingTime.getTime() - timeZone*3600*100);
 
             LOGGER.info(deviceSamplingTime.toString());
 
