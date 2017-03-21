@@ -88,7 +88,7 @@ public class SocketMessageApi {
         Date deviceSamplingTime = new Date();
         try {
             deviceSamplingTime = sdf.parse(strDeviceDate);
-            deviceSamplingTime.setTime(deviceSamplingTime.getTime() - timeZone*3600*100);
+            deviceSamplingTime.setTime(deviceSamplingTime.getTime() - timeZone*3600*1000);
 
             LOGGER.info(deviceSamplingTime.toString());
 
