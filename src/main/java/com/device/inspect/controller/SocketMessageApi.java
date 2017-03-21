@@ -76,7 +76,7 @@ public class SocketMessageApi {
 
 
         //直接获取解析终端时间报文
-        Integer timeZone = (int)result.charAt(5);
+        Integer timeZone = result.charAt(5) - '0';
         String deviceDateYear = result.substring(34, 36);
         String deviceDateMonth = result.substring(36, 38);
         String deviceDateDay = result.substring(38, 40);
