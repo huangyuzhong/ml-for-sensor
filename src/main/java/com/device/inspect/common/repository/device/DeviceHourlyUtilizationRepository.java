@@ -11,5 +11,5 @@ import java.util.List;
  */
 public interface DeviceHourlyUtilizationRepository extends CrudRepository<DeviceHourlyUtilization,Integer> {
     public List<DeviceHourlyUtilization> findByDeviceIdIdAndStartHourBetweenOrderByStartHourAsc(Integer DeviceInspectId, Date BeginTime, Date EndTime);
-
+    public DeviceHourlyUtilization findByDeviceIdIdAndStartHour(Integer DeviceInspectId, Date StartHour);
 }

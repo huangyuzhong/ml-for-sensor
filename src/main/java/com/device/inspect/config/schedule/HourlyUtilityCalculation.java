@@ -36,11 +36,12 @@ public class HourlyUtilityCalculation implements MySchedule{
     private final static Integer timeStep = 20 * 1000;
     private final static Integer powerInspectTypeId = 14;
     private final static Integer powerInspectSampleTime = 60*1000;
-    @Scheduled(cron = "0 0 */1 * * ? ")
+    @Scheduled(cron = "0 0 0/1 * * ? ")
     @Override
     public void scheduleTask() {
         Integer lastStatus = 10;
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR, cal.get(Calendar.HOUR) - 1);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
@@ -52,9 +53,7 @@ public class HourlyUtilityCalculation implements MySchedule{
 
         Iterable<Device> deviceList = deviceRepository.findAll();
         for (Device device : deviceList) {
-            if(device.getId() != 227){
-                continue;
-            }
+
             List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
             List<DeviceInspect> runningInspects = new ArrayList<>();
             List<List<InspectData>> listOfInspectData = new ArrayList<>();
@@ -146,9 +145,13 @@ public class HourlyUtilityCalculation implements MySchedule{
             }
             energy /= 1000;
 
-            DeviceHourlyUtilization hourlyUtilization = new DeviceHourlyUtilization();
-            hourlyUtilization.setDeviceId(device);
-            hourlyUtilization.setStartHour(currentHour);
+            DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
+            if(hourlyUtilization == null){
+                hourlyUtilization = new DeviceHourlyUtilization();
+                hourlyUtilization.setDeviceId(device);
+                hourlyUtilization.setStartHour(currentHour);
+            }
+;
             hourlyUtilization.setIdleTime(idleSecond);
             hourlyUtilization.setRunningTime(runningSecond);
 
