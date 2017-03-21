@@ -956,9 +956,9 @@ public class SelectApiController {
         Float powerLowerBound = new Float(Float.MAX_VALUE);
         Float powerUpperBound = new Float(-1);
         Float totalConsumedEnergy = new Float(0);
-        Integer mostOftenUsedHour = new Integer(-1);
+        Long mostOftenUsedHour = new Long(-1);
         Integer mostOftenUsedHourUsedTime = new Integer(-1);
-        Integer leastOftenUsedHour = new Integer(-1);
+        Long leastOftenUsedHour = new Long(-1);
         Integer leastOftenUsedHourUsedTime = new Integer(Integer.MAX_VALUE);
         Float offTimeHours = new Float(0);
 
@@ -978,11 +978,11 @@ public class SelectApiController {
             totalConsumedEnergy += utilization.getConsumedEnergy();
             if(utilization.getRunningTime() > mostOftenUsedHourUsedTime){
                 mostOftenUsedHourUsedTime = utilization.getRunningTime();
-                mostOftenUsedHour = currentHour;
+                mostOftenUsedHour = calendar.getTimeInMillis();
             }
             if(utilization.getRunningTime() < leastOftenUsedHourUsedTime){
                 leastOftenUsedHourUsedTime = utilization.getRunningTime();
-                leastOftenUsedHour = currentHour;
+                leastOftenUsedHour = calendar.getTimeInMillis();
             }
 
             if(currentHour < 9 || currentHour >= 18){

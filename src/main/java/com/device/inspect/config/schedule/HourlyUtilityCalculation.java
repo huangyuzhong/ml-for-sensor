@@ -3,6 +3,7 @@ package com.device.inspect.config.schedule;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.repository.device.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -123,7 +124,7 @@ public class HourlyUtilityCalculation implements MySchedule{
 
             DeviceInspect powerInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(powerInspectTypeId, device.getId());
             List<InspectData> powerInspectData = inspectDataRepository.
-                    findByDeviceInspectIdAndCreateDateBetweenOrderByRealValueDesc(powerInspect.getId(),
+                    findByDeviceInspectIdAndCreateDateBetweenOrderByResultDesc(powerInspect.getId(),
                             currentHour, targetHour);
 
             Float powerLower = new Float(0);
@@ -151,7 +152,7 @@ public class HourlyUtilityCalculation implements MySchedule{
                 hourlyUtilization.setDeviceId(device);
                 hourlyUtilization.setStartHour(currentHour);
             }
-;
+
             hourlyUtilization.setIdleTime(idleSecond);
             hourlyUtilization.setRunningTime(runningSecond);
 
