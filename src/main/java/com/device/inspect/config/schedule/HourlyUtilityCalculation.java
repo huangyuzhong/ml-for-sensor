@@ -37,7 +37,7 @@ public class HourlyUtilityCalculation implements MySchedule{
     private final static Integer timeStep = 20 * 1000;
     private final static Integer powerInspectTypeId = 14;
     private final static Integer powerInspectSampleTime = 60*1000;
-    @Scheduled(cron = "0 0 */1 * * ? ")
+    @Scheduled(cron = "0 0 * * * ? ")
     @Override
     public void scheduleTask() {
         Integer lastStatus = 10;
