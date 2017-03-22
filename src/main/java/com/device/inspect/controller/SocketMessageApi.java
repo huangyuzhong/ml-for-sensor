@@ -585,11 +585,10 @@ public class SocketMessageApi {
 
     /**
      * 设备绑定数据内容
-     * @param deviceId
-     * @return
      */
-    @RequestMapping(value = "/device/current/data",method = RequestMethod.GET)
-    public RestResponse getCurrentData(@RequestParam Integer deviceId){
+    @RequestMapping(value = "/device/current/data", method = RequestMethod.GET)
+    public RestResponse getCurrentData(@RequestParam Map<String,String> requestParam){
+        Integer deviceId = Integer.parseInt(requestParam.get("deviceId"));
         Device device = deviceRepository.findOne(deviceId);
         List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
         Map map = new HashMap();
@@ -598,8 +597,20 @@ public class SocketMessageApi {
         Integer runningLevel = -1;
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
-                List<InspectData> inspectDatas = inspectDataRepository.
-                        findTop7ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                List<InspectData> inspectDatas;
+                if(requestParam.get("timeVal") != null){
+                    Date startTime = new Date();
+                    startTime.setTime(Integer.parseInt(requestParam.get("timeVal")));
+                    inspectDatas = inspectDataRepository.findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceId, startTime);
+                    if(inspectDatas == null){
+                        inspectDatas = inspectDataRepository.
+                                findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                    }
+                }
+                else{
+                    inspectDatas = inspectDataRepository.
+                            findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                }
                 if (null!=inspectDatas&&inspectDatas.size()>0) {
                     List<RestInspectData> insertDatas = new ArrayList<RestInspectData>();
                     for (InspectData inspectData : inspectDatas) {
