@@ -600,9 +600,9 @@ public class SocketMessageApi {
                 List<InspectData> inspectDatas;
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();
-                    startTime.setTime(Integer.parseInt(requestParam.get("timeVal")));
-                    inspectDatas = inspectDataRepository.findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceId, startTime);
-                    if(inspectDatas == null){
+                    startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
+                    inspectDatas = inspectDataRepository.findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceInspect.getId(), startTime);
+                    if(inspectDatas == null || inspectDatas.size() == 0){
                         inspectDatas = inspectDataRepository.
                                 findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
                     }
