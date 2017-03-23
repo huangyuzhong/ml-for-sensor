@@ -23,6 +23,7 @@
   ```
 
 4. 进入target目录并运行, spring.config.location中输入config文件地址
+
   ```
   cd ./target
   nohup java -jar /*target .jar file*/ --spring.config.location=${home}/intelab-configs/${INTELAB_ENV}/application.properties &
