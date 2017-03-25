@@ -26,6 +26,7 @@ import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.Application;
 import org.apache.logging.log4j.LogManager;
@@ -216,6 +217,12 @@ public class FileController {
                                     String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
                                     if (photoUrl != null) {
                                         logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                        String oldUrl = building.getBackground();
+                                        Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                        if(urlInfo != null) {
+                                            Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                            logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                        }
                                         building.setBackground(photoUrl);
 
                                     } else {
@@ -393,6 +400,12 @@ public class FileController {
                                 String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
                                 if (photoUrl != null) {
                                     logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                    String oldUrl = floor.getBackground();
+                                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                    if(urlInfo != null) {
+                                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                    }
                                     floor.setBackground(photoUrl);
 
                                 } else {
@@ -591,6 +604,12 @@ public class FileController {
                             String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
 
                             if(photoUrl != null){
+                                String oldUrl = device.getPhoto();
+                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                if(urlInfo != null) {
+                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                }
                                 device.setPhoto("photoUrl");
                                 logger.info(String.format("successfully upload file %s to blob storage at %s", fileName, photoUrl));
                             }else{
@@ -716,6 +735,12 @@ public class FileController {
                                 String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
 
                                 if(photoUrl != null){
+                                    String oldUrl = room.getBackground();
+                                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                    if(urlInfo != null) {
+                                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                    }
                                     room.setBackground(photoUrl);
                                     logger.info(String.format("successfully upload file to blob storage at %s", photoUrl));
                                 }else{
@@ -785,6 +810,12 @@ public class FileController {
                             String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(deviceTypeContainerName, file, blobName);
                             if (photoUrl != null) {
                                 logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
+                                String oldUrl = deviceType.getLogo();
+                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                if(urlInfo != null) {
+                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                }
                                 deviceType.setLogo(photoUrl);
                                 restResponse = new RestResponse("操作成功！", new RestDeviceType(deviceType));
                             } else {
@@ -856,6 +887,12 @@ public class FileController {
                         String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
                         if (photoUrl != null) {
                             logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
+                            String oldUrl = device.getPhoto();
+                            Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                            if(urlInfo != null) {
+                                Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                            }
                             device.setPhoto(photoUrl);
                             deviceRepository.save(device);
 
@@ -1059,6 +1096,12 @@ public class FileController {
                             String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
                             if (photoUrl != null) {
                                 logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                String oldUrl = company.getBackground();
+                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                                if(urlInfo != null) {
+                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                                }
                                 company.setBackground(photoUrl);
 
 
@@ -1144,6 +1187,12 @@ public class FileController {
                     if (photoUrl != null) {
                         logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
                         createFile.setName(fileName);
+                        String oldUrl = createFile.getUrl();
+                        Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                        if(urlInfo != null) {
+                            Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                            logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                        }
                         createFile.setUrl(photoUrl);
                         fileRepository.save(createFile);
                         DeviceFile deviceFile = new DeviceFile();
@@ -1203,6 +1252,12 @@ public class FileController {
                         String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
                         if (photoUrl != null) {
                             logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                            String oldUrl = company.getLogo();
+                            Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                            if(urlInfo != null) {
+                                Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                                logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                            }
                             company.setLogo(photoUrl);
                             companyRepository.save(company);
 
@@ -1351,6 +1406,12 @@ public class FileController {
                 String fileUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
                 if (fileUrl != null) {
                     logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, fileUrl));
+                    String oldUrl = deviceVersion.getUrl();
+                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
+                    if(urlInfo != null) {
+                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
+                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
+                    }
                     deviceVersion.setUrl(fileUrl);
                     deviceVersion.setFileName(fileName);
 

@@ -30,8 +30,6 @@ public class AzureStorageManager extends AzureServiceManager {
         logger.info(String.format("connection string of storage is %s", azureStorageConnectionString));
         this.defaultContainerName = defaultContainerName;
         createContainer(defaultContainerName);
-
-
     }
 
     private CloudStorageAccount getStorageAccount(){
@@ -149,6 +147,24 @@ public class AzureStorageManager extends AzureServiceManager {
             } catch (Exception e) {
                 logger.error(String.format("Failed to upload file %s to blob container %s, %s", filePath, containerName, e.toString()));
             }
+        }
+    }
+
+    public boolean deleteBlobFromContainer(String containerName, String blobName){
+        CloudBlobContainer container = getContainer(containerName);
+        if(container != null){
+            try{
+                CloudBlockBlob blob = container.getBlockBlobReference(blobName);
+                blob.deleteIfExists();
+                return true;
+            }
+            catch(Exception e){
+                logger.error(String.format("Failed to delete file %s from blob container %s, %s", blobName, containerName, e.toString()));
+                return false;
+            }
+        }
+        else{
+            return false;
         }
     }
 
