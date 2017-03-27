@@ -717,7 +717,7 @@ public class SocketMessageApi {
     final private String locationInfoFormat = "请尽快去现场【%s】检查。";
     final private String doorAlertFormat = ",门打开时间超过%d分钟。";
     final private Integer doorInspectId = 8;
-    final private Integer doorOpen = 1;
+    final private float doorOpen = 1;
     /**
      * 发送报警信息给特定用户
      */
@@ -777,11 +777,16 @@ public class SocketMessageApi {
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
                 deviceInspect.getName());
-        InspectData doorInspectData = inspectDataRepository.
-                findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(deviceInspect.getInspectType().getId() != doorInspectId){
+            DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
+            InspectData doorInspectData = null;
+            if(doorInspect != null){
+                doorInspectData = inspectDataRepository.
+                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspect.getId());
+            }
+
             message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && Integer.parseInt(doorInspectData.getResult()) == doorOpen) {
+            if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
                 LOGGER.info("device alert: detect door open.");
                 message += doorInfoFormat;
             }
@@ -791,21 +796,20 @@ public class SocketMessageApi {
             List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
-                LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
-                if(Integer.parseInt(inspectData.getResult()) == doorOpen){
+                if(Float.parseFloat(inspectData.getResult()) == doorOpen){
                     openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
                 }
                 else{
                     break;
                 }
             }
-            LOGGER.info("device alert: door open milisecond: " + openMilisecond);
             if(openMilisecond < 1*60*1000){
                 return;
             }
             else{
                 message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
-            }
+            	LOGGER.info("device alert: door open too long.");
+	    }
         }
 
         Room room = device.getRoom();
@@ -823,7 +827,8 @@ public class SocketMessageApi {
         }
         message += String.format(locationInfoFormat, location);
 
-        MessageSend messageSend = messageSendRepository.findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(), device.getId(), 1);
+        MessageSend messageSend = messageSendRepository.
+                findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
         if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
             LOGGER.info("device alert: " + device.getId() + ", has sent message to manager at " + messageSend.getCreate() + ", passed this time.");
             return;
@@ -833,7 +838,8 @@ public class SocketMessageApi {
             newMessageSend.setCreate(sampleTime);
             newMessageSend.setDevice(device);
             newMessageSend.setUser(device.getManager());
-            messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+            newMessageSend.setDeviceInspect(deviceInspect);
+            newMessageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
             sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
         }
 
@@ -848,11 +854,11 @@ public class SocketMessageApi {
                     }
                     else {
                         MessageSend newMessageSend = new MessageSend();
-                        messageSend.setDevice(device);
-                        messageSend.setCreate(sampleTime);
-                        messageSend.setUser(deviceFloor.getScientist());
-
-                        messageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
+                        newMessageSend.setDevice(device);
+                        newMessageSend.setCreate(sampleTime);
+                        newMessageSend.setUser(deviceFloor.getScientist());
+			newMessageSend.setDeviceInspect(deviceInspect);
+                        newMessageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
                         sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
                     }
                 }
