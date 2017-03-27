@@ -823,7 +823,7 @@ public class SocketMessageApi {
         message += String.format(locationInfoFormat, location);
 
         MessageSend messageSend = messageSendRepository.
-                findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
+                findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
         if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
             LOGGER.info("device alert: " + device.getId() + ", has sent message to manager at " + messageSend.getCreate() + ", passed this time.");
             return;
@@ -834,7 +834,7 @@ public class SocketMessageApi {
             newMessageSend.setDevice(device);
             newMessageSend.setUser(device.getManager());
             newMessageSend.setDeviceInspect(deviceInspect);
-            messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+            newMessageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
             sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
         }
 
@@ -849,11 +849,11 @@ public class SocketMessageApi {
                     }
                     else {
                         MessageSend newMessageSend = new MessageSend();
-                        messageSend.setDevice(device);
-                        messageSend.setCreate(sampleTime);
-                        messageSend.setUser(deviceFloor.getScientist());
-
-                        messageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
+                        newMessageSend.setDevice(device);
+                        newMessageSend.setCreate(sampleTime);
+                        newMessageSend.setUser(deviceFloor.getScientist());
+			newMessageSend.setDeviceInspect(deviceInspect);
+                        newMessageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
                         sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
                     }
                 }

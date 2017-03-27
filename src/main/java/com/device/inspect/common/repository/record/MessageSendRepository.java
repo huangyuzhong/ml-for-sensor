@@ -8,5 +8,5 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface MessageSendRepository extends CrudRepository<MessageSend,Integer> {
     public MessageSend findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(Integer UserId,Integer DeviceId,Integer Enable);
-    public MessageSend findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdByCreateDesc(Integer UserId, Integer DeviceId, Integer Enable, Integer DeviceInspectId);
+    public MessageSend findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(Integer UserId, Integer DeviceId, Integer Enable, Integer DeviceInspectId);
 }

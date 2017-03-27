@@ -98,7 +98,7 @@ public class MessageSend {
     }
 
     @ManyToOne()
-    @JoinColumn(name = "inspect_type_id")
+    @JoinColumn(name = "device_inspect_id")
     public DeviceInspect getDeviceInspect(){
         return this.deviceInspect;
     }
