@@ -715,7 +715,7 @@ public class SocketMessageApi {
     final private String doorInfoFormat = "检测到【门开关】参数异常。";
     final private String locationInfoFormat = "请尽快去现场【%s】检查门状态。";
     final private Integer doorInspectId = 8;
-    final private String doorOpen = "2";
+    final private String doorOpen = "1";
     /**
      * 发送报警信息给特定用户
      */
@@ -776,23 +776,23 @@ public class SocketMessageApi {
                 deviceInspect.getName(), (float)(Math.round(standard*100))/100, (float)(Math.round(value*100))/100);
         InspectData doorInspectData = inspectDataRepository.
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
-        if(doorInspectData != null && doorInspectData.getResult() == doorOpen){
+        if(doorInspectData != null && doorInspectData.getResult() == doorOpen) {
             message += doorInfoFormat;
-            Room room = device.getRoom();
-            Storey floor = room.getFloor();
-            Building building = floor.getBuild();
-            String location = new String();
-            if(building != null){
-                location += building.getName() + " ";
-            }
-            if(floor != null){
-                location += floor.getName() + " ";
-            }
-            if(room != null){
-                location += room.getName();
-            }
-            message += String.format(locationInfoFormat, location);
         }
+        Room room = device.getRoom();
+        Storey floor = room.getFloor();
+        Building building = floor.getBuild();
+        String location = new String();
+        if(building != null){
+            location += building.getName() + " ";
+        }
+        if(floor != null){
+            location += floor.getName() + " ";
+        }
+        if(room != null){
+            location += room.getName();
+        }
+        message += String.format(locationInfoFormat, location);
 
         MessageSend messageSend = messageSendRepository.findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(), device.getId(), 1);
         if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
