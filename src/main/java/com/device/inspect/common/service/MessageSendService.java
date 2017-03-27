@@ -1,6 +1,7 @@
 package com.device.inspect.common.service;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.record.MessageSend;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
 import com.taobao.api.request.AlibabaAliqinFcSmsNumSendRequest;
@@ -29,6 +30,24 @@ public class MessageSendService {
             return "邮箱推送成功";
         }else {
             return "推送失败";
+        }
+    }
+
+    public static boolean pushAlertMsg(User usr, String message){
+        if(MessageSendService.sendMessage(usr, "", message, 1)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public static boolean pushAlertMail(User usr, String message){
+        if(MessageSendService.sendEmai(usr,"", message ,1)){
+            return true;
+        }
+        else{
+            return false;
         }
     }
 
