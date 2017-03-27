@@ -1,11 +1,17 @@
 package com.device.inspect.controller;
 
+import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
+import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +67,12 @@ public class SocketMessageApi {
 
     @Autowired
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
+
+    @Autowired
+    private MessageSendRepository messageSendRepository;
+
+    @Autowired
+    private DeviceFloorRepository deviceFloorRepository;
 
     String unit = "s";
 
@@ -363,7 +375,7 @@ public class SocketMessageApi {
             AlertCount low = alertCountRepository.
                     findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
 
-            if (deviceInspect.getHighUp()<record||record<deviceInspect.getHighDown()){
+            if (deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()){
                 if (null!=low&&low.getNum()>0){
                     low.setFinish(deviceSamplingTime);
                     alertCountRepository.save(low);
@@ -392,6 +404,12 @@ public class SocketMessageApi {
                 high.setNum(high.getNum() + 1);
                 alertCountRepository.save(high);
                 inspectData.setType("high");
+                if(deviceInspect.getHighUp() < record){
+                    sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
+                }
+                else{
+                    sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
+                }
             }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
                     (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
                 if (null!=high&&high.getNum()>0){
@@ -421,6 +439,12 @@ public class SocketMessageApi {
                 low.setNum(low.getNum()+1);
                 alertCountRepository.save(low);
                 inspectData.setType("low");
+                if(record > deviceInspect.getLowUp()){
+                    sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                }
+                else{
+                    sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
+                }
             }else {
                 if (null==low||low.getNum()>0){
                     if (null!=low){
@@ -685,6 +709,155 @@ public class SocketMessageApi {
         map.put("score",score);
 
         return new RestResponse(map);
+    }
+
+    final private String alertFormat = "INTELAB报警：【%s-%s】于【%s】检测到【%s】异常";
+    final private String valueFormat = "（阈值【%.2f】，检测值【%.2f】）。";
+    final private String doorInfoFormat = "检测到【门开关】参数异常。";
+    final private String locationInfoFormat = "请尽快去现场【%s】检查。";
+    final private String doorAlertFormat = ",门打开时间超过%d分钟。";
+    final private Integer doorInspectId = 8;
+    final private Integer doorOpen = 1;
+    /**
+     * 发送报警信息给特定用户
+     */
+    void sendAlertMsgToUsr(User user, String message, MessageSend messageSend){
+        boolean mailAvailable = false;
+        boolean msgAvailable = false;
+        if (user.getRemoveAlert()!=null&&
+                !"".equals(user.getRemoveAlert())&&
+                user.getRemoveAlert().equals("0")){
+            msgAvailable = true;
+            mailAvailable = true;
+        }
+        if(user.getRemoveAlert()!=null&&
+                !"".equals(user.getRemoveAlert())&&
+                user.getRemoveAlert().equals("1")){
+            mailAvailable = true;
+        }
+        String type = new String();
+        String reason = "alert";
+
+        messageSend.setEnable(0);
+        if(msgAvailable){
+            if(MessageSendService.pushAlertMsg(user, message)){
+                type += "短信发送成功";
+                LOGGER.info("device alert: send message " + message);
+                messageSend.setEnable(1);
+            }
+            else{
+                type += "短信发送失败";
+            }
+        }
+        if(mailAvailable){
+            if (user.getEmail()!=null&&!"".equals(user.getEmail())){
+                reason = "没有绑定邮箱";
+            }
+            else if(MessageSendService.pushAlertMail(user, message)){
+                LOGGER.info("device alert: send email " + message);
+                type += "邮件发送成功";
+                messageSend.setEnable(1);
+            }
+            else{
+                type += "邮件发送失败";
+            }
+        }
+        if(!mailAvailable && !msgAvailable){
+            reason = "停用通知";
+        }
+        messageSend.setType(type);
+        messageSend.setReason(reason);
+        messageSendRepository.save(messageSend);
+
+    }
+
+    /**
+     * 报警函数，分析异常情况并发送报警信息
+     */
+    void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
+        String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
+                deviceInspect.getName());
+        InspectData doorInspectData = inspectDataRepository.
+                findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
+        if(deviceInspect.getInspectType().getId() != doorInspectId){
+            message += String.format(valueFormat, standard, value);
+            if(doorInspectData != null && Integer.parseInt(doorInspectData.getResult()) == doorOpen) {
+                LOGGER.info("device alert: detect door open.");
+                message += doorInfoFormat;
+            }
+        }
+        else{
+            DeviceInspect deviceDoorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
+            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
+            Long openMilisecond = new Long(0);
+            for(InspectData inspectData : inspectDatas) {
+                LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
+                if(Integer.parseInt(inspectData.getResult()) == doorOpen){
+                    openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
+                }
+                else{
+                    break;
+                }
+            }
+            LOGGER.info("device alert: door open milisecond: " + openMilisecond);
+            if(openMilisecond < 1*60*1000){
+                return;
+            }
+            else{
+                message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
+            }
+        }
+
+        Room room = device.getRoom();
+        Storey floor = room.getFloor();
+        Building building = floor.getBuild();
+        String location = new String();
+        if(building != null){
+            location += building.getName() + " ";
+        }
+        if(floor != null){
+            location += floor.getName() + " ";
+        }
+        if(room != null){
+            location += room.getName();
+        }
+        message += String.format(locationInfoFormat, location);
+
+        MessageSend messageSend = messageSendRepository.findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(), device.getId(), 1);
+        if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
+            LOGGER.info("device alert: " + device.getId() + ", has sent message to manager at " + messageSend.getCreate() + ", passed this time.");
+            return;
+        }
+        else{
+            MessageSend newMessageSend = new MessageSend();
+            newMessageSend.setCreate(sampleTime);
+            newMessageSend.setDevice(device);
+            newMessageSend.setUser(device.getManager());
+            messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
+            sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
+        }
+
+        List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceId(device.getId());
+        if (null!=deviceFloorList&&deviceFloorList.size()>0){
+            for (DeviceFloor deviceFloor : deviceFloorList){
+                if (null!=deviceFloor.getScientist()){
+                    MessageSend messageSendScientist = messageSendRepository.
+                            findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(deviceFloor.getScientist().getId(),device.getId(),1) ;
+                    if (null!=messageSendScientist && (sampleTime.getTime()-messageSendScientist.getCreate().getTime()) < 5*60*1000){
+                        LOGGER.info("device alert: " + device.getId() + ", has sent message to scientist at " + messageSend.getCreate() + ", passed this time.");
+                    }
+                    else {
+                        MessageSend newMessageSend = new MessageSend();
+                        messageSend.setDevice(device);
+                        messageSend.setCreate(sampleTime);
+                        messageSend.setUser(deviceFloor.getScientist());
+
+                        messageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
+                        sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
+                    }
+                }
+            }
+        }
     }
 
 }
