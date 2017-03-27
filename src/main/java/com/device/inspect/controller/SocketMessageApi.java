@@ -773,7 +773,7 @@ public class SocketMessageApi {
      */
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
-                deviceInspect.getName(), standard, value);
+                deviceInspect.getName(), (float)(Math.round(standard*100))/100, (float)(Math.round(value*100))/100);
         InspectData doorInspectData = inspectDataRepository.
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(doorInspectData != null && doorInspectData.getResult() == doorOpen){
