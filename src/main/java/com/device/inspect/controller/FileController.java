@@ -131,7 +131,7 @@ public class FileController {
      * @throws IOException
      * @throws SerialException
      */
-    @RequestMapping(value = "/create/building")
+    @RequestMapping(value = "/create/building"  )
         public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
