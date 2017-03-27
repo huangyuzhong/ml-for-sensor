@@ -715,7 +715,7 @@ public class SocketMessageApi {
     final private String doorInfoFormat = "检测到【门开关】参数异常。";
     final private String locationInfoFormat = "请尽快去现场【%s】检查门状态。";
     final private Integer doorInspectId = 8;
-    final private String doorOpen = "1";
+    final private String doorOpen = "2";
     /**
      * 发送报警信息给特定用户
      */
