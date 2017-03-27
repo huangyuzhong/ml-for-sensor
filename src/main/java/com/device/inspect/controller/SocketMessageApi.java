@@ -715,7 +715,7 @@ public class SocketMessageApi {
     final private String doorInfoFormat = "检测到【门开关】参数异常。";
     final private String locationInfoFormat = "请尽快去现场【%s】检查门状态。";
     final private Integer doorInspectId = 8;
-
+    final private String doorOpen = "1";
     /**
      * 发送报警信息给特定用户
      */
@@ -774,7 +774,9 @@ public class SocketMessageApi {
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
                 deviceInspect.getName(), standard, value);
-        if(deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId()) != null){
+        InspectData doorInspectData = inspectDataRepository.
+                findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
+        if(doorInspectData != null && doorInspectData.getResult() == doorOpen){
             message += doorInfoFormat;
             Room room = device.getRoom();
             Storey floor = room.getFloor();
