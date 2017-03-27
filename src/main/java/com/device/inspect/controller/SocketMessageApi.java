@@ -717,7 +717,7 @@ public class SocketMessageApi {
     final private String locationInfoFormat = "请尽快去现场【%s】检查。";
     final private String doorAlertFormat = ",门打开时间超过%d分钟。";
     final private Integer doorInspectId = 8;
-    final private Integer doorOpen = 1;
+    final private float doorOpen = 1;
     /**
      * 发送报警信息给特定用户
      */
@@ -781,7 +781,7 @@ public class SocketMessageApi {
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(deviceInspect.getInspectType().getId() != doorInspectId){
             message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && Integer.parseInt(doorInspectData.getResult()) == doorOpen) {
+            if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
                 LOGGER.info("device alert: detect door open.");
                 message += doorInfoFormat;
             }
@@ -791,21 +791,20 @@ public class SocketMessageApi {
             List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
-                LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
-                if(Integer.parseInt(inspectData.getResult()) == doorOpen){
+                if(Float.parseFloat(inspectData.getResult()) == doorOpen){
                     openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
                 }
                 else{
                     break;
                 }
             }
-            LOGGER.info("device alert: door open milisecond: " + openMilisecond);
             if(openMilisecond < 1*60*1000){
                 return;
             }
             else{
                 message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
-            }
+            	LOGGER.info("device alert: door open too long.");
+	    }
         }
 
         Room room = device.getRoom();
