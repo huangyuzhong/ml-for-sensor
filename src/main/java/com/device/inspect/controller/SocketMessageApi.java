@@ -787,7 +787,8 @@ public class SocketMessageApi {
             }
         }
         else{
-            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
+            DeviceInspect deviceDoorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
+            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
                 LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
