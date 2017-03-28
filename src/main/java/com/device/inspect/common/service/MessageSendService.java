@@ -1,11 +1,12 @@
 package com.device.inspect.common.service;
 
 import com.device.inspect.common.model.charater.User;
-import com.device.inspect.common.model.record.MessageSend;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
 import com.taobao.api.request.AlibabaAliqinFcSmsNumSendRequest;
 import com.taobao.api.response.AlibabaAliqinFcSmsNumSendResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import javax.mail.*;
@@ -15,6 +16,7 @@ import javax.mail.internet.*;
  * Created by Administrator on 2016/10/29.
  */
 public class MessageSendService {
+    private static final Logger LOGGER = LogManager.getLogger(MessageSendService.class);
     /**
      * 推送报警信息
      * model短信模板ID/邮箱标题, message警报内容
@@ -101,11 +103,29 @@ public class MessageSendService {
                     request.setSmsTemplateCode(MessageSendService.alertModelID);
                     AlibabaAliqinFcSmsNumSendResponse rsp = client.execute(request);
                     //返回是否短信推送成功推送
-                    return rsp.isSuccess();
+
+                    if(!rsp.isSuccess()){
+                        LOGGER.warn(String.format("Failed to send SMS to %s. errCode %s, %s",
+                                user.getTelephone(),
+                                rsp.getErrorCode(),
+                                rsp.getResult().toString()));
+
+                        return false;
+                    }
+                    else{
+                        LOGGER.info(String.format("Successfully send SMS to %s. %s",
+                                user.getTelephone(),
+                                message));
+                        return true;
+                    }
                 }catch (Exception e){
+                    LOGGER.error(String.format("Exception happened in sending SMS to cellphone of user %s. Err: %s",
+                            user.getId(),
+                            e.toString()));
                     return false;
                 }
             }else {
+                LOGGER.warn(String.format("User %s have not bind mobile, skip sending SMS", user.getId()));
                 return false;
             }
         }else if (type.equals(0)){
@@ -217,11 +237,19 @@ public class MessageSendService {
 
                     // 7. 关闭连接
                     transport.close();
+                    LOGGER.info(String.format("Successfully sent email to %s. %s",
+                            user.getEmail(),
+                            content));
                     return true;
                 }catch (Exception e){
+                    LOGGER.error(String.format("Exception happened in sending email to %s. %s",
+                            user.getEmail(),
+                            e.toString()));
                     return false;
                 }
             }else {
+                LOGGER.warn(String.format("User %s set void email, so skip sending email",
+                        user.getId()));
                 return false;
             }
         }else if (type.equals(0)){

@@ -375,8 +375,13 @@ public class SocketMessageApi {
             AlertCount low = alertCountRepository.
                     findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
 
+            // case 1, red alert
             if (deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()){
+                LOGGER.info(String.format("Device %d, Inspect %d, data %s is outside the red alert bound",
+                        device.getId(), deviceInspect.getId(), record));
+                // exists yellow alert
                 if (null!=low&&low.getNum()>0){
+                    LOGGER.info("There exists a yellow alert before this red alert, set its finish time");
                     low.setFinish(deviceSamplingTime);
                     alertCountRepository.save(low);
                     AlertCount newLow = new AlertCount();
@@ -389,30 +394,48 @@ public class SocketMessageApi {
                     alertCountRepository.save(newLow);
                 }
 
+                // new red alert
                 if (null == high){
+                    LOGGER.info(String.format("New red alert for device %d, inspect %s", device.getId(), deviceInspect.getId()));
                     high = new AlertCount();
                     high.setDevice(device);
                     high.setInspectType(deviceInspect.getInspectType());
-                    high.setNum(0);
+                    high.setNum(1);
                     high.setType(2);
                     high.setCreateDate(deviceSamplingTime);
                     high.setUnit(unit);
                 }
-                if (high.getNum()==0){
-                    high.setCreateDate(deviceSamplingTime);
+                else { // existing red alert
+                    int alertCount = high.getNum() + 1;
+                    LOGGER.info(String.format("This is an updated red alert for device %d, inspect %d. Update count to %d",
+                            device.getId(),
+                            deviceInspect.getId(),
+                            alertCount));
+                    high.setNum(alertCount);
                 }
-                high.setNum(high.getNum() + 1);
                 alertCountRepository.save(high);
+
+                // set inspect_data column 'type'
                 inspectData.setType("high");
+
+                // send push notification if necessary
                 if(deviceInspect.getHighUp() < record){
                     sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
                 }
                 else{
                     sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
                 }
-            }else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
+            }
+            // case 2, yellow alert
+            else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
                     (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
+                LOGGER.info(String.format("Device %d, Inspect %d, got yellow alert %s",
+                        device.getId(),
+                        deviceInspect.getId(),
+                        record));
+                // there exists a red alert
                 if (null!=high&&high.getNum()>0){
+                    LOGGER.info("There exists a red alert before this yellow alert, set its finish time");
                     high.setFinish(deviceSamplingTime);
                     alertCountRepository.save(high);
                     AlertCount newHigh = new AlertCount();
@@ -424,29 +447,46 @@ public class SocketMessageApi {
                     newHigh.setCreateDate(deviceSamplingTime);
                     alertCountRepository.save(newHigh);
                 }
+                // new yellow alert
                 if (null == low){
+                    LOGGER.info("This is a new yellow alert for device %d, inspect %d",
+                            device.getId(),
+                            deviceInspect.getId());
                     low = new AlertCount();
                     low.setDevice(device);
                     low.setInspectType(deviceInspect.getInspectType());
                     low.setCreateDate(deviceSamplingTime);
-                    low.setNum(0);
+                    low.setNum(1);
                     low.setType(1);
                     low.setUnit(unit);
                 }
-                if (low.getNum()==0){
-                    low.setCreateDate(deviceSamplingTime);
+                else{ //exists yellow alert
+                    int alertCount = low.getNum() + 1;
+                    LOGGER.info(String.format("This is an updated yellow alert for device %d, inspect %d. Update count to %d",
+                            device.getId(),
+                            deviceInspect.getId(),
+                            alertCount));
+                    low.setNum(alertCount);
                 }
-                low.setNum(low.getNum()+1);
+                //save to db
                 alertCountRepository.save(low);
+                // set inspect_data column 'type'
                 inspectData.setType("low");
+                // push notification if necessary
                 if(record > deviceInspect.getLowUp()){
                     sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
                 }
                 else{
                     sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
                 }
-            }else {
+            }
+            // case 3, normal data
+            else {
+                // check if there exist alert
                 if (null==low||low.getNum()>0){
+                    LOGGER.info(String.format("Device %d, Inspect %d, there exist yellow alert before this normal data, finalize alert",
+                            device.getId(),
+                            deviceInspect.getId()));
                     if (null!=low){
                         low.setFinish(deviceSamplingTime);
                         alertCountRepository.save(low);
@@ -463,6 +503,9 @@ public class SocketMessageApi {
                 }
 
                 if (null==high||high.getNum()>0){
+                    LOGGER.info(String.format("Device %d, Inspect %d, there exist red alert before this normal data, finalize alert",
+                            device.getId(),
+                            deviceInspect.getId()));
                     if (null!=high){
                         high.setFinish(deviceSamplingTime);
                         alertCountRepository.save(high);
@@ -724,16 +767,21 @@ public class SocketMessageApi {
     void sendAlertMsgToUsr(User user, String message, MessageSend messageSend){
         boolean mailAvailable = false;
         boolean msgAvailable = false;
+        // check if user set void alert
         if (user.getRemoveAlert()!=null&&
                 !"".equals(user.getRemoveAlert())&&
                 user.getRemoveAlert().equals("0")){
             msgAvailable = true;
             mailAvailable = true;
+            LOGGER.info(String.format("User %s does not void alert, send both message and email",
+                    user.getName()));
         }
         if(user.getRemoveAlert()!=null&&
                 !"".equals(user.getRemoveAlert())&&
                 user.getRemoveAlert().equals("1")){
             mailAvailable = true;
+            LOGGER.info(String.format("User %s set void message, send only email",
+                    user.getName()));
         }
         String type = new String();
         String reason = "alert";
@@ -777,6 +825,7 @@ public class SocketMessageApi {
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
                 deviceInspect.getName());
+        // if this alerting inspect is not door, get door status if door is an inspect of this device.
         if(deviceInspect.getInspectType().getId() != doorInspectId){
             DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
             InspectData doorInspectData = null;
@@ -787,11 +836,15 @@ public class SocketMessageApi {
 
             message += String.format(valueFormat, standard, value);
             if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
-                LOGGER.info("device alert: detect door open.");
+                LOGGER.info(String.format("alerting inspect %d of device %d is with door open.",
+                        deviceInspect.getId(),
+                        device.getId()));
                 message += doorInfoFormat;
             }
         }
         else{
+            // this alerting inspect is door inspect
+            // get top 20 value of door inspect from db, and find how long has the door been open
             DeviceInspect deviceDoorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
             List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
             Long openMilisecond = new Long(0);
@@ -803,15 +856,23 @@ public class SocketMessageApi {
                     break;
                 }
             }
+            // if the continuous open time is less than one minutes, do nothing
             if(openMilisecond < 1*60*1000){
+                LOGGER.info(String.format("Device %d, door open for %d sec, less than 1 minutes, skip push notification",
+                        device.getId(),
+                        openMilisecond / 1000));
                 return;
             }
             else{
+                LOGGER.info(String.format("Device %d, door open for %d sec, more than 1 minutes, moving forward on push notification",
+                        device.getId(),
+                        openMilisecond / 1000));
                 message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
-            	LOGGER.info("device alert: door open too long.");
-	    }
+
+	        }
         }
 
+        // get location of the device
         Room room = device.getRoom();
         Storey floor = room.getFloor();
         Building building = floor.getBuild();
@@ -827,20 +888,36 @@ public class SocketMessageApi {
         }
         message += String.format(locationInfoFormat, location);
 
+        // get most recent notification sent to the device manager
         MessageSend messageSend = messageSendRepository.
                 findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
+
+        // if there exists a notification sent in 5 minutes, skip
         if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
-            LOGGER.info("device alert: " + device.getId() + ", has sent message to manager at " + messageSend.getCreate() + ", passed this time.");
+            LOGGER.info(String.format("Device %d, alert has sent message to manager at %s within 5 minutes skip this time.",
+                    device.getId(),
+                    messageSend.getCreate()));
             return;
         }
         else{
-            MessageSend newMessageSend = new MessageSend();
-            newMessageSend.setCreate(sampleTime);
-            newMessageSend.setDevice(device);
-            newMessageSend.setUser(device.getManager());
-            newMessageSend.setDeviceInspect(deviceInspect);
-            newMessageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
-            sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
+            LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
+                    device.getId(),
+                    device.getManager().getTelephone()));
+            try {
+                MessageSend newMessageSend = new MessageSend();
+                newMessageSend.setCreate(sampleTime);
+                newMessageSend.setDevice(device);
+                newMessageSend.setUser(device.getManager());
+                newMessageSend.setDeviceInspect(deviceInspect);
+                newMessageSend.setError(device.getId() + "报警,发送给设备管理员" + device.getManager().getUserName());
+                sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
+            }catch (Exception e){
+                LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
+                        device.getId(),
+                        device.getManager().getTelephone(),
+                        e.toString()));
+                e.printStackTrace();
+            }
         }
 
         List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceId(device.getId());
