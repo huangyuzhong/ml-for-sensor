@@ -711,9 +711,11 @@ public class SocketMessageApi {
         return new RestResponse(map);
     }
 
-    final private String alertFormat = "INTELAB报警：【%s-%s】于【%s】检测到【%s】异常（阈值【%f】，检测值【%f】）。";
+    final private String alertFormat = "INTELAB报警：【%s-%s】于【%s】检测到【%s】异常";
+    final private String valueFormat = "（阈值【%.2f】，检测值【%.2f】）。";
     final private String doorInfoFormat = "检测到【门开关】参数异常。";
     final private String locationInfoFormat = "请尽快去现场【%s】检查门状态。";
+    final private String doorAlertFormat = ",门打开时间超过%d分钟。";
     final private Integer doorInspectId = 8;
     final private String doorOpen = "1";
     /**
@@ -774,12 +776,34 @@ public class SocketMessageApi {
      */
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
-                deviceInspect.getName(), (float)(Math.round(standard*100))/100, (float)(Math.round(value*100))/100);
+                deviceInspect.getName());
         InspectData doorInspectData = inspectDataRepository.
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
-        if(doorInspectData != null && doorInspectData.getResult() == doorOpen) {
-            message += doorInfoFormat;
+        if(deviceInspect.getInspectType().getId() != doorInspectId){
+            message += String.format(valueFormat, standard, value);
+            if(doorInspectData != null && doorInspectData.getResult() == doorOpen) {
+                message += doorInfoFormat;
+            }
         }
+        else{
+            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
+            Long openMilisecond = new Long(0);
+            for(InspectData inspectData : inspectDatas) {
+                if(inspectData.getResult() == doorOpen){
+                    openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
+                }
+                else{
+                    break;
+                }
+            }
+            if(openMilisecond < 1*60*1000){
+                return;
+            }
+            else{
+                message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
+            }
+        }
+
         Room room = device.getRoom();
         Storey floor = room.getFloor();
         Building building = floor.getBuild();
