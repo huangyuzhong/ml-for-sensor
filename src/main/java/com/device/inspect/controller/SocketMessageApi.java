@@ -790,6 +790,7 @@ public class SocketMessageApi {
             List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
+                LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
                 if(inspectData.getResult().equals(doorOpen)){
                     openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
                 }
