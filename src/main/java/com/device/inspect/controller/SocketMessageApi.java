@@ -777,9 +777,14 @@ public class SocketMessageApi {
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
         String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
                 deviceInspect.getName());
-        InspectData doorInspectData = inspectDataRepository.
-                findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(deviceInspect.getInspectType().getId() != doorInspectId){
+            DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
+            InspectData doorInspectData = null;
+            if(doorInspect != null){
+                doorInspectData = inspectDataRepository.
+                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspect.getId());
+            }
+
             message += String.format(valueFormat, standard, value);
             if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
                 LOGGER.info("device alert: detect door open.");
