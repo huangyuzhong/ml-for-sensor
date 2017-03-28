@@ -726,6 +726,7 @@ public class SocketMessageApi {
                 !"".equals(user.getRemoveAlert())&&
                 user.getRemoveAlert().equals("0")){
             msgAvailable = true;
+            mailAvailable = true;
         }
         if(user.getRemoveAlert()!=null&&
                 !"".equals(user.getRemoveAlert())&&
