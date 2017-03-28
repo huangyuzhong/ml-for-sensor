@@ -781,7 +781,8 @@ public class SocketMessageApi {
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(deviceInspect.getInspectType().getId() != doorInspectId){
             message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && doorInspectData.getResult() == doorOpen) {
+            if(doorInspectData != null && doorInspectData.getResult().equals(doorOpen)) {
+                LOGGER.info("device alert: detect door open.");
                 message += doorInfoFormat;
             }
         }
@@ -789,13 +790,14 @@ public class SocketMessageApi {
             List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
-                if(inspectData.getResult() == doorOpen){
+                if(inspectData.getResult().equals(doorOpen)){
                     openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
                 }
                 else{
                     break;
                 }
             }
+            LOGGER.info("device alert: door open milisecond: " + openMilisecond);
             if(openMilisecond < 1*60*1000){
                 return;
             }
