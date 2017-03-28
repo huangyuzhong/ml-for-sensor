@@ -717,7 +717,7 @@ public class SocketMessageApi {
     final private String locationInfoFormat = "请尽快去现场【%s】检查。";
     final private String doorAlertFormat = ",门打开时间超过%d分钟。";
     final private Integer doorInspectId = 8;
-    final private String doorOpen = "1";
+    final private Integer doorOpen = 1;
     /**
      * 发送报警信息给特定用户
      */
@@ -781,7 +781,7 @@ public class SocketMessageApi {
                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspectId);
         if(deviceInspect.getInspectType().getId() != doorInspectId){
             message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && doorInspectData.getResult().equals(doorOpen)) {
+            if(doorInspectData != null && Integer.parseInt(doorInspectData.getResult()) == doorOpen) {
                 LOGGER.info("device alert: detect door open.");
                 message += doorInfoFormat;
             }
@@ -792,7 +792,7 @@ public class SocketMessageApi {
             Long openMilisecond = new Long(0);
             for(InspectData inspectData : inspectDatas) {
                 LOGGER.info("device alert: history door status " + inspectData.getCreateDate() + " value: " + inspectData.getResult());
-                if(inspectData.getResult().equals(doorOpen)){
+                if(Integer.parseInt(inspectData.getResult()) == doorOpen){
                     openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
                 }
                 else{
