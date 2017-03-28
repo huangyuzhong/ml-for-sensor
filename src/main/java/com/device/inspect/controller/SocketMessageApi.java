@@ -714,7 +714,7 @@ public class SocketMessageApi {
     final private String alertFormat = "INTELAB报警：【%s-%s】于【%s】检测到【%s】异常";
     final private String valueFormat = "（阈值【%.2f】，检测值【%.2f】）。";
     final private String doorInfoFormat = "检测到【门开关】参数异常。";
-    final private String locationInfoFormat = "请尽快去现场【%s】检查门状态。";
+    final private String locationInfoFormat = "请尽快去现场【%s】检查。";
     final private String doorAlertFormat = ",门打开时间超过%d分钟。";
     final private Integer doorInspectId = 8;
     final private String doorOpen = "1";
