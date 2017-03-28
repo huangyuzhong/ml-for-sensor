@@ -144,6 +144,8 @@ public class SocketMessageApi {
             try {
 
                 if (monitorTypeCode.equals("00")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 00, pt 100 temperature",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
@@ -229,6 +231,8 @@ public class SocketMessageApi {
                     //设置检测结果
 //                inspectData.setResult(String.valueOf(record));
                 } else if (monitorTypeCode.equals("07")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 07, jia wan",
+                            device.getId()));
                     //判断是不是甲烷
                     //根据上传的值算出电压
                     Float v = (Float.valueOf(iDeviceSamplingData) * Float.valueOf(2.018f)) / Float.valueOf(32768);
@@ -271,6 +275,8 @@ public class SocketMessageApi {
                     }
 
                 } else if (monitorTypeCode.equals("06")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 06, sdp610 pressure",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
@@ -291,6 +297,8 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
                 } else if (monitorTypeCode.equals("08") || monitorTypeCode.equals("09")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 08-09, energy",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
@@ -302,6 +310,8 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
                 } else if (monitorTypeCode.equals("0a")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
@@ -312,6 +322,8 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
                 } else if (monitorTypeCode.equals("0b")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 0b, currency",
+                            device.getId()));
                     LOGGER.info("e-currency: " + deviceSamplingTime);
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
@@ -324,6 +336,8 @@ public class SocketMessageApi {
                     deviceInspect.setCorrectionValue(check);
 
                 } else if (monitorTypeCode.equals("0c") || monitorTypeCode.equals("0d")) {
+                    LOGGER.info(String.format("Device %d, Monitor code 0c-0d, power",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
                     record = Float.valueOf(iDeviceSamplingData) * 20 * 250 / 10000;
@@ -335,6 +349,8 @@ public class SocketMessageApi {
                     deviceInspect.setCorrectionValue(check);
 
                 } else {
+                    LOGGER.info(String.format("Device %d, Monitor code 0e-0f-10",
+                            device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
