@@ -822,7 +822,8 @@ public class SocketMessageApi {
         }
         message += String.format(locationInfoFormat, location);
 
-        MessageSend messageSend = messageSendRepository.findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(device.getManager().getId(), device.getId(), 1);
+        MessageSend messageSend = messageSendRepository.
+                findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
         if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
             LOGGER.info("device alert: " + device.getId() + ", has sent message to manager at " + messageSend.getCreate() + ", passed this time.");
             return;
@@ -832,6 +833,7 @@ public class SocketMessageApi {
             newMessageSend.setCreate(sampleTime);
             newMessageSend.setDevice(device);
             newMessageSend.setUser(device.getManager());
+            newMessageSend.setDeviceInspect(deviceInspect);
             messageSend.setError(device.getId()+"报警,发送给设备管理员"+device.getManager().getUserName());
             sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
         }

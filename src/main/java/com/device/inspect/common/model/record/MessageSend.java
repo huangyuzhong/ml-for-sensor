@@ -2,6 +2,9 @@ package com.device.inspect.common.model.record;
 
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.DeviceInspect;
+import com.device.inspect.common.model.device.DeviceTypeInspect;
+import com.device.inspect.common.model.device.InspectType;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -20,6 +23,7 @@ public class MessageSend {
     private Device device;
     private Date create;
     private Integer enable;         //1成功,0失败
+    private DeviceInspect deviceInspect;
 
     @Id
     @GeneratedValue()
@@ -91,5 +95,15 @@ public class MessageSend {
 
     public void setEnable(Integer enable) {
         this.enable = enable;
+    }
+
+    @ManyToOne()
+    @JoinColumn(name = "inspect_type_id")
+    public DeviceInspect getDeviceInspect(){
+        return this.deviceInspect;
+    }
+
+    public void setDeviceInspect(DeviceInspect deviceInspect){
+        this.deviceInspect = deviceInspect;
     }
 }
