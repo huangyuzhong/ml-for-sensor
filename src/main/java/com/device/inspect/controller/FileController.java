@@ -575,6 +575,7 @@ public class FileController {
                     deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
                     deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
                     deviceInspect.setName(deviceTypeInspect.getInspectType().getName());
+                    deviceInspect.setInspectPurpose(deviceTypeInspect.getInspectPurpose());
                     deviceInspect.setZero(0f);
                     deviceInspect.setOriginalValue(0f);
                     deviceInspect.setCorrectionValue(0f);
