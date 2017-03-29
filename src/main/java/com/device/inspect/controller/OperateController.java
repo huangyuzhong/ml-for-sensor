@@ -411,7 +411,10 @@ public class OperateController {
                 List<DeviceInspectRunningStatus> runningStatuses = new ArrayList<>();
                 Set<Integer> statusInPost = new HashSet<>();
                 List<DeviceTypeInspectRunningStatusRequest> runningStatusRequests = inspectTypeRequest.getRunningStatus();
-                if(runningStatusRequests != null && runningStatusRequests.size() > 0){
+		if(runningStatusRequests == null){
+			LOGGER.info("device running status is null");
+		}
+                if(runningStatusRequests != null && runningStatusRequests.size() >= 0){
                     Iterable<DeviceInspectRunningStatus> dbStatusList = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
                     for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
                         if (status.getId() != null) {
