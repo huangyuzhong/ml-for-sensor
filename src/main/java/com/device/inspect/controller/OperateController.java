@@ -56,7 +56,7 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/api/rest/operate")
 public class OperateController {
-
+    private static final Logger LOGGER = LogManager.getLogger(OperateController.class);
     @Autowired
     private UserRepository userRepository;
 
@@ -421,6 +421,7 @@ public class OperateController {
 
                     for(DeviceInspectRunningStatus status : dbStatusList){
                         if(!statusInPost.contains(status.getId())){
+                            LOGGER.info("Delete device running status: " + status.getId());
                             deviceInspectRunningStatusRepository.delete(status);
                         }
                     }
@@ -428,12 +429,15 @@ public class OperateController {
                     for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
                         DeviceInspectRunningStatus deviceInspectRunningStatus = deviceInspectRunningStatusRepository.findById(status.getId());
                         if(deviceInspectRunningStatus == null){
+                            LOGGER.info("Add device running status of " + status.getRunningStatusId() + " to " + status.getDeviceTypeInspectId());
                             deviceInspectRunningStatus = new DeviceInspectRunningStatus();
                         }
                         DeviceRunningStatus runningStatus = deviceRunningStatusRepository.findById(status.getRunningStatusId());
                         if (runningStatus == null) {
+                            LOGGER.info("Running status illegal " + status.getRunningStatusId());
                             continue;
                         } else {
+                            LOGGER.info("Edit device running status of id: " + runningStatus.getId());
                             deviceInspectRunningStatus.setDeviceRunningStatus(runningStatus);
                         }
                         deviceInspectRunningStatus.setDeviceInspect(deviceInspect);

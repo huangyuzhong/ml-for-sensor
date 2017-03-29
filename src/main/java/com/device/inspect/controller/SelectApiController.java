@@ -33,6 +33,8 @@ import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusReque
 import com.device.inspect.controller.request.DeviceTypeRequest;
 import com.device.inspect.controller.request.InspectTypeRequest;
 import com.device.inspect.controller.request.RunningStatusRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.Page;
@@ -52,7 +54,7 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/api/rest/firm")
 public class SelectApiController {
-
+    private static final Logger LOGGER = LogManager.getLogger(SelectApiController.class);
     @Autowired
     private UserRepository userRepository;
 
