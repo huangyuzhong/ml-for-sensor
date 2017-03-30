@@ -814,7 +814,7 @@ public class SocketMessageApi {
             }
         }
         if(mailAvailable){
-            if (user.getEmail()!=null&&!"".equals(user.getEmail())){
+            if (user.getEmail()==null||"".equals(user.getEmail())){
                 reason = "没有绑定邮箱";
             }
             else if(MessageSendService.pushAlertMail(user, message)){
