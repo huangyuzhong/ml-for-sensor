@@ -2,6 +2,8 @@ package com.device.inspect.config.schedule;
 
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.repository.device.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,7 +18,7 @@ import java.util.*;
  */
 @Component
 public class HourlyUtilityCalculation implements MySchedule{
-
+    private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
     @Autowired
     private DeviceRepository deviceRepository;
 
@@ -50,16 +52,17 @@ public class HourlyUtilityCalculation implements MySchedule{
         long endTime = startTime + scanScope;
         Date currentHour = new Date(startTime);
         Date targetHour = new Date(endTime);
-        System.out.println("Begin scan: " + currentHour + ", " + targetHour);
+        LOGGER.info("Begin scan: " + currentHour + ", " + targetHour);
 
         Iterable<Device> deviceList = deviceRepository.findAll();
         for (Device device : deviceList) {
-
+            LOGGER.info("Hourly Utilization: scan device " + device .getId());
             List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
             List<DeviceInspect> runningInspects = new ArrayList<>();
             List<List<InspectData>> listOfInspectData = new ArrayList<>();
             for (DeviceInspect deviceInspect : deviceInspects) {
                 if (deviceInspect.getInspectPurpose() == 1) {
+                    LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
                     runningInspects.add(deviceInspect);
                     listOfInspectData.add(inspectDataRepository.
                             findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(),
@@ -123,29 +126,32 @@ public class HourlyUtilityCalculation implements MySchedule{
             }
 
             DeviceInspect powerInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(powerInspectTypeId, device.getId());
-            List<InspectData> powerInspectData = inspectDataRepository.
-                    findByDeviceInspectIdAndCreateDateBetweenOrderByResultDesc(powerInspect.getId(),
-                            currentHour, targetHour);
-
             Float powerLower = new Float(0);
             Float powerUpper = new Float(0);
-
-            if (powerInspectData != null && !powerInspectData.isEmpty()) {
-                powerUpper = Float.parseFloat(powerInspectData.get(0).getResult());
-                powerLower = Float.parseFloat(powerInspectData.get(powerInspectData.size() - 1).getResult());
-                if(powerLower > powerUpper){
-                    Float temp = powerUpper;
-                    powerUpper = powerLower;
-                    powerLower = temp;
-                }
-            }
-
             Float energy = new Float(0);
-            for(InspectData powerData : powerInspectData){
-                energy += Float.parseFloat(powerData.getResult()) * powerInspectSampleTime;
-            }
-            energy /= 1000;
 
+            if(powerInspect != null) {
+                LOGGER.info("Hourly Utilization: found power inspect " + powerInspect.getId() );
+                List<InspectData> powerInspectData = inspectDataRepository.
+                        findByDeviceInspectIdAndCreateDateBetweenOrderByResultDesc(powerInspect.getId(),
+                                currentHour, targetHour);
+
+
+                if (powerInspectData != null && !powerInspectData.isEmpty()) {
+                    powerUpper = Float.parseFloat(powerInspectData.get(0).getResult());
+                    powerLower = Float.parseFloat(powerInspectData.get(powerInspectData.size() - 1).getResult());
+                    if (powerLower > powerUpper) {
+                        Float temp = powerUpper;
+                        powerUpper = powerLower;
+                        powerLower = temp;
+                    }
+                }
+
+                for (InspectData powerData : powerInspectData) {
+                    energy += Float.parseFloat(powerData.getResult()) * powerInspectSampleTime;
+                }
+                energy = energy / 1000 / 1000;
+            }
             DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
             if(hourlyUtilization == null){
                 hourlyUtilization = new DeviceHourlyUtilization();
@@ -159,7 +165,7 @@ public class HourlyUtilityCalculation implements MySchedule{
             hourlyUtilization.setPowerUpperBound(powerUpper);
             hourlyUtilization.setPowerLowerBound(powerLower);
 
-            hourlyUtilization.setConsumedEnergy(energy/1000);
+            hourlyUtilization.setConsumedEnergy(energy);
             deviceHourlyUtilizationRepository.save(hourlyUtilization);
         }
 
