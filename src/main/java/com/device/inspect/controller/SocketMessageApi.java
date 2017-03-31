@@ -839,7 +839,7 @@ public class SocketMessageApi {
      * 报警函数，分析异常情况并发送报警信息
      */
     void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
-        String message = String.format(alertFormat, device.getId(), device.getName(), sampleTime.toString(),
+        String message = String.format(alertFormat, device.getCode(), device.getName(), sampleTime.toString(),
                 deviceInspect.getName());
         // if this alerting inspect is not door, get door status if door is an inspect of this device.
         if(deviceInspect.getInspectType().getId() != doorInspectId){
