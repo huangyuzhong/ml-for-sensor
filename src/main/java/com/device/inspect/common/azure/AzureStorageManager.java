@@ -1,5 +1,7 @@
 package com.device.inspect.common.azure;
 
+import com.device.inspect.common.service.FileUploadService;
+import com.device.inspect.common.util.transefer.UrlParse;
 import com.microsoft.azure.storage.*;
 import com.microsoft.azure.storage.blob.*;
 import org.apache.logging.log4j.LogManager;
@@ -8,19 +10,38 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.io.*;
 import java.io.File;
+
+
 /**
  * Created by gxu on 2/25/17.
  */
-public class AzureStorageManager extends AzureServiceManager {
+public class AzureStorageManager extends AzureServiceManager implements FileUploadService {
     private String azureStorageConnectionString;
 
     protected static Logger logger = LogManager.getLogger();
 
     private String defaultContainerName;
+
+    public String uploadFile(MultipartFile file, String containerName, String blobName, String oldName){
+        String newUrl = uploadBlobToContainer(containerName, file, blobName);
+        Map<String, String> oldUrlInfo = UrlParse.parseAzureUrl(oldName);
+        if(newUrl != null) {
+            if(oldUrlInfo != null) {
+                deleteBlobFromContainer(oldUrlInfo.get("containerName"), oldUrlInfo.get("blobName"));
+                logger.info(String.format("blob %s removed from container %s", oldUrlInfo.get("blobName"), oldUrlInfo.get("containerName")));
+                logger.info(String.format("successfully upload file %s to blob storage at %s", oldName, newUrl));
+            }
+        }
+        else{
+            logger.error(String.format("Failed upload file %s to blob storage at %s", containerName+blobName));
+        }
+        return newUrl;
+    }
 
     public AzureStorageManager(String defaultContainerName, Map<String, String> config){
         super("storage", config);
