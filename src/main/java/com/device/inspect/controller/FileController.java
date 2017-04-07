@@ -1065,7 +1065,7 @@ public class FileController {
                 company=companyRepository.save(company);
                 firmManager = company.getManager();
 //                firmManager.setName(param.get("account"));
-                firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
+//                firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
                 firmManager.setCreateDate(new Date());
