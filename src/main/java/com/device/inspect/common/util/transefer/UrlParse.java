@@ -9,10 +9,10 @@ import java.util.Map;
 public class UrlParse {
 
     public static Map<String, String> parseAzureUrl(String url) {
-        if(url == null){
-	    return null;
-	}
-	int firstSlash = url.indexOf(new String("//"), 0);
+        if(url == null || !url.startsWith("http")){
+	       return null;
+	    }
+	    int firstSlash = url.indexOf(new String("//"), 0);
         if (firstSlash == -1) {
             return null;
         }

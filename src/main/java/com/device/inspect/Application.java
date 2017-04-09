@@ -1,10 +1,10 @@
 package com.device.inspect;
 
-import com.device.inspect.common.model.device.*;
-import com.device.inspect.common.repository.device.*;
+import com.device.inspect.common.ftp.FTPConfig;
+import com.device.inspect.common.ftp.FTPStorageManager;
+import com.device.inspect.common.service.FileUploadService;
+import com.device.inspect.common.storage.StorageConfig;
 import com.device.inspect.common.util.thread.SocketServerThread;
-import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.common.util.transefer.StringDate;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
 import com.device.inspect.common.util.CONST;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -38,19 +37,16 @@ public class Application {
     public static final Logger LOGGER = LogManager.getLogger(Application.class);
 
     public static AzureConfig azureConfig;
-    public static AzureStorageManager intelabStorageManager = null;
+    public static FTPConfig ftpConfig;
+    public static StorageConfig storageConfig;
+    public static FileUploadService intelabStorageManager = null;
 
     public static void main(String[] args) throws Throwable
     {
 
         loadAppConfig();
-        initializeAzureServices();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         socketServerStart();
-    }
-
-    private static void initializeAzureServices(){
-        intelabStorageManager = new AzureStorageManager(CONST.azureMediaStorageBlobContainerName, azureConfig.getStorage());
     }
 
     private static void loadAppConfig() throws Throwable{
@@ -60,13 +56,35 @@ public class Application {
             String homePath = env.get("HOME");
             String intelabEnvironmentName = env.get("INTELAB_ENV");
 
-            String configFilePath = String.format("%s/intelab-configs/%s/azure.yaml", homePath, intelabEnvironmentName);
+            homePath = homePath + "/WorkSpace/Project/InteLAB";
+            String storageConfigFilePath = String.format("%s/intelab-configs/%s/storage.yaml", homePath, intelabEnvironmentName);
+            LOGGER.info("Loading Storage Config from File %s", storageConfigFilePath);
+            storageConfig = mapper.readValue(new File(storageConfigFilePath), StorageConfig.class);
+            LOGGER.info(String.format("Storage Config: %s", ReflectionToStringBuilder.toString(storageConfig, ToStringStyle.MULTI_LINE_STYLE)));
 
-            LOGGER.info(String.format("Loading Azure config from file %s", configFilePath));
+            String storageType = storageConfig.getStorage().get("type");
+            LOGGER.info("Storage Type " + storageType);
 
-            azureConfig = mapper.readValue(new File(configFilePath), AzureConfig.class);
-            LOGGER.info(String.format("Loaded azure config -- %s",ReflectionToStringBuilder.toString(azureConfig,ToStringStyle.MULTI_LINE_STYLE)));
 
+
+            if(storageType.equals("azure")){
+                String configFilePath = String.format("%s/intelab-configs/%s/azure.yaml", homePath, intelabEnvironmentName);
+
+                LOGGER.info(String.format("Loading Azure config from file %s", configFilePath));
+
+                azureConfig = mapper.readValue(new File(configFilePath), AzureConfig.class);
+                LOGGER.info(String.format("Loaded azure config -- %s",ReflectionToStringBuilder.toString(azureConfig,ToStringStyle.MULTI_LINE_STYLE)));
+
+                intelabStorageManager = new AzureStorageManager(CONST.azureMediaStorageBlobContainerName, azureConfig.getStorage());
+            }
+            else if(storageType.equals("ftp")){
+                String configFilePath = String.format("%s/intelab-configs/%s/ftp.yaml", homePath, intelabEnvironmentName);
+                LOGGER.info(String.format("Loading ftp config from file %s", configFilePath));
+                ftpConfig = mapper.readValue(new File(configFilePath), FTPConfig.class);
+                LOGGER.info(String.format("Loaded ftp config -- %s",ReflectionToStringBuilder.toString(ftpConfig,ToStringStyle.MULTI_LINE_STYLE)));
+
+                intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
+            }
 
         } catch (Exception e) {
            LOGGER.error(String.format("Failed to load configuration, %s", e.toString()));

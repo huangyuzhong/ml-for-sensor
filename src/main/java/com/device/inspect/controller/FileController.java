@@ -214,23 +214,12 @@ public class FileController {
 
                                     String companyContainerName = String.format("company%s", company.getId());
                                     String blobName = String.format("buildings/%s/%s", building.getId(), UUID.randomUUID().toString());
-                                    String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                                    String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, building.getBackground());
                                     if (photoUrl != null) {
-                                        logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
-                                        String oldUrl = building.getBackground();
-                                        Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                        if(urlInfo != null) {
-                                            Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                            logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                        }
                                         building.setBackground(photoUrl);
-
                                     } else {
-                                        logger.error(String.format("Failed to save file %s to blob", fileName));
-
+                                        logger.error(String.format("Storage return null for file %s", fileName));
                                     }
-
-
                                 }
 
 
@@ -397,20 +386,11 @@ public class FileController {
 
                                 String companyContainerName = String.format("company%s", user.getCompany().getId());
                                 String blobName = String.format("floors/%s/%s", floor.getId(), UUID.randomUUID().toString());
-                                String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                                String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, floor.getBackground());
                                 if (photoUrl != null) {
-                                    logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
-                                    String oldUrl = floor.getBackground();
-                                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                    if(urlInfo != null) {
-                                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                    }
                                     floor.setBackground(photoUrl);
-
                                 } else {
-                                    logger.error(String.format("Failed to save file %s to blob", fileName));
-
+                                    logger.error(String.format("Storage return null for file %s", fileName));
                                 }
 
                             }
@@ -602,19 +582,13 @@ public class FileController {
 
                             String blobName = String.format("devices/%s/%s", device.getId(), UUID.randomUUID().toString());
 
-                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, containerName, blobName, device.getPhoto());
 
                             if(photoUrl != null){
-                                String oldUrl = device.getPhoto();
-                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                if(urlInfo != null) {
-                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                }
                                 device.setPhoto("photoUrl");
                                 logger.info(String.format("successfully upload file %s to blob storage at %s", fileName, photoUrl));
                             }else{
-                                logger.error(String.format("Failed upload file %s to blob storage at %s", fileName));
+                                logger.error(String.format("Storage return null for file %s", fileName));
                             }
 
                         }
@@ -733,19 +707,13 @@ public class FileController {
 
                                 String blobName = String.format("rooms/%s/%s", room.getId(), UUID.randomUUID().toString());
 
-                                String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+                                String photoUrl = Application.intelabStorageManager.uploadFile(file, containerName, blobName, room.getBackground());
 
                                 if(photoUrl != null){
-                                    String oldUrl = room.getBackground();
-                                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                    if(urlInfo != null) {
-                                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                    }
                                     room.setBackground(photoUrl);
                                     logger.info(String.format("successfully upload file to blob storage at %s", photoUrl));
                                 }else{
-                                    logger.error(String.format("Failed upload file to blob storage at %s", photoUrl));
+                                    logger.error(String.format("Storage return null for file %s", fileName));
                                 }
                             }
 
@@ -808,19 +776,12 @@ public class FileController {
 
                             String deviceTypeContainerName = "devicetypes";
                             String blobName = String.format("%s/%s", deviceTypeId, UUID.randomUUID().toString());
-                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(deviceTypeContainerName, file, blobName);
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, deviceTypeContainerName, blobName, deviceType.getLogo());
                             if (photoUrl != null) {
-                                logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
-                                String oldUrl = deviceType.getLogo();
-                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                if(urlInfo != null) {
-                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                }
                                 deviceType.setLogo(photoUrl);
                                 restResponse = new RestResponse("操作成功！", new RestDeviceType(deviceType));
                             } else {
-                                logger.error(String.format("Failed to save file %s to blob", fileName));
+                                logger.error(String.format("Storage return null for file %s", fileName));
                                 restResponse = new RestResponse("Failed to upload file", new RestDeviceType(deviceType));
 
                             }
@@ -885,22 +846,14 @@ public class FileController {
 
                         String companyContainerName = String.format("company%s", companyId);
                         String blobName = String.format("devices/%s/%s", deviceId, UUID.randomUUID().toString());
-                        String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                        String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, device.getPhoto());
                         if (photoUrl != null) {
-                            logger.info(String.format("file %s saved to blob, and update path to db %s", key, photoUrl));
-                            String oldUrl = device.getPhoto();
-                            Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                            if(urlInfo != null) {
-                                Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                            }
                             device.setPhoto(photoUrl);
                             deviceRepository.save(device);
 
                         } else {
                             logger.error(String.format("Failed to save file %s to blob", fileName));
                             existFailure = true;
-
                         }
 
                     }
@@ -1094,22 +1047,12 @@ public class FileController {
                             String companyContainerName = String.format("company%s", company.getId());
                             String blobName = String.format("company/%s", UUID.randomUUID().toString());
 
-                            String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, company.getBackground());
                             if (photoUrl != null) {
                                 logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
-                                String oldUrl = company.getBackground();
-                                Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                                if(urlInfo != null) {
-                                    Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                    logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                                }
                                 company.setBackground(photoUrl);
-
-
                             } else {
                                 logger.error(String.format("Failed to save file %s to blob", fileName));
-
-
                             }
 
                         }
@@ -1184,16 +1127,10 @@ public class FileController {
                     // we don't use uuid, because we want to keep its file type info
                     String blobName = String.format("devices/%s", fileName);
 
-                    String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                    String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, null);
                     if (photoUrl != null) {
                         logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
                         createFile.setName(fileName);
-                        String oldUrl = createFile.getUrl();
-                        Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                        if(urlInfo != null) {
-                            Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                            logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                        }
                         createFile.setUrl(photoUrl);
                         fileRepository.save(createFile);
                         DeviceFile deviceFile = new DeviceFile();
@@ -1203,8 +1140,6 @@ public class FileController {
 
                     } else {
                         logger.error(String.format("Failed to save file %s to blob", fileName));
-
-
                     }
                 }
             }
@@ -1250,15 +1185,9 @@ public class FileController {
                         // we don't use uuid, because we want to keep its file type info
                         String blobName = String.format("company/%s", UUID.randomUUID().toString());
 
-                        String photoUrl = Application.intelabStorageManager.uploadBlobToContainer(companyContainerName, file, blobName);
+                        String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, company.getLogo());
                         if (photoUrl != null) {
                             logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
-                            String oldUrl = company.getLogo();
-                            Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                            if(urlInfo != null) {
-                                Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                                logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                            }
                             company.setLogo(photoUrl);
                             companyRepository.save(company);
 
@@ -1404,18 +1333,11 @@ public class FileController {
                 // we don't use uuid, because we want to keep its file type info
                 String blobName = String.format("%s/%s", deviceVersion.getId(), fileName);
 
-                String fileUrl = Application.intelabStorageManager.uploadBlobToContainer(containerName, file, blobName);
+                String fileUrl = Application.intelabStorageManager.uploadFile(file, containerName, blobName, deviceVersion.getUrl());
                 if (fileUrl != null) {
                     logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, fileUrl));
-                    String oldUrl = deviceVersion.getUrl();
-                    Map<String, String> urlInfo = UrlParse.parseAzureUrl(oldUrl);
-                    if(urlInfo != null) {
-                        Application.intelabStorageManager.deleteBlobFromContainer(urlInfo.get("containerName"), urlInfo.get("blobName"));
-                        logger.info(String.format("blob %s removed from container %s", urlInfo.get("blobName"), urlInfo.get("containerName")));
-                    }
                     deviceVersion.setUrl(fileUrl);
                     deviceVersion.setFileName(fileName);
-
                 } else {
                     logger.error(String.format("Failed to save file %s to blob", fileName));
                 }
