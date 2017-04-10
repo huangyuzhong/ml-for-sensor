@@ -57,7 +57,7 @@ public class Application {
             String intelabEnvironmentName = env.get("INTELAB_ENV");
 
 //            homePath = homePath + "/WorkSpace/Project/InteLAB";
-            String storageConfigFilePath = String.format("%s/intelab-configs/%s/storage.yaml", homePath, intelabEnvironmentName);
+            String storageConfigFilePath = String.format("%s/intelab-configs/%s/config.yaml", homePath, intelabEnvironmentName);
             LOGGER.info("Loading Storage Config from File %s", storageConfigFilePath);
             storageConfig = mapper.readValue(new File(storageConfigFilePath), StorageConfig.class);
             LOGGER.info(String.format("Storage Config: %s", ReflectionToStringBuilder.toString(storageConfig, ToStringStyle.MULTI_LINE_STYLE)));
