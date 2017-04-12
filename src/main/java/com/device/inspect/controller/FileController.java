@@ -448,11 +448,13 @@ public class FileController {
             if(null == param.get("monitorCode")||"".equals(param.get("monitorCode")))
                 throw new RuntimeException("终端编号为空！");
             MonitorDevice monitorDevice = null;
-
+	    logger.info("Create device: monitor code " + param.get("monitorCode"));
             monitorDevice = monitorDeviceRepository.findByNumber(param.get("monitorCode"));
-            if (null!=monitorDevice)
+            logger.info("Create device: monitor code " + param.get("monitorCode"));
+	    if (null!=monitorDevice){
                 throw new RuntimeException("终端编号已存在，无法添加！");
-
+	    }
+	    logger.info("Create device: begin setting basic info.");
             device.setCreateDate(new Date());
             device.setCode(param.get("code"));
             device.setAlterNum(null == param.get("alterNum") ? 0 : Integer.valueOf(param.get("alterNum")));
@@ -524,7 +526,8 @@ public class FileController {
             monitorDevice.setNumber(param.get("monitorCode"));
             monitorDevice.setOnline(1);
             monitorDeviceRepository.save(monitorDevice);
-            if (null!=param.get("scientist")) {
+            logger.info("Create Device: finish adding basic infomation.");
+	    if (null!=param.get("scientist")) {
                 String[] scientist = param.get("scientist").split(",");
                 for (String id:scientist){
                     if (null!=id&&!"".equals(id)){
@@ -542,6 +545,7 @@ public class FileController {
                     }
                 }
             }
+	    logger.info("Create Device: finish adding scientist infomation.");
 
             if (null!=deviceType.getDeviceTypeInspectList()){
                 for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
@@ -562,6 +566,8 @@ public class FileController {
                     deviceInspectRepository.save(deviceInspect);
                 }
             }
+	    logger.info("Create Device: finish adding device type inspect information.");
+
             String pic=param.get("pic");
             System.out.println("pic："+pic);
             if (pic.equals("0")){
