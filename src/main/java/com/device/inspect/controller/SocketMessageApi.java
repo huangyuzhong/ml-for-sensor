@@ -123,7 +123,6 @@ public class SocketMessageApi {
         if(monitorTypeCode.equals("03")) {
             monitorDevice.setBattery(String.valueOf(Float.valueOf(iDeviceSamplingData)/10));
             monitorDeviceRepository.save(monitorDevice);
-            return new RestResponse(null);
         }
         device = monitorDevice.getDevice();
         if (device.getEnable()==0)

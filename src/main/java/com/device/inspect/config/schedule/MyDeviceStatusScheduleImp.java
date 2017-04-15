@@ -180,12 +180,9 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                     }
                                                 }
 
-                                                Calendar cal = Calendar.getInstance();
-                                                long currentTimeMilisecond = cal.getTimeInMillis();
-                                                long beginTimeMilisecond = cal.getTimeInMillis() - 10*60*1000;
-                                                Date currentTime = new Date(currentTimeMilisecond);
+                                                Date currentTime = new Date();
+                                                long beginTimeMilisecond = currentTime.getTime() - 10*60*1000;
                                                 Date beginTime = new Date(beginTimeMilisecond);
-
                                                 if(currentDeviceOnLine){
                                                     // find current info type
                                                     DeviceInspect inspect = deviceInspectRepository.
@@ -205,15 +202,18 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         else {
                                                             boolean batteryIsDesc = true;
                                                             double lastBettaryValue = Double.parseDouble(inspectDatas.get(0).getResult());
+                                                            // System.out.println("battery info size:" + inspectDatas.size());
                                                             for (InspectData batteryInspect : inspectDatas) {
                                                                 double currentBettaryValue = Double.parseDouble(batteryInspect.getResult());
-                                                                if (lastBettaryValue >= currentBettaryValue) {
+                                                                // System.out.println("battery info:" + batteryInspect.getResult() + ", " + batteryInspect.getCreateDate());
+                                                                if (lastBettaryValue <= currentBettaryValue) {
                                                                     lastBettaryValue = currentBettaryValue;
                                                                 } else {
                                                                     batteryIsDesc = false;
                                                                     break;
                                                                 }
                                                             }
+                                                            System.out.println(batteryIsDesc);
 
                                                             if (batteryIsDesc) {
                                                                 // send power message
