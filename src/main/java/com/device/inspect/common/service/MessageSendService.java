@@ -1,12 +1,26 @@
 package com.device.inspect.common.service;
 
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.model.device.DeviceFloor;
+import com.device.inspect.common.model.device.DeviceInspect;
+import com.device.inspect.common.model.device.InspectData;
+import com.device.inspect.common.model.firm.Building;
+import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.MessageSend;
+import com.device.inspect.common.repository.device.DeviceFloorRepository;
+import com.device.inspect.common.repository.device.DeviceInspectRepository;
+import com.device.inspect.common.repository.device.InspectDataRepository;
+import com.device.inspect.common.repository.device.InspectTypeRepository;
+import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
 import com.taobao.api.request.AlibabaAliqinFcSmsNumSendRequest;
 import com.taobao.api.response.AlibabaAliqinFcSmsNumSendResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import javax.mail.*;
@@ -16,7 +30,9 @@ import javax.mail.internet.*;
  * Created by Administrator on 2016/10/29.
  */
 public class MessageSendService {
+
     private static final Logger LOGGER = LogManager.getLogger(MessageSendService.class);
+
     /**
      * 推送报警信息
      * model短信模板ID/邮箱标题, message警报内容

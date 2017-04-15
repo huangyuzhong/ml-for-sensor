@@ -1095,6 +1095,7 @@ public class OperateController {
         messageSend.setReason("verify");
         messageSend.setType("mobile");
         messageSend.setCreate(new Date());
+        messageSend.setDeviceInspect(null);
         messageSendRepository.save(messageSend);
 
         user.setVerify(verify);

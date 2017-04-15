@@ -976,7 +976,7 @@ public class SelectApiController {
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(utilization.getStartHour());
-            Integer currentHour = calendar.get(Calendar.HOUR);
+            Integer currentHour = calendar.get(Calendar.HOUR_OF_DAY);
             totalConsumedEnergy += utilization.getConsumedEnergy();
             if(utilization.getRunningTime() > mostOftenUsedHourUsedTime){
                 mostOftenUsedHourUsedTime = utilization.getRunningTime();

@@ -11,8 +11,9 @@ import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
-import com.device.inspect.common.service.MessageSendService;
+import com.device.inspect.controller.MessageController;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.controller.MessageController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,10 @@ import java.text.SimpleDateFormat;
 @RequestMapping(value = "/api/rest")
 public class SocketMessageApi {
     private static final Logger LOGGER = LogManager.getLogger(SocketMessageApi.class);
+
+    @Autowired
+    private MessageController messageController;
+
     @Autowired
     private  InspectDataRepository inspectDataRepository;
 
@@ -436,10 +441,10 @@ public class SocketMessageApi {
 
                 // send push notification if necessary
                 if(deviceInspect.getHighUp() < record){
-                    sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
                 }
                 else{
-                    sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
                 }
             }
             // case 2, yellow alert
@@ -490,10 +495,10 @@ public class SocketMessageApi {
                 inspectData.setType("low");
                 // push notification if necessary
                 if(record > deviceInspect.getLowUp()){
-                    sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
                 }
                 else{
-                    sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
                 }
             }
             // case 3, normal data
@@ -770,193 +775,6 @@ public class SocketMessageApi {
         return new RestResponse(map);
     }
 
-    final private String alertFormat = "INTELAB报警：【%s-%s】于【%s】检测到【%s】异常";
-    final private String valueFormat = "（阈值【%.2f】，检测值【%.2f】）。";
-    final private String doorInfoFormat = "检测到【门开关】参数异常。";
-    final private String locationInfoFormat = "请尽快去现场【%s】检查。";
-    final private String doorAlertFormat = ",门打开时间超过%d分钟。";
-    final private Integer doorInspectId = 8;
-    final private float doorOpen = 1;
-    /**
-     * 发送报警信息给特定用户
-     */
-    void sendAlertMsgToUsr(User user, String message, MessageSend messageSend){
-        boolean mailAvailable = false;
-        boolean msgAvailable = false;
-        // check if user set void alert
-        if (user.getRemoveAlert()!=null&&
-                !"".equals(user.getRemoveAlert())&&
-                user.getRemoveAlert().equals("0")){
-            msgAvailable = true;
-            mailAvailable = true;
-            LOGGER.info(String.format("User %s does not void alert, send both message and email",
-                    user.getName()));
-        }
-        if(user.getRemoveAlert()!=null&&
-                !"".equals(user.getRemoveAlert())&&
-                user.getRemoveAlert().equals("1")){
-            mailAvailable = true;
-            LOGGER.info(String.format("User %s set void message, send only email",
-                    user.getName()));
-        }
-        String type = new String();
-        String reason = "alert";
 
-        messageSend.setEnable(0);
-        if(msgAvailable){
-            if(MessageSendService.pushAlertMsg(user, message)){
-                type += "短信发送成功";
-                LOGGER.info("device alert: send message " + message);
-                messageSend.setEnable(1);
-            }
-            else{
-                type += "短信发送失败";
-            }
-        }
-        if(mailAvailable){
-            if (user.getEmail()==null||"".equals(user.getEmail())){
-                reason = "没有绑定邮箱";
-            }
-            else if(MessageSendService.pushAlertMail(user, message)){
-                LOGGER.info("device alert: send email " + message);
-                type += "邮件发送成功";
-                messageSend.setEnable(1);
-            }
-            else{
-                type += "邮件发送失败";
-            }
-        }
-        if(!mailAvailable && !msgAvailable){
-            reason = "停用通知";
-        }
-        messageSend.setType(type);
-        messageSend.setReason(reason);
-        messageSendRepository.save(messageSend);
-
-    }
-
-    /**
-     * 报警函数，分析异常情况并发送报警信息
-     */
-    void sendAlertMsg(Device device, DeviceInspect deviceInspect, Float standard, Float value, Date sampleTime){
-        String message = String.format(alertFormat, device.getCode(), device.getName(), sampleTime.toString(),
-                deviceInspect.getName());
-        // if this alerting inspect is not door, get door status if door is an inspect of this device.
-        if(deviceInspect.getInspectType().getId() != doorInspectId){
-            DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
-            InspectData doorInspectData = null;
-            if(doorInspect != null){
-                doorInspectData = inspectDataRepository.
-                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspect.getId());
-            }
-
-            message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
-                LOGGER.info(String.format("alerting inspect %d of device %d is with door open.",
-                        deviceInspect.getId(),
-                        device.getId()));
-                message += doorInfoFormat;
-            }
-        }
-        else{
-            // this alerting inspect is door inspect
-            // get top 20 value of door inspect from db, and find how long has the door been open
-            DeviceInspect deviceDoorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
-            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
-            Long openMilisecond = new Long(0);
-            for(InspectData inspectData : inspectDatas) {
-                if(Float.parseFloat(inspectData.getResult()) == doorOpen){
-                    openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
-                }
-                else{
-                    break;
-                }
-            }
-            // if the continuous open time is less than one minutes, do nothing
-            if(openMilisecond < 1*60*1000){
-                LOGGER.info(String.format("Device %d, door open for %d sec, less than 1 minutes, skip push notification",
-                        device.getId(),
-                        openMilisecond / 1000));
-                return;
-            }
-            else{
-                LOGGER.info(String.format("Device %d, door open for %d sec, more than 1 minutes, moving forward on push notification",
-                        device.getId(),
-                        openMilisecond / 1000));
-                message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
-
-	        }
-        }
-
-        // get location of the device
-        Room room = device.getRoom();
-        Storey floor = room.getFloor();
-        Building building = floor.getBuild();
-        String location = new String();
-        if(building != null){
-            location += building.getName() + " ";
-        }
-        if(floor != null){
-            location += floor.getName() + " ";
-        }
-        if(room != null){
-            location += room.getName();
-        }
-        message += String.format(locationInfoFormat, location);
-
-        // get most recent notification sent to the device manager
-        MessageSend messageSend = messageSendRepository.
-                findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
-
-        // if there exists a notification sent in 5 minutes, skip
-        if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
-            LOGGER.info(String.format("Device %d, alert has sent message to manager at %s within 5 minutes skip this time.",
-                    device.getId(),
-                    messageSend.getCreate()));
-            return;
-        }
-        else{
-            LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
-                    device.getId(),
-                    device.getManager().getTelephone()));
-            try {
-                MessageSend newMessageSend = new MessageSend();
-                newMessageSend.setCreate(sampleTime);
-                newMessageSend.setDevice(device);
-                newMessageSend.setUser(device.getManager());
-                newMessageSend.setDeviceInspect(deviceInspect);
-                newMessageSend.setError(device.getId() + "报警,发送给设备管理员" + device.getManager().getUserName());
-                sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
-            }catch (Exception e){
-                LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
-                        device.getId(),
-                        device.getManager().getTelephone(),
-                        e.toString()));
-                e.printStackTrace();
-            }
-        }
-
-        List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceId(device.getId());
-        if (null!=deviceFloorList&&deviceFloorList.size()>0){
-            for (DeviceFloor deviceFloor : deviceFloorList){
-                if (null!=deviceFloor.getScientist()){
-                    MessageSend messageSendScientist = messageSendRepository.
-                            findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(deviceFloor.getScientist().getId(),device.getId(),1) ;
-                    if (null!=messageSendScientist && (sampleTime.getTime()-messageSendScientist.getCreate().getTime()) < 5*60*1000){
-                        LOGGER.info("device alert: " + device.getId() + ", has sent message to scientist at " + messageSend.getCreate() + ", passed this time.");
-                    }
-                    else {
-                        MessageSend newMessageSend = new MessageSend();
-                        newMessageSend.setDevice(device);
-                        newMessageSend.setCreate(sampleTime);
-                        newMessageSend.setUser(deviceFloor.getScientist());
-			newMessageSend.setDeviceInspect(deviceInspect);
-                        newMessageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
-                        sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
-                    }
-                }
-            }
-        }
-    }
 
 }

@@ -9,7 +9,7 @@ import java.util.List;
  * Created by Administrator on 2016/7/8.
  */
 public interface DeviceInspectRepository extends CrudRepository<DeviceInspect,Integer> {
-    public DeviceInspect findByInspectTypeIdAndDeviceId(Integer InspectTypeId,Integer DeviceId );
+    public DeviceInspect findByInspectTypeIdAndDeviceId(Integer InspectTypeId,Integer DeviceId);
     public List<DeviceInspect> findByDeviceId(Integer DeviceId);
     public DeviceInspect findById(Integer Id);
     public DeviceInspect save(DeviceInspect deviceInspect);

@@ -10,6 +10,10 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.controller.MessageController;
+import com.device.inspect.controller.SocketMessageApi;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,6 +30,7 @@ import java.text.DateFormat;
  */
 @Component
 public class MyDeviceStatusScheduleImp implements  MySchedule {
+    private static final Logger logger = LogManager.getLogger(MyDeviceStatusScheduleImp.class);
 
     @Autowired
     private DeviceRepository deviceRepository;
@@ -56,6 +61,11 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
 
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
+
+    @Autowired
+    private MessageController messageController;
+
+    static private Integer bettaryInspectId = 9;
 
     /**
      * 从当前时间开始定时每隔10分钟刷新一次
@@ -134,6 +144,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         roomLowAlert+=1;
                                                 }
                                                 InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
+                                                boolean currentDeviceOnLine = false;
                                                 if (null!=inspectData&&null!=inspectData.getCreateDate()){
                                                     Date currentTime = new Date();
                                                     Date reportTime = inspectData.getCreateDate();
@@ -142,6 +153,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
 						                            long minutes = (currentTime.getTime() - reportTime.getTime())/(1000*60);
                                                     System.out.println("Device Life -- Id: " + device.getId() + ", minutes since last report: " + minutes + ", report time: " + df.format(reportTime) + ", current time: " + df.format(currentTime));
 						                            if (minutes>5){
+						                                currentDeviceOnLine = false;
                                                         DeviceOffline deviceOffline = new DeviceOffline();
                                                         deviceOffline.setDevice(device);
                                                         deviceOffline.setOfflineDate(new Date());
@@ -152,6 +164,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         }
                                                         roomOffline+=1;
                                                     }else {
+						                                currentDeviceOnLine = true;
                                                         if (null!=monitorDevice) {
                                                             monitorDevice.setOnline(1);
                                                             monitorDeviceRepository.save(monitorDevice);
@@ -159,6 +172,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         roomOnline+=1;
                                                     }
                                                 }else {
+                                                    currentDeviceOnLine = false;
                                                     roomOffline+=1;
                                                     if (null!=monitorDevice){
                                                         monitorDevice.setOnline(0);
@@ -166,6 +180,52 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                     }
                                                 }
 
+                                                Calendar cal = Calendar.getInstance();
+                                                long currentTimeMilisecond = cal.getTimeInMillis();
+                                                long beginTimeMilisecond = cal.getTimeInMillis() - 10*60*1000;
+                                                Date currentTime = new Date(currentTimeMilisecond);
+                                                Date beginTime = new Date(beginTimeMilisecond);
+
+                                                if(currentDeviceOnLine){
+                                                    // find current info type
+                                                    DeviceInspect inspect = deviceInspectRepository.
+                                                            findByInspectTypeIdAndDeviceId(bettaryInspectId, device.getId());
+                                                    if(inspect == null){
+                                                        // bettary inspect is not found, error
+                                                        logger.info(String.format("Online Schedule: device %s-%d has no bettary inspect", device.getName(), device.getId()));
+                                                    }
+                                                    else{
+                                                        List<InspectData> inspectDatas = inspectDataRepository.
+                                                                findByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
+                                                                        inspect.getId(), beginTime);
+                                                        if(inspectDatas == null || inspectDatas.size() == 0){
+                                                            // no battery message
+                                                            logger.info(String.format("Online Schedule: device %s-%d has no bettary message", device.getName(), device.getId()));
+                                                        }
+                                                        else {
+                                                            boolean batteryIsDesc = true;
+                                                            double lastBettaryValue = Double.parseDouble(inspectDatas.get(0).getResult());
+                                                            for (InspectData batteryInspect : inspectDatas) {
+                                                                double currentBettaryValue = Double.parseDouble(batteryInspect.getResult());
+                                                                if (lastBettaryValue >= currentBettaryValue) {
+                                                                    lastBettaryValue = currentBettaryValue;
+                                                                } else {
+                                                                    batteryIsDesc = false;
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            if (batteryIsDesc) {
+                                                                // send power message
+                                                                messageController.sendPowerMsg(device, inspect, currentTime);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                else{
+                                                    // send offline message
+                                                    messageController.sendOfflineMsg(device, null, currentTime);
+                                                }
 
                                                 Float offSocre = (float)50.0;
                                                 Float alertScore = (float) 50.0;
