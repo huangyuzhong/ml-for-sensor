@@ -161,8 +161,7 @@ public class SocketMessageApi {
 
                     double R = (1000 * AD0 - 1000 * AD1) / (3.38 - AD0 - AD1);//生成double类型的电阻
 
-
-                    System.out.println("计算出来的电阻：" + R);
+                    LOGGER.info("Resistance is :" + R);
 
                     //将double类型的电阻转换成float类型
                     //将电阻四舍五入到小数点两位
@@ -175,7 +174,6 @@ public class SocketMessageApi {
                         //通过电阻找到对象的温度
                         String temperature = pt100.getTemperature();
 
-
                         record = Float.valueOf(temperature);
                         //添加测量原值
                         inspectData.setRealValue(String.valueOf(record));
@@ -184,13 +182,6 @@ public class SocketMessageApi {
                         check = record - (deviceInspect.getZero());
                         inspectData.setResult(String.valueOf(check));
                         deviceInspect.setCorrectionValue(check);
-//                    Pt100Zero pt100Zero=new Pt100Zero();
-//                    //查询飘零表
-//                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-//                    if (pt100Zero!=null){
-//                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
-//                    }
-
                     } else {
                         //通过电阻找到对应的温度
                         //从小到大
@@ -225,12 +216,6 @@ public class SocketMessageApi {
                         check = record - (deviceInspect.getZero());
                         inspectData.setResult(String.valueOf(check));
                         deviceInspect.setCorrectionValue(check);
-//                    Pt100Zero pt100Zero=new Pt100Zero();
-//                    //查询飘零表
-//                    pt100Zero=pt100ZeroRepository.findByCode(mointorCode);
-//                    if (pt100Zero!=null){
-//                        record=record+(Float.valueOf(String.valueOf(pt100Zero.getZeroValue())));
-//                    }
                     }
                     //设置检测结果
 //                inspectData.setResult(String.valueOf(record));
@@ -352,6 +337,70 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
 
+                }
+                else if (monitorTypeCode.equals("18") || monitorTypeCode.equals("19") || monitorTypeCode.equals("1a")) {
+                    LOGGER.info(String.format("Device %d, Monitor code %s, pt 100 temperature",
+                            device.getId(), monitorTypeCode));
+                    inspectData.setCreateDate(deviceSamplingTime);
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+
+                    double U = iDeviceSamplingData * 1.024 / 32768;
+                    double R = 1002*U/(3.37 - U) - 0.5;//生成double类型的电阻
+
+                    LOGGER.info("Resistance is :" + R);
+
+                    //将double类型的电阻转换成float类型
+                    //将电阻四舍五入到小数点两位
+                    BigDecimal bigDecimal = new BigDecimal(Float.valueOf(String.valueOf(R)));
+                    Float r = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
+                    //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
+                    if (pt100Repository.findByResistance(r) != null) {
+                        Pt100 pt100 = pt100Repository.findByResistance(r);
+                        //通过电阻找到对象的温度
+                        String temperature = pt100.getTemperature();
+
+                        record = Float.valueOf(temperature);
+                        //添加测量原值
+                        inspectData.setRealValue(String.valueOf(record));
+                        deviceInspect.setOriginalValue(record);
+                        //矫正值
+                        check = record - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(check));
+                        deviceInspect.setCorrectionValue(check);
+                    } else {
+                        //通过电阻找到对应的温度
+                        //从小到大
+                        List<Pt100> list1 = new ArrayList<Pt100>();
+                        //使用默认表查询
+                        list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
+                        //找到对应的Pt100
+                        Pt100 one = list1.get(0);
+                        String temperature1 = one.getTemperature();
+                        Float resistance1 = one.getResistance();
+                        //从大到小
+                        List<Pt100> list2 = new ArrayList<Pt100>();
+                        //使用默认表查询
+                        list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
+                        //找到对应的Pt100
+                        Pt100 two = list2.get(0);
+                        String temperature2 = two.getTemperature();
+                        Float resistance2 = two.getResistance();
+                        //进行线性公式计算出改r下面的温度
+                        float k = (Float.valueOf(temperature2) - Float.valueOf(temperature1)) / (resistance2 - resistance1);
+
+                        float b = Float.valueOf(temperature1) - (k * resistance1);
+
+                        //将温度存入record
+                        record = k * r + b;
+                        //添加测量原值
+                        inspectData.setRealValue(String.valueOf(record));
+                        deviceInspect.setOriginalValue(record);
+                        //添加矫正值
+                        check = record - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(check));
+                        deviceInspect.setCorrectionValue(check);
+                    }
                 } else {
                     LOGGER.info(String.format("Device %d, Monitor code 0e-0f-10",
                             device.getId()));
