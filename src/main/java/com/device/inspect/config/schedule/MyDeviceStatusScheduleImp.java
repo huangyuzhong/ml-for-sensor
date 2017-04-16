@@ -121,7 +121,8 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                         List<Device> deviceList = deviceRepository.findByRoomIdAndEnable(room.getId(),1);
                                         if (null!=deviceList)
                                             for (Device device :deviceList){
-                                                if (device.getEnable()==0)
+                                                logger.info("Scan Device id: " + device.getId());
+						if (device.getEnable()==0)
                                                     continue;
                                                 List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(device.getId());
                                                 MonitorDevice monitorDevice = monitorDeviceRepository.findByDeviceId(device.getId());
@@ -151,7 +152,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
 
 						                            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 						                            long minutes = (currentTime.getTime() - reportTime.getTime())/(1000*60);
-                                                    System.out.println("Device Life -- Id: " + device.getId() + ", minutes since last report: " + minutes + ", report time: " + df.format(reportTime) + ", current time: " + df.format(currentTime));
+                                                    logger.info("Scan Device Device Life -- Id: " + device.getId() + ", minutes since last report: " + minutes + ", report time: " + df.format(reportTime) + ", current time: " + df.format(currentTime));
 						                            if (minutes>5){
 						                                currentDeviceOnLine = false;
                                                         DeviceOffline deviceOffline = new DeviceOffline();
@@ -172,6 +173,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         roomOnline+=1;
                                                     }
                                                 }else {
+						    logger.info("Scan Device id: " + device.getId() + ", no inspect data, judge offline");
                                                     currentDeviceOnLine = false;
                                                     roomOffline+=1;
                                                     if (null!=monitorDevice){
