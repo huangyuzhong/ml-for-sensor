@@ -22,6 +22,7 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
+import com.device.inspect.common.restful.data.RestMonitorDataOfDevice;
 import com.device.inspect.common.restful.device.*;
 import com.device.inspect.Application;
 import com.device.inspect.common.restful.firm.RestCompany;
@@ -29,10 +30,7 @@ import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
-import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusRequest;
-import com.device.inspect.controller.request.DeviceTypeRequest;
-import com.device.inspect.controller.request.InspectTypeRequest;
-import com.device.inspect.controller.request.RunningStatusRequest;
+import com.device.inspect.controller.request.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +103,12 @@ public class SelectApiController {
 
     @Autowired
     private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
+
+    @Autowired
+    private  InspectDataRepository inspectDataRepository;
+
+    @Autowired
+    private  DeviceInspectRepository deviceInspectRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1002,5 +1006,114 @@ public class SelectApiController {
         map.put("leastOftenUsedHour", leastOftenUsedHour);
         map.put("offTimeHours", offTimeHours);
         return new RestResponse(map);
+    }
+
+    /**
+     * 获取设备在时间段内的数据
+     */
+    @RequestMapping(value = "/device/monitorData", method = RequestMethod.POST)
+    public RestResponse getMonitorData(Principal principal, @ModelAttribute MonitorDataOfDeviceRequest requestParam){
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        if(requestParam.getDeviceId() == null){
+            return new RestResponse("设备id为空", 1006, null);
+        }
+        Device device;
+        device = deviceRepository.findById(Integer.parseInt(requestParam.getDeviceId()));
+        if(device == null){
+            return new RestResponse("设备不存在", 1006, null);
+        }
+
+        if(requestParam.getBeginTime() != null || requestParam.getEndTime() != null){
+            return new RestResponse("起止时间未设置", 1006, null);
+        }
+        Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
+        Date endTime = new Date(Long.parseLong(requestParam.getEndTime()));
+        long interval = 1*1000;
+        long beginMillisecond = beginTime.getTime()/interval*interval;
+        long endMillisecond = endTime.getTime();
+
+        if(requestParam.getMonitorId() == null){
+            return new RestResponse("监控参数ID未设置", 1006, null);
+        }
+
+
+        List<String> deviceInspectIds = requestParam.getMonitorId();
+        List<DeviceInspect> deviceInspects = new ArrayList<>();
+        List<String> nameLists = new ArrayList<>();
+        nameLists.add("时间");
+
+        for(String deviceInspectId : deviceInspectIds){
+            DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(deviceInspectId));
+            if(deviceInspect != null){
+                nameLists.add(deviceInspect.getName());
+                deviceInspects.add(deviceInspect);
+            }
+            else{
+                LOGGER.info(String.format("Device Inspect Id %s is not found.", deviceInspectId));
+            }
+        }
+
+        List<List<InspectData> > listOfInspectDatas = new ArrayList<>();
+        List<InspectData> currentInspectData = new ArrayList<>();
+        List<Iterator<InspectData> > listOfIterator = new ArrayList<>();
+        // setup inspect data and iterator
+        for(DeviceInspect deviceInspect : deviceInspects){
+            List<InspectData> inspectDatas = inspectDataRepository.
+                    findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
+            listOfInspectDatas.add(inspectDatas);
+            if(inspectDatas != null && inspectDatas.size() > 0){
+                Iterator<InspectData> iterator = inspectDatas.iterator();
+                listOfIterator.add(iterator);
+                currentInspectData.add(iterator.next());
+            }
+            else{
+                listOfIterator.add(null);
+                currentInspectData.add(null);
+            }
+        }
+
+        RestMonitorDataOfDevice monitorDataOfDevice = new RestMonitorDataOfDevice();
+        monitorDataOfDevice.setDeviceId(device.getId().toString());
+        monitorDataOfDevice.setDeviceLocation(device.getxPoint().toString() + " - " + device.getyPoint().toString());
+        monitorDataOfDevice.setDeviceLogo(device.getPhoto());
+        monitorDataOfDevice.setDeviceManager(device.getManager().getName());
+        monitorDataOfDevice.setDeviceName(device.getName());
+        monitorDataOfDevice.setEndTime(String.valueOf(endTime.getTime()));
+        monitorDataOfDevice.setStartTime(String.valueOf(String.valueOf(beginTime.getTime())));
+        monitorDataOfDevice.setName(nameLists);
+
+        List<List<String>> data = new ArrayList<>();
+
+        for(long currentMillisecond = beginMillisecond; currentMillisecond < endMillisecond; currentMillisecond = currentMillisecond + interval){
+            boolean hasDataInThisInterval = false;
+            for(int index = 0; index < currentInspectData.size(); index++){
+                if(currentInspectData.get(index) != null
+                        && currentInspectData.get(index).getCreateDate().getTime() < currentMillisecond + interval){
+                    hasDataInThisInterval = true;
+                }
+            }
+
+            if(hasDataInThisInterval){
+                List<String> dataItem = new ArrayList<>();
+                for(int index = 0; index < currentInspectData.size(); index++){
+                    dataItem.add(String.valueOf(currentMillisecond));
+
+                    if(currentInspectData.get(index) != null
+                            && currentInspectData.get(index).getCreateDate().getTime() < currentMillisecond + interval){
+                        InspectData nextInspectData = listOfIterator.get(index).hasNext() ? listOfIterator.get(index).next() : null;
+                        dataItem.add(nextInspectData.getResult());
+                    }
+                    else{
+                        dataItem.add(null);
+                    }
+                }
+                data.add(dataItem);
+            }
+        }
+
+        monitorDataOfDevice.setData(data);
+        return new RestResponse(monitorDataOfDevice);
     }
 }
