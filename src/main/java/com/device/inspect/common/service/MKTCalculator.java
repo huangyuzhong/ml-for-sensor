@@ -32,7 +32,8 @@ public class MKTCalculator {
                 sum += time * Math.exp(- deltaHDivR/(Double.parseDouble(inspectDatas.get(i).getResult())*1.8 + 32));
             }
             sum /= total_time;
-            return new Double(-deltaHDivR/Math.log(sum));
+
+            return new Double((-deltaHDivR/Math.log(sum)-32)/1.8);
         }
     }
 }
