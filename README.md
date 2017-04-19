@@ -28,9 +28,10 @@
   cd ./target
   nohup java -jar /*target .jar file*/ --spring.config.location=${home}/intelab-configs/${INTELAB_ENV}/application.properties &
 ```
+使用nohup可以使退出ssh时后端依然在运行
 
 如果使用intellij运行，需要在edit configuration 中，spring boot setting 里添加spring.config.location，值为config的文件路径名
-  使用nohup可以使退出ssh时后端依然在运行
+  
 
 5. 改动
   改动文件之后，需要将原先的进程关闭，然后重新启动
