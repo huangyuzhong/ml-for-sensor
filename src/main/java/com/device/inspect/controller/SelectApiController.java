@@ -28,6 +28,7 @@ import com.device.inspect.Application;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
+import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
@@ -1011,8 +1012,16 @@ public class SelectApiController {
     /**
      * 获取设备在时间段内的数据
      */
+
+    /**
+     * Test Example
+     * curl -H "Content-type: application/json" -X POST --data
+     * '{"deviceId":"228","beginTime":"1492606828000", "endTime":"1492606978000",
+     * "mktId":"279", "monitorId":["277", "278", "279"]}'
+     * http://localhost/api/rest/firm/device/monitorData
+     */
     @RequestMapping(value = "/device/monitorData", method = RequestMethod.POST)
-    public RestResponse getMonitorData(Principal principal, @ModelAttribute MonitorDataOfDeviceRequest requestParam){
+    public RestResponse getMonitorData(Principal principal, @RequestBody MonitorDataOfDeviceRequest requestParam){
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
@@ -1025,7 +1034,7 @@ public class SelectApiController {
             return new RestResponse("设备不存在", 1006, null);
         }
 
-        if(requestParam.getBeginTime() != null || requestParam.getEndTime() != null){
+        if(requestParam.getBeginTime() == null || requestParam.getEndTime() == null){
             return new RestResponse("起止时间未设置", 1006, null);
         }
         Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
@@ -1033,7 +1042,7 @@ public class SelectApiController {
         long interval = 1*1000;
         long beginMillisecond = beginTime.getTime()/interval*interval;
         long endMillisecond = endTime.getTime();
-
+        LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s.", beginTime.toString(), endTime.toString()));
         if(requestParam.getMonitorId() == null){
             return new RestResponse("监控参数ID未设置", 1006, null);
         }
@@ -1047,11 +1056,12 @@ public class SelectApiController {
         for(String deviceInspectId : deviceInspectIds){
             DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(deviceInspectId));
             if(deviceInspect != null){
+                LOGGER.info(String.format("Get Device Monitor: monitor %d is found.", deviceInspect.getId()));
                 nameLists.add(deviceInspect.getName());
                 deviceInspects.add(deviceInspect);
             }
             else{
-                LOGGER.info(String.format("Device Inspect Id %s is not found.", deviceInspectId));
+                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is not found.", deviceInspectId));
             }
         }
 
@@ -1065,15 +1075,17 @@ public class SelectApiController {
             listOfInspectDatas.add(inspectDatas);
             if(inspectDatas != null && inspectDatas.size() > 0){
                 Iterator<InspectData> iterator = inspectDatas.iterator();
+                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %d get %d inspect data.", deviceInspect.getId(), inspectDatas.size()));
                 listOfIterator.add(iterator);
                 currentInspectData.add(iterator.next());
             }
             else{
+                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is empty data list in given interval", deviceInspect.getId()));
                 listOfIterator.add(null);
                 currentInspectData.add(null);
             }
         }
-
+        LOGGER.info(String.format("Get Device Monitor: current Inspect Data size: %d", currentInspectData.size()));
         RestMonitorDataOfDevice monitorDataOfDevice = new RestMonitorDataOfDevice();
         monitorDataOfDevice.setDeviceId(device.getId().toString());
         monitorDataOfDevice.setDeviceLocation(device.getxPoint().toString() + " - " + device.getyPoint().toString());
@@ -1085,25 +1097,25 @@ public class SelectApiController {
         monitorDataOfDevice.setName(nameLists);
 
         List<List<String>> data = new ArrayList<>();
-
         for(long currentMillisecond = beginMillisecond; currentMillisecond < endMillisecond; currentMillisecond = currentMillisecond + interval){
             boolean hasDataInThisInterval = false;
             for(int index = 0; index < currentInspectData.size(); index++){
                 if(currentInspectData.get(index) != null
-                        && currentInspectData.get(index).getCreateDate().getTime() < currentMillisecond + interval){
+                        && currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
                     hasDataInThisInterval = true;
+                    break;
                 }
             }
 
             if(hasDataInThisInterval){
                 List<String> dataItem = new ArrayList<>();
+                dataItem.add(String.valueOf(currentMillisecond));
                 for(int index = 0; index < currentInspectData.size(); index++){
-                    dataItem.add(String.valueOf(currentMillisecond));
-
                     if(currentInspectData.get(index) != null
-                            && currentInspectData.get(index).getCreateDate().getTime() < currentMillisecond + interval){
+                            && currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
                         InspectData nextInspectData = listOfIterator.get(index).hasNext() ? listOfIterator.get(index).next() : null;
-                        dataItem.add(nextInspectData.getResult());
+                        dataItem.add(currentInspectData.get(index).getResult());
+                        currentInspectData.set(index, nextInspectData);
                     }
                     else{
                         dataItem.add(null);
@@ -1113,6 +1125,28 @@ public class SelectApiController {
             }
         }
 
+        Double MKT = null;
+        if(requestParam.getMktId() != null){
+            DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(requestParam.getMktId()));
+            if(deviceInspect != null){
+                List<InspectData> inspectDatas = inspectDataRepository.
+                        findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
+                if(inspectDatas != null){
+                    LOGGER.info("device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
+                    MKT = MKTCalculator.calculateMKT(inspectDatas);
+                }
+                else{
+                    LOGGER.info("MKT Monitor Inspect's data is null");
+                }
+            }
+            else{
+                LOGGER.info("MKT Monitor Inspect is not existed");
+            }
+        }
+
+        if(MKT != null){
+            monitorDataOfDevice.setMKTdata(MKT.toString());
+        }
         monitorDataOfDevice.setData(data);
         return new RestResponse(monitorDataOfDevice);
     }

@@ -173,7 +173,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         roomOnline+=1;
                                                     }
                                                 }else {
-						    logger.info("Scan Device id: " + device.getId() + ", no inspect data, judge offline");
+                                                    logger.info("Scan Device id: " + device.getId() + ", no inspect data, judge offline");
                                                     currentDeviceOnLine = false;
                                                     roomOffline+=1;
                                                     if (null!=monitorDevice){

@@ -13,6 +13,7 @@ public class RestMonitorDataOfDevice {
     private String startTime;
     private String endTime;
     private String deviceLogo;
+    private String MKTdata;
     private List<String> name;
     private List<List<String>> data;
 
@@ -70,6 +71,14 @@ public class RestMonitorDataOfDevice {
 
     public void setDeviceLogo(String deviceLogo){
         this.deviceLogo = deviceLogo;
+    }
+
+    public String getMKTdata(){
+        return this.MKTdata;
+    }
+
+    public void setMKTdata(String MKTdata){
+        this.MKTdata = MKTdata;
     }
 
     public List<String> getName(){

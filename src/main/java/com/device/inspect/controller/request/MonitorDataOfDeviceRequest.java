@@ -1,5 +1,7 @@
 package com.device.inspect.controller.request;
 
+import org.springframework.security.access.method.P;
+
 import java.util.List;
 
 /**
@@ -9,6 +11,7 @@ public class MonitorDataOfDeviceRequest {
     private String deviceId;
     private String beginTime;
     private String endTime;
+    private String mktId;
     private List<String> monitorId;
 
     public String getDeviceId(){
@@ -33,6 +36,14 @@ public class MonitorDataOfDeviceRequest {
 
     public void setEndTime(String endTime) {
         this.endTime = endTime;
+    }
+
+    public String getMktId(){
+        return this.mktId;
+    }
+
+    public void setMktId(String mktId){
+        this.mktId = mktId;
     }
 
     public List<String> getMonitorId(){
