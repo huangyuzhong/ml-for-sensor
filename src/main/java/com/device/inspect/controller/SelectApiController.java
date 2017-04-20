@@ -936,11 +936,7 @@ public class SelectApiController {
         Date beginTime, endTime;
         if(requestParam.containsKey("date")){
             beginTime = new Date(Long.parseLong(requestParam.get("date")));
-            Calendar endCalendar = Calendar.getInstance();
-            endCalendar.setTime(beginTime);
-            endCalendar.set(Calendar.HOUR, 23);
-            endCalendar.set(Calendar.MINUTE, 59);
-            endTime = endCalendar.getTime();
+            endTime = new Date(Long.parseLong(requestParam.get("date")) + 24*60*60*1000);
         }
         else{
             Calendar beginCalendar = Calendar.getInstance();
