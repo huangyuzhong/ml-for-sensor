@@ -40,7 +40,7 @@ public class ScanOfflineData implements  MySchedule{
                 logger.info(String.format("Begin Scan Offline Data File %s", ftpFile.getName()));
 
                 ByteArrayOutputStream fileStream = new ByteArrayOutputStream();
-                Application.offlineFTPStorageManager.downloadFile(ftpFile.getName(), "monitor", fileStream);
+                Application.offlineFTPStorageManager.downloadFile(ftpFile.getName(), "monitoring", fileStream);
                 String fileString = fileStream.toString();
                 String[] fileStringArray = fileString.split("\n");
                 if (fileStringArray[fileStringArray.length - 1].equals("END")) {
@@ -55,7 +55,7 @@ public class ScanOfflineData implements  MySchedule{
                     illegalFileNum++;
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));
                 }
-                Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitor");
+                Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
                 fileStream.close();
             }
         }
