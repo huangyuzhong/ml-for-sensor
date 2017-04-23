@@ -81,24 +81,17 @@ public class SocketMessageApi {
 
     String unit = "s";
 
-    /**
-     * 更新数据
-     * @param result
-     * @return
-     */
-    @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
-    public RestResponse excuteInspectData(@RequestParam String result) {
-        LOGGER.info(result);
-        String monitorTypeCode = result.substring(6, 8);
+    public DeviceInspect parseInspectAndSave(String inspectMessage) {
+        String monitorTypeCode = inspectMessage.substring(6, 8);
 
 
         //直接获取解析终端时间报文
-        String deviceDateYear = result.substring(34, 36);
-        String deviceDateMonth = result.substring(36, 38);
-        String deviceDateDay = result.substring(38, 40);
-        String deviceDateHour = result.substring(40, 42);
-        String deviceDateMinute = result.substring(42, 44);
-        String deviceDateSecond = result.substring(44, 46);
+        String deviceDateYear = inspectMessage.substring(34, 36);
+        String deviceDateMonth = inspectMessage.substring(36, 38);
+        String deviceDateDay = inspectMessage.substring(38, 40);
+        String deviceDateHour = inspectMessage.substring(40, 42);
+        String deviceDateMinute = inspectMessage.substring(42, 44);
+        String deviceDateSecond = inspectMessage.substring(44, 46);
         String strDeviceDate = 20 + "" + deviceDateYear + deviceDateMonth + deviceDateDay + deviceDateHour + deviceDateMinute + deviceDateSecond;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         Date deviceSamplingTime = new Date();
@@ -112,32 +105,30 @@ public class SocketMessageApi {
             LOGGER.error("parsing device time string error: " + e.getMessage());
         }
 
-        String deviceSamplingData = result.substring(48,56);
+        String deviceSamplingData = inspectMessage.substring(48, 56);
         int iDeviceSamplingData = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData), 0, 4);
         Device device = new Device();
-        String mointorCode = result.substring(8,26);
-       //LOGGER.info("终端编号是：：：：："+mointorCode);
+        String mointorCode = inspectMessage.substring(8, 26);
+        //LOGGER.info("终端编号是：：：：："+mointorCode);
         MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
-        if (null==monitorDevice)
-            return new RestResponse(null);
-        if(monitorTypeCode.equals("03")) {
-            monitorDevice.setBattery(String.valueOf(Float.valueOf(iDeviceSamplingData)/10));
+        if (null == monitorDevice)
+            return null;
+        if (monitorTypeCode.equals("03")) {
+            monitorDevice.setBattery(String.valueOf(Float.valueOf(iDeviceSamplingData) / 10));
             monitorDeviceRepository.save(monitorDevice);
         }
         device = monitorDevice.getDevice();
-        if (device.getEnable()==0)
-            return new RestResponse(null);
+        if (device.getEnable() == 0)
+            return null;
 
         InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
 
-        String response = null;
-
         InspectData inspectData = new InspectData();
-        if (null != inspectType){
+        if (null != inspectType) {
             DeviceInspect deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-            if (null==deviceInspect)
-                return new RestResponse(null);
+            if (null == deviceInspect)
+                return null;
             //测量原值
             Float record;
             //添加矫正值
@@ -170,7 +161,6 @@ public class SocketMessageApi {
                     //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
                     if (pt100Repository.findByResistance(r) != null) {
                         Pt100 pt100 = pt100Repository.findByResistance(r);
-//                    Pt100 pt100=pt100Repository.findByDeviceTypeIdAndResistance(device.getDeviceType().getId(),r);
                         //通过电阻找到对象的温度
                         String temperature = pt100.getTemperature();
 
@@ -188,7 +178,6 @@ public class SocketMessageApi {
                         List<Pt100> list1 = new ArrayList<Pt100>();
                         //使用默认表查询
                         list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
-//                    list1=pt100Repository.findByDeviceTypeIdAndResistanceAfterOrderByASC(device.getDeviceType().getId(),r);
                         //找到对应的Pt100
                         Pt100 one = list1.get(0);
                         String temperature1 = one.getTemperature();
@@ -197,7 +186,6 @@ public class SocketMessageApi {
                         List<Pt100> list2 = new ArrayList<Pt100>();
                         //使用默认表查询
                         list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
-//                    list2=pt100Repository.findByDeviceTypeIdAndResistanceBeforeOrderByDESC(device.getDeviceType().getId(),r);
                         //找到对应的Pt100
                         Pt100 two = list2.get(0);
                         String temperature2 = two.getTemperature();
@@ -218,7 +206,7 @@ public class SocketMessageApi {
                         deviceInspect.setCorrectionValue(check);
                     }
                     //设置检测结果
-//                inspectData.setResult(String.valueOf(record));
+
                 } else if (monitorTypeCode.equals("07")) {
                     LOGGER.info(String.format("Device %d, Monitor code 07, jia wan",
                             device.getId()));
@@ -337,8 +325,7 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
 
-                }
-                else if (monitorTypeCode.equals("18") || monitorTypeCode.equals("19") || monitorTypeCode.equals("1a")) {
+                } else if (monitorTypeCode.equals("18") || monitorTypeCode.equals("19") || monitorTypeCode.equals("1a")) {
                     LOGGER.info(String.format("Device %d, Monitor code %s, pt 100 temperature",
                             device.getId(), monitorTypeCode));
                     inspectData.setCreateDate(deviceSamplingTime);
@@ -346,7 +333,7 @@ public class SocketMessageApi {
                     inspectData.setDeviceInspect(deviceInspect);
 
                     double U = iDeviceSamplingData * 1.024 / 32768;
-                    double R = 1002*U/(3.37 - U) - 0.5;//生成double类型的电阻
+                    double R = 1002 * U / (3.37 - U) - 0.5;//生成double类型的电阻
 
                     LOGGER.info("Resistance is :" + R);
 
@@ -415,10 +402,10 @@ public class SocketMessageApi {
                     inspectData.setResult(String.valueOf(check));
                     deviceInspect.setCorrectionValue(check);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("failed to parse datagram from remote device: " + e.getLocalizedMessage());
                 LOGGER.error("exception stack: ", e);
-                return new RestResponse(null);
+                return null;
             }
 
             LOGGER.info("successfully parsing datagram.");
@@ -426,16 +413,16 @@ public class SocketMessageApi {
             try {
                 deviceInspectRepository.save(deviceInspect);
                 inspectDataRepository.save(inspectData);
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
                 LOGGER.error("exception stack: ", e);
-                return new RestResponse(null);
+                return null;
             }
 
             LOGGER.info("parsed datagram saved to database deviceInspect and inspectData");
 
-            if (null==deviceInspect.getStandard()||null==deviceInspect.getHighUp()||null==deviceInspect.getLowDown()){
-                return new RestResponse(null);
+            if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
+                return null;
             }
 
             LOGGER.info("check data against alert");
@@ -445,11 +432,11 @@ public class SocketMessageApi {
                     findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
 
             // case 1, red alert
-            if (deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()){
+            if (deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()) {
                 LOGGER.info(String.format("Device %d, Inspect %d, data %s is outside the red alert bound",
                         device.getId(), deviceInspect.getId(), record));
                 // exists yellow alert
-                if (null!=low&&low.getNum()>0){
+                if (null != low && low.getNum() > 0) {
                     LOGGER.info("There exists a yellow alert before this red alert, set its finish time");
                     low.setFinish(deviceSamplingTime);
                     alertCountRepository.save(low);
@@ -464,7 +451,7 @@ public class SocketMessageApi {
                 }
 
                 // new red alert
-                if (null == high){
+                if (null == high) {
                     LOGGER.info(String.format("New red alert for device %d, inspect %s", device.getId(), deviceInspect.getId()));
                     high = new AlertCount();
                     high.setDevice(device);
@@ -473,8 +460,7 @@ public class SocketMessageApi {
                     high.setType(2);
                     high.setCreateDate(deviceSamplingTime);
                     high.setUnit(unit);
-                }
-                else { // existing red alert
+                } else { // existing red alert
                     int alertCount = high.getNum() + 1;
                     LOGGER.info(String.format("This is an updated red alert for device %d, inspect %d. Update count to %d",
                             device.getId(),
@@ -488,22 +474,21 @@ public class SocketMessageApi {
                 inspectData.setType("high");
 
                 // send push notification if necessary
-                if(deviceInspect.getHighUp() < record){
+                if (deviceInspect.getHighUp() < record) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
-                }
-                else{
+                } else {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
                 }
             }
             // case 2, yellow alert
-            else if ((record<=deviceInspect.getHighUp()&&record>deviceInspect.getLowUp())||
-                    (record>=deviceInspect.getHighDown()&&record<deviceInspect.getLowDown())){
+            else if ((record <= deviceInspect.getHighUp() && record > deviceInspect.getLowUp()) ||
+                    (record >= deviceInspect.getHighDown() && record < deviceInspect.getLowDown())) {
                 LOGGER.info(String.format("Device %d, Inspect %d, got yellow alert %s",
                         device.getId(),
                         deviceInspect.getId(),
                         record));
                 // there exists a red alert
-                if (null!=high&&high.getNum()>0){
+                if (null != high && high.getNum() > 0) {
                     LOGGER.info("There exists a red alert before this yellow alert, set its finish time");
                     high.setFinish(deviceSamplingTime);
                     alertCountRepository.save(high);
@@ -517,7 +502,7 @@ public class SocketMessageApi {
                     alertCountRepository.save(newHigh);
                 }
                 // new yellow alert
-                if (null == low){
+                if (null == low) {
                     LOGGER.info("This is a new yellow alert for device %d, inspect %d",
                             device.getId(),
                             deviceInspect.getId());
@@ -528,8 +513,7 @@ public class SocketMessageApi {
                     low.setNum(1);
                     low.setType(1);
                     low.setUnit(unit);
-                }
-                else{ //exists yellow alert
+                } else { //exists yellow alert
                     int alertCount = low.getNum() + 1;
                     LOGGER.info(String.format("This is an updated yellow alert for device %d, inspect %d. Update count to %d",
                             device.getId(),
@@ -542,21 +526,20 @@ public class SocketMessageApi {
                 // set inspect_data column 'type'
                 inspectData.setType("low");
                 // push notification if necessary
-                if(record > deviceInspect.getLowUp()){
+                if (record > deviceInspect.getLowUp()) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
-                }
-                else{
+                } else {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
                 }
             }
             // case 3, normal data
             else {
                 // check if there exist alert
-                if (null==low||low.getNum()>0){
+                if (null == low || low.getNum() > 0) {
                     LOGGER.info(String.format("Device %d, Inspect %d, there exist yellow alert before this normal data, finalize alert",
                             device.getId(),
                             deviceInspect.getId()));
-                    if (null!=low){
+                    if (null != low) {
                         low.setFinish(deviceSamplingTime);
                         alertCountRepository.save(low);
                     }
@@ -571,11 +554,11 @@ public class SocketMessageApi {
                     alertCountRepository.save(newLow);
                 }
 
-                if (null==high||high.getNum()>0){
+                if (null == high || high.getNum() > 0) {
                     LOGGER.info(String.format("Device %d, Inspect %d, there exist red alert before this normal data, finalize alert",
                             device.getId(),
                             deviceInspect.getId()));
-                    if (null!=high){
+                    if (null != high) {
                         high.setFinish(deviceSamplingTime);
                         alertCountRepository.save(high);
                     }
@@ -596,98 +579,63 @@ public class SocketMessageApi {
             LOGGER.info("datagram alert type set and updating to db");
             inspectDataRepository.save(inspectData);
 
-            LOGGER.info("add response datagram head");
-            List<Byte> responseByte = new ArrayList<Byte>();
-            responseByte.add((byte)0xEF);
-            responseByte.add((byte)0x02);
-            responseByte.add((byte)0x05);
+            return deviceInspect;
+        }
+        return null;
+    }
 
-            // version update
-
-            /*
-            // skip update device version for now.
-            boolean updateFlag = false;
-
-            //            DeviceVersion deviceVersion = deviceVersionRepository.findTopOrderByCreateDateDesc();
-            DeviceVersion deviceVersion=device.getDeviceVersion();
-
-            LOGGER.info("device version is " + deviceVersion.toString());
-            String firstCode = result.substring(26,28);
-            String secondCode = result.substring(28,30);
-            String thirdCode = result.substring(30,32);
-            String fourthCode = result.substring(32,34);
-
-            try {
-                if (!firstCode.equals(deviceVersion.getFirstCode())
-                        || !secondCode.equals(deviceVersion.getSecondCode())
-                        || !thirdCode.equals(deviceVersion.getThirdCode())
-                        || !fourthCode.equals(deviceVersion.getFourthCode())) {
-                    updateFlag = true;
-                    if (deviceVersion.getType().equals("1")) {
-                        responseByte.add((byte) 0x01);
-                    } else {
-                        responseByte.add((byte) 0x02);
-                    }
-                } else {
-                    responseByte.add((byte) 0x00);       //版本号更新确定
-                }
-            }catch (Exception e){
-                LOGGER.error("failed to set version type in response datagram. " + e.getLocalizedMessage());
-                LOGGER.error("exception stack: ", e);
-
-            }
-            */
-            responseByte.add((byte) 0x00);
-            try {
-                if (null!=deviceInspect.getStandard()&&null!=deviceInspect.getLowDown()&&null!=deviceInspect.getLowUp()&&
-                        null!=deviceInspect.getHighDown()&&null!=deviceInspect.getHighUp()){
-                    //默认不存在没有报警值得情况
-//                    responseByte.add((byte)0x01);
-                    float lowUp = deviceInspect.getLowUp();
-                    float lowDown = deviceInspect.getLowDown();
-                    float highUp = deviceInspect.getHighUp();
-                    float highDown = deviceInspect.getHighDown();
-
-                    for (byte one : ByteAndHex.intToByteArray((int) lowUp*1000))
-                        responseByte.add(one);
-                    for (byte two : ByteAndHex.intToByteArray((int) lowDown*1000) )
-                        responseByte.add(two);
-                    for (byte three : ByteAndHex.intToByteArray((int) highUp*1000))
-                        responseByte.add(three);
-                    for (byte four : ByteAndHex.intToByteArray((int)highDown*1000))
-                        responseByte.add(four);
-                }else responseByte.add((byte)0x00);
-
-
-                /*
-                if (updateFlag){
-                    int length = deviceVersion.getUrl().length();
-                    String confirm = "";
-                    if (String.valueOf(length).length()<4){
-                        for (int i = 0; i < 4-String.valueOf(length).length(); i++) {
-                            confirm ="0"+confirm;
-                        }
-                    }
-                    confirm = confirm+length;
-                    for (byte bb : ByteAndHex.hexStringToBytes(confirm))
-                        responseByte.add(bb);
-                    for (char cc : deviceVersion.getUrl().toCharArray())
-                        responseByte.add((byte)cc);
-                }
-                */
-                responseByte.add((byte)0xFF);
-                responseByte.add((byte)0x02);
-                byte[] message = new byte[responseByte.size()];
-                for (int i = 0; i < responseByte.size(); i++) {
-                    message[i] = responseByte.get(i);
-                }
-                response = ByteAndHex.bytesToHexString(message);
-            } catch (Exception e) {
-                LOGGER.error("Failed to generate response message. " + e.getLocalizedMessage());
-                LOGGER.error("exception stack: ", e);
-            }
+    /**
+     * 更新数据
+     * @param result
+     * @return
+    */
+    @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
+    public RestResponse excuteInspectData(@RequestParam String result) {
+        LOGGER.info(result);
+        DeviceInspect deviceInspect = parseInspectAndSave(result);
+        if(deviceInspect == null) {
+            return new RestResponse(null);
         }
 
+        LOGGER.info("add response datagram head");
+        String response = null;
+        List<Byte> responseByte = new ArrayList<Byte>();
+        responseByte.add((byte)0xEF);
+        responseByte.add((byte)0x02);
+        responseByte.add((byte)0x05);
+
+        responseByte.add((byte) 0x00);
+        try {
+            if (null!=deviceInspect.getStandard()&&null!=deviceInspect.getLowDown()&&null!=deviceInspect.getLowUp()&&
+                    null!=deviceInspect.getHighDown()&&null!=deviceInspect.getHighUp()){
+                //默认不存在没有报警值得情况
+
+                float lowUp = deviceInspect.getLowUp();
+                float lowDown = deviceInspect.getLowDown();
+                float highUp = deviceInspect.getHighUp();
+                float highDown = deviceInspect.getHighDown();
+
+                for (byte one : ByteAndHex.intToByteArray((int) lowUp*1000))
+                    responseByte.add(one);
+                for (byte two : ByteAndHex.intToByteArray((int) lowDown*1000) )
+                    responseByte.add(two);
+                for (byte three : ByteAndHex.intToByteArray((int) highUp*1000))
+                    responseByte.add(three);
+                for (byte four : ByteAndHex.intToByteArray((int)highDown*1000))
+                    responseByte.add(four);
+            }else responseByte.add((byte)0x00);
+
+            responseByte.add((byte)0xFF);
+            responseByte.add((byte)0x02);
+            byte[] message = new byte[responseByte.size()];
+            for (int i = 0; i < responseByte.size(); i++) {
+                message[i] = responseByte.get(i);
+            }
+            response = ByteAndHex.bytesToHexString(message);
+        } catch (Exception e) {
+            LOGGER.error("Failed to generate response message. " + e.getLocalizedMessage());
+            LOGGER.error("exception stack: ", e);
+        }
         return new RestResponse(response);
     }
 

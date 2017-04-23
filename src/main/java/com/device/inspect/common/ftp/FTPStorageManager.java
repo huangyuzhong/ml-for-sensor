@@ -5,8 +5,10 @@ import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.Logger;
 import com.device.inspect.common.service.FileUploadService;
 import org.apache.logging.log4j.LogManager;
@@ -28,6 +30,54 @@ public class FTPStorageManager implements FileUploadService {
         this.ftpHost = config.get("ftpHost");
         this.user = config.get("user");
         this.password = config.get("password");
+    }
+
+    public FTPFile[] getFileListOnDirectory(String path){
+        client = new FTPClient();
+        FTPFile[] fileList = null;
+        try{
+            client.connect(ftpHost);
+            client.login(user, password);
+            client.changeWorkingDirectory(path);
+            fileList = client.listFiles();
+            client.logout();
+            client.disconnect();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        return fileList;
+    }
+
+    public void downloadFile(String filename, String path, OutputStream file){
+        client = new FTPClient();
+        try{
+            client.connect(ftpHost);
+            client.login(user, password);
+            client.changeWorkingDirectory(path);
+            client.retrieveFile(filename, file);
+            client.logout();
+            client.disconnect();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteFile(String filename, String path){
+       client = new FTPClient();
+       try{
+           client.connect(ftpHost);
+           client.login(user, password);
+           client.changeWorkingDirectory(path);
+           client.deleteFile(filename);
+           client.logout();
+           client.disconnect();
+       }
+       catch(Exception e){
+           e.printStackTrace();
+       }
     }
 
     public String uploadFile(MultipartFile file, String containerName, String blobName, String oldName){
@@ -77,6 +127,7 @@ public class FTPStorageManager implements FileUploadService {
                 logger.info("FTP File Upload: no old file, pass.");
             }
             client.logout();
+            client.disconnect();
         }
         catch(Exception e){
             e.printStackTrace();

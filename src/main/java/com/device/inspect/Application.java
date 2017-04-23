@@ -10,7 +10,6 @@ import com.device.inspect.common.azure.AzureStorageManager;
 import com.device.inspect.common.util.CONST;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -38,8 +37,10 @@ public class Application {
 
     public static AzureConfig azureConfig;
     public static FTPConfig ftpConfig;
+    public static FTPConfig offlineFTPConfig;
     public static StorageConfig storageConfig;
     public static FileUploadService intelabStorageManager = null;
+    public static FTPStorageManager offlineFTPStorageManager = null;
 
     public static void main(String[] args) throws Throwable
     {
@@ -65,8 +66,6 @@ public class Application {
             String storageType = storageConfig.getStorage().get("type");
             LOGGER.info("Storage Type " + storageType);
 
-
-
             if(storageType.equals("azure")){
                 String configFilePath = String.format("%s/intelab-configs/%s/azure.yaml", homePath, intelabEnvironmentName);
 
@@ -86,6 +85,18 @@ public class Application {
                 intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
             }
 
+            String offlineFTPConfigFilePath = String.format("%s/intelab-configs/%s/offlineFTP.yaml", homePath, intelabEnvironmentName);;
+            File offlineFTPConfigFile = new File(offlineFTPConfigFilePath);
+            if(offlineFTPConfigFile.exists() && !offlineFTPConfigFile.isDirectory()){
+                LOGGER.info("Loading Offline FTP config from " + offlineFTPConfigFilePath);
+                offlineFTPConfig = mapper.readValue(offlineFTPConfigFile, FTPConfig.class);
+                LOGGER.info(String.format("Loaded offline ftp config -- %s", ReflectionToStringBuilder.toString(offlineFTPConfig,ToStringStyle.MULTI_LINE_STYLE)));
+
+                offlineFTPStorageManager = new FTPStorageManager(offlineFTPConfig.getFtp());
+            }
+            else{
+                LOGGER.info("Offline FTP config is not found. Pass");
+            }
         } catch (Exception e) {
            LOGGER.error(String.format("Failed to load configuration, %s", e.toString()));
            throw e;
