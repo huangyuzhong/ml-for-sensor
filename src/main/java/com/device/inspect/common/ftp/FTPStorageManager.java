@@ -46,6 +46,17 @@ public class FTPStorageManager implements FileUploadService {
         catch(Exception e){
             e.printStackTrace();
         }
+        finally{
+            try {
+                if (client.isConnected()) {
+                    client.logout();
+                    client.disconnect();
+                }
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
 
         return fileList;
     }
@@ -55,6 +66,8 @@ public class FTPStorageManager implements FileUploadService {
         try{
             client.connect(ftpHost);
             client.login(user, password);
+            client.enterLocalPassiveMode();
+            client.setFileType(FTP.BINARY_FILE_TYPE);
             client.changeWorkingDirectory(path);
             client.retrieveFile(filename, file);
             client.logout();
@@ -62,6 +75,17 @@ public class FTPStorageManager implements FileUploadService {
         }
         catch(Exception e){
             e.printStackTrace();
+        }
+        finally{
+            try{
+                if(client.isConnected()){
+                    client.logout();
+                    client.disconnect();
+                }
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
         }
     }
 
