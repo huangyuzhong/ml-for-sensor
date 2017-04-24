@@ -23,7 +23,7 @@ public class ScanOfflineData implements  MySchedule{
     @Autowired
     private SocketMessageApi socketMessageApi;
 
-    @Scheduled(cron = "0 * * * * ? ")
+    @Scheduled(cron = "0 */10 * * * ? ")
     @Override
     public void scheduleTask() {
         if(Application.offlineFTPStorageManager == null){
