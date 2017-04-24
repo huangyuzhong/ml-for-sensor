@@ -38,7 +38,7 @@ public class FTPStorageManager implements FileUploadService {
         try{
             client.connect(ftpHost);
             client.login(user, password);
-            client.enterRemotePassiveMode();
+            client.enterLocalPassiveMode();
             client.changeWorkingDirectory(path);
             fileList = client.listFiles();
             client.logout();
@@ -67,7 +67,7 @@ public class FTPStorageManager implements FileUploadService {
         try{
             client.connect(ftpHost);
             client.login(user, password);
-            client.enterRemotePassiveMode();
+            client.enterLocalPassiveMode();
             client.setFileType(FTP.BINARY_FILE_TYPE);
             client.changeWorkingDirectory(path);
             client.retrieveFile(filename, file);
@@ -95,7 +95,7 @@ public class FTPStorageManager implements FileUploadService {
        try{
            client.connect(ftpHost);
            client.login(user, password);
-           client.enterRemotePassiveMode();
+           client.enterLocalPassiveMode();
            client.changeWorkingDirectory(path);
            client.deleteFile(filename);
            client.logout();
