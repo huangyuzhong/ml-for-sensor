@@ -27,7 +27,7 @@ public class ScanOfflineData implements  MySchedule{
     @Override
     public void scheduleTask() {
         if(Application.offlineFTPStorageManager == null){
-            logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass"));
+            logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
             return;
         }
         int fileNum = 0;
@@ -36,7 +36,7 @@ public class ScanOfflineData implements  MySchedule{
         int availableMessageNum = 0;
         long startTime = System.currentTimeMillis();
 
-        FTPFile[] fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitor");
+        FTPFile[] fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitoring");
         logger.info(String.format("Begin Scan Offline Data"));
         fileNum = fileList.length;
         try {
