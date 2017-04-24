@@ -26,6 +26,10 @@ public class ScanOfflineData implements  MySchedule{
     @Scheduled(cron = "0 */10 * * * ? ")
     @Override
     public void scheduleTask() {
+        if(Application.offlineFTPStorageManager == null){
+            logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass"));
+            return;
+        }
         int fileNum = 0;
         int availableFileNum = 0;
         int illegalFileNum = 0;
