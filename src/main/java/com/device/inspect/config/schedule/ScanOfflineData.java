@@ -1,7 +1,13 @@
 package com.device.inspect.config.schedule;
 
 import com.device.inspect.Application;
+import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceInspect;
+import com.device.inspect.common.model.device.MonitorDevice;
+import com.device.inspect.common.model.record.OfflineHourUnit;
+import com.device.inspect.common.repository.device.DeviceInspectRepository;
+import com.device.inspect.common.repository.device.MonitorDeviceRepository;
+import com.device.inspect.common.service.OfflineHourQueue;
 import com.device.inspect.controller.SocketMessageApi;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.RandomAccessFile;
+import java.util.Date;
 
 /**
  * Created by zyclincoln on 4/23/17.
@@ -21,7 +28,16 @@ public class ScanOfflineData implements  MySchedule{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 
     @Autowired
+    private DeviceInspectRepository deviceInspectRepository;
+
+    @Autowired
+    private MonitorDeviceRepository monitorDeviceRepository;
+
+    @Autowired
     private SocketMessageApi socketMessageApi;
+
+    @Autowired
+    private OfflineHourQueue requestQueue;
 
     @Scheduled(cron = "0 */10 * * * ? ")
     @Override
@@ -43,11 +59,25 @@ public class ScanOfflineData implements  MySchedule{
             for (FTPFile ftpFile : fileList) {
                 logger.info(String.format("Begin Scan Offline Data File %s", ftpFile.getName()));
 
+                Long timeStamp = Long.valueOf(ftpFile.getName().substring(ftpFile.getName().lastIndexOf('-') + 1));
+                String monitorCode = ftpFile.getName().substring(0, ftpFile.getName().indexOf('-'));
+                Device device = null;
+                Date beginTime = null;
+                Date endTime = null;
+                if(timeStamp > 0){
+                    beginTime = new Date(timeStamp);
+                    endTime = new Date(beginTime.getTime() + 60*60*1000);
+                    MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(monitorCode);
+                    if(monitorDevice != null){
+                        device = monitorDevice.getDevice();
+                    }
+                }
+
                 ByteArrayOutputStream fileStream = new ByteArrayOutputStream();
                 Application.offlineFTPStorageManager.downloadFile(ftpFile.getName(), "monitoring", fileStream);
                 String fileString = fileStream.toString();
                 String[] fileStringArray = fileString.split("\n");
-                if (fileStringArray[fileStringArray.length - 1].equals("END")) {
+                if (fileStringArray[fileStringArray.length - 1].equals("END") && beginTime != null && device != null) {
                     availableFileNum++;
                     for (int index = 0; index < fileStringArray.length - 1; index++) {
                         DeviceInspect deviceInspect = socketMessageApi.parseInspectAndSave(fileStringArray[index]);
@@ -55,6 +85,7 @@ public class ScanOfflineData implements  MySchedule{
                             availableMessageNum++;
                         }
                     }
+                    requestQueue.recalculateRequest.add(new OfflineHourUnit(beginTime, endTime, device));
                 } else {
                     illegalFileNum++;
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));

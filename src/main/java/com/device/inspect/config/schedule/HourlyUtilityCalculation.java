@@ -2,6 +2,7 @@ package com.device.inspect.config.schedule;
 
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.repository.device.*;
+import com.device.inspect.common.service.OfflineHourQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class HourlyUtilityCalculation implements MySchedule{
     @Autowired
     private  InspectDataRepository inspectDataRepository;
 
+    @Autowired
+    private OfflineHourQueue offlineHourQueue;
+
     private final static Integer offlineTimeStep = 300 * 1000;
     private final static Integer scanScope = 3600 * 1000;
     private final static Integer timeStep = 20 * 1000;
@@ -57,6 +61,16 @@ public class HourlyUtilityCalculation implements MySchedule{
             Date currentHour = new Date(startTime);
             Date targetHour = new Date(endTime);
             scanAllDeviceUtil(currentHour, targetHour);
+        }
+        while(!offlineHourQueue.recalculateRequest.isEmpty()){
+            scanDeviceUtil(offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
+                    offlineHourQueue.recalculateRequest.get(0).getEndTime(),
+                    offlineHourQueue.recalculateRequest.get(0).getDevice());
+            LOGGER.info(String.format("Hourly Utilization: recalculate device %d, from %s, to %s."),
+                    offlineHourQueue.recalculateRequest.get(0).getDevice().getId(),
+                    offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
+                    offlineHourQueue.recalculateRequest.get(0).getEndTime());
+            offlineHourQueue.recalculateRequest.remove(0);
         }
     }
 
