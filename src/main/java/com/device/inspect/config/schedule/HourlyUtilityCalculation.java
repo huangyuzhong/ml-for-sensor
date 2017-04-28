@@ -1,6 +1,7 @@
 package com.device.inspect.config.schedule;
 
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.model.record.OfflineHourUnit;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.service.OfflineHourQueue;
 import org.apache.logging.log4j.LogManager;
@@ -60,8 +61,9 @@ public class HourlyUtilityCalculation implements MySchedule{
             long endTime = startTime + scanScope;
             Date currentHour = new Date(startTime);
             Date targetHour = new Date(endTime);
-            scanAllDeviceUtil(currentHour, targetHour);
+            scanMissedHourForAllDevice(currentHour, targetHour);
         }
+
         while(!offlineHourQueue.recalculateRequest.isEmpty()){
             scanDeviceUtil(offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
                     offlineHourQueue.recalculateRequest.get(0).getEndTime(),
@@ -199,20 +201,17 @@ public class HourlyUtilityCalculation implements MySchedule{
         deviceHourlyUtilizationRepository.save(hourlyUtilization);
     }
 
-    public void scanAllDeviceUtil(Date currentHour, Date targetHour) {
+    public void scanMissedHourForAllDevice(Date currentHour, Date targetHour) {
         LOGGER.info("Begin scan: " + currentHour + ", " + targetHour);
 
         Iterable<Device> deviceList = deviceRepository.findAll();
         for (Device device : deviceList) {
             // if current hour of target device has no record, calculate it, and retry 10 times in total if db fail.
-            for(int retry_times = 0; retry_times < total_retry_times; retry_times++){
-                DeviceHourlyUtilization deviceHourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
-                if(deviceHourlyUtilization == null){
-                    scanDeviceUtil(currentHour, targetHour, device);
-                }
-                else{
-                    break;
-                }
+            DeviceHourlyUtilization deviceHourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
+            if(deviceHourlyUtilization == null){
+                offlineHourQueue.recalculateRequest.add(new OfflineHourUnit(currentHour, targetHour, device));
+                LOGGER.info(String.format("Hourly Utility Scan: found device %d miss data during %s and %s, request for recalculate.",
+                        device.getId(), currentHour.toString(), targetHour.toString()));
             }
         }
     }
