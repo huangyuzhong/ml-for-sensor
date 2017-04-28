@@ -95,6 +95,16 @@ public class HourlyUtilityCalculation implements MySchedule{
             return;
         }
 
+        boolean noData = true;
+        for(List<InspectData> inspectDatas : listOfInspectData){
+            if(!inspectDatas.isEmpty()){
+                noData = false;
+            }
+        }
+        if(noData){
+            return;
+        }
+
         List<Integer> runningStatusArray = new ArrayList<>(scanScope / timeStep);
         for (int i = 0; i < scanScope / timeStep; i++) {
             runningStatusArray.add(-1);
