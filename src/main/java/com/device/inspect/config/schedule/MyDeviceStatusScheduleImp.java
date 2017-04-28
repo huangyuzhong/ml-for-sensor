@@ -122,27 +122,32 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                         if (null!=deviceList)
                                             for (Device device :deviceList){
                                                 logger.info("Scan Device id: " + device.getId());
-						if (device.getEnable()==0)
+                                                if (device.getEnable()==0) {
                                                     continue;
+                                                }
                                                 List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(device.getId());
                                                 MonitorDevice monitorDevice = monitorDeviceRepository.findByDeviceId(device.getId());
                                                 if (null!=deviceInspectList) {
-                                                    boolean alertjudge = false;
+                                                    int alertType = 0; //0: no alert, 1: yellow alert, 2: red alert
                                                     for (DeviceInspect deviceInspect : deviceInspectList) {
                                                         InspectData inspectJudge = inspectDataRepository.
                                                                 findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceInspect.getId());
                                                         if (null!=inspectJudge &&inspectJudge.getType() != null) {
                                                             if (inspectJudge.getType().equals("high")) {
-                                                                roomHighALert += 1;
-                                                                alertjudge = false;
+                                                                alertType = 2;
                                                                 break;
                                                             } else if (inspectJudge.getType().equals("low")) {
-                                                                alertjudge = true;
+                                                                alertType = 1;
+
                                                             }
                                                         }
                                                     }
-                                                    if (alertjudge)
-                                                        roomLowAlert+=1;
+                                                    device.setStatus(alertType);
+                                                    if (alertType == 1) {
+                                                        roomLowAlert += 1;
+                                                    }else if(alertType==2){
+                                                        roomHighALert += 1;
+                                                    }
                                                 }
                                                 InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
                                                 boolean currentDeviceOnLine = false;

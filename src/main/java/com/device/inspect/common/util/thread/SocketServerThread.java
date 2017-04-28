@@ -59,7 +59,7 @@ public class SocketServerThread extends Thread {
             while(!flag) {
 //                out = new PrintWriter(sock.getOutputStream());
                 outData = new DataOutputStream(sock.getOutputStream());
-                byte[] data = new byte[512];
+                byte[] data = new byte[50];
                 dins.read(data);
                 String result = ByteAndHex.bytesToHexString(data);
                 LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
