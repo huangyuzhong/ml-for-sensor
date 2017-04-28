@@ -680,6 +680,10 @@ public class SocketMessageApi {
         Integer runningLevel = -1;
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
+                if(deviceInspect.getInspectPurpose() == 1 && runningLevel == -1){
+                    // when device has status inspect, lowest running level is 0 (shut down)
+                    runningLevel = 0;
+                }
                 List<InspectData> inspectDatas;
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();
