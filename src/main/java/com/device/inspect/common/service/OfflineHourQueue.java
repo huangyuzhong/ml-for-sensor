@@ -10,5 +10,5 @@ import java.util.Vector;
  */
 @Component
 public class OfflineHourQueue {
-    public Vector<OfflineHourUnit> recalculateRequest;
+    public Vector<OfflineHourUnit> recalculateRequest = new Vector<>();
 }
