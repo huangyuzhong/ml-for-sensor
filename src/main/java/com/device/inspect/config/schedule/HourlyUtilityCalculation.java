@@ -68,10 +68,10 @@ public class HourlyUtilityCalculation implements MySchedule{
             scanDeviceUtil(offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
                     offlineHourQueue.recalculateRequest.get(0).getEndTime(),
                     offlineHourQueue.recalculateRequest.get(0).getDevice());
-            LOGGER.info(String.format("Hourly Utilization: recalculate device %d, from %s, to %s."),
+            LOGGER.info(String.format("Hourly Utilization: recalculate device %d, from %s, to %s.",
                     offlineHourQueue.recalculateRequest.get(0).getDevice().getId(),
                     offlineHourQueue.recalculateRequest.get(0).getBeginTime().toString(),
-                    offlineHourQueue.recalculateRequest.get(0).getEndTime().toString());
+                    offlineHourQueue.recalculateRequest.get(0).getEndTime().toString()));
             offlineHourQueue.recalculateRequest.remove(0);
         }
     }
