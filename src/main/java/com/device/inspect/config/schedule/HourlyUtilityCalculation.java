@@ -70,8 +70,8 @@ public class HourlyUtilityCalculation implements MySchedule{
                     offlineHourQueue.recalculateRequest.get(0).getDevice());
             LOGGER.info(String.format("Hourly Utilization: recalculate device %d, from %s, to %s."),
                     offlineHourQueue.recalculateRequest.get(0).getDevice().getId(),
-                    offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
-                    offlineHourQueue.recalculateRequest.get(0).getEndTime());
+                    offlineHourQueue.recalculateRequest.get(0).getBeginTime().toString(),
+                    offlineHourQueue.recalculateRequest.get(0).getEndTime().toString());
             offlineHourQueue.recalculateRequest.remove(0);
         }
     }
@@ -104,6 +104,18 @@ public class HourlyUtilityCalculation implements MySchedule{
             }
         }
         if(noData){
+            DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
+            if(hourlyUtilization == null){
+                hourlyUtilization = new DeviceHourlyUtilization();
+            }
+            hourlyUtilization.setPowerUpperBound((float)0);
+            hourlyUtilization.setPowerLowerBound((float)0);
+            hourlyUtilization.setRunningTime(0);
+            hourlyUtilization.setIdleTime(0);
+            hourlyUtilization.setConsumedEnergy((float)0);
+            hourlyUtilization.setDeviceId(device);
+            hourlyUtilization.setStartHour(currentHour);
+            deviceHourlyUtilizationRepository.save(hourlyUtilization);
             return;
         }
 
