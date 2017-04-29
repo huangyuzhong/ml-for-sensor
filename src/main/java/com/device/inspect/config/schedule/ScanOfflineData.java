@@ -78,6 +78,9 @@ public class ScanOfflineData implements  MySchedule{
                 String fileString = fileStream.toString();
                 String[] fileStringArray = fileString.split("\n");
                 if (fileStringArray[fileStringArray.length - 1].equals("END") && beginTime != null && device != null) {
+                    logger.info(String.format("Scan Offline Data: device %d, begin time %s, end time %s, monitor %s.",
+                            device.getId(), beginTime.toString(), endTime.toString(), monitorCode));
+
                     availableFileNum++;
                     for (int index = 0; index < fileStringArray.length - 1; index++) {
                         DeviceInspect deviceInspect = socketMessageApi.parseInspectAndSave(fileStringArray[index]);
@@ -85,6 +88,7 @@ public class ScanOfflineData implements  MySchedule{
                             availableMessageNum++;
                         }
                     }
+                    logger.info("Scan Offline Data: add recalculate request");
                     requestQueue.recalculateRequest.add(new OfflineHourUnit(beginTime, endTime, device));
                     logger.info(String.format("Scan Offline Data: add recalculate request of device %d from %s to %s to queue."),
                             device.getId(), beginTime.toString(), endTime.toString());
@@ -92,8 +96,8 @@ public class ScanOfflineData implements  MySchedule{
                     illegalFileNum++;
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));
                 }
-                Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
                 fileStream.close();
+                Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
             }
         }
         catch(Exception e){
