@@ -48,7 +48,7 @@ public class HourlyUtilityCalculation implements MySchedule{
     private final static Integer lastStatusFlag = 10;
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
-    @Scheduled(cron = "0 20 * * * ? ")
+    @Scheduled(cron = "0 10 * * * ? ")
     @Override
     public void scheduleTask() {
         Calendar cal = Calendar.getInstance();
@@ -94,13 +94,16 @@ public class HourlyUtilityCalculation implements MySchedule{
 
         // no inspect is used for record running status
         if (runningInspects.isEmpty() || listOfInspectData.isEmpty()) {
-            return;
+            LOGGER.info("Hourly Utilization: target device have not status inspect, pass");
+	    return;
         }
 
         boolean noData = true;
         for(List<InspectData> inspectDatas : listOfInspectData){
             if(!inspectDatas.isEmpty()){
                 noData = false;
+		LOGGER.info("Hourly Utilization: target device have data in target time interval");
+		break;
             }
         }
         if(noData){
@@ -116,6 +119,7 @@ public class HourlyUtilityCalculation implements MySchedule{
             hourlyUtilization.setDeviceId(device);
             hourlyUtilization.setStartHour(currentHour);
             deviceHourlyUtilizationRepository.save(hourlyUtilization);
+	    LOGGER.info("Hourly Utilization: target device have no data in target time inverval, save zero record to database");
             return;
         }
 
@@ -221,9 +225,15 @@ public class HourlyUtilityCalculation implements MySchedule{
             // if current hour of target device has no record, calculate it, and retry 10 times in total if db fail.
             DeviceHourlyUtilization deviceHourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
             if(deviceHourlyUtilization == null){
-                offlineHourQueue.recalculateRequest.add(new OfflineHourUnit(currentHour, targetHour, device));
-                LOGGER.info(String.format("Hourly Utility Scan: found device %d miss data during %s and %s, request for recalculate.",
-                        device.getId(), currentHour.toString(), targetHour.toString()));
+		List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
+        	for (DeviceInspect deviceInspect : deviceInspects) {
+	            if (deviceInspect.getInspectPurpose() == 1) {
+            		offlineHourQueue.recalculateRequest.add(new OfflineHourUnit(currentHour, targetHour, device));
+                	LOGGER.info(String.format("Hourly Utility Scan: found device %d miss data during %s and %s, request for recalculate.",
+                        	device.getId(), currentHour.toString(), targetHour.toString()));	
+		    	break;
+		    }
+        	}
             }
         }
     }

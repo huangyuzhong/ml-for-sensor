@@ -90,8 +90,8 @@ public class ScanOfflineData implements  MySchedule{
                     }
                     logger.info("Scan Offline Data: add recalculate request");
                     requestQueue.recalculateRequest.add(new OfflineHourUnit(beginTime, endTime, device));
-                    logger.info(String.format("Scan Offline Data: add recalculate request of device %d from %s to %s to queue."),
-                            device.getId(), beginTime.toString(), endTime.toString());
+                    logger.info(String.format("Scan Offline Data: add recalculate request of device %d from %s to %s to queue.",
+                            device.getId(), beginTime.toString(), endTime.toString()));
                 } else {
                     illegalFileNum++;
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));
