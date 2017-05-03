@@ -389,6 +389,25 @@ public class SelectApiController {
             requestParam.put("userId",user.getId().toString());
         }
 
+        if (requestParam.containsKey("roomId")){
+            if (requestParam.get("roomId").toString()!=""){
+                if (requestParam.containsKey("floorId"))
+                    requestParam.remove("floorId");
+                if (requestParam.containsKey("buildingId"))
+                    requestParam.remove("buildingId");
+            }else{
+                requestParam.remove("roomId");
+            }
+        }
+        if (requestParam.containsKey("floorId")){
+            if (requestParam.get("floorId").toString()!=""){
+                if (requestParam.containsKey("buildingId"))
+                    requestParam.remove("buildingId");
+            }else{
+                requestParam.remove("floorId");
+            }
+        }
+
 //        if (UserRoleDifferent.userScientistConfirm(user)){
 //            requestParam.put("scientistId",user.getId().toString());
 //        }

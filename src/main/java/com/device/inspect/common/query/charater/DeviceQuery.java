@@ -39,6 +39,7 @@ public class DeviceQuery extends Querier<Device> {
             }
         });
 
+
 //        queryFilterMap.put("typeId", new DeviceQueryFilter() {
 //            @Override
 //            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
@@ -55,6 +56,50 @@ public class DeviceQuery extends Querier<Device> {
                 return predicate;
             }
         });
+
+        //查询出Device所属的Room
+        queryFilterMap.put("roomId", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+//                Join<Device, ScientistDevice> scientistDeviceJoin = deviceRoot.join("scientistDeviceList", JoinType.LEFT);
+                Predicate predicate = cb.equal(deviceRoot.get("room").get("id"),object);
+//                predicate = cb.or(predicate,cb.equal(scientistDeviceJoin.<User>get("scientist").<String>get("id"),object));
+                return predicate;
+            }
+        });
+
+        //根据Device的MonitorDevice的参数online是否在线进行筛选
+        queryFilterMap.put("onlineStatus", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("monitorDevice").get("online"),object);
+            }
+        });
+
+        //查询出Device所属的Floor
+        queryFilterMap.put("floorId", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("room").get("floor").get("id"),object);
+            }
+        });
+
+        //查询出Device所属的Building
+        queryFilterMap.put("buildingId", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("room").get("floor").get("build").get("id"),object);
+            }
+        });
+
+        //查询Device的alertType
+        queryFilterMap.put("alertType", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("status"),object);
+            }
+        });
+
         queryFilterMap.put("monitorCode", new DeviceQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
