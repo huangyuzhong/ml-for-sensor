@@ -189,10 +189,13 @@ public class FileController {
                     building.setName(null == param.get("name") ? null : param.get("name"));
                     building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                     building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
+                    logger.info(String.format("Updating building, name=%s, lng=%s, lat=%s",
+                            param.get("name"), param.get("xpoint"), param.get("ypoint")));
                     buildingRepository.save(building);
+
                     String pic=param.get("pic");
                     if (pic.equals("0")){
-                        System.out.println("上传图片");
+                        logger.info("Uploading building picture");
                         try {
                             MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                             MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();

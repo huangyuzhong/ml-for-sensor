@@ -51,11 +51,26 @@ public class ScanOfflineData implements  MySchedule{
         int illegalFileNum = 0;
         int availableMessageNum = 0;
         long startTime = System.currentTimeMillis();
+        FTPFile[] fileList = null;
 
-        FTPFile[] fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitoring");
-        logger.info(String.format("Begin Scan Offline Data"));
-        fileNum = fileList.length;
         try {
+            fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitoring");
+
+        }catch (Exception e) {
+            logger.error(String.format("Failed to get file from ftp server: ", e.toString()));
+            e.printStackTrace();
+            return;
+        }
+
+        if(fileList == null){
+            logger.info("Offline file list is null, skip");
+            return;
+        }
+
+        try{
+            logger.info(String.format("Begin Scan Offline Data"));
+            fileNum = fileList.length;
+
             for (FTPFile ftpFile : fileList) {
                 logger.info(String.format("Begin Scan Offline Data File %s", ftpFile.getName()));
 
@@ -99,14 +114,18 @@ public class ScanOfflineData implements  MySchedule{
                 fileStream.close();
                 Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
             }
+
+            long endTIme = System.currentTimeMillis();
+            logger.info(String.format("Scan Offline Data Summary:\n  total file: %d\n  available file: %d\n  illegal file: %d\n  total storaged message: %d\n  Use Time: %d sec",
+                    fileNum, availableFileNum, illegalFileNum, availableMessageNum, (endTIme - startTime)/1000));
+            logger.info(String.format("End Scan Offline Data"));
         }
         catch(Exception e){
             e.printStackTrace();
+            logger.error(String.format("Scan Offline data failed due to error %s", e.toString()));
+
         }
 
-        long endTIme = System.currentTimeMillis();
-        logger.info(String.format("Scan Offline Data Summary:\n  total file: %d\n  available file: %d\n  illegal file: %d\n  total storaged message: %d\n  Use Time: %d sec",
-                fileNum, availableFileNum, illegalFileNum, availableMessageNum, (endTIme - startTime)/1000));
-        logger.info(String.format("End Scan Offline Data"));
+
     }
 }
