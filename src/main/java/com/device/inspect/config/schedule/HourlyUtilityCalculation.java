@@ -122,12 +122,12 @@ public class HourlyUtilityCalculation implements MySchedule{
 	        LOGGER.info("Hourly Utilization: target device have no data in target time inverval, save zero record to database");
             return;
         }
-
+        // initialize running status array
         List<Integer> runningStatusArray = new ArrayList<>(scanScope / timeStep);
         for (int i = 0; i < scanScope / timeStep; i++) {
             runningStatusArray.add(-1);
         }
-
+        // scan every inspect data array
         for (List<InspectData> inspectDatas : listOfInspectData) {
             if (inspectDatas.isEmpty()) {
                 continue;
@@ -135,18 +135,22 @@ public class HourlyUtilityCalculation implements MySchedule{
 
             LOGGER.info("Start scanning running status data and get hourly utilization. Inspect id: "
                     + inspectDatas.get(0).getDeviceInspect().getId());
+            // get running status setup of current inspect
             List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
                     findByDeviceInspectId(inspectDatas.get(0).getDeviceInspect().getId());
             for (InspectData inspectData : inspectDatas) {
+                // use create time to calculate the index of inspect data in running status array
                 Integer index = Long.valueOf(inspectData.getCreateDate().getTime() - currentHour.getTime()).intValue() / timeStep;
                 Float value = Float.valueOf(inspectData.getResult());
                 Integer status = -1;
+                // calculate the running status of current inspect data
                 for (DeviceInspectRunningStatus runningStatus : runningStatuses) {
                     if (value > runningStatus.getThreshold()) {
                         status = runningStatus.getDeviceRunningStatus().getLevel() > status ?
                                 runningStatus.getDeviceRunningStatus().getLevel() : status;
                     }
                 }
+                // if running status of current inspect data is larger than original one, update it
                 if (index < runningStatusArray.size() && runningStatusArray.get(index) < status) {
                     runningStatusArray.set(index, status);
                 }
