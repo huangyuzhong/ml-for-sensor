@@ -594,7 +594,7 @@ public class FileController {
                             String photoUrl = Application.intelabStorageManager.uploadFile(file, containerName, blobName, device.getPhoto());
 
                             if(photoUrl != null){
-                                device.setPhoto("photoUrl");
+                                device.setPhoto(photoUrl);
                                 logger.info(String.format("successfully upload file %s to blob storage at %s", fileName, photoUrl));
                             }else{
                                 logger.error(String.format("Storage return null for file %s", fileName));
