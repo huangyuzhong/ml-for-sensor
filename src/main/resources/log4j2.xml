@@ -14,10 +14,9 @@
             </Policies>
             <DefaultRolloverStrategy max="20" />
         </RollingFile>
-        <STMP name="Mail" subject="Error Log From intelab wbe" to="engineer@ilabservice.com" from="ilabservice@backend_VM_fqdn"
-              smtpHost="smtp.mxhichina.com" smtpPort="25" bufferSize="1" smtpUsername="intelab@ilabservice.com" smtpPassword="Service@001"
-              ignoreExceptions="false" smtpDebug="true">
-        </STMP>
+        <SMTP name="Mail" subject="Error Log From intelab wbe" to="engineer@ilabservice.com" from="intelab@ilabservice.com"
+              smtpHost="smtp.mxhichina.com" smtpPort="25" bufferSize="32" smtpUsername="intelab@ilabservice.com" smtpPassword="Service@001">
+        </SMTP>
     </Appenders>
     <Loggers>
         <Root level="info">
