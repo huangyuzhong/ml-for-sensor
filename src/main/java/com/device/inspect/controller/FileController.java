@@ -960,14 +960,32 @@ public class FileController {
                 // in which the domain name is passed in via API
                 // domain name maps to company_id in db, it must be unique
                 String domain_name = param.get("domain");
-                if(companyRepository.findByCompanyId(domain_name) != null){
-                   throw new RuntimeException("create failure, 公司域名已经存在");
+
+                if(domain_name == null){
+                    //向前兼容 web1.0，新增api的参数里没有domain， 生成2字母公司id， 并用其登录
+                    //给公司添加url
+                    company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
+                            ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+                    company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
+                }
+                else{
+                    //web2.0 新增api的参数里domain为公司登录域名
+                    if(companyRepository.findByCompanyId(domain_name) != null){
+                        throw new RuntimeException("create failure, 公司域名已经存在");
+                    }
+
+                    if(domain_name.contains(" ")){
+                        throw new RuntimeException("创建公司失败， 域名非法， 不能有空格");
+                    }
+
+                    company.setCompanyId(domain_name);
+
+                    //给公司添加url
+
+                    company.setLogin(String.format("%s.ilabservice.cloud", domain_name));
                 }
 
-                if(domain_name.contains(" ")){
-                    throw new RuntimeException("创建公司失败， 域名非法， 不能有空格");
-                }
-                company.setCompanyId(domain_name);
+
 
                 company=companyRepository.save(company);
 
@@ -988,8 +1006,7 @@ public class FileController {
                 roleRepository.save(role);
                 company.setManager(firmManager);
 
-                //给公司添加url
-                company.setLogin(String.format("%s.ilabservice.cloud", company.getCompanyId()));
+
                 //给管理员账号加密
                 firmManager.setName(param.get("account")+"@"+company.getCompanyId());
 
