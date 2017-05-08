@@ -227,6 +227,17 @@ public class MessageController {
         String reason = "alert";
 
         messageSend.setEnable(0);
+
+        // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
+        if(MessageSendService.pushOnlyAlertMail(user, message)){
+            LOGGER.info("device alert: send email " + message);
+            type += "邮件发送成功";
+            messageSend.setEnable(1);
+        }
+        else{
+            type += "邮件发送失败";
+        }
+
         if(msgAvailable){
             if(MessageSendService.pushAlertMsg(user, message)){
                 type += "短信发送成功";
