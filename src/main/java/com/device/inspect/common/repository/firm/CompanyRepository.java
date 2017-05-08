@@ -11,4 +11,5 @@ import java.util.List;
  */
 public interface CompanyRepository extends CrudRepository<Company,Integer> {
     List<Company> findAll();
+    public Company findByCompanyId(String companyId);
 }

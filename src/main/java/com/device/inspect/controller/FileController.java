@@ -909,6 +909,8 @@ public class FileController {
         if (UserRoleDifferent.userServiceWorkerConfirm(user)||
                 UserRoleDifferent.userServiceManagerConfirm(user) ) {
             User firmManager = null;
+
+            logger.info(String.format("create company parameters: %s", param));
             //新增
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
@@ -953,7 +955,23 @@ public class FileController {
 //                    return;
                 }
 
+                //设置公司的companyId
+                // company url is <company domain name>.ilabservice.cloud,
+                // in which the domain name is passed in via API
+                // domain name maps to company_id in db, it must be unique
+                String domain_name = param.get("domain");
+                if(companyRepository.findByCompanyId(domain_name) != null){
+                   throw new RuntimeException("create failure, 公司域名已经存在");
+                }
+
+                if(domain_name.contains(" ")){
+                    throw new RuntimeException("创建公司失败， 域名非法， 不能有空格");
+                }
+                company.setCompanyId(domain_name);
+
                 company=companyRepository.save(company);
+
+                // 创建公司管理员账号
                 firmManager = new User();
                 firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
@@ -971,15 +989,13 @@ public class FileController {
                 company.setManager(firmManager);
 
                 //给公司添加url
-                company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
-                        ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
-                //设置公司的companyId
-                company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
+                company.setLogin(String.format("%s.ilabservice.cloud", company.getCompanyId()));
                 //给管理员账号加密
                 firmManager.setName(param.get("account")+"@"+company.getCompanyId());
 
                 userRepository.save(firmManager);
             }else {
+                //修改公司信息
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
                     throw new RuntimeException("企业名不能为空");
