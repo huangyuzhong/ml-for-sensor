@@ -39,6 +39,7 @@ public class RestDevice {
     private String pushType;
     private Integer pushInterval;
     private String roomName;
+    private Integer roomId;
     private String roomBackground;
     private String score;
     private Integer enable;
@@ -67,6 +68,7 @@ public class RestDevice {
         this.pushInterval = device.getPushInterval();
         this.roomName = device.getRoom().getFloor().getBuild().getName() + device.getRoom().getFloor().getName()+
                 device.getRoom().getName();
+        this.roomId = device.getRoom().getId();
         this.roomBackground = device.getRoom().getBackground();
         this.score = device.getScore();
         this.enable = device.getEnable();
@@ -278,6 +280,9 @@ public class RestDevice {
     public void setRoomName(String roomName) {
         this.roomName = roomName;
     }
+
+    public Integer getRoomId() { return roomId; }
+    public void setRoomId(Integer roomId) { this.roomId = roomId; }
 
     public String getRoomBackground() { return this.roomBackground; }
     public void setRoomBackground(String roomBackground) {this.roomBackground = roomBackground; }
