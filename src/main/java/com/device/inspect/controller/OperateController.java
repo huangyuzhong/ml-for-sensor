@@ -1,7 +1,5 @@
 package com.device.inspect.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -36,15 +34,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.rowset.serial.SerialException;
-import javax.validation.constraints.Null;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -1123,7 +1117,7 @@ public class OperateController {
         if (null==map.get("email")||"".equals(map.get("email")))
             return new RestResponse("参数为空！",1005,null);
         //邮箱发送验证码
-        boolean b=MessageSendService.sendEmai(user,map.get("email"),String.valueOf(verify),0);
+        boolean b=MessageSendService.sendEmaiToUser(user,map.get("email"),String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else{
@@ -1258,7 +1252,7 @@ public class OperateController {
             }
         }else if (number.equals(user.getEmail())&&user.getBindEmail()==1){
             //用户输入的是邮箱，通过邮箱发送密码
-            boolean b=MessageSendService.sendEmai(user,number,user.getPassword(),2);
+            boolean b=MessageSendService.sendEmaiToUser(user,number,user.getPassword(),2);
             if (b){
                 return new RestResponse("密码已经发送到你的邮箱上！",null);
             }else {
