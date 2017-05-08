@@ -189,10 +189,13 @@ public class FileController {
                     building.setName(null == param.get("name") ? null : param.get("name"));
                     building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                     building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
+                    logger.info(String.format("Updating building, name=%s, lng=%s, lat=%s",
+                            param.get("name"), param.get("xpoint"), param.get("ypoint")));
                     buildingRepository.save(building);
+
                     String pic=param.get("pic");
                     if (pic.equals("0")){
-                        System.out.println("上传图片");
+                        logger.info("Uploading building picture");
                         try {
                             MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                             MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -591,7 +594,7 @@ public class FileController {
                             String photoUrl = Application.intelabStorageManager.uploadFile(file, containerName, blobName, device.getPhoto());
 
                             if(photoUrl != null){
-                                device.setPhoto("photoUrl");
+                                device.setPhoto(photoUrl);
                                 logger.info(String.format("successfully upload file %s to blob storage at %s", fileName, photoUrl));
                             }else{
                                 logger.error(String.format("Storage return null for file %s", fileName));
@@ -906,6 +909,8 @@ public class FileController {
         if (UserRoleDifferent.userServiceWorkerConfirm(user)||
                 UserRoleDifferent.userServiceManagerConfirm(user) ) {
             User firmManager = null;
+
+            logger.info(String.format("create company parameters: %s", param));
             //新增
             if (null==param.get("id")||param.get("id").equals("")){
                 company = new Company();
@@ -950,7 +955,41 @@ public class FileController {
 //                    return;
                 }
 
+                //设置公司的companyId
+                // company url is <company domain name>.ilabservice.cloud,
+                // in which the domain name is passed in via API
+                // domain name maps to company_id in db, it must be unique
+                String domain_name = param.get("domain");
+
+                if(domain_name == null){
+                    //向前兼容 web1.0，新增api的参数里没有domain， 生成2字母公司id， 并用其登录
+                    //给公司添加url
+                    company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
+                            ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
+                    company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
+                }
+                else{
+                    //web2.0 新增api的参数里domain为公司登录域名
+                    if(companyRepository.findByCompanyId(domain_name) != null){
+                        throw new RuntimeException("create failure, 公司域名已经存在");
+                    }
+
+                    if(domain_name.contains(" ")){
+                        throw new RuntimeException("创建公司失败， 域名非法， 不能有空格");
+                    }
+
+                    company.setCompanyId(domain_name);
+
+                    //给公司添加url
+
+                    company.setLogin(String.format("%s.ilabservice.cloud", domain_name));
+                }
+
+
+
                 company=companyRepository.save(company);
+
+                // 创建公司管理员账号
                 firmManager = new User();
                 firmManager.setName(param.get("account"));
                 firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
@@ -967,16 +1006,13 @@ public class FileController {
                 roleRepository.save(role);
                 company.setManager(firmManager);
 
-                //给公司添加url
-                company.setLogin(SERVICE_PATH+"/Lab_login.html?company="+
-                        ByteAndHex.convertMD5(URLEncoder.encode(company.getId().toString(),"UTF-8")));
-                //设置公司的companyId
-                company.setCompanyId(company.getLogin().substring(company.getLogin().indexOf("=")+1));
+
                 //给管理员账号加密
                 firmManager.setName(param.get("account")+"@"+company.getCompanyId());
 
                 userRepository.save(firmManager);
             }else {
+                //修改公司信息
                 company = companyRepository.findOne(Integer.valueOf(param.get("id")));
                 if (null==param.get("name")||"".equals(param.get("name"))||null==param.get("account")||"".equals(param.get("account"))) {
                     throw new RuntimeException("企业名不能为空");

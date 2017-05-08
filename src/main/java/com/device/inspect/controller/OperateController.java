@@ -251,7 +251,7 @@ public class OperateController {
             }
             catch (ParseException e)
             {
-
+                LOGGER.info(String.format("device purchase date %s is unexpected format", map.get("purchase")));
             }
             device.setPurchase(date);
         }
@@ -265,7 +265,7 @@ public class OperateController {
             }
             catch (ParseException e)
             {
-
+                LOGGER.info(String.format("device maintain date %s is unexpected format", map.get("maintainDate")));
             }
             device.setMaintainDate(date);
         }

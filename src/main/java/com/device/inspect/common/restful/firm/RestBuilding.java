@@ -27,6 +27,7 @@ public class RestBuilding {
     private Float score;
     private Integer enable;
     private Integer days;
+    private String background;
 
     public RestBuilding(@NotNull Building building) {
         this.id = building.getId();
@@ -42,6 +43,7 @@ public class RestBuilding {
         this.total = building.getTotal();
         this.score = building.getScore();
         this.enable = building.getEnable();
+        this.background = building.getBackground();
         if (null!=building.getCreateDate())
             days = MyCalendar.getDateSpace(building.getCreateDate(),new Date());
     }
@@ -157,4 +159,8 @@ public class RestBuilding {
     public void setDays(Integer days) {
         this.days = days;
     }
+
+    public String getBackground() {return background;}
+
+    public void setBackground(String background) {this.background = background;}
 }
