@@ -28,6 +28,7 @@ import com.device.inspect.Application;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
+import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
@@ -1104,7 +1105,7 @@ public class SelectApiController {
         LOGGER.info(String.format("Get Device Monitor: current Inspect Data size: %d", currentInspectData.size()));
         RestMonitorDataOfDevice monitorDataOfDevice = new RestMonitorDataOfDevice();
         monitorDataOfDevice.setDeviceId(device.getId().toString());
-        monitorDataOfDevice.setDeviceLocation(device.getxPoint().toString() + " - " + device.getyPoint().toString());
+        monitorDataOfDevice.setDeviceLocation(GetDeviceAddress.getDeviceAddress(device));
         monitorDataOfDevice.setDeviceLogo(device.getPhoto());
         monitorDataOfDevice.setDeviceManager(device.getManager().getName());
         monitorDataOfDevice.setDeviceName(device.getName());
