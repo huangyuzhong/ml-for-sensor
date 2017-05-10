@@ -161,6 +161,15 @@ public class MessageController {
             LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
                     device.getId(),
                     device.getManager().getTelephone()));
+
+            // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
+            if(MessageSendService.sendEmailToIntelabTest(message)){
+                LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
+
+            }else{
+                LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
+            }
+
             try {
                 MessageSend newMessageSend = new MessageSend();
                 newMessageSend.setCreate(sampleTime);
@@ -227,6 +236,7 @@ public class MessageController {
         String reason = "alert";
 
         messageSend.setEnable(0);
+
         if(msgAvailable){
             if(MessageSendService.pushAlertMsg(user, message)){
                 type += "短信发送成功";
