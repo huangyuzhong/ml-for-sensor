@@ -44,11 +44,10 @@ public class Application {
 
     public static void main(String[] args) throws Throwable
     {
-
+	LOGGER.error("[NOTICE] backend start");
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         socketServerStart();
-        LOGGER.warn("[Notice] backend start");
     }
 
     private static void loadAppConfig() throws Throwable{
