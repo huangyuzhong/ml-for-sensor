@@ -48,6 +48,7 @@ public class Application {
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         socketServerStart();
+        LOGGER.warn("[Notice] backend start");
     }
 
     private static void loadAppConfig() throws Throwable{

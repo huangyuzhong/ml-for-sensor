@@ -1142,7 +1142,7 @@ public class SelectApiController {
         }
 
         Double MKT = null;
-        if(requestParam.getMktId() != null){
+        if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty()){
             DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(requestParam.getMktId()));
             if(deviceInspect != null){
                 List<InspectData> inspectDatas = inspectDataRepository.
