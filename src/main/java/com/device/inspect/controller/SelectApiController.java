@@ -1061,9 +1061,9 @@ public class SelectApiController {
         Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
         Date endTime = new Date(Long.parseLong(requestParam.getEndTime()));
         long interval = 60*1000/Integer.parseInt(requestParam.getSampleRate());
-        long beginMillisecond = beginTime.getTime()/interval*interval;
+        long beginMillisecond = beginTime.getTime();
         long endMillisecond = endTime.getTime();
-        LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s.", beginTime.toString(), endTime.toString()));
+        LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s, interval: %s.", beginTime.toString(), endTime.toString(), String.valueOf(interval)));
         if(requestParam.getMonitorId() == null){
             return new RestResponse("监控参数ID未设置", 1006, null);
         }
