@@ -18,5 +18,9 @@ public interface AlertCountRepository  extends CrudRepository<AlertCount,Integer
 
     public List<AlertCount> findByDeviceIdAndCreateDateAfter(Integer DeviceId,Date date);
 
-
+    public List<AlertCount> findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(Integer DeviceId,
+                                                                                   Integer InspectTypeId,
+                                                                                   Integer type,
+                                                                                   Date StartTime,
+                                                                                   Date EndTime);
 }

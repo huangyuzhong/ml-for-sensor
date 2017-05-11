@@ -16,6 +16,7 @@ public class RestMonitorDataOfDevice {
     private String MKTdata;
     private List<String> name;
     private List<List<String>> data;
+    private List<AggregateData> aggregateData;
 
     public String getDeviceName(){
         return this.deviceName;
@@ -95,5 +96,13 @@ public class RestMonitorDataOfDevice {
 
     public void setData(List<List<String>> data){
         this.data = data;
+    }
+
+    public List<AggregateData> getAggregateData(){
+        return this.aggregateData;
+    }
+
+    public void setAggregateData(List<AggregateData> aggregateData){
+        this.aggregateData = aggregateData;
     }
 }

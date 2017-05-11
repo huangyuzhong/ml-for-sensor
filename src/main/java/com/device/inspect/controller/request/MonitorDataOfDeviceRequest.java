@@ -13,6 +13,7 @@ public class MonitorDataOfDeviceRequest {
     private String endTime;
     private String mktId;
     private List<String> monitorId;
+    private String sampleRate = new String("5");
 
     public String getDeviceId(){
         return this.deviceId;
@@ -52,5 +53,13 @@ public class MonitorDataOfDeviceRequest {
 
     public void setMonitorId(List<String> monitorId){
         this.monitorId = monitorId;
+    }
+
+    public String getSampleRate(){
+        return this.sampleRate;
+    }
+
+    public void setSampleRate(String sampleRate){
+        this.sampleRate = sampleRate;
     }
 }

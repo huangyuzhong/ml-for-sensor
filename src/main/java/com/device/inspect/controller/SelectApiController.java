@@ -22,6 +22,7 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
+import com.device.inspect.common.restful.data.AggregateData;
 import com.device.inspect.common.restful.data.RestMonitorDataOfDevice;
 import com.device.inspect.common.restful.device.*;
 import com.device.inspect.Application;
@@ -111,6 +112,9 @@ public class SelectApiController {
 
     @Autowired
     private  DeviceInspectRepository deviceInspectRepository;
+
+    @Autowired
+    private AlertCountRepository alertCountRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1056,14 +1060,13 @@ public class SelectApiController {
         }
         Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
         Date endTime = new Date(Long.parseLong(requestParam.getEndTime()));
-        long interval = 1*1000;
+        long interval = 60*1000/Integer.parseInt(requestParam.getSampleRate());
         long beginMillisecond = beginTime.getTime()/interval*interval;
         long endMillisecond = endTime.getTime();
         LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s.", beginTime.toString(), endTime.toString()));
         if(requestParam.getMonitorId() == null){
             return new RestResponse("监控参数ID未设置", 1006, null);
         }
-
 
         List<String> deviceInspectIds = requestParam.getMonitorId();
         List<DeviceInspect> deviceInspects = new ArrayList<>();
@@ -1114,6 +1117,7 @@ public class SelectApiController {
         monitorDataOfDevice.setName(nameLists);
 
         List<List<String>> data = new ArrayList<>();
+        LOGGER.info("Get Device Monitor: begin parse data");
         for(long currentMillisecond = beginMillisecond; currentMillisecond < endMillisecond; currentMillisecond = currentMillisecond + interval){
             boolean hasDataInThisInterval = false;
             for(int index = 0; index < currentInspectData.size(); index++){
@@ -1128,11 +1132,19 @@ public class SelectApiController {
                 List<String> dataItem = new ArrayList<>();
                 dataItem.add(String.valueOf(currentMillisecond));
                 for(int index = 0; index < currentInspectData.size(); index++){
-                    if(currentInspectData.get(index) != null
-                            && currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
+                    int dataCount = 0;
+                    float dataSum = 0;
+                    while(currentInspectData.get(index) != null &&
+                            currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
                         InspectData nextInspectData = listOfIterator.get(index).hasNext() ? listOfIterator.get(index).next() : null;
-                        dataItem.add(currentInspectData.get(index).getResult());
+                        dataCount++;
+                        dataSum += Float.parseFloat(currentInspectData.get(index).getResult());
+
                         currentInspectData.set(index, nextInspectData);
+                    }
+                    if(dataCount > 0){
+                        Float averageValue = new Float(dataSum/dataCount);
+                        dataItem.add(averageValue.toString());
                     }
                     else{
                         dataItem.add(null);
@@ -1141,6 +1153,64 @@ public class SelectApiController {
                 data.add(dataItem);
             }
         }
+
+        LOGGER.info("Get Device Monitor: begin aggregate data");
+        List<AggregateData> aggregateDatas = new ArrayList<>();
+        for(List<InspectData> inspectDatas : listOfInspectDatas){
+            AggregateData aggregateData = new AggregateData();
+            aggregateData.setMonitorId(inspectDatas.get(0).getDeviceInspect().getId().toString());
+            Float maxValue = new Float(Float.MIN_VALUE);
+            Date maxValueTime = null;
+            Float minValue = new Float(Float.MAX_VALUE);
+            Date minValueTime = null;
+            Float sumValue = new Float(0);
+            Integer yellowAlertCount = new Integer(0);
+            Long yellowAlertTime = new Long(0);
+            Integer redAlertCount = new Integer(0);
+            Long redAlertTime = new Long(0);
+            for(InspectData inspectData : inspectDatas){
+                Float result = Float.parseFloat(inspectData.getResult());
+                sumValue += result;
+                if(result > maxValue){
+                    maxValue = result;
+                    maxValueTime = inspectData.getCreateDate();
+                }
+                if(result < minValue){
+                    minValue = result;
+                    minValueTime = inspectData.getCreateDate();
+                }
+            }
+            aggregateData.setMaxValue(maxValue.toString());
+            aggregateData.setMaxValueTime(String.valueOf(maxValueTime.getTime()));
+            aggregateData.setMinValue(minValue.toString());
+            aggregateData.setMinValueTime(String.valueOf(minValueTime.getTime()));
+            aggregateData.setAvgValue(String.valueOf(sumValue/inspectDatas.size()));
+
+            List<AlertCount> yellowAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
+                    inspectDatas.get(0).getDeviceInspect().getInspectType().getId(),
+                    1, beginTime, endTime);
+            List<AlertCount> redAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
+                    inspectDatas.get(0).getDeviceInspect().getInspectType().getId(),
+                    2, beginTime, endTime);
+            if(yellowAlertCounts != null && yellowAlertCounts.size() > 0){
+                yellowAlertCount = yellowAlertCounts.size();
+                for(AlertCount alertCount : yellowAlertCounts){
+                    yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                }
+            }
+            if(redAlertCounts != null && redAlertCounts.size() > 0){
+                redAlertCount = redAlertCounts.size();
+                for(AlertCount alertCount : redAlertCounts){
+                    redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                }
+            }
+            aggregateData.setRedAlertCount(redAlertCount.toString());
+            aggregateData.setRedAlertTotalTime(redAlertTime.toString());
+            aggregateData.setYellowAlertCount(yellowAlertCount.toString());
+            aggregateData.setYellowAlertTotalTime(yellowAlertTime.toString());
+            aggregateDatas.add(aggregateData);
+        }
+        monitorDataOfDevice.setAggregateData(aggregateDatas);
 
         Double MKT = null;
         if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty()){
