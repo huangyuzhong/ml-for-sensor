@@ -388,6 +388,21 @@ public class SocketMessageApi {
                         inspectData.setResult(String.valueOf(check));
                         deviceInspect.setCorrectionValue(check);
                     }
+                } else if(monitorTypeCode.equals("1b")){
+                    LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
+                            device.getId()));
+                    inspectData.setCreateDate(deviceSamplingTime);
+                    inspectData.setDevice(device);
+                    inspectData.setDeviceInspect(deviceInspect);
+                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
+                    Float vRecord = (Float.valueOf(iDeviceSamplingData) * 512 / 10000) / 32768;
+                    record = vRecord * 5 * 1000 / 333;
+                    LOGGER.info(String.format("数据转化的电压为：%d", vRecord));
+                    LOGGER.info(String.format("根据电压转化的电流为：%d", record));
+                    deviceInspect.setOriginalValue(record);
+                    check = record - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(check));
+                    deviceInspect.setCorrectionValue(check);
                 } else {
                     LOGGER.info(String.format("Device %d, Monitor code 0e-0f-10",
                             device.getId()));
