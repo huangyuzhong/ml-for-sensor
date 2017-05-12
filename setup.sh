@@ -22,6 +22,7 @@ else
   else
     echo "[ERROR] clone failed, exit"
     exit -1
+  fi
 fi
 cd $WorkingPath
 
@@ -35,7 +36,7 @@ else
 fi
 
 Hostname=`hostname --fqdn`
-sed -i 's/NEEDTOREPLACEWITHHOSTNAME/${Hostname}/g' ./src/main/resources/log4j2.xml
+sed -i "s/NEEDTOREPLACEWITHHOSTNAME/${Hostname}/g" ./src/main/resources/log4j2.xml
 echo "[INFO] init log configuration"
 
 rm -rf ./target

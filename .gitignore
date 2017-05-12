@@ -27,3 +27,6 @@ target/
 
 # cutomer
 src/main/java/com/inmycars/service/web/config/MvcConfig.java
+
+#log configure
+src/main/resources/log4j2.xml
