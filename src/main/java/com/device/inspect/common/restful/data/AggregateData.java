@@ -7,15 +7,16 @@ import org.springframework.security.access.method.P;
  */
 public class AggregateData {
     private String monitorId;
-    private String yellowAlertCount;
-    private String redAlertCount;
-    private String yellowAlertTotalTime;
-    private String redAlertTotalTime;
-    private String maxValue;
-    private String maxValueTime;
-    private String minValue;
-    private String minValueTime;
-    private String avgValue;
+    private Integer yellowAlertCount;
+    private Integer redAlertCount;
+    private Long yellowAlertTotalTime;
+    private Long redAlertTotalTime;
+    private Float maxValue;
+    private Long maxValueTime;
+    private Float minValue;
+    private Long minValueTime;
+    private Float avgValue;
+    private Float mktdata;
 
     public String getMonitorId(){
         return this.monitorId;
@@ -25,75 +26,83 @@ public class AggregateData {
         this.monitorId = monitorId;
     }
 
-    public String getYellowAlertCount(){
+    public Integer getYellowAlertCount(){
         return this.yellowAlertCount;
     }
 
-    public void setYellowAlertCount(String yellowAlertCount){
+    public void setYellowAlertCount(Integer yellowAlertCount){
         this.yellowAlertCount = yellowAlertCount;
     }
 
-    public String getRedAlertCount(){
+    public Integer getRedAlertCount(){
         return this.redAlertCount;
     }
 
-    public void setRedAlertCount(String redAlertCount){
+    public void setRedAlertCount(Integer redAlertCount){
         this.redAlertCount = redAlertCount;
     }
 
-    public String getYellowAlertTotalTime(){
+    public Long getYellowAlertTotalTime(){
         return this.yellowAlertTotalTime;
     }
 
-    public void setYellowAlertTotalTime(String yellowAlertTotalTime){
+    public void setYellowAlertTotalTime(Long yellowAlertTotalTime){
         this.yellowAlertTotalTime = yellowAlertTotalTime;
     }
 
-    public String getRedAlertTotalTime(){
+    public Long getRedAlertTotalTime(){
         return this.redAlertTotalTime;
     }
 
-    public void setRedAlertTotalTime(String redAlertTotalTime){
+    public void setRedAlertTotalTime(Long redAlertTotalTime){
         this.redAlertTotalTime = redAlertTotalTime;
     }
 
-    public String getMaxValue(){
+    public Float getMaxValue(){
         return this.maxValue;
     }
 
-    public void setMaxValue(String maxValue){
+    public void setMaxValue(Float maxValue){
         this.maxValue = maxValue;
     }
 
-    public String getMaxValueTime(){
+    public Long getMaxValueTime(){
         return this.maxValueTime;
     }
 
-    public void setMaxValueTime(String maxValueTime){
+    public void setMaxValueTime(Long maxValueTime){
         this.maxValueTime = maxValueTime;
     }
 
-    public String getMinValue(){
+    public Float getMinValue(){
         return this.minValue;
     }
 
-    public void setMinValue(String minValue){
+    public void setMinValue(Float minValue){
         this.minValue = minValue;
     }
 
-    public String getMinValueTime(){
+    public Long getMinValueTime(){
         return this.minValueTime;
     }
 
-    public void setMinValueTime(String minValueTime){
+    public void setMinValueTime(Long minValueTime){
         this.minValueTime = minValueTime;
     }
 
-    public String getAvgValue(){
+    public Float getAvgValue(){
         return this.avgValue;
     }
 
-    public void setAvgValue(String avgValue){
+    public void setAvgValue(Float avgValue){
         this.avgValue = avgValue;
+    }
+
+    public Float getMktdata(){
+        return this.mktdata;
+    }
+
+    public void setMktdata(Float mktdata){
+        this.mktdata = mktdata;
     }
 }

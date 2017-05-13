@@ -22,10 +22,10 @@ import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
-import com.device.inspect.common.restful.data.AggregateData;
-import com.device.inspect.common.restful.data.RestMonitorDataOfDevice;
+import com.device.inspect.common.restful.data.*;
 import com.device.inspect.common.restful.device.*;
 import com.device.inspect.Application;
+import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
@@ -1070,14 +1070,11 @@ public class SelectApiController {
 
         List<String> deviceInspectIds = requestParam.getMonitorId();
         List<DeviceInspect> deviceInspects = new ArrayList<>();
-        List<String> nameLists = new ArrayList<>();
-        nameLists.add("时间");
 
         for(String deviceInspectId : deviceInspectIds){
             DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(deviceInspectId));
             if(deviceInspect != null){
                 LOGGER.info(String.format("Get Device Monitor: monitor %d is found.", deviceInspect.getId()));
-                nameLists.add(deviceInspect.getName());
                 deviceInspects.add(deviceInspect);
             }
             else{
@@ -1088,21 +1085,33 @@ public class SelectApiController {
         List<List<InspectData> > listOfInspectDatas = new ArrayList<>();
         List<InspectData> currentInspectData = new ArrayList<>();
         List<Iterator<InspectData> > listOfIterator = new ArrayList<>();
+
+        RestInspectDataArray restInspectDataArray = new RestInspectDataArray();
+        List<Long> timeSeries = new ArrayList<>();
+        List<TelemetryData> telemetryDatas = new ArrayList<>();
+
+        restInspectDataArray.setTimeSeries(timeSeries);
+        restInspectDataArray.setTelemetries(telemetryDatas);
+
         // setup inspect data and iterator
         for(DeviceInspect deviceInspect : deviceInspects){
             List<InspectData> inspectDatas = inspectDataRepository.
                     findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
-            listOfInspectDatas.add(inspectDatas);
             if(inspectDatas != null && inspectDatas.size() > 0){
+                listOfInspectDatas.add(inspectDatas);
                 Iterator<InspectData> iterator = inspectDatas.iterator();
                 LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %d get %d inspect data.", deviceInspect.getId(), inspectDatas.size()));
                 listOfIterator.add(iterator);
                 currentInspectData.add(iterator.next());
+
+                TelemetryData telemetryData = new TelemetryData();
+                telemetryData.setDeviceInspectId(inspectDatas.get(0).getDeviceInspect().getId());
+                telemetryData.setName(inspectDatas.get(0).getDeviceInspect().getName());
+                telemetryData.setTsData(new ArrayList<Float>());
+                telemetryDatas.add(telemetryData);
             }
             else{
                 LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is empty data list in given interval", deviceInspect.getId()));
-                listOfIterator.add(null);
-                currentInspectData.add(null);
             }
         }
         LOGGER.info(String.format("Get Device Monitor: current Inspect Data size: %d", currentInspectData.size()));
@@ -1114,9 +1123,8 @@ public class SelectApiController {
         monitorDataOfDevice.setDeviceName(device.getName());
         monitorDataOfDevice.setEndTime(String.valueOf(endTime.getTime()));
         monitorDataOfDevice.setStartTime(String.valueOf(String.valueOf(beginTime.getTime())));
-        monitorDataOfDevice.setName(nameLists);
+        monitorDataOfDevice.setInspectData(restInspectDataArray);
 
-        List<List<String>> data = new ArrayList<>();
         LOGGER.info("Get Device Monitor: begin parse data");
         for(long currentMillisecond = beginMillisecond; currentMillisecond < endMillisecond; currentMillisecond = currentMillisecond + interval){
             boolean hasDataInThisInterval = false;
@@ -1129,8 +1137,8 @@ public class SelectApiController {
             }
 
             if(hasDataInThisInterval){
-                List<String> dataItem = new ArrayList<>();
-                dataItem.add(String.valueOf(currentMillisecond));
+                timeSeries.add(currentMillisecond);
+
                 for(int index = 0; index < currentInspectData.size(); index++){
                     int dataCount = 0;
                     float dataSum = 0;
@@ -1144,19 +1152,18 @@ public class SelectApiController {
                     }
                     if(dataCount > 0){
                         Float averageValue = new Float(dataSum/dataCount);
-                        dataItem.add(averageValue.toString());
+                        telemetryDatas.get(index).getTsData().add(averageValue);
                     }
                     else{
-                        dataItem.add(null);
+                        telemetryDatas.get(index).getTsData().add(null);
                     }
                 }
-                data.add(dataItem);
             }
         }
 
         LOGGER.info("Get Device Monitor: begin aggregate data");
-        List<AggregateData> aggregateDatas = new ArrayList<>();
-        for(List<InspectData> inspectDatas : listOfInspectDatas){
+        for(int index = 0; index < listOfInspectDatas.size(); index++){
+            List<InspectData> inspectDatas = listOfInspectDatas.get(index);
             AggregateData aggregateData = new AggregateData();
             aggregateData.setMonitorId(inspectDatas.get(0).getDeviceInspect().getId().toString());
             Float maxValue = new Float(Float.MIN_VALUE);
@@ -1180,11 +1187,11 @@ public class SelectApiController {
                     minValueTime = inspectData.getCreateDate();
                 }
             }
-            aggregateData.setMaxValue(maxValue.toString());
-            aggregateData.setMaxValueTime(String.valueOf(maxValueTime.getTime()));
-            aggregateData.setMinValue(minValue.toString());
-            aggregateData.setMinValueTime(String.valueOf(minValueTime.getTime()));
-            aggregateData.setAvgValue(String.valueOf(sumValue/inspectDatas.size()));
+            aggregateData.setMaxValue(maxValue);
+            aggregateData.setMaxValueTime(maxValueTime.getTime());
+            aggregateData.setMinValue(minValue);
+            aggregateData.setMinValueTime(minValueTime.getTime());
+            aggregateData.setAvgValue(sumValue/inspectDatas.size());
 
             List<AlertCount> yellowAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
                     inspectDatas.get(0).getDeviceInspect().getInspectType().getId(),
@@ -1204,13 +1211,12 @@ public class SelectApiController {
                     redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
                 }
             }
-            aggregateData.setRedAlertCount(redAlertCount.toString());
-            aggregateData.setRedAlertTotalTime(redAlertTime.toString());
-            aggregateData.setYellowAlertCount(yellowAlertCount.toString());
-            aggregateData.setYellowAlertTotalTime(yellowAlertTime.toString());
-            aggregateDatas.add(aggregateData);
+            aggregateData.setRedAlertCount(redAlertCount);
+            aggregateData.setRedAlertTotalTime(redAlertTime);
+            aggregateData.setYellowAlertCount(yellowAlertCount);
+            aggregateData.setYellowAlertTotalTime(yellowAlertTime);
+            restInspectDataArray.getTelemetries().get(index).setAggregateData(aggregateData);
         }
-        monitorDataOfDevice.setAggregateData(aggregateDatas);
 
         Double MKT = null;
         if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty()){
@@ -1232,9 +1238,12 @@ public class SelectApiController {
         }
 
         if(MKT != null){
-            monitorDataOfDevice.setMKTdata(MKT.toString());
+            for(int index = 0; index < restInspectDataArray.getTelemetries().size(); index++){
+                if(restInspectDataArray.getTelemetries().get(index).getDeviceInspectId() == Integer.parseInt(requestParam.getMktId())){
+                    restInspectDataArray.getTelemetries().get(index).getAggregateData().setMktdata(new Float(MKT.floatValue()));
+                }
+            }
         }
-        monitorDataOfDevice.setData(data);
         return new RestResponse(monitorDataOfDevice);
     }
 }

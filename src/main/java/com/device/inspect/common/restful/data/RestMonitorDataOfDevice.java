@@ -13,10 +13,7 @@ public class RestMonitorDataOfDevice {
     private String startTime;
     private String endTime;
     private String deviceLogo;
-    private String MKTdata;
-    private List<String> name;
-    private List<List<String>> data;
-    private List<AggregateData> aggregateData;
+    private RestInspectDataArray inspectData;
 
     public String getDeviceName(){
         return this.deviceName;
@@ -74,35 +71,12 @@ public class RestMonitorDataOfDevice {
         this.deviceLogo = deviceLogo;
     }
 
-    public String getMKTdata(){
-        return this.MKTdata;
+    public RestInspectDataArray getInspectData(){
+        return this.inspectData;
     }
 
-    public void setMKTdata(String MKTdata){
-        this.MKTdata = MKTdata;
+    public void setInspectData(RestInspectDataArray inspectData){
+        this.inspectData = inspectData;
     }
 
-    public List<String> getName(){
-        return this.name;
-    }
-
-    public void setName(List<String> name){
-        this.name = name;
-    }
-
-    public List<List<String>> getData(){
-        return this.data;
-    }
-
-    public void setData(List<List<String>> data){
-        this.data = data;
-    }
-
-    public List<AggregateData> getAggregateData(){
-        return this.aggregateData;
-    }
-
-    public void setAggregateData(List<AggregateData> aggregateData){
-        this.aggregateData = aggregateData;
-    }
 }
