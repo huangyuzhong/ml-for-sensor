@@ -19,6 +19,7 @@ import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.restful.RestResponse;
+import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
 import com.device.inspect.common.restful.device.RestDeviceType;
 import com.device.inspect.common.restful.firm.RestBuilding;
@@ -132,7 +133,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/create/building"  )
-        public void createBuilding(Principal principal,@RequestParam Map<String,String> param,
+        public RestResponse createBuilding(Principal principal,@RequestParam Map<String,String> param,
                                HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
@@ -191,11 +192,13 @@ public class FileController {
                     building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
                     logger.info(String.format("Updating building, name=%s, lng=%s, lat=%s",
                             param.get("name"), param.get("xpoint"), param.get("ypoint")));
-                    buildingRepository.save(building);
 
                     String pic=param.get("pic");
+
+                    boolean fileUploadSuccess = true;
                     if (pic.equals("0")){
                         logger.info("Uploading building picture");
+
                         try {
                             MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                             MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -229,61 +232,22 @@ public class FileController {
                             }
                         }catch (ClassCastException e){
                             e.printStackTrace();
+
+                            fileUploadSuccess = false;
                         }
                     }else {
                         System.out.println("没有上传图片");
                     }
 
-                    buildingRepository.save(building);
-                    restResponse = new RestResponse("操作成功！",new RestBuilding(building));
+                    if(fileUploadSuccess){
+                        buildingRepository.save(building);
+                        restResponse = new RestResponse("操作成功！",new RestBuilding(building));
+                    }else{
+                        restResponse = new RestResponse("Upload picture failed.", RestResponse.ERROR_STORAGE, null);
 
+                    }
                 }
-//                building.setEnable(1);
-//                building.setName(null == param.get("name") ? null : param.get("name"));
-//                building.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
-//                building.setYpoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
-//                buildingRepository.save(building);
-//                try {
-//                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
-//                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-//                    Set<String> keys = map.keySet();
-//                    for (String key : keys) {
-//                        JSONObject jobj = new JSONObject();
-//                        String path = "";
-//
-//                        path = request.getSession().getServletContext().getRealPath("/") + "photo/company/build/"+building.getId()+"/";
-//                        File add = new File(path);
-//                        if (!add.exists() && !add.isDirectory()) {
-//                            add.mkdirs();
-//                        }
-//
-//                        List<MultipartFile> files = map.get(key);
-//                        if (null != files && files.size() > 0) {
-//                            MultipartFile file = files.get(0);
-//                            String fileName  = file.getOriginalFilename();
-////                            String fileName = UUID.randomUUID().toString() + ".jpg";
-//                            InputStream is = file.getInputStream();
-//                            File f = new File(path + fileName);
-//                            FileOutputStream fos = new FileOutputStream(f);
-//                            int hasRead = 0;
-//                            byte[] buf = new byte[1024];
-//                            while ((hasRead = is.read(buf)) > 0) {
-//                                fos.write(buf, 0, hasRead);
-//                            }
-//                            fos.close();
-//                            is.close();
-//
-//                            building.setBackground("/photo/company/build/"+building.getId()+"/" + fileName);
-////                        userRepository.save(user);
-//                        }
-//
-//
-//                    }
-//                }catch (ClassCastException e){
-//                    e.printStackTrace();
-//                }
-//                buildingRepository.save(building);
-//                restResponse = new RestResponse("操作成功！",new RestBuilding(building));
+
             } else {
                 restResponse = new RestResponse("权限不足！",1005,null);
             }
@@ -292,6 +256,9 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+
+        return restResponse;
+
     }
 
     /**
@@ -305,7 +272,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/create/floor")
-    public void createFloor(Principal principal,@RequestParam Map<String,String> param,
+    public RestResponse createFloor(Principal principal,@RequestParam Map<String,String> param,
                             HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -360,10 +327,10 @@ public class FileController {
                 floor.setXpoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                 floor.setYpoint(null==param.get("ypoint")?null:Float.valueOf(param.get("ypoint")));
                 floor.setEnable(1);
-                storeyRepository.save(floor);
                 //用来判断是否上传图片  0是上传图片  1是没有上传图片
                 String pic=param.get("pic");
                 System.out.println("pic："+pic);
+                boolean fileUploadSuccess = true;
                 if (pic.equals("0")){
                     System.out.println("上传图片："+pic);
                     try {
@@ -400,13 +367,19 @@ public class FileController {
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
+                        fileUploadSuccess = false;
+
                     }
                 }else {
                    logger.info("没有上传图片："+pic);
                 }
 
-                storeyRepository.save(floor);
-                restResponse = new RestResponse("操作成功！",new RestFloor(floor));
+                if(fileUploadSuccess) {
+                    storeyRepository.save(floor);
+                    restResponse = new RestResponse("操作成功！", new RestFloor(floor));
+                }else{
+                    restResponse = new RestResponse("Upload picture failed.", RestResponse.ERROR_STORAGE, null);
+                }
             }
 
         } else {
@@ -415,6 +388,8 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+
+        return restResponse;
     }
 
     /**
@@ -428,7 +403,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/create/device")
-    public void createDevice(Principal principal,@RequestParam Map<String,String> param,
+    public RestResponse createDevice(Principal principal,@RequestParam Map<String,String> param,
                              HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
 
@@ -500,79 +475,10 @@ public class FileController {
                     device.setPushType("禁止推送");
                 }
             }
-            device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
-            device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
-            device.setName(param.get("name"));
-            device.setRoom(room);
-            device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
-            device.setEnable(1);
-            Room room1=device.getRoom();
-            room1.setTotal(room1.getTotal()+1);
-            room1.setOffline(room1.getOffline()+1);
-            roomRepository.save(room1);
-            Storey storey=device.getRoom().getFloor();
-            storey.setTotal(storey.getTotal()+1);
-            storey.setOffline(storey.getOffline()+1);
-            storeyRepository.save(storey);
-            Building building=device.getRoom().getFloor().getBuild();
-            building.setTotal(building.getTotal()+1);
-            building.setOffline(building.getOffline()+1);
-            buildingRepository.save(building);
-            Company company=user.getCompany();
-            company.setTotal(company.getTotal()+1);
-            company.setOffline(company.getOffline()+1);
-            companyRepository.save(company);
-            deviceRepository.save(device);
-            monitorDevice = new MonitorDevice();
-            monitorDevice.setBattery("100");
-            monitorDevice.setDevice(device);
-            monitorDevice.setNumber(param.get("monitorCode"));
-            monitorDevice.setOnline(1);
-            monitorDeviceRepository.save(monitorDevice);
-            logger.info("Create Device: finish adding basic infomation.");
-	    if (null!=param.get("scientist")) {
-                String[] scientist = param.get("scientist").split(",");
-                for (String id:scientist){
-                    if (null!=id&&!"".equals(id)){
-                        ScientistDevice scientistDevice = null;
-                        User keeper = userRepository.findOne(Integer.valueOf(id));
-                        if (null==keeper)
-                            continue;
-                        scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
-                        if (null!=scientistDevice)
-                            continue;
-                        scientistDevice = new ScientistDevice();
-                        scientistDevice.setDevice(device);
-                        scientistDevice.setScientist(keeper);
-                        scientistDeviceRepository.save(scientistDevice);
-                    }
-                }
-            }
-	    logger.info("Create Device: finish adding scientist infomation.");
-
-            if (null!=deviceType.getDeviceTypeInspectList()){
-                for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
-                    DeviceInspect deviceInspect = new DeviceInspect();
-                    deviceInspect.setDevice(device);
-                    deviceInspect.setInspectType(deviceTypeInspect.getInspectType());
-                    deviceInspect.setStandard(deviceTypeInspect.getStandard());
-                    deviceInspect.setHighUp(deviceTypeInspect.getHighUp());
-                    deviceInspect.setHighDown(deviceTypeInspect.getHighDown());
-                    deviceInspect.setLowDown(deviceTypeInspect.getLowDown());
-                    deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
-                    deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
-                    deviceInspect.setName(deviceTypeInspect.getInspectType().getName());
-                    deviceInspect.setInspectPurpose(deviceTypeInspect.getInspectPurpose());
-                    deviceInspect.setZero(0f);
-                    deviceInspect.setOriginalValue(0f);
-                    deviceInspect.setCorrectionValue(0f);
-                    deviceInspectRepository.save(deviceInspect);
-                }
-            }
-	    logger.info("Create Device: finish adding device type inspect information.");
 
             String pic=param.get("pic");
             System.out.println("pic："+pic);
+            boolean fileUploadSuccess = true;
             if (pic.equals("0")){
                 System.out.println("上传图片pic："+pic);
                 try {
@@ -604,25 +510,107 @@ public class FileController {
                     }
                 }catch (ClassCastException e){
                     e.printStackTrace();
+                    fileUploadSuccess = false;
                 }
             }else {
                 logger.info("没有上传图片pic："+pic);
             }
 
-            deviceRepository.save(device);
-            device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
-            roomRepository.save(device.getRoom());
-            device.getRoom().getFloor().setDeviceNum(device.getRoom().getFloor().getDeviceNum()+1);
-            storeyRepository.save(device.getRoom().getFloor());
-            device.getRoom().getFloor().getBuild().setDeviceNum(device.getRoom().getFloor().getBuild().getDeviceNum()+1);
-            buildingRepository.save(device.getRoom().getFloor().getBuild());
-            restResponse = new RestResponse("操作成功！",new RestDevice(device));
+            if(!fileUploadSuccess) {
+                restResponse = new RestResponse( "File upload failed", RestResponse.ERROR_STORAGE, null);
+
+            }else{
+
+                device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
+                device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
+                device.setName(param.get("name"));
+                device.setRoom(room);
+                device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
+                device.setEnable(1);
+                Room room1=device.getRoom();
+                room1.setTotal(room1.getTotal()+1);
+                room1.setOffline(room1.getOffline()+1);
+                roomRepository.save(room1);
+                Storey storey=device.getRoom().getFloor();
+                storey.setTotal(storey.getTotal()+1);
+                storey.setOffline(storey.getOffline()+1);
+                storeyRepository.save(storey);
+                Building building=device.getRoom().getFloor().getBuild();
+                building.setTotal(building.getTotal()+1);
+                building.setOffline(building.getOffline()+1);
+                buildingRepository.save(building);
+                Company company=user.getCompany();
+                company.setTotal(company.getTotal()+1);
+                company.setOffline(company.getOffline()+1);
+                companyRepository.save(company);
+                deviceRepository.save(device);
+                monitorDevice = new MonitorDevice();
+                monitorDevice.setBattery("100");
+                monitorDevice.setDevice(device);
+                monitorDevice.setNumber(param.get("monitorCode"));
+                monitorDevice.setOnline(1);
+                monitorDeviceRepository.save(monitorDevice);
+                logger.info("Create Device: finish adding basic infomation.");
+                if (null!=param.get("scientist")) {
+                    String[] scientist = param.get("scientist").split(",");
+                    for (String id:scientist){
+                        if (null!=id&&!"".equals(id)){
+                            ScientistDevice scientistDevice = null;
+                            User keeper = userRepository.findOne(Integer.valueOf(id));
+                            if (null==keeper)
+                                continue;
+                            scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
+                            if (null!=scientistDevice)
+                                continue;
+                            scientistDevice = new ScientistDevice();
+                            scientistDevice.setDevice(device);
+                            scientistDevice.setScientist(keeper);
+                            scientistDeviceRepository.save(scientistDevice);
+                        }
+                    }
+                }
+                logger.info("Create Device: finish adding scientist infomation.");
+
+                if (null!=deviceType.getDeviceTypeInspectList()){
+                    for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()){
+                        DeviceInspect deviceInspect = new DeviceInspect();
+                        deviceInspect.setDevice(device);
+                        deviceInspect.setInspectType(deviceTypeInspect.getInspectType());
+                        deviceInspect.setStandard(deviceTypeInspect.getStandard());
+                        deviceInspect.setHighUp(deviceTypeInspect.getHighUp());
+                        deviceInspect.setHighDown(deviceTypeInspect.getHighDown());
+                        deviceInspect.setLowDown(deviceTypeInspect.getLowDown());
+                        deviceInspect.setLowUp(deviceTypeInspect.getLowUp());
+                        deviceInspect.setLowAlter(deviceTypeInspect.getLowAlter());
+                        deviceInspect.setName(deviceTypeInspect.getInspectType().getName());
+                        deviceInspect.setInspectPurpose(deviceTypeInspect.getInspectPurpose());
+                        deviceInspect.setZero(0f);
+                        deviceInspect.setOriginalValue(0f);
+                        deviceInspect.setCorrectionValue(0f);
+                        deviceInspectRepository.save(deviceInspect);
+                    }
+                }
+                logger.info("Create Device: finish adding device type inspect information.");
+
+
+
+                deviceRepository.save(device);
+                device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
+                roomRepository.save(device.getRoom());
+                device.getRoom().getFloor().setDeviceNum(device.getRoom().getFloor().getDeviceNum()+1);
+                storeyRepository.save(device.getRoom().getFloor());
+                device.getRoom().getFloor().getBuild().setDeviceNum(device.getRoom().getFloor().getBuild().getDeviceNum()+1);
+                buildingRepository.save(device.getRoom().getFloor().getBuild());
+                restResponse = new RestResponse("操作成功！", new RestDevice(device));
+            }
+
         }else {
             restResponse = new RestResponse("权限不足！",1005,null);
         }
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+        return restResponse;
     }
 
     /**
@@ -636,7 +624,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/create/room")
-    public void createRoom(Principal principal,@RequestParam Map<String,String> param,
+    public RestResponse createRoom(Principal principal,@RequestParam Map<String,String> param,
                            HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -694,9 +682,9 @@ public class FileController {
                 room.setxPoint(null == param.get("xpoint") ? null : Float.valueOf(param.get("xpoint")));
                 room.setyPoint(null == param.get("ypoint") ? null : Float.valueOf(param.get("ypoint")));
                 room.setEnable(1);
-                roomRepository.save(room);
                 String pic=param.get("pic");
                 logger.info("pic："+pic);
+                boolean fileUploadSuccess = true;
                 if (pic.equals("0")){
                     logger.info("上传图片pic："+pic);
                     try {
@@ -729,20 +717,26 @@ public class FileController {
                         }
                     }catch (ClassCastException e){
                         e.printStackTrace();
+                        fileUploadSuccess = false;
                     }
                 }else {
                     logger.info("没有上传图片pic："+pic);
                 }
 
 
-                roomRepository.save(room);
-                restResponse = new RestResponse("操作成功！",new RestRoom(room));
+                if(fileUploadSuccess) {
+                    roomRepository.save(room);
+                    restResponse = new RestResponse("操作成功！", new RestRoom(room));
+                }else{
+                    restResponse = new RestResponse("File upload failed", RestResponse.ERROR_STORAGE, null);
+                }
             }
 
         }
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+        return restResponse;
     }
 
     /**
@@ -755,7 +749,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/upload/deviceType/icon/{deviceTypeId}")
-    public void createDeviceType(Principal principal, @PathVariable Integer deviceTypeId,
+    public RestResponse createDeviceType(Principal principal, @PathVariable Integer deviceTypeId,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         RestResponse restResponse = null;
@@ -771,6 +765,7 @@ public class FileController {
             if (null == deviceType)
                 restResponse = new RestResponse("设备类型不存在！", 1005, null);
             else {
+                boolean fileUploadSuccess = true;
                 try {
                     MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
                     MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
@@ -791,26 +786,109 @@ public class FileController {
                                 restResponse = new RestResponse("操作成功！", new RestDeviceType(deviceType));
                             } else {
                                 logger.error(String.format("Storage return null for file %s", fileName));
-                                restResponse = new RestResponse("Failed to upload file", new RestDeviceType(deviceType));
-
+                                restResponse = new RestResponse("Failed to upload file", RestResponse.ERROR_STORAGE, new RestDeviceType(deviceType));
+                                fileUploadSuccess = false;
                             }
 
 
                         }
                     }
-                    deviceTypeRepository.save(deviceType);
+
                 } catch (ClassCastException e) {
                     e.printStackTrace();
-                    restResponse = new RestResponse("Exception happens when upload file", new RestDeviceType(deviceType));
-
+                    restResponse = new RestResponse("Exception happens when upload file", RestResponse.ERROR_STORAGE, new RestDeviceType(deviceType));
+                    fileUploadSuccess = false;
                 }
 
+                if(fileUploadSuccess){
+                    deviceTypeRepository.save(deviceType);
+                }
 
             }
         }
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+
+        return restResponse;
+    }
+
+    /**
+     * 根据参数用户Id,去更换用户的头像
+     * @param userId
+     * @param request
+     * @param response
+     * @throws ServletException
+     * @throws IOException
+     * @throws SerialException
+     */
+    @RequestMapping(value = "/change/avatar/{userId}")
+    public RestResponse updateUserAvatar(Principal principal, @PathVariable Integer userId, HttpServletRequest request,HttpServletResponse response)
+            throws ServletException, IOException,SerialException {
+        User user = judgeByPrincipal(principal);
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        RestResponse restResponse = null;
+        String changePicURL = null;
+        if (null == user) {
+            restResponse  = new RestResponse("用户未登录！", 1005, null);
+        }
+        else {
+
+            Integer companyId = user.getCompany().getId();
+            Application.LOGGER.info(String.format("update user %d of company %d", userId, companyId));
+
+            User updateUser = userRepository.findOne(userId);
+            if (null == updateUser) {
+                restResponse = new RestResponse("当前用户有误！", 1005, null);
+            } else {
+
+                boolean fileUploadSuccess = true;
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName = file.getOriginalFilename();
+                            logger.info("original file name is " + fileName);
+
+                            String companyContainerName = String.format("company%s", companyId);
+                            String blobName = String.format("users/%s/%s", userId, UUID.randomUUID().toString());
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, updateUser.getHeadIcon());
+                            if (photoUrl != null) {
+                                updateUser.setHeadIcon(photoUrl);
+
+
+                            } else {
+                                logger.error(String.format("Failed to save file %s to blob", fileName));
+                                fileUploadSuccess = false;
+                            }
+
+                        }
+                    }
+                }catch (ClassCastException e){
+                    e.printStackTrace();
+                    fileUploadSuccess = false;
+                }
+
+                if(fileUploadSuccess){
+                    userRepository.save(updateUser);
+                    restResponse = new RestResponse("图片上传成功！", 0, new RestUser(updateUser));
+
+                }else{
+                    restResponse = new RestResponse("Failed to upload picture", RestResponse.ERROR_STORAGE, new RestUser(updateUser));
+                }
+
+            }
+        }
+        out.print(JSON.toJSONString(restResponse));
+        out.flush();
+        out.close();
+        return restResponse;
     }
 
     /**
@@ -823,7 +901,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/change/picture/{deviceId}")
-    public void uploadPhoto(Principal principal, @PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
+    public RestResponse uploadPhoto(Principal principal, @PathVariable Integer deviceId, HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
         response.setContentType("text/html");
@@ -841,37 +919,44 @@ public class FileController {
             if (null == device) {
                 restResponse = new RestResponse("当前设备有误！", 1005, null);
             } else {
-                MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
+                boolean fileUploadSuccess = true;
+                try {
+                    MultipartHttpServletRequest multirequest = (MultipartHttpServletRequest) request;
 
-                MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
-                Set<String> keys = map.keySet();
-                Boolean existFailure = false;
-                for (String key : keys) {
-                    List<MultipartFile> files = map.get(key);
-                    if (null != files && files.size() > 0) {
-                        MultipartFile file = files.get(0);
-                        String fileName = file.getOriginalFilename();
-                        logger.info("original file name is " + fileName);
+                    MultiValueMap<String, MultipartFile> map = multirequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName = file.getOriginalFilename();
+                            logger.info("original file name is " + fileName);
 
-                        String companyContainerName = String.format("company%s", companyId);
-                        String blobName = String.format("devices/%s/%s", deviceId, UUID.randomUUID().toString());
-                        String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, device.getPhoto());
-                        if (photoUrl != null) {
-                            device.setPhoto(photoUrl);
-                            deviceRepository.save(device);
+                            String companyContainerName = String.format("company%s", companyId);
+                            String blobName = String.format("devices/%s/%s", deviceId, UUID.randomUUID().toString());
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, device.getPhoto());
+                            if (photoUrl != null) {
+                                device.setPhoto(photoUrl);
 
-                        } else {
-                            logger.error(String.format("Failed to save file %s to blob", fileName));
-                            existFailure = true;
+
+                            } else {
+                                logger.error(String.format("Failed to save file %s to blob", fileName));
+                                fileUploadSuccess = false;
+                            }
+
                         }
-
                     }
+                }catch (ClassCastException e){
+                    e.printStackTrace();
+                    fileUploadSuccess = false;
                 }
 
-                if(existFailure){
-                    restResponse = new RestResponse("Failed to upload picture", 1005, new RestDevice(device));
-                }else{
+                if(fileUploadSuccess){
+                    deviceRepository.save(device);
                     restResponse = new RestResponse("图片上传成功！", 0, new RestDevice(device));
+
+                }else{
+                    restResponse = new RestResponse("Failed to upload picture", RestResponse.ERROR_STORAGE, new RestDevice(device));
                 }
 
             }
@@ -879,6 +964,7 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+        return restResponse;
 
     }
 
@@ -894,7 +980,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value = "/create/company")
-    public void createCompany(Principal principal,@RequestParam Map<String,String> param,
+    public RestResponse createCompany(Principal principal,@RequestParam Map<String,String> param,
                                  HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException{
         User user = judgeByPrincipal(principal);
@@ -1115,6 +1201,8 @@ public class FileController {
         out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+
+        return restResponse;
     }
 
     /**
@@ -1201,7 +1289,7 @@ public class FileController {
      * @throws SerialException
      */
     @RequestMapping(value="/logo/company")
-    public void uploadLogo(Principal principal,HttpServletRequest request,HttpServletResponse response)
+    public RestResponse uploadLogo(Principal principal,HttpServletRequest request,HttpServletResponse response)
             throws ServletException, IOException,SerialException {
         User user = judgeByPrincipal(principal);
         response.setContentType("text/html");
@@ -1212,40 +1300,56 @@ public class FileController {
             if (company==null) {
                 restResponse=new RestResponse("公司不存在",1005,null);
             }else {
-                MultipartHttpServletRequest multipartHttpServletRequest=(MultipartHttpServletRequest ) request;
-                MultiValueMap<String,MultipartFile> map=multipartHttpServletRequest.getMultiFileMap();
-                Set<String> keys = map.keySet();
-                for (String key:keys){
-                    List<MultipartFile> files=map.get(key);
-                    if (null!=files&&files.size()>0){
-                        MultipartFile file=files.get(0);
-                        String fileName=file.getOriginalFilename();
+                boolean fileUploadSuccess = true;
+                try {
+                    MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
+                    MultiValueMap<String, MultipartFile> map = multipartHttpServletRequest.getMultiFileMap();
+                    Set<String> keys = map.keySet();
+                    for (String key : keys) {
+                        List<MultipartFile> files = map.get(key);
+                        if (null != files && files.size() > 0) {
+                            MultipartFile file = files.get(0);
+                            String fileName = file.getOriginalFilename();
 
-                        logger.info("original file name is " + fileName);
+                            logger.info("original file name is " + fileName);
 
-                        String companyContainerName = String.format("company%s", company.getId());
-                        // we don't use uuid, because we want to keep its file type info
-                        String blobName = String.format("company/%s", UUID.randomUUID().toString());
+                            String companyContainerName = String.format("company%s", company.getId());
+                            // we don't use uuid, because we want to keep its file type info
+                            String blobName = String.format("company/%s", UUID.randomUUID().toString());
 
-                        String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, company.getLogo());
-                        if (photoUrl != null) {
-                            logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
-                            company.setLogo(photoUrl);
-                            companyRepository.save(company);
+                            String photoUrl = Application.intelabStorageManager.uploadFile(file, companyContainerName, blobName, company.getLogo());
+                            if (photoUrl != null) {
+                                logger.info(String.format("file %s saved to blob, and update path to db %s", fileName, photoUrl));
+                                company.setLogo(photoUrl);
 
-                        } else {
-                            logger.error(String.format("Failed to save file %s to blob", fileName));
+
+                            } else {
+                                logger.error(String.format("Failed to save file %s to blob", fileName));
+                                fileUploadSuccess = false;
+                            }
+
                         }
-
                     }
+                }catch(ClassCastException e){
+                    e.printStackTrace();
+                    fileUploadSuccess =false;
                 }
-                out.print(JSON.toJSONString(new RestResponse("图片上传成功！", 0, new RestCompany(company))));
+
+                if(fileUploadSuccess){
+                    companyRepository.save(company);
+                    restResponse = new RestResponse("图片上传成功！", 0, new RestCompany(company));
+                }else{
+                    restResponse = new RestResponse("Failed to upload file", RestResponse.ERROR_STORAGE, null);
+                }
+
             }
         }else {
-            new RestResponse("用户权限不足，无法上传公司logo!",1005,null);
+            restResponse = new RestResponse("用户权限不足，无法上传公司logo!",1005,null);
         }
+        out.print(JSON.toJSONString(restResponse));
         out.flush();
         out.close();
+        return restResponse;
     }
 
     /**
