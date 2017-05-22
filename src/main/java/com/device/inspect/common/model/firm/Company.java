@@ -38,6 +38,7 @@ public class Company {
     private Float lat;
     private Float lng;
     private String companyId;
+    private String features;
 
 
     @Id
@@ -256,5 +257,14 @@ public class Company {
 
     public void setCompanyId(String companyId) {
         this.companyId = companyId;
+    }
+
+    @Column(name = "features")
+    public String getFeatures() {
+        return features;
+    }
+
+    public void setFeatures(String features) {
+        this.features = features;
     }
 }

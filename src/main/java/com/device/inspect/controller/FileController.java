@@ -1030,6 +1030,10 @@ public class FileController {
                         company.setLat(Float.valueOf(location[1]));
                     }
                 }
+
+                if(null!=param.get("features")){
+                    company.setFeatures(param.get("features"));
+                }
                 company.setEnable(1);
                 firmManager = userRepository.findByName(param.get("account"));
                 if (null!=firmManager) {
@@ -1071,9 +1075,8 @@ public class FileController {
                     company.setLogin(String.format("%s.ilabservice.cloud", domain_name));
                 }
 
-
-
                 company=companyRepository.save(company);
+
 
                 // 创建公司管理员账号
                 firmManager = new User();
@@ -1134,6 +1137,10 @@ public class FileController {
                         company.setLat(Float.valueOf(location[1]));
                     }
                 }
+
+                if(param.get("features") != null){
+                    company.setFeatures(param.get("features"));
+                }
                 firmManager = userRepository.findByName(param.get("account")+"@"+company.getCompanyId());
                 if (null == firmManager) {
                     throw new RuntimeException("修改失败，管理员账号不存在！");
@@ -1143,6 +1150,7 @@ public class FileController {
 //                    out.close();
 //                    return;
                 }
+
                 company=companyRepository.save(company);
                 firmManager = company.getManager();
 //                firmManager.setName(param.get("account"));

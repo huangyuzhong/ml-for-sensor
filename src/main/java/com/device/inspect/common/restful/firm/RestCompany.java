@@ -37,6 +37,7 @@ public class RestCompany {
     private Float lng;
     private String location;
     private String companyId;
+    private String features;
 
     public RestCompany(@NotNull Company company){
         this.id = company.getId();
@@ -66,6 +67,7 @@ public class RestCompany {
         if (null!=company.getLat()&&null!=company.getLng())
             this.location=company.getLng()+","+company.getLat();
         this.companyId=company.getCompanyId();
+        this.features = company.getFeatures();
     }
 
     public Integer getId() {
@@ -267,4 +269,8 @@ public class RestCompany {
     public void setCompanyId(String companyId) {
         this.companyId = companyId;
     }
+
+    public String getFeatures() {return features;}
+
+    public void setFeatures(String features) { this.features = features; }
 }

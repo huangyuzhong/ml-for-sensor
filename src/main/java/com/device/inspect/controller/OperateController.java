@@ -1154,7 +1154,7 @@ public class OperateController {
         user.setBindMobile(1);
         user.setMobile(mobile);
         userRepository.save(user);
-        return new RestResponse("更换手机号成功",null);
+        return new RestResponse("更换手机号成功", new RestUser(user));
     }
 
     /**
@@ -1173,7 +1173,7 @@ public class OperateController {
         user.setBindEmail(1);
         user.setEmail(map.get("email"));
         userRepository.save(user);
-        return new RestResponse("邮箱绑定成功",null);
+        return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
 
