@@ -1416,10 +1416,12 @@ public class OperateController {
      }
 
      @RequestMapping(value = "/is/login")
-    public void  isLogin(Principal principal){
+    public RestResponse  isLogin(Principal principal){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(auth.getName());
-        judgeByPrincipal(principal);
+        User user = judgeByPrincipal(principal);
+
+        return new RestResponse(new RestUser(user));
 
      }
 
