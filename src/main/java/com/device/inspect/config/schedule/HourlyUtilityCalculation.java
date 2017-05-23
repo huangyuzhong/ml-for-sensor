@@ -61,6 +61,7 @@ public class HourlyUtilityCalculation implements MySchedule{
             long endTime = startTime + scanScope;
             Date currentHour = new Date(startTime);
             Date targetHour = new Date(endTime);
+            LOGGER.info("Begin scan missing utilization data from: " + currentHour + ", to " + targetHour);
             scanMissedHourForAllDevice(currentHour, targetHour);
         }
 
@@ -227,7 +228,6 @@ public class HourlyUtilityCalculation implements MySchedule{
     }
 
     public void scanMissedHourForAllDevice(Date currentHour, Date targetHour) {
-        LOGGER.info("Begin scan missing utilization data from: " + currentHour + ", to " + targetHour);
 
         Iterable<Device> deviceList = deviceRepository.findAll();
         for (Device device : deviceList) {
