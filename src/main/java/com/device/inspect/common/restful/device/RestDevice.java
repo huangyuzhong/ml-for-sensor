@@ -45,6 +45,8 @@ public class RestDevice {
     private Integer enable;
     private Integer days;
     private RestDeviceVersion deviceVersion;
+    private Long yellowAlertCountToday = new Long(0);
+    private Long redAlertCountToday = new Long(0);
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -318,5 +320,13 @@ public class RestDevice {
     public void setDeviceVersion(RestDeviceVersion deviceVersion) {
         this.deviceVersion = deviceVersion;
     }
+
+    public void setYellowAlertCountToday(Long alertCount) { this.yellowAlertCountToday = alertCount; }
+
+    public Long getYellowAlertCountToday() {return this.yellowAlertCountToday;}
+
+    public void setRedAlertCountToday(Long alertCount) { this.redAlertCountToday = alertCount; }
+
+    public Long getRedAlertCountToday() {return this.redAlertCountToday; }
 
 }

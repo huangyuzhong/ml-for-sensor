@@ -31,9 +31,11 @@ import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
+import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -275,7 +277,7 @@ public class SelectApiController {
         List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceIdAndEnable(deviceId,1);
         device.setDeviceFloorList(deviceFloorList);
 
-        RestDevice response = new RestDevice(device);
+        RestDevice restDevice = new RestDevice(device);
         List<RestDeviceInspect> restDeviceInspects = new ArrayList<>();
         for(DeviceInspect inspect : device.getDeviceInspectList()){
             List<DeviceInspectRunningStatus> statuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(inspect.getId());
@@ -287,8 +289,21 @@ public class SelectApiController {
             restInspect.setRunningStatus(restStatuses);
             restDeviceInspects.add(restInspect);
         }
-        response.setDeviceInspects(restDeviceInspects);
-        return new RestResponse(response);
+        restDevice.setDeviceInspects(restDeviceInspects);
+
+        // 获取北京时间今日凌晨0点的时间戳， 此处需要拓展， 以后要按照设备的时区来。
+        Date utcTimeForBeijingMidnight = MyCalendar.getUtcTimeForMidnight(new Date(), 8);
+
+        Long todayHighAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                2,utcTimeForBeijingMidnight,new Date());
+
+        Long todayLowAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                1,utcTimeForBeijingMidnight,new Date());
+
+        restDevice.setYellowAlertCountToday(todayLowAlert);
+        restDevice.setRedAlertCountToday(todayHighAlert);
+
+        return new RestResponse(restDevice);
     }
 
     /**
