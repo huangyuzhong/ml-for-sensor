@@ -1154,7 +1154,7 @@ public class OperateController {
         user.setBindMobile(1);
         user.setMobile(mobile);
         userRepository.save(user);
-        return new RestResponse("更换手机号成功",null);
+        return new RestResponse("更换手机号成功", new RestUser(user));
     }
 
     /**
@@ -1173,7 +1173,7 @@ public class OperateController {
         user.setBindEmail(1);
         user.setEmail(map.get("email"));
         userRepository.save(user);
-        return new RestResponse("邮箱绑定成功",null);
+        return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
 
@@ -1416,10 +1416,12 @@ public class OperateController {
      }
 
      @RequestMapping(value = "/is/login")
-    public void  isLogin(Principal principal){
+    public RestResponse  isLogin(Principal principal){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(auth.getName());
-        judgeByPrincipal(principal);
+        User user = judgeByPrincipal(principal);
+
+        return new RestResponse(new RestUser(user));
 
      }
 

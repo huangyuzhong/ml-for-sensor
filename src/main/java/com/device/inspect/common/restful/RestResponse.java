@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RestResponse {
+        public static Integer ERROR_STORAGE = 411;
 
         private Integer error;
         private String message;

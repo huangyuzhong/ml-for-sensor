@@ -20,7 +20,7 @@ public class RestUser {
 
     private Integer id;
     private String name;
-    private String password;
+    //private String password;
     private String userName;
     private String mobile;
     private String telephone;
@@ -48,7 +48,7 @@ public class RestUser {
         }else {
             this.name=user.getName().substring(0,user.getName().indexOf("@"));
         }
-        this.password = user.getPassword();
+    //    this.password = user.getPassword();
         this.userName = user.getUserName();
         this.mobile = user.getMobile();
         this.telephone = user.getTelephone();
@@ -101,13 +101,9 @@ public class RestUser {
         this.name = name;
     }
 
-    public String getPassword() {
-        return password;
-    }
+    //public String getPassword() { return password;}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    //public void setPassword(String password) {this.password = password;}
 
     public String getUserName() {
         return userName;
