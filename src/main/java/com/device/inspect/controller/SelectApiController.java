@@ -1217,13 +1217,27 @@ public class SelectApiController {
             if(yellowAlertCounts != null && yellowAlertCounts.size() > 0){
                 yellowAlertCount = yellowAlertCounts.size();
                 for(AlertCount alertCount : yellowAlertCounts){
-                    yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    // GX: alert_count.finishDate can be null due to device go offline
+                    // this is a temp hack, using alert_num * 20 sec
+                    if (alertCount.getFinish() == null){
+                        yellowAlertTime += alertCount.getNum() * 20 * 1000;
+
+                    }
+                    else {
+                        yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    }
                 }
             }
             if(redAlertCounts != null && redAlertCounts.size() > 0){
                 redAlertCount = redAlertCounts.size();
                 for(AlertCount alertCount : redAlertCounts){
-                    redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    // GX: alert_count.finishDate can be null due to device go offline
+                    // this is a temp hack, using alert_num * 20 sec
+                    if(alertCount.getFinish() == null){
+                        redAlertTime += alertCount.getNum() * 20 * 1000;
+                    }else {
+                        redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    }
                 }
             }
             aggregateData.setRedAlertCount(redAlertCount);
