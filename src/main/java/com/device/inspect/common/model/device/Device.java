@@ -46,6 +46,8 @@ public class Device {
     private Integer status;
     private List<ScientistDevice> scientistDeviceList;
     private DeviceVersion deviceVersion;
+    private Date lastActivityTime;
+    private Date lastAlertTime;
     @Id
     @GeneratedValue()
     public Integer getId() {
@@ -315,5 +317,22 @@ public class Device {
 
     public void setDeviceVersion(DeviceVersion deviceVersion) {
         this.deviceVersion = deviceVersion;
+    }
+
+    @Column(name = "last_activity_time")
+    public Date getLastActivityTime(){
+        return this.lastActivityTime;
+    }
+    public void setLastActivityTime(Date lastActivityTime){
+        this.lastActivityTime = lastActivityTime;
+    }
+
+    @Column(name = "last_alert_time")
+    public Date getLastAlertTime(){
+        return this.lastAlertTime;
+    }
+
+    public void setLastAlertTime(Date lastAlertTime){
+        this.lastAlertTime = lastAlertTime;
     }
 }

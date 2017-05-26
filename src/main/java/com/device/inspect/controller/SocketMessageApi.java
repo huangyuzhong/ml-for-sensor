@@ -81,7 +81,7 @@ public class SocketMessageApi {
 
     String unit = "s";
 
-    public DeviceInspect parseInspectAndSave(String inspectMessage) {
+    public DeviceInspect parseInspectAndSave(String inspectMessage, boolean onlineData) {
         String monitorTypeCode = inspectMessage.substring(6, 8);
 
 
@@ -425,6 +425,10 @@ public class SocketMessageApi {
 
             LOGGER.info("successfully parsing datagram.");
 
+            if(onlineData){
+                device.setLastActivityTime(deviceSamplingTime);
+            }
+
             try {
                 deviceInspectRepository.save(deviceInspect);
                 inspectDataRepository.save(inspectData);
@@ -488,6 +492,12 @@ public class SocketMessageApi {
                 // set inspect_data column 'type'
                 inspectData.setType("high");
 
+                // update device alert time and alert status
+                if(onlineData) {
+                    device.setLastAlertTime(deviceSamplingTime);
+                    device.setStatus(2);
+                }
+
                 // send push notification if necessary
                 if (deviceInspect.getHighUp() < record) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
@@ -540,6 +550,13 @@ public class SocketMessageApi {
                 alertCountRepository.save(low);
                 // set inspect_data column 'type'
                 inspectData.setType("low");
+
+                // update device alert time and alert status
+                if(onlineData) {
+                    device.setLastAlertTime(deviceSamplingTime);
+                    device.setStatus(1);
+                }
+
                 // push notification if necessary
                 if (record > deviceInspect.getLowUp()) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
@@ -594,6 +611,10 @@ public class SocketMessageApi {
             LOGGER.info("datagram alert type set and updating to db");
             inspectDataRepository.save(inspectData);
 
+            if(onlineData){
+                deviceRepository.save(device);
+            }
+
             return deviceInspect;
         }
         return null;
@@ -607,7 +628,7 @@ public class SocketMessageApi {
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result) {
         LOGGER.info(result);
-        DeviceInspect deviceInspect = parseInspectAndSave(result);
+        DeviceInspect deviceInspect = parseInspectAndSave(result, true);
         if(deviceInspect == null) {
             return new RestResponse(null);
         }

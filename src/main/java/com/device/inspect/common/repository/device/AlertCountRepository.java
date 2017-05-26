@@ -1,6 +1,7 @@
 package com.device.inspect.common.repository.device;
 
 import com.device.inspect.common.model.device.AlertCount;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Date;
@@ -23,4 +24,6 @@ public interface AlertCountRepository  extends CrudRepository<AlertCount,Integer
                                                                                    Integer type,
                                                                                    Date StartTime,
                                                                                    Date EndTime);
+    public AlertCount findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(Integer DeviceId, Integer InspectTypeId);
+
 }

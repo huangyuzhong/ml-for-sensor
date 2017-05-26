@@ -98,7 +98,7 @@ public class ScanOfflineData implements  MySchedule{
 
                     availableFileNum++;
                     for (int index = 0; index < fileStringArray.length - 1; index++) {
-                        DeviceInspect deviceInspect = socketMessageApi.parseInspectAndSave(fileStringArray[index]);
+                        DeviceInspect deviceInspect = socketMessageApi.parseInspectAndSave(fileStringArray[index], false);
                         if (deviceInspect != null) {
                             availableMessageNum++;
                         }

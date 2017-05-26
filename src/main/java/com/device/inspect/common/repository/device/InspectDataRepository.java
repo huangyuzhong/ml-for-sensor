@@ -17,5 +17,5 @@ public interface InspectDataRepository extends CrudRepository<InspectData,Intege
     public List<InspectData> findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(Integer DeviceId, Date BeginTime);
     public List<InspectData> findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(Integer DeviceInspectId, Date BeginTime, Date EndTime);
     public List<InspectData> findByDeviceInspectIdAndCreateDateBetweenOrderByResultDesc(Integer DeviceInspectId, Date BeginTime, Date EndTime);
-    public List<InspectData> findByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(Integer DeviceId, Integer DeviceInspectId, Date BeginTime);
+    public List<InspectData> findTop20ByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(Integer DeviceId, Integer DeviceInspectId, Date BeginTime);
 }

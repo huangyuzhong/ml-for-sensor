@@ -130,15 +130,14 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 if (null!=deviceInspectList) {
                                                     int alertType = 0; //0: no alert, 1: yellow alert, 2: red alert
                                                     for (DeviceInspect deviceInspect : deviceInspectList) {
-                                                        InspectData inspectJudge = inspectDataRepository.
-                                                                findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceInspect.getId());
-                                                        if (null!=inspectJudge &&inspectJudge.getType() != null) {
-                                                            if (inspectJudge.getType().equals("high")) {
+                                                        AlertCount inspectAlert = alertCountRepository.
+                                                                findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(device.getId(), deviceInspect.getId());
+                                                        if (null!=inspectAlert && inspectAlert.getType() != null) {
+                                                            if (inspectAlert.getType() == 2) {
                                                                 alertType = 2;
                                                                 break;
-                                                            } else if (inspectJudge.getType().equals("low")) {
+                                                            } else if (inspectAlert.getType() == 1) {
                                                                 alertType = 1;
-
                                                             }
                                                         }
                                                     }
@@ -149,11 +148,10 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                         roomHighALert += 1;
                                                     }
                                                 }
-                                                InspectData inspectData = inspectDataRepository.findTopByDeviceIdOrderByCreateDateDesc(device.getId());
                                                 boolean currentDeviceOnLine = false;
-                                                if (null!=inspectData&&null!=inspectData.getCreateDate()){
+                                                if(device.getLastActivityTime() != null){
                                                     Date currentTime = new Date();
-                                                    Date reportTime = inspectData.getCreateDate();
+                                                    Date reportTime = device.getLastActivityTime();
 
 						                            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 						                            long minutes = (currentTime.getTime() - reportTime.getTime())/(1000*60);
@@ -200,7 +198,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                     }
                                                     else{
                                                         List<InspectData> inspectDatas = inspectDataRepository.
-                                                                findByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
+                                                                findTop20ByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
                                                                         inspect.getId(), beginTime);
                                                         if(inspectDatas == null || inspectDatas.size() == 0){
                                                             // no battery message
@@ -220,8 +218,6 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                                     break;
                                                                 }
                                                             }
-                                                            System.out.println(batteryIsDesc);
-
                                                             if (batteryIsDesc) {
                                                                 // send power message
                                                                 messageController.sendPowerMsg(device, inspect, currentTime);
