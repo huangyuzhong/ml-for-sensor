@@ -11,7 +11,7 @@ import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.controller.MessageController;
-import com.device.inspect.controller.SocketMessageApi;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.text.DateFormat;
 
@@ -75,9 +74,12 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
      * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
      * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
      */
-    @Scheduled(cron = "0 0/3 * * * ? ")
+    @Scheduled(cron = "0 0/5 * * * ? ")
     @Override
     public void scheduleTask() {
+
+        logger.info("Start schedule to summarize device status");
+        Date scheduleStartTime = new Date();
         Iterable<Company> companies = companyRepository.findAll();
         if (null!=companies)
             for (Company company:companies){
@@ -118,118 +120,42 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                         Integer roomOnline = 0;
                                         Integer roomOffline = 0;
                                         Float roomScore = (float)0;
-                                        List<Device> deviceList = deviceRepository.findByRoomIdAndEnable(room.getId(),1);
-                                        if (null!=deviceList)
-                                            for (Device device :deviceList){
-                                                logger.info("Scan Device id: " + device.getId());
-                                                if (device.getEnable()==0) {
-                                                    continue;
-                                                }
-                                                List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(device.getId());
-                                                MonitorDevice monitorDevice = monitorDeviceRepository.findByDeviceId(device.getId());
-                                                if (null!=deviceInspectList) {
-                                                    int alertType = 0; //0: no alert, 1: yellow alert, 2: red alert
-                                                    for (DeviceInspect deviceInspect : deviceInspectList) {
-                                                        AlertCount inspectAlert = alertCountRepository.
-                                                                findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(device.getId(), deviceInspect.getId());
-                                                        if (null!=inspectAlert && inspectAlert.getType() != null) {
-                                                            if (inspectAlert.getType() == 2) {
-                                                                alertType = 2;
-                                                                break;
-                                                            } else if (inspectAlert.getType() == 1) {
-                                                                alertType = 1;
-                                                            }
-                                                        }
-                                                    }
-                                                    device.setStatus(alertType);
-                                                    if (alertType == 1) {
-                                                        roomLowAlert += 1;
-                                                    }else if(alertType==2){
-                                                        roomHighALert += 1;
-                                                    }
-                                                }
-                                                boolean currentDeviceOnLine = false;
-                                                if(device.getLastActivityTime() != null){
-                                                    Date currentTime = new Date();
-                                                    Date reportTime = device.getLastActivityTime();
 
-						                            DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-						                            long minutes = (currentTime.getTime() - reportTime.getTime())/(1000*60);
-                                                    logger.info("Scan Device Device Life -- Id: " + device.getId() + ", minutes since last report: " + minutes + ", report time: " + df.format(reportTime) + ", current time: " + df.format(currentTime));
-						                            if (minutes>5){
-						                                currentDeviceOnLine = false;
-                                                        DeviceOffline deviceOffline = new DeviceOffline();
-                                                        deviceOffline.setDevice(device);
-                                                        deviceOffline.setOfflineDate(new Date());
-                                                        deviceOfflineRepository.save(deviceOffline);
-                                                        if (null!=monitorDevice) {
-                                                            monitorDevice.setOnline(0);
-                                                            monitorDeviceRepository.save(monitorDevice);
-                                                        }
-                                                        roomOffline+=1;
-                                                    }else {
-						                                currentDeviceOnLine = true;
-                                                        if (null!=monitorDevice) {
-                                                            monitorDevice.setOnline(1);
-                                                            monitorDeviceRepository.save(monitorDevice);
-                                                        }
-                                                        roomOnline+=1;
-                                                    }
-                                                }else {
-                                                    logger.info("Scan Device id: " + device.getId() + ", no inspect data, judge offline");
-                                                    currentDeviceOnLine = false;
-                                                    roomOffline+=1;
-                                                    if (null!=monitorDevice){
-                                                        monitorDevice.setOnline(0);
-                                                        monitorDeviceRepository.save(monitorDevice);
-                                                    }
-                                                }
+                                        Date time5minBefore = DateUtils.addMinutes(scheduleStartTime, -5);
 
-                                                Date currentTime = new Date();
-                                                long beginTimeMilisecond = currentTime.getTime() - 10*60*1000;
-                                                Date beginTime = new Date(beginTimeMilisecond);
-                                                if(currentDeviceOnLine){
-                                                    // find current info type
-                                                    DeviceInspect inspect = deviceInspectRepository.
-                                                            findByInspectTypeIdAndDeviceId(bettaryInspectId, device.getId());
-                                                    if(inspect == null){
-                                                        // bettary inspect is not found, error
-                                                        logger.info(String.format("Online Schedule: device %s-%d has no bettary inspect", device.getName(), device.getId()));
-                                                    }
-                                                    else{
-                                                        List<InspectData> inspectDatas = inspectDataRepository.
-                                                                findTop20ByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
-                                                                        inspect.getId(), beginTime);
-                                                        if(inspectDatas == null || inspectDatas.size() == 0){
-                                                            // no battery message
-                                                            logger.info(String.format("Online Schedule: device %s-%d has no bettary message", device.getName(), device.getId()));
-                                                        }
-                                                        else {
-                                                            boolean batteryIsDesc = true;
-                                                            double lastBettaryValue = Double.parseDouble(inspectDatas.get(0).getResult());
-                                                            // System.out.println("battery info size:" + inspectDatas.size());
-                                                            for (InspectData batteryInspect : inspectDatas) {
-                                                                double currentBettaryValue = Double.parseDouble(batteryInspect.getResult());
-                                                                // System.out.println("battery info:" + batteryInspect.getResult() + ", " + batteryInspect.getCreateDate());
-                                                                if (lastBettaryValue <= currentBettaryValue) {
-                                                                    lastBettaryValue = currentBettaryValue;
-                                                                } else {
-                                                                    batteryIsDesc = false;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (batteryIsDesc) {
-                                                                // send power message
-                                                                messageController.sendPowerMsg(device, inspect, currentTime);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                else{
-                                                    // send offline message
-                                                    messageController.sendOfflineMsg(device, null, currentTime);
-                                                }
+                                        Integer roomDeviceCount = deviceRepository.countByRoomIdAndEnable(room.getId(), 1);
 
+                                        if(roomDeviceCount <= 0){
+                                            continue;
+                                        }
+
+                                        // 统计该房间内近5分钟内有报警的设备数量
+
+                                        Integer yellowAlertDeviceCount = deviceRepository.countByRoomIdAndEnableAndLastYellowAlertTimeAfter(room.getId(), 1, time5minBefore);
+                                        Integer redAlertDeviceCount = deviceRepository.countByRoomIdAndEnableAndLastRedAlertTimeAfter(room.getId(), 1, time5minBefore);
+
+                                        logger.info(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), yellowAlertDeviceCount));
+                                        logger.info(String.format("Room %d has %d device reports Red alert in 5 minutes", room.getId(), redAlertDeviceCount));
+                                        roomLowAlert += yellowAlertDeviceCount;
+                                        roomHighALert += redAlertDeviceCount;
+
+                                        // 分别统计该房间内设备最后一次报警是5分钟之前和之后
+                                        List<Device> offlineDeviceList = deviceRepository.findByRoomIdAndEnableAndLastActivityTimeBefore(room.getId(),1, time5minBefore);
+                                        if (null!=offlineDeviceList) {
+                                            roomOffline += offlineDeviceList.size();
+                                            logger.info(String.format("Room %d has %d offline device", room.getId(), offlineDeviceList.size()));
+                                            for (Device device : offlineDeviceList) {
+                                                logger.info("Scan offline Device id: " + device.getId());
+
+                                                DeviceOffline deviceOffline = new DeviceOffline();
+                                                deviceOffline.setDevice(device);
+                                                deviceOffline.setOfflineDate(scheduleStartTime);
+                                                deviceOfflineRepository.save(deviceOffline);
+
+                                                messageController.sendOfflineMsg(device, null, scheduleStartTime);
+
+                                                // 计算设备健康度，
+                                                // TODO: 此处可以优化， 在时间没有跨日的情况下， 很多计算是不需要的。 等整个健康值计算方式确定之后在这个地方一起修改
                                                 Float offSocre = (float)50.0;
                                                 Float alertScore = (float) 50.0;
                                                 Calendar calendar = Calendar.getInstance();
@@ -264,18 +190,106 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 deviceRepository.save(device);
                                                 roomScore +=(alertScore+offSocre);
                                             }
+
+
+
+                                        }
+
+                                        List<Device> onlineDeviceList = deviceRepository.findByRoomIdAndEnableAndLastActivityTimeAfter(room.getId(),1, time5minBefore);
+                                        if (null!=onlineDeviceList) {
+                                            roomOnline += onlineDeviceList.size();
+
+                                            logger.info(String.format("Room %d has %d online device", room.getId(), onlineDeviceList.size()));
+                                            for (Device device : onlineDeviceList) {
+
+                                                logger.info("Scan online Device id: " + device.getId());
+                                                DeviceInspect inspect = deviceInspectRepository.
+                                                        findByInspectTypeIdAndDeviceId(bettaryInspectId, device.getId());
+                                                if(inspect == null){
+                                                    // bettary inspect is not found, error
+                                                    logger.info(String.format("Online Schedule: device %s-%d has no bettary inspect", device.getName(), device.getId()));
+                                                }
+                                                else{
+                                                    List<InspectData> inspectDatas = inspectDataRepository.
+                                                            findTop20ByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
+                                                                    inspect.getId(), time5minBefore);
+                                                    if(inspectDatas == null || inspectDatas.size() == 0){
+                                                        // no battery message
+                                                        logger.info(String.format("Online Schedule: device %s-%d has no bettary message", device.getName(), device.getId()));
+                                                    }
+                                                    else {
+                                                        boolean batteryIsDesc = true;
+                                                        double lastBettaryValue = Double.parseDouble(inspectDatas.get(0).getResult());
+                                                        // System.out.println("battery info size:" + inspectDatas.size());
+                                                        for (InspectData batteryInspect : inspectDatas) {
+                                                            double currentBettaryValue = Double.parseDouble(batteryInspect.getResult());
+                                                            // System.out.println("battery info:" + batteryInspect.getResult() + ", " + batteryInspect.getCreateDate());
+                                                            if (lastBettaryValue <= currentBettaryValue) {
+                                                                lastBettaryValue = currentBettaryValue;
+                                                            } else {
+                                                                batteryIsDesc = false;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (batteryIsDesc) {
+                                                            // send power message
+                                                            messageController.sendPowerMsg(device, inspect, scheduleStartTime);
+                                                        }
+                                                    }
+                                                }
+
+                                                // 计算设备健康度，
+                                                Float offSocre = (float)50.0;
+                                                Float alertScore = (float) 50.0;
+                                                Calendar calendar = Calendar.getInstance();
+                                                calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-1);
+                                                Date dayOff = calendar.getTime();
+                                                calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-7);
+                                                Date weekOff = calendar.getTime();
+                                                calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-30);
+                                                Date monthOff = calendar.getTime();
+                                                Long oneOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),dayOff,new Date());
+                                                Long sevenOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),weekOff,dayOff);
+                                                Long thirtyOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),monthOff,weekOff);
+                                                offSocre =(float) (offSocre-oneOff-sevenOff*0.5-thirtyOff*0.1);
+                                                offSocre = offSocre>0?offSocre:0;
+
+                                                Long oneHighAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        2,dayOff,new Date());
+                                                Long oneLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        1,dayOff,new Date());
+                                                Long sevenHighALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        2,weekOff,dayOff);
+                                                Long sevenLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        1,weekOff,dayOff);
+                                                Long thirtyHighALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        2,monthOff,weekOff);
+                                                Long thirtyLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
+                                                        1,monthOff,weekOff);
+                                                alertScore = (float)(alertScore-oneHighAlert-sevenHighALert*0.5-thirtyHighALert*0.25-
+                                                        oneLowALert*0.5-sevenLowALert*0.25-thirtyLowALert*0.1);
+                                                alertScore = alertScore>0?alertScore:0;
+                                                device.setScore(String.valueOf(offSocre+alertScore));
+                                                deviceRepository.save(device);
+                                                roomScore +=(alertScore+offSocre);
+
+                                            }
+                                        }
+
+
+
                                         room.setHighAlert(roomHighALert);
                                         room.setLowAlert(roomLowAlert);
                                         room.setOnline(roomOnline);
                                         room.setOffline(roomOffline);
                                         room.setTotal(roomOffline+roomOnline);
-                                        room.setScore(deviceList.size()>0?roomScore/deviceList.size():(float)0);
+                                        room.setScore(offlineDeviceList.size()>0?roomScore/offlineDeviceList.size():(float)0);
                                         roomRepository.save(room);
                                         floorHighAlert += roomHighALert;
                                         floorLowAlert+=roomLowAlert;
                                         floorOnline+=roomOnline;
                                         floorOffline+=roomOffline;
-                                        floorScore+=(deviceList.size()>0?roomScore/deviceList.size():(float)0);
+                                        floorScore+=(offlineDeviceList.size()>0?roomScore/offlineDeviceList.size():(float)0);
                                     }
                                 floor.setTotal(floorOffline+floorOnline);
                                 floor.setOnline(floorOnline);

@@ -1,19 +1,13 @@
 package com.device.inspect.controller;
 
-import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
-import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
-import com.device.inspect.common.model.firm.Storey;
-import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
-import com.device.inspect.controller.MessageController;
 import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.controller.MessageController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -494,7 +488,7 @@ public class SocketMessageApi {
 
                 // update device alert time and alert status
                 if(onlineData) {
-                    device.setLastAlertTime(deviceSamplingTime);
+                    device.setLastRedAlertTime(deviceSamplingTime);
                     device.setStatus(2);
                 }
 
@@ -553,7 +547,7 @@ public class SocketMessageApi {
 
                 // update device alert time and alert status
                 if(onlineData) {
-                    device.setLastAlertTime(deviceSamplingTime);
+                    device.setLastYellowAlertTime(deviceSamplingTime);
                     device.setStatus(1);
                 }
 

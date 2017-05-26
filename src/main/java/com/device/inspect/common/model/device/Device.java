@@ -47,7 +47,9 @@ public class Device {
     private List<ScientistDevice> scientistDeviceList;
     private DeviceVersion deviceVersion;
     private Date lastActivityTime;
-    private Date lastAlertTime;
+    private Date lastYellowAlertTime;
+    private Date lastRedAlertTime;
+
     @Id
     @GeneratedValue()
     public Integer getId() {
@@ -327,12 +329,21 @@ public class Device {
         this.lastActivityTime = lastActivityTime;
     }
 
-    @Column(name = "last_alert_time")
-    public Date getLastAlertTime(){
-        return this.lastAlertTime;
+    @Column(name = "last_yellow_alert_time")
+    public Date getLastYellowAlertTime(){
+        return this.lastYellowAlertTime;
     }
 
-    public void setLastAlertTime(Date lastAlertTime){
-        this.lastAlertTime = lastAlertTime;
+    public void setLastYellowAlertTime(Date lastYellowAlertTime){
+        this.lastYellowAlertTime = lastYellowAlertTime;
+    }
+
+    @Column(name = "last_red_alert_time")
+    public Date getLastRedAlertTime(){
+        return this.lastRedAlertTime;
+    }
+
+    public void setLastRedAlertTime(Date lastRedAlertTime){
+        this.lastRedAlertTime = lastRedAlertTime;
     }
 }
