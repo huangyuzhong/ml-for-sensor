@@ -327,6 +327,7 @@ public class MessageSendService {
             return sendEmail(myEmailAccount, intelabTestEmailAccount, onlyEmaliSubject, content);
         }catch (Exception e){
             LOGGER.error(String.format("Exception happened in constructing email subject using environment variable INTELAB_ENV"));
+            e.printStackTrace();
             return false;
         }
     }
