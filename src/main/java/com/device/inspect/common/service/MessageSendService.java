@@ -1,5 +1,6 @@
 package com.device.inspect.common.service;
 
+import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.User;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
@@ -312,6 +313,11 @@ public class MessageSendService {
      */
     public static boolean sendEmailToIntelabTest(String content){
         try {
+
+            if(Application.generalConfig.getEmail().get("enabled") != "true"){
+                LOGGER.info("Email functionality is disabled, skip sending email");
+                return false;
+            }
 
             // 创建邮件title
             Map<String, String> env = System.getenv();

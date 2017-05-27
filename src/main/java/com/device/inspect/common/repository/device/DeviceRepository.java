@@ -15,6 +15,9 @@ public interface DeviceRepository extends CrudRepository<Device,Integer> {
     public List<Device> findByRoomId(Integer RoomId);
     public Integer countByRoomIdAndEnableAndLastYellowAlertTimeAfter(Integer RoomId, Integer Enable, Date time);
     public Integer countByRoomIdAndEnableAndLastRedAlertTimeAfter(Integer RoomId, Integer Enable, Date time);
+    public List<Device> findByRoomIdAndEnableAndLastYellowAlertTimeAfter(Integer RoomId, Integer Enable, Date time);
+    public List<Device> findByRoomIdAndEnableAndLastRedAlertTimeAfter(Integer RoomId, Integer Enable, Date time);
+
     public List<Device> findByRoomIdAndEnableAndLastActivityTimeAfter(Integer RoomId, Integer Enable, Date time);
     public List<Device> findByRoomIdAndEnableAndLastActivityTimeBefore(Integer RoomId, Integer Enable, Date time);
 

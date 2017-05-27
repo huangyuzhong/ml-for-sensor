@@ -3,7 +3,7 @@ package com.device.inspect;
 import com.device.inspect.common.ftp.FTPConfig;
 import com.device.inspect.common.ftp.FTPStorageManager;
 import com.device.inspect.common.service.FileUploadService;
-import com.device.inspect.common.storage.StorageConfig;
+import com.device.inspect.common.storage.GeneralConfig;
 import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
@@ -38,7 +38,7 @@ public class Application {
     public static AzureConfig azureConfig;
     public static FTPConfig ftpConfig;
     public static FTPConfig offlineFTPConfig;
-    public static StorageConfig storageConfig;
+    public static GeneralConfig generalConfig;
     public static FileUploadService intelabStorageManager = null;
     public static FTPStorageManager offlineFTPStorageManager = null;
 
@@ -58,12 +58,12 @@ public class Application {
             String intelabEnvironmentName = env.get("INTELAB_ENV");
 
 //            homePath = homePath + "/WorkSpace/Project/InteLAB";
-            String storageConfigFilePath = String.format("%s/intelab-configs/%s/config.yaml", homePath, intelabEnvironmentName);
-            LOGGER.info("Loading Storage Config from File %s", storageConfigFilePath);
-            storageConfig = mapper.readValue(new File(storageConfigFilePath), StorageConfig.class);
-            LOGGER.info(String.format("Storage Config: %s", ReflectionToStringBuilder.toString(storageConfig, ToStringStyle.MULTI_LINE_STYLE)));
+            String generalConfigFilePath = String.format("%s/intelab-configs/%s/config.yaml", homePath, intelabEnvironmentName);
+            LOGGER.info("Loading Storage Config from File %s", generalConfigFilePath);
+            generalConfig = mapper.readValue(new File(generalConfigFilePath), GeneralConfig.class);
+            LOGGER.info(String.format("General Config: %s", ReflectionToStringBuilder.toString(generalConfig, ToStringStyle.MULTI_LINE_STYLE)));
 
-            String storageType = storageConfig.getStorage().get("type");
+            String storageType = generalConfig.getStorage().get("type");
             LOGGER.info("Storage Type " + storageType);
 
             if(storageType.equals("azure")){
