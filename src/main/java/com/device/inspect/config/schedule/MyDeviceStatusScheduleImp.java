@@ -147,7 +147,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                             // 统计该房间内近5分钟内离线的设备数量
                                             MonitorDevice monitor = device.getMonitorDevice();
 
-                                            if(device.getLastActivityTime().before(time5minBefore)){
+                                            if(device.getLastActivityTime() == null || device.getLastActivityTime().before(time5minBefore)){
                                                 roomOffline ++;
                                                 if(monitor.getOnline() != 0){
                                                     monitor.setOnline(0);
