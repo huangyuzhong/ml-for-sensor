@@ -1,4 +1,4 @@
-package com.device.inspect.common.storage;
+package com.device.inspect.common.setting;
 
 import java.util.Map;
 
@@ -9,6 +9,8 @@ public class GeneralConfig {
     private Map<String, String> storage;
 
     private Map<String, String> email;
+
+    private Map<String, String> influxdb;
 
     public void setStorage(Map<String, String> mediaStorage){
         this.storage = mediaStorage;
@@ -21,4 +23,8 @@ public class GeneralConfig {
     public void setEmail(Map<String, String> email){ this.email = email;}
 
     public Map<String, String > getEmail() {return this.email; }
+
+    public Map<String, String> getInfluxdb() { return this.influxdb; }
+
+    public void setInfluxdb(Map<String, String> influxdb) { this.influxdb = influxdb; }
 }

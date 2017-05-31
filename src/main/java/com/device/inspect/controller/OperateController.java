@@ -312,21 +312,22 @@ public class OperateController {
         DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
         List<InspectTypeRequest> list = new ArrayList<InspectTypeRequest>();
         for (DeviceInspect deviceInspect : device.getDeviceInspectList()){
-            InspectTypeRequest request = new InspectTypeRequest();
+            InspectTypeRequest deviceInspectParameters = new InspectTypeRequest();
             if (deviceInspect.getStandard()==null)
-                request.setChosed(false);
+                deviceInspectParameters.setChosed(false);
             else {
-                request.setChosed(true);
+                deviceInspectParameters.setChosed(true);
             }
 
-            request.setHighUp(null == deviceInspect.getHighUp() ? null : deviceInspect.getHighUp().toString());
-            request.setHighDown(deviceInspect.getHighDown() == null ? null : deviceInspect.getHighDown().toString());
-            request.setLowUp(deviceInspect.getLowUp() == null ? null : deviceInspect.getLowUp().toString());
-            request.setLowDown(deviceInspect.getLowDown() == null ? null : deviceInspect.getLowDown().toString());
-            request.setStandard(deviceInspect.getStandard()==null?null:deviceInspect.getStandard().toString());
-            request.setId(deviceInspect.getInspectType().getId());
-            request.setName(deviceInspect.getInspectType().getName());
-            request.setInspectPurpose(deviceInspect.getInspectPurpose());
+            deviceInspectParameters.setHighUp(null == deviceInspect.getHighUp() ? null : deviceInspect.getHighUp().toString());
+            deviceInspectParameters.setHighDown(deviceInspect.getHighDown() == null ? null : deviceInspect.getHighDown().toString());
+            deviceInspectParameters.setLowUp(deviceInspect.getLowUp() == null ? null : deviceInspect.getLowUp().toString());
+            deviceInspectParameters.setLowDown(deviceInspect.getLowDown() == null ? null : deviceInspect.getLowDown().toString());
+            deviceInspectParameters.setStandard(deviceInspect.getStandard()==null?null:deviceInspect.getStandard().toString());
+            deviceInspectParameters.setId(deviceInspect.getInspectType().getId());
+            deviceInspectParameters.setDeviceInspectId(deviceInspect.getId());
+            deviceInspectParameters.setName(deviceInspect.getInspectType().getName());
+            deviceInspectParameters.setInspectPurpose(deviceInspect.getInspectPurpose());
 
             List<DeviceTypeInspectRunningStatusRequest> runningStatusesRequest= new ArrayList<>();
             List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
@@ -339,10 +340,10 @@ public class OperateController {
                     statusRequest.setThreshold(status.getThreshold());
                     runningStatusesRequest.add(statusRequest);
                 }
-                request.setRunningStatus(runningStatusesRequest);
+                deviceInspectParameters.setRunningStatus(runningStatusesRequest);
             }
 
-            list.add(request);
+            list.add(deviceInspectParameters);
         }
         deviceTypeRequest.setId(deviceId);
         deviceTypeRequest.setName(device.getDeviceType().getName());

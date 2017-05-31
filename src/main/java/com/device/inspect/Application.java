@@ -2,8 +2,9 @@ package com.device.inspect;
 
 import com.device.inspect.common.ftp.FTPConfig;
 import com.device.inspect.common.ftp.FTPStorageManager;
+import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.service.FileUploadService;
-import com.device.inspect.common.storage.GeneralConfig;
+import com.device.inspect.common.setting.GeneralConfig;
 import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
@@ -41,6 +42,7 @@ public class Application {
     public static GeneralConfig generalConfig;
     public static FileUploadService intelabStorageManager = null;
     public static FTPStorageManager offlineFTPStorageManager = null;
+    public static InfluxDBManager influxDBManager = null;
 
     public static void main(String[] args) throws Throwable
     {
@@ -83,6 +85,20 @@ public class Application {
                 LOGGER.info(String.format("Loaded ftp config -- %s",ReflectionToStringBuilder.toString(ftpConfig,ToStringStyle.MULTI_LINE_STYLE)));
 
                 intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
+            }
+
+            if(generalConfig.getInfluxdb() != null && generalConfig.getInfluxdb().get("enabled").equals("true")){
+                String influxDBServerIp = generalConfig.getInfluxdb().get("server_ip");
+                if(influxDBServerIp != null){
+                    String influxDBServerPort = generalConfig.getInfluxdb().get("port");
+
+                    if(influxDBServerPort != null){
+                        influxDBManager = new InfluxDBManager(influxDBServerIp, Integer.parseInt(influxDBServerPort));
+                    }else{
+                        influxDBManager = new InfluxDBManager(influxDBServerIp);
+                    }
+
+                }
             }
 
             String offlineFTPConfigFilePath = String.format("%s/intelab-configs/%s/offlineFTP.yaml", homePath, intelabEnvironmentName);;

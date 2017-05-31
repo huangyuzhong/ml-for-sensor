@@ -15,6 +15,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class InspectTypeRequest {
     private Integer id;
+    private Integer deviceInspectId;
     private String name;
     private String lowUp;
     private String lowDown;
@@ -33,6 +34,10 @@ public class InspectTypeRequest {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public Integer getDeviceInspectId() { return this.deviceInspectId;}
+
+    public void setDeviceInspectId(Integer deviceInspectId){ this.deviceInspectId = deviceInspectId; }
 
     public String getName() {
         return name;

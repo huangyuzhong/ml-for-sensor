@@ -1,19 +1,31 @@
 package com.device.inspect.controller;
 
+import com.device.inspect.Application;
+import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
+import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
+import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.InspectTypeTool;
+import com.device.inspect.common.util.transefer.StringDate;
+import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.InfluxDB;
+import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.text.ParseException;
 import java.util.*;
 import java.text.SimpleDateFormat;
@@ -73,7 +85,19 @@ public class SocketMessageApi {
     @Autowired
     private DeviceFloorRepository deviceFloorRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     String unit = "s";
+
+    private User judgeByPrincipal(Principal principal){
+        if (null == principal||null==principal.getName())
+            throw new UsernameNotFoundException("You are not login!");
+        User user = userRepository.findByName(principal.getName());
+        if (null==user)
+            throw new UsernameNotFoundException("user not found!");
+        return user;
+    }
 
     public DeviceInspect parseInspectAndSave(String inspectMessage, boolean onlineData) {
         String monitorTypeCode = inspectMessage.substring(6, 8);
@@ -605,6 +629,45 @@ public class SocketMessageApi {
             LOGGER.info("datagram alert type set and updating to db");
             inspectDataRepository.save(inspectData);
 
+            // write data to influx DB
+            if(Application.influxDBManager != null){
+                try {
+                    int retry = 0;
+                    int max_try = 3;
+
+                    while(retry < max_try) {
+                        boolean writeSuccess = Application.influxDBManager.writeTelemetry(deviceSamplingTime, device.getId(),
+                                device.getName(), device.getDeviceType().getName(),
+                                inspectData.getType(),  deviceInspect.getId(),
+                                InspectTypeTool.getMeasurementByCode(monitorTypeCode),
+                                Float.parseFloat(inspectData.getResult()), Float.parseFloat(inspectData.getRealValue()));
+
+                        if(!writeSuccess){
+                            Thread.sleep(1000);
+                            retry ++;
+                        }
+                        else{
+                            LOGGER.info(String.format("Successfully write telemetry %s (%s) to influxdb",
+                                    InspectTypeTool.getMeasurementByCode(monitorTypeCode), inspectData.getResult()));
+
+                            break;
+                        }
+                    }
+
+                    if(retry >= max_try){
+                        LOGGER.error(String.format("Abort writing telemetry %s (%s) after %d approach",
+                                InspectTypeTool.getMeasurementByCode(monitorTypeCode), inspectData.getResult(), max_try));
+                    }
+
+
+                }catch (Exception e){
+                    LOGGER.error(String.format("Failed to parse %s telemetry data %s, %s",
+                            InspectTypeTool.getMeasurementByCode(monitorTypeCode),
+                            inspectData.getResult(), inspectData.getRealValue()));
+
+                }
+            }
+
             if(onlineData){
                 deviceRepository.save(device);
             }
@@ -700,13 +763,35 @@ public class SocketMessageApi {
      * 设备绑定数据内容
      */
     @RequestMapping(value = "/device/current/data", method = RequestMethod.GET)
-    public RestResponse getCurrentData(@RequestParam Map<String,String> requestParam){
+    public RestResponse getCurrentData(Principal principal, @RequestParam Map<String,String> requestParam){
+        User user = judgeByPrincipal(principal);
+        if (null == user.getCompany()){
+            return new RestResponse("user's information incorrect!",1005,null);
+        }
+
         Integer deviceId = Integer.parseInt(requestParam.get("deviceId"));
         Device device = deviceRepository.findOne(deviceId);
         List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
         Map map = new HashMap();
         List<List> list = new ArrayList<List>();
         Float  score = Float.valueOf(100);
+        Date currentTime = new Date();
+
+        RestDeviceMonitoringTSData restDeviceMonitoringTSData = new RestDeviceMonitoringTSData();
+        restDeviceMonitoringTSData.setDeviceId(deviceId);
+        restDeviceMonitoringTSData.setDeviceName(device.getName());
+        restDeviceMonitoringTSData.setEndTime(String.valueOf(currentTime.getTime()));
+
+        if(requestParam.get("timeVal") != null){
+            restDeviceMonitoringTSData.setStartTime(requestParam.get("timeVal"));
+
+        }else{
+            Long time5minBefore = currentTime.getTime() - 5 * 60 * 1000;
+            restDeviceMonitoringTSData.setStartTime(time5minBefore.toString());
+        }
+        List<RestTelemetryTSData> restTelemetryTSDataList = new ArrayList<RestTelemetryTSData>();
+        restDeviceMonitoringTSData.setTelemetries(restTelemetryTSDataList);
+
         Integer runningLevel = -1;
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
@@ -718,7 +803,9 @@ public class SocketMessageApi {
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();
                     startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
-                    inspectDatas = inspectDataRepository.findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceInspect.getId(), startTime);
+                    inspectDatas = inspectDataRepository.
+                            findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceInspect.getId(),
+                                    startTime);
                     if(inspectDatas == null || inspectDatas.size() == 0){
                         inspectDatas = inspectDataRepository.
                                 findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
@@ -756,11 +843,65 @@ public class SocketMessageApi {
 
                     list.add(insertDatas);
                 }
+
+                if(Application.influxDBManager != null){
+
+                    String measurementName = InspectTypeTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
+
+                    String measurementUnit = InspectTypeTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
+                    List<List<Object>> inspectSeries = null;
+                    if(requestParam.get("timeVal") != null){
+                        Date startTime = new Date();
+                        startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
+
+
+                        // each List<Object> is [time, value]
+                        inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
+                                deviceId, deviceInspect.getId(), startTime, new Date());
+
+
+                    }
+                    else{
+                        // default to get data in latest 5 minutes
+                        Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
+                        inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
+                                deviceId, deviceInspect.getId(), startTime, new Date());
+
+                    }
+
+                    List<Long> timeSeries = new ArrayList<Long>();
+                    List<Float> valueSeries = new ArrayList<Float>();
+
+                    if(inspectSeries != null && inspectSeries.size() > 0) {
+
+                        for (List<Object> telemetryEntry : inspectSeries) {
+                            String timeRFC3999 = telemetryEntry.get(0).toString();
+
+                            long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
+                            timeSeries.add(timeStamp);
+                            valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
+                        }
+
+                        RestTelemetryTSData telemetryTSData = new RestTelemetryTSData();
+                        telemetryTSData.setName(measurementName);
+                        telemetryTSData.setCode(deviceInspect.getInspectType().getCode());
+                        telemetryTSData.setUnit(measurementUnit);
+                        telemetryTSData.setDeviceInspectId(deviceInspect.getId());
+                        telemetryTSData.setTimeSeries(timeSeries);
+                        telemetryTSData.setValueSeries(valueSeries);
+
+                        restTelemetryTSDataList.add(telemetryTSData);
+                    }
+                }
             }
         }
         map.put("list", list);
         map.put("score", score);
         map.put("runningStatus", runningLevel);
+
+        if(Application.influxDBManager != null){
+            map.put("tsdata", restDeviceMonitoringTSData);
+        }
         return new RestResponse(map);
 
     }

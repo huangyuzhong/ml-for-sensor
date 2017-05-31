@@ -314,7 +314,7 @@ public class MessageSendService {
     public static boolean sendEmailToIntelabTest(String content){
         try {
 
-            if(Application.generalConfig.getEmail() == null || Application.generalConfig.getEmail().get("enabled") != "true"){
+            if(Application.generalConfig.getEmail() == null || !Application.generalConfig.getEmail().get("enabled").equals("true")){
                 LOGGER.info("Email functionality is disabled, skip sending email");
                 return false;
             }
