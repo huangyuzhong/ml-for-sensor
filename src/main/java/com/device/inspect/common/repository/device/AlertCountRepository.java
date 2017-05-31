@@ -25,5 +25,9 @@ public interface AlertCountRepository  extends CrudRepository<AlertCount,Integer
                                                                                    Date StartTime,
                                                                                    Date EndTime);
     public AlertCount findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(Integer DeviceId, Integer InspectTypeId);
+    public AlertCount findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(Integer deviceId,
+                                                                                               Integer inspectTypeId,
+                                                                                               Integer type,
+                                                                                               Date finishTime);
 
 }

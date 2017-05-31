@@ -462,171 +462,120 @@ public class SocketMessageApi {
                 return null;
             }
 
-            LOGGER.info("check data against alert");
-            AlertCount high = alertCountRepository.
-                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 2);
-            AlertCount low = alertCountRepository.
-                    findTopByDeviceIdAndInspectTypeIdAndTypeOrderByCreateDateDesc(device.getId(), deviceInspect.getInspectType().getId(), 1);
+            // set alert type, and send alert message if necessary
+            int alert_type = 0;
+            if(deviceInspect.getInspectPurpose() == 0){
+                // alert inspect
+                LOGGER.info("check data against alert");
+                if(deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()){
+                    alert_type = 2;
+                    inspectData.setType("high");
 
-            // case 1, red alert
-            if (deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()) {
-                LOGGER.info(String.format("Device %d, Inspect %d, data %s is outside the red alert bound",
-                        device.getId(), deviceInspect.getId(), record));
-                // exists yellow alert
-                if (null != low && low.getNum() > 0) {
-                    LOGGER.info("There exists a yellow alert before this red alert, set its finish time");
-                    low.setFinish(deviceSamplingTime);
-                    alertCountRepository.save(low);
-                    AlertCount newLow = new AlertCount();
-                    newLow.setDevice(device);
-                    newLow.setInspectType(deviceInspect.getInspectType());
-                    newLow.setNum(0);
-                    newLow.setType(1);
-                    newLow.setUnit(unit);
-                    newLow.setCreateDate(deviceSamplingTime);
-                    alertCountRepository.save(newLow);
-                }
-
-                // new red alert
-                if (null == high) {
-                    LOGGER.info(String.format("New red alert for device %d, inspect %s", device.getId(), deviceInspect.getId()));
-                    high = new AlertCount();
-                    high.setDevice(device);
-                    high.setInspectType(deviceInspect.getInspectType());
-                    high.setNum(1);
-                    high.setType(2);
-                    high.setCreateDate(deviceSamplingTime);
-                    high.setUnit(unit);
-                } else { // existing red alert
-                    int alertCount = high.getNum() + 1;
-                    LOGGER.info(String.format("This is an updated red alert for device %d, inspect %d. Update count to %d",
-                            device.getId(),
-                            deviceInspect.getId(),
-                            alertCount));
-                    high.setNum(alertCount);
-                }
-                alertCountRepository.save(high);
-
-                // set inspect_data column 'type'
-                inspectData.setType("high");
-
-                // update device alert time and alert status
-                if(onlineData) {
-                    device.setLastRedAlertTime(deviceSamplingTime);
-                    device.setStatus(2);
-                }
-
-                // send push notification if necessary
-                if (deviceInspect.getHighUp() < record) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), record, deviceSamplingTime);
-                } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), record, deviceSamplingTime);
-                }
-            }
-            // case 2, yellow alert
-            else if ((record <= deviceInspect.getHighUp() && record > deviceInspect.getLowUp()) ||
-                    (record >= deviceInspect.getHighDown() && record < deviceInspect.getLowDown())) {
-                LOGGER.info(String.format("Device %d, Inspect %d, got yellow alert %s",
-                        device.getId(),
-                        deviceInspect.getId(),
-                        record));
-                // there exists a red alert
-                if (null != high && high.getNum() > 0) {
-                    LOGGER.info("There exists a red alert before this yellow alert, set its finish time");
-                    high.setFinish(deviceSamplingTime);
-                    alertCountRepository.save(high);
-                    AlertCount newHigh = new AlertCount();
-                    newHigh.setDevice(device);
-                    newHigh.setInspectType(deviceInspect.getInspectType());
-                    newHigh.setNum(0);
-                    newHigh.setType(2);
-                    newHigh.setUnit(unit);
-                    newHigh.setCreateDate(deviceSamplingTime);
-                    alertCountRepository.save(newHigh);
-                }
-                // new yellow alert
-                if (null == low) {
-                    LOGGER.info("This is a new yellow alert for device %d, inspect %d",
-                            device.getId(),
-                            deviceInspect.getId());
-                    low = new AlertCount();
-                    low.setDevice(device);
-                    low.setInspectType(deviceInspect.getInspectType());
-                    low.setCreateDate(deviceSamplingTime);
-                    low.setNum(1);
-                    low.setType(1);
-                    low.setUnit(unit);
-                } else { //exists yellow alert
-                    int alertCount = low.getNum() + 1;
-                    LOGGER.info(String.format("This is an updated yellow alert for device %d, inspect %d. Update count to %d",
-                            device.getId(),
-                            deviceInspect.getId(),
-                            alertCount));
-                    low.setNum(alertCount);
-                }
-                //save to db
-                alertCountRepository.save(low);
-                // set inspect_data column 'type'
-                inspectData.setType("low");
-
-                // update device alert time and alert status
-                if(onlineData) {
-                    device.setLastYellowAlertTime(deviceSamplingTime);
-                    device.setStatus(1);
-                }
-
-                // push notification if necessary
-                if (record > deviceInspect.getLowUp()) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
-                } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
-                }
-            }
-            // case 3, normal data
-            else {
-                // check if there exist alert
-                if (null == low || low.getNum() > 0) {
-                    LOGGER.info(String.format("Device %d, Inspect %d, there exist yellow alert before this normal data, finalize alert",
-                            device.getId(),
-                            deviceInspect.getId()));
-                    if (null != low) {
-                        low.setFinish(deviceSamplingTime);
-                        alertCountRepository.save(low);
+                    // update device alert time and alert status
+                    if(onlineData) {
+                        device.setLastRedAlertTime(deviceSamplingTime);
+                        device.setStatus(2);
                     }
 
-                    AlertCount newLow = new AlertCount();
-                    newLow.setDevice(device);
-                    newLow.setInspectType(deviceInspect.getInspectType());
-                    newLow.setNum(0);
-                    newLow.setType(1);
-                    newLow.setUnit(unit);
-                    newLow.setCreateDate(deviceSamplingTime);
-                    alertCountRepository.save(newLow);
-                }
-
-                if (null == high || high.getNum() > 0) {
-                    LOGGER.info(String.format("Device %d, Inspect %d, there exist red alert before this normal data, finalize alert",
-                            device.getId(),
-                            deviceInspect.getId()));
-                    if (null != high) {
-                        high.setFinish(deviceSamplingTime);
-                        alertCountRepository.save(high);
+                    // push notification if necessary
+                    if (record > deviceInspect.getLowUp()) {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                    } else {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
                     }
 
-
-                    AlertCount newHigh = new AlertCount();
-                    newHigh.setDevice(device);
-                    newHigh.setInspectType(deviceInspect.getInspectType());
-                    newHigh.setNum(0);
-                    newHigh.setType(2);
-                    newHigh.setUnit(unit);
-                    newHigh.setCreateDate(deviceSamplingTime);
-                    alertCountRepository.save(newHigh);
+                    LOGGER.info("red alert");
                 }
+                else if(deviceInspect.getLowUp() < record || record < deviceInspect.getLowDown()){
+                    alert_type = 1;
+
+                    // set inspect_data column 'type'
+                    inspectData.setType("low");
+
+                    // update device alert time and alert status
+                    if(onlineData) {
+                        device.setLastYellowAlertTime(deviceSamplingTime);
+                        device.setStatus(1);
+                    }
+
+                    // push notification if necessary
+                    if (record > deviceInspect.getLowUp()) {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                    } else {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
+                    }
+
+                    LOGGER.info("yellow alert");
+                }
+                else{
+                    alert_type = 0;
+
+                    inspectData.setType("normal");
+                    LOGGER.info("normal");
+                }
+            }
+            else{
                 inspectData.setType("normal");
+                LOGGER.info("status data, pass alert check");
             }
 
-            LOGGER.info("datagram alert type set and updating to db");
+            // update alert_count table, record alert info
+            if(alert_type != 0){
+                InspectData last_inspect = inspectDataRepository.findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(
+                        deviceInspect.getId(), deviceSamplingTime);
+                AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, deviceSamplingTime);
+                AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, deviceSamplingTime);
+                if(last_inspect == null ||
+                        last_inspect.getType().equals("normal") ||
+                        deviceSamplingTime.getTime() - last_inspect.getCreateDate().getTime() > 5*60*1000){
+                    // new alert count
+                    createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
+                }
+
+                else{
+                    AlertCount liveAlert = null;
+                    if(last_inspect.getCreateDate().getTime() == last_yellow_alert.getFinish().getTime()){
+                        liveAlert = last_yellow_alert;
+                    }
+                    else if(last_inspect.getCreateDate().getTime() == last_red_alert.getFinish().getTime()){
+                        liveAlert = last_red_alert;
+                    }
+
+                    if(liveAlert == null){
+                        LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s.",
+                                device.getId(), deviceInspect.getId(), deviceSamplingTime.toString()));
+
+                        AlertCount newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
+                                last_red_alert : last_yellow_alert;
+                        if(deviceSamplingTime.getTime() - newerCount.getFinish().getTime() > 5*60*1000){
+                            // create a new alert
+                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
+                        }
+                        else{
+                            // set newer alert as live alert
+                            liveAlert = newerCount;
+                        }
+                    }
+
+                    if(liveAlert != null){
+                        if(liveAlert.getType() != alert_type){
+                            // alert type is not equal, create a new alert
+                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
+                        }
+                        else{
+                            // extend live alert
+                            liveAlert.setNum(liveAlert.getNum() + 1);
+                            liveAlert.setFinish(deviceSamplingTime);
+                            alertCountRepository.save(liveAlert);
+                            LOGGER.info("datagram alert type set and updating to db");
+                        }
+                    }
+                }
+
+            }
+
             inspectDataRepository.save(inspectData);
 
             // write data to influx DB
@@ -675,6 +624,20 @@ public class SocketMessageApi {
             return deviceInspect;
         }
         return null;
+    }
+
+    // this function may need a better place
+    void createNewAlertAndSave(Device device, InspectType inspectType, Integer alert_type, String unit, Date deviceSamplingTime){
+        AlertCount newAlert = new AlertCount();
+        newAlert.setDevice(device);
+        newAlert.setInspectType(inspectType);
+        newAlert.setNum(1);
+        newAlert.setType(alert_type);
+        newAlert.setUnit(unit);
+        newAlert.setCreateDate(deviceSamplingTime);
+        newAlert.setFinish(deviceSamplingTime);
+        alertCountRepository.save(newAlert);
+        LOGGER.info("datagram alert type set and updating to db");
     }
 
     /**
