@@ -521,9 +521,7 @@ public class SocketMessageApi {
 
             // update alert_count table, record alert info
             if(alert_type != 0){
-                //InspectData last_inspect = inspectDataRepository.findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(
-                //        deviceInspect.getId(), deviceSamplingTime);
-                InspectData last_inspect = inspectDataRepository.findTopByDeviceIdAndDeviceInspectIdCreateDateBeforeOrderByCreateDateDesc(
+                InspectData last_inspect = inspectDataRepository.findTopByDeviceIdAndDeviceInspectIdAndCreateDateBeforeOrderByCreateDateDesc(
                         device.getId(),deviceInspect.getId(), deviceSamplingTime);
                 AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
                         deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, deviceSamplingTime);
