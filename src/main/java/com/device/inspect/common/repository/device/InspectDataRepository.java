@@ -12,7 +12,8 @@ import java.util.List;
 public interface InspectDataRepository extends CrudRepository<InspectData,Integer> {
     public InspectData findTopByDeviceIdOrderByCreateDateDesc(Integer DeviceId);
     public InspectData findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
-    public InspectData findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(Integer id, Date sampleTime);
+    public InspectData findTopByDeviceIdAndDeviceInspectIdCreateDateBeforeOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId, Date sampleTime);
+    //public InspectData findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(Integer id, Date sampleTime);
     public List<InspectData> findTop7ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
     public List<InspectData> findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(Integer DeviceId,Integer DeviceInspectId);
     public List<InspectData> findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(Integer DeviceId, Date BeginTime);

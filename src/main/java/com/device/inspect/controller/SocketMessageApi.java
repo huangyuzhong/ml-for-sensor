@@ -521,8 +521,10 @@ public class SocketMessageApi {
 
             // update alert_count table, record alert info
             if(alert_type != 0){
-                InspectData last_inspect = inspectDataRepository.findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(
-                        deviceInspect.getId(), deviceSamplingTime);
+                //InspectData last_inspect = inspectDataRepository.findTopByIdAndCreateDateBeforeOrderByCreateDateDesc(
+                //        deviceInspect.getId(), deviceSamplingTime);
+                InspectData last_inspect = inspectDataRepository.findTopByDeviceIdAndDeviceInspectIdCreateDateBeforeOrderByCreateDateDesc(
+                        device.getId(),deviceInspect.getId(), deviceSamplingTime);
                 AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
                         deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, deviceSamplingTime);
                 AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
@@ -592,7 +594,7 @@ public class SocketMessageApi {
                                 Float.parseFloat(inspectData.getResult()), Float.parseFloat(inspectData.getRealValue()));
 
                         if(!writeSuccess){
-                            Thread.sleep(1000);
+                            Thread.sleep(200);
                             retry ++;
                         }
                         else{
@@ -618,7 +620,29 @@ public class SocketMessageApi {
             }
 
             if(onlineData){
-                deviceRepository.save(device);
+                //因为一个设备可能同时发送多个参数的数据， 所以有多个线程同时update device， 会造成deadlock。
+                //这里加上retry来避免deadlock造成的data丢失
+                int retry = 0;
+                int max_retry = 5;
+                while(retry < max_retry) {
+                    try {
+                        deviceRepository.save(device);
+                        break;
+                    } catch (Exception e) {
+                        LOGGER.info(String.format("Failed to update device %d, Err: %s", device.getId(), e.toString()));
+
+                        retry ++;
+                        try {
+                            Thread.sleep(100);
+                        }catch (InterruptedException ie){
+                            LOGGER.warn(String.format("Failed to sleep 0.1 sec. Err: %s", ie.toString()));
+                        }
+                    }
+                }
+
+                if(retry >= max_retry) {
+                    LOGGER.error(String.format("Aborting update device %d after %d approaches", device.getId(), max_retry));
+                }
             }
 
             return deviceInspect;
