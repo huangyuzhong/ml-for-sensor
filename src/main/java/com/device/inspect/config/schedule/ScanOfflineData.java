@@ -1,11 +1,11 @@
 package com.device.inspect.config.schedule;
 
 import com.device.inspect.Application;
-import com.device.inspect.common.model.device.Device;
-import com.device.inspect.common.model.device.DeviceInspect;
-import com.device.inspect.common.model.device.MonitorDevice;
+import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.OfflineHourUnit;
+import com.device.inspect.common.repository.device.AlertCountRepository;
 import com.device.inspect.common.repository.device.DeviceInspectRepository;
+import com.device.inspect.common.repository.device.InspectDataRepository;
 import com.device.inspect.common.repository.device.MonitorDeviceRepository;
 import com.device.inspect.common.service.OfflineHourQueue;
 import com.device.inspect.controller.SocketMessageApi;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.ByteArrayOutputStream;
 import java.io.RandomAccessFile;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by zyclincoln on 4/23/17.
@@ -38,6 +39,12 @@ public class ScanOfflineData implements  MySchedule{
 
     @Autowired
     private OfflineHourQueue requestQueue;
+
+    @Autowired
+    private AlertCountRepository alertCountRepository;
+
+    @Autowired
+    private InspectDataRepository inspectDataRepository;
 
     @Scheduled(cron = "0 */10 * * * ? ")
     @Override
@@ -103,10 +110,15 @@ public class ScanOfflineData implements  MySchedule{
                             availableMessageNum++;
                         }
                     }
+
                     logger.info("Scan Offline Data: add recalculate request");
                     requestQueue.recalculateRequest.add(new OfflineHourUnit(beginTime, endTime, device));
                     logger.info(String.format("Scan Offline Data: add recalculate request of device %d from %s to %s to queue.",
                             device.getId(), beginTime.toString(), endTime.toString()));
+                    int mergedAlert = mergeAlertOfMonitorDevice(device.getId(),
+                            new Date(beginTime.getTime() - 5*60*1000),
+                            new Date(endTime.getTime() + 5*60*1000));
+                    logger.info(String.format("Scan Offline Data: merged %d alert", mergedAlert));
                 } else {
                     illegalFileNum++;
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));
@@ -125,7 +137,60 @@ public class ScanOfflineData implements  MySchedule{
             logger.error(String.format("Scan Offline data failed due to error %s", e.toString()));
 
         }
+    }
 
+    // merge alert after insert offline data
+    int mergeAlertOfMonitorDevice(Integer deviceId, Date beginTime, Date endTime){
+        List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(deviceId);
+        int mergedAlert = 0;
+        for(DeviceInspect deviceInspect : deviceInspects){
+            List<AlertCount> alertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndFinishAfterAndCreateDateBeforeOrderByFinishAsc(
+                    deviceId, deviceInspect.getInspectType().getId(), beginTime, endTime);
+            for(int index = 0; index < alertCounts.size(); index++){
+                // merge when adjacent alerts have same type and interval is less than 2 minutes
+                if(index + 1 < alertCounts.size() &&
+                        alertCounts.get(index).getType() == alertCounts.get(index+1).getType() &&
+                        (alertCounts.get(index+1).getCreateDate().getTime() - alertCounts.get(index).getFinish().getTime()) < 2*60*1000){
 
+                    // check inspect data in this time period hold same alert type
+                    List<InspectData> inspectDatas = inspectDataRepository.findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(
+                            deviceInspect.getId(), alertCounts.get(index).getFinish(), alertCounts.get(index+1).getCreateDate());
+                    boolean holdSameAlert = true;
+                    int originalAlertType = alertCounts.get(index).getType();
+                    for(InspectData inspectData : inspectDatas){
+                        int alertType = 0;
+                        if(inspectData.getType().equals("high")){
+                            alertType = 2;
+                        }
+                        else if(inspectData.getType().equals("low")){
+                            alertType = 1;
+                        }
+
+                        if(alertType != originalAlertType){
+                            holdSameAlert = false;
+                            break;
+                        }
+                    }
+                    if(!holdSameAlert){
+                        continue;
+                    }
+
+                    alertCounts.get(index).setFinish(alertCounts.get(index+1).getFinish());
+                    // update merged alert
+                    alertCountRepository.save(alertCounts.get(index));
+                    // erase redundant alert
+                    alertCountRepository.delete(alertCounts.get(index+1));
+                    alertCounts.remove(index+1);
+
+                    logger.info(String.format("Merge Alert: device id: %d, merge alert id %d, finish at %s and id %d, start at %s into %d",
+                            deviceId, alertCounts.get(index).getId(), alertCounts.get(index).getFinish().toString(),
+                            alertCounts.get(index+1).getId(), alertCounts.get(index+1).getCreateDate().toString(), alertCounts.get(index).getId()));
+                    // index not move when merging
+                    index--;
+                    mergedAlert++;
+                }
+            }
+        }
+        return mergedAlert;
     }
 }
