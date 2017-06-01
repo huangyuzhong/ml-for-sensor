@@ -36,6 +36,7 @@ import java.text.SimpleDateFormat;
 @RequestMapping(value = "/api/rest")
 public class SocketMessageApi {
     private static final Logger LOGGER = LogManager.getLogger(SocketMessageApi.class);
+    private static final Random random = new Random();
 
     @Autowired
     private MessageController messageController;
@@ -611,7 +612,7 @@ public class SocketMessageApi {
 
                         retry ++;
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(random.nextInt(100));
                         }catch (InterruptedException ie){
                             LOGGER.warn(String.format("Failed to sleep 0.1 sec. Err: %s", ie.toString()));
                         }
