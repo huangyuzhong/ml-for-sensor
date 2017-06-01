@@ -117,8 +117,6 @@ public class SocketMessageApi {
             deviceSamplingTime = sdf.parse(strDeviceDate);
             deviceSamplingTime.setTime(deviceSamplingTime.getTime());
 
-            LOGGER.info(deviceSamplingTime.toString());
-
         } catch (ParseException e) {
             LOGGER.error("parsing device time string error: " + e.getMessage());
         }
@@ -127,7 +125,6 @@ public class SocketMessageApi {
         int iDeviceSamplingData = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData), 0, 4);
         Device device = new Device();
         String mointorCode = inspectMessage.substring(8, 26);
-        //LOGGER.info("终端编号是：：：：："+mointorCode);
         MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
         if (null == monitorDevice)
             return null;
@@ -136,9 +133,10 @@ public class SocketMessageApi {
             monitorDeviceRepository.save(monitorDevice);
         }
         device = monitorDevice.getDevice();
-        if (device.getEnable() == 0)
+        if (device.getEnable() == 0) {
+            LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
             return null;
-
+        }
         InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
 
         InspectData inspectData = new InspectData();
@@ -148,9 +146,9 @@ public class SocketMessageApi {
             if (null == deviceInspect)
                 return null;
             //测量原值
-            Float record;
+            Float originalInspectValue;
             //添加矫正值
-            Float check;
+            Float correctedInspectValue;
             //判断是否是PT100
 
             // parsing raw data from remote device
@@ -182,14 +180,13 @@ public class SocketMessageApi {
                         //通过电阻找到对象的温度
                         String temperature = pt100.getTemperature();
 
-                        record = Float.valueOf(temperature);
+                        originalInspectValue = Float.valueOf(temperature);
                         //添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
                         //矫正值
-                        check = record - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(check));
-                        deviceInspect.setCorrectionValue(check);
+                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(correctedInspectValue));
+
                     } else {
                         //通过电阻找到对应的温度
                         //从小到大
@@ -214,14 +211,13 @@ public class SocketMessageApi {
                         float b = Float.valueOf(temperature1) - (k * resistance1);
 
                         //将温度存入record
-                        record = k * r + b;
+                        originalInspectValue = k * r + b;
                         //添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
                         //添加矫正值
-                        check = record - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(check));
-                        deviceInspect.setCorrectionValue(check);
+                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(correctedInspectValue));
+
                     }
                     //设置检测结果
 
@@ -237,36 +233,34 @@ public class SocketMessageApi {
                         inspectData.setCreateDate(deviceSamplingTime);
                         inspectData.setDevice(device);
                         inspectData.setDeviceInspect(deviceInspect);
-                        record = 0f;
+                        originalInspectValue = 0f;
                         //添加校正值
-                        inspectData.setResult(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setResult(String.valueOf(originalInspectValue));
                         //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setCorrectionValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
+
                     } else if (v < 2) {
                         float b = 0.4f;
                         float k = 1.6f;
-                        record = (v - b) / k;
+                        originalInspectValue = (v - b) / k;
 
                         //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
                         inspectData.setCreateDate(deviceSamplingTime);
                         inspectData.setDevice(device);
                         inspectData.setDeviceInspect(deviceInspect);
-                        check = record - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(check));
-                        deviceInspect.setCorrectionValue(check);
+                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(correctedInspectValue));
+
                     } else {
-                        record = 10f;
+                        originalInspectValue = 10f;
                         inspectData.setCreateDate(deviceSamplingTime);
                         inspectData.setDevice(device);
                         inspectData.setDeviceInspect(deviceInspect);
-                        inspectData.setResult(String.valueOf(record));
+                        inspectData.setResult(String.valueOf(originalInspectValue));
                         //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
+
                     }
 
                 } else if (monitorTypeCode.equals("06")) {
@@ -282,15 +276,13 @@ public class SocketMessageApi {
                     if (value > 32767) {
                         value = value - 65536;
                     }
-                    System.out.println("real value: " + value);
                     inspectData.setRealValue(String.valueOf(value));
-                    record = Float.valueOf(value) / 60;
-                    System.out.println("filted record: " + record);
-                    deviceInspect.setOriginalValue(record);
-                    check = record * (float) 1.04;
-                    System.out.println("checked record: " + check);
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    originalInspectValue = Float.valueOf(value) / 60;
+
+                    // 默认海拔750米， 对应压差调整系数为1.04
+                    correctedInspectValue = originalInspectValue * (float) 1.04;
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
                 } else if (monitorTypeCode.equals("08") || monitorTypeCode.equals("09")) {
                     LOGGER.info(String.format("Device %d, Monitor code 08-09, energy",
                             device.getId()));
@@ -299,11 +291,10 @@ public class SocketMessageApi {
                     inspectData.setDeviceInspect(deviceInspect);
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    record = Float.valueOf(iDeviceSamplingData) * 250 * 20 / 18000000;
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 250 * 20 / 18000000;
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
                 } else if (monitorTypeCode.equals("0a")) {
                     LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
                             device.getId()));
@@ -311,11 +302,10 @@ public class SocketMessageApi {
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    record = Float.valueOf(iDeviceSamplingData) * 250 / 10000;
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 250 / 10000;
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
                 } else if (monitorTypeCode.equals("0b")) {
                     LOGGER.info(String.format("Device %d, Monitor code 0b, currency",
                             device.getId()));
@@ -324,24 +314,22 @@ public class SocketMessageApi {
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    record = Float.valueOf(iDeviceSamplingData) * 20 / 10000;
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 20 / 10000;
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
 
                 } else if (monitorTypeCode.equals("0c") || monitorTypeCode.equals("0d")) {
                     LOGGER.info(String.format("Device %d, Monitor code 0c-0d, power",
                             device.getId()));
                     inspectData.setCreateDate(deviceSamplingTime);
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    record = Float.valueOf(iDeviceSamplingData) * 20 * 250 / 10000;
+                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 20 * 250 / 10000;
                     inspectData.setDevice(device);
                     inspectData.setDeviceInspect(deviceInspect);
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
 
                 } else if (monitorTypeCode.equals("18") || monitorTypeCode.equals("19") || monitorTypeCode.equals("1a")) {
                     LOGGER.info(String.format("Device %d, Monitor code %s, pt 100 temperature",
@@ -365,14 +353,13 @@ public class SocketMessageApi {
                         //通过电阻找到对象的温度
                         String temperature = pt100.getTemperature();
 
-                        record = Float.valueOf(temperature);
+                        originalInspectValue = Float.valueOf(temperature);
                         //添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
                         //矫正值
-                        check = record - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(check));
-                        deviceInspect.setCorrectionValue(check);
+                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(correctedInspectValue));
+
                     } else {
                         //通过电阻找到对应的温度
                         //从小到大
@@ -397,14 +384,13 @@ public class SocketMessageApi {
                         float b = Float.valueOf(temperature1) - (k * resistance1);
 
                         //将温度存入record
-                        record = k * r + b;
+                        originalInspectValue = k * r + b;
                         //添加测量原值
-                        inspectData.setRealValue(String.valueOf(record));
-                        deviceInspect.setOriginalValue(record);
+                        inspectData.setRealValue(String.valueOf(originalInspectValue));
                         //添加矫正值
-                        check = record - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(check));
-                        deviceInspect.setCorrectionValue(check);
+                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                        inspectData.setResult(String.valueOf(correctedInspectValue));
+
                     }
                 } else if(monitorTypeCode.equals("1b")){
                     LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
@@ -414,13 +400,12 @@ public class SocketMessageApi {
                     inspectData.setDeviceInspect(deviceInspect);
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
                     Float vRecord = (Float.valueOf(iDeviceSamplingData) * 512 / 10000) / 32768;
-                    record = vRecord * 5 * 1000 / 333;
+                    originalInspectValue = vRecord * 5 * 1000 / 333;
                     LOGGER.info(String.format("数据转化的电压为：%d", vRecord));
-                    LOGGER.info(String.format("根据电压转化的电流为：%d", record));
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    LOGGER.info(String.format("根据电压转化的电流为：%d", originalInspectValue));
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
                 } else {
                     LOGGER.info(String.format("Device %d, Monitor code 0e-0f-10",
                             device.getId()));
@@ -429,11 +414,10 @@ public class SocketMessageApi {
                     inspectData.setDeviceInspect(deviceInspect);
                     //添加测量原值
                     inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    record = Float.valueOf(iDeviceSamplingData) / 1000;
-                    deviceInspect.setOriginalValue(record);
-                    check = record - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(check));
-                    deviceInspect.setCorrectionValue(check);
+                    originalInspectValue = Float.valueOf(iDeviceSamplingData) / 1000;
+                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
+                    inspectData.setResult(String.valueOf(correctedInspectValue));
+
                 }
             } catch (Exception e) {
                 LOGGER.error("failed to parse datagram from remote device: " + e.getLocalizedMessage());
@@ -441,22 +425,18 @@ public class SocketMessageApi {
                 return null;
             }
 
-            LOGGER.info("successfully parsing datagram.");
-
             if(onlineData){
                 device.setLastActivityTime(deviceSamplingTime);
             }
 
             try {
-                deviceInspectRepository.save(deviceInspect);
                 inspectDataRepository.save(inspectData);
+                LOGGER.info("parsed datagram saved to database inspectData");
             } catch (Exception e) {
                 LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
                 LOGGER.error("exception stack: ", e);
                 return null;
             }
-
-            LOGGER.info("parsed datagram saved to database deviceInspect and inspectData");
 
             if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
                 return null;
@@ -467,7 +447,7 @@ public class SocketMessageApi {
             if(deviceInspect.getInspectPurpose() == 0){
                 // alert inspect
                 LOGGER.info("check data against alert");
-                if(deviceInspect.getHighUp() < record || record < deviceInspect.getHighDown()){
+                if(deviceInspect.getHighUp() < originalInspectValue || originalInspectValue < deviceInspect.getHighDown()){
                     alert_type = 2;
                     inspectData.setType("high");
 
@@ -478,15 +458,15 @@ public class SocketMessageApi {
                     }
 
                     // push notification if necessary
-                    if (record > deviceInspect.getLowUp()) {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                    if (originalInspectValue > deviceInspect.getLowUp()) {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
                     } else {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), originalInspectValue, deviceSamplingTime);
                     }
 
                     LOGGER.info("red alert");
                 }
-                else if(deviceInspect.getLowUp() < record || record < deviceInspect.getLowDown()){
+                else if(deviceInspect.getLowUp() < originalInspectValue || originalInspectValue < deviceInspect.getLowDown()){
                     alert_type = 1;
 
                     // set inspect_data column 'type'
@@ -499,10 +479,10 @@ public class SocketMessageApi {
                     }
 
                     // push notification if necessary
-                    if (record > deviceInspect.getLowUp()) {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), record, deviceSamplingTime);
+                    if (originalInspectValue > deviceInspect.getLowUp()) {
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
                     } else {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), record, deviceSamplingTime);
+                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), originalInspectValue, deviceSamplingTime);
                     }
 
                     LOGGER.info("yellow alert");
