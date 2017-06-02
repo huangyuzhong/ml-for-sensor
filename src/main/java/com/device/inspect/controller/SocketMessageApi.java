@@ -426,10 +426,11 @@ public class SocketMessageApi {
                 return null;
             }
 
+            /*
             if(onlineData){
                 device.setLastActivityTime(deviceSamplingTime);
             }
-
+            */
 
 
             if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
@@ -455,10 +456,12 @@ public class SocketMessageApi {
                     inspectData.setType("high");
 
                     // update device alert time and alert status
+                    /*
                     if(onlineData) {
                         device.setLastRedAlertTime(deviceSamplingTime);
                         device.setStatus(2);
                     }
+                    */
                     // push notification if necessary
                     if (originalInspectValue > deviceInspect.getLowUp()) {
                         messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
@@ -475,10 +478,12 @@ public class SocketMessageApi {
                     inspectData.setType("low");
 
                     // update device alert time and alert status
+                    /*
                     if(onlineData) {
                         device.setLastYellowAlertTime(deviceSamplingTime);
                         device.setStatus(1);
                     }
+                    */
 
                     // push notification if necessary
                     if (originalInspectValue > deviceInspect.getLowUp()) {
@@ -562,10 +567,14 @@ public class SocketMessageApi {
             // write to inspect_data
             try {
                 inspectDataRepository.save(inspectData);
-                LOGGER.info("parsed datagram saved to database inspectData");
+
+                //inspectDataRepository.insertData(device.getId(), deviceInspect.getId(), inspectData.getResult(), deviceSamplingTime,
+                //        inspectData.getType(), inspectData.getRealValue());
+
+                //LOGGER.info("parsed datagram saved to database inspectData");
             } catch (Exception e) {
                 LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
-                LOGGER.error("exception stack: ", e);
+                LOGGER.error("exception string: ", e.toString());
                 return null;
             }
 
