@@ -1,5 +1,6 @@
 package com.device.inspect.config.schedule;
 
+import com.device.inspect.Application;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
@@ -10,7 +11,9 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.common.util.transefer.InspectTypeTool;
 import com.device.inspect.controller.MessageController;
+import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -80,6 +84,9 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
 
         logger.info("Start schedule to summarize device status");
         Date scheduleStartTime = new Date();
+        Date time5minBefore = DateUtils.addMinutes(scheduleStartTime, -5);
+        Date time10minBefore = DateUtils.addMinutes(scheduleStartTime, -10);
+
         Iterable<Company> companies = companyRepository.findAll();
         if (null!=companies)
             for (Company company:companies){
@@ -118,7 +125,6 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                         Integer roomOffline = 0;
                                         Float roomScore = (float)0;
 
-                                        Date time5minBefore = DateUtils.addMinutes(scheduleStartTime, -5);
 
                                         Integer roomDeviceCount = deviceRepository.countByRoomIdAndEnable(room.getId(), 1);
 
@@ -127,16 +133,23 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                         }
 
 
-
                                         List<Device> roomDeviceList = deviceRepository.findByRoomIdAndEnable(room.getId(), 1);
 
                                         for(Device device: roomDeviceList){
+                                            Date scanDeviceStartTime = new Date();
+                                            List<String> inspectTypes = new ArrayList<String>();
+                                            List<DeviceInspect> inspectList = deviceInspectRepository.findByDeviceId(device.getId());
+
+                                            for(DeviceInspect deviceInspect: inspectList){
+                                                inspectTypes.add(InspectTypeTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+                                            }
                                             // 统计该房间内近5分钟内有报警的设备数量
-                                            if(!device.getLastRedAlertTime().before(time5minBefore)){
+                                            // use data in influxdb
+                                            if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
                                                 roomHighALert ++;
                                                 device.setStatus(2);
                                             }
-                                            else if(!device.getLastYellowAlertTime().before(time5minBefore)){
+                                            else if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "low", time5minBefore, scheduleStartTime) > 0){
                                                 roomLowAlert ++;
                                                 device.setStatus(1);
                                             }
@@ -147,7 +160,10 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                             // 统计该房间内近5分钟内离线的设备数量
                                             MonitorDevice monitor = device.getMonitorDevice();
 
-                                            if(device.getLastActivityTime() == null || device.getLastActivityTime().before(time5minBefore)){
+                                            Integer countMonitorDataIn5min = Application.influxDBManager.countDeviceTotalTelemetryByTime(inspectTypes, device.getId(), time5minBefore, scheduleStartTime);
+
+                                            if(countMonitorDataIn5min <= 0){
+
                                                 roomOffline ++;
                                                 if(monitor.getOnline() != 0){
                                                     monitor.setOnline(0);
@@ -169,40 +185,49 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                     monitorDeviceRepository.save(monitor);
                                                 }
 
+                                                // 10 分钟内电池电量有没有下降
                                                 logger.info("Scan online Device id: " + device.getId());
-                                                DeviceInspect inspect = deviceInspectRepository.
+                                                DeviceInspect batteryInspect = deviceInspectRepository.
                                                         findByInspectTypeIdAndDeviceId(bettaryInspectId, device.getId());
-                                                if(inspect == null){
+                                                if(batteryInspect == null){
                                                     // bettary inspect is not found, error
                                                     logger.info(String.format("Online Schedule: device %s-%d has no bettary inspect", device.getName(), device.getId()));
                                                 }
                                                 else{
-                                                    List<InspectData> inspectDatas = inspectDataRepository.
-                                                            findTop20ByDeviceIdAndDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(device.getId(),
-                                                                    inspect.getId(), time5minBefore);
-                                                    if(inspectDatas == null || inspectDatas.size() == 0){
-                                                        // no battery message
+                                                    List<List<Object>> recentBatteryData = Application.influxDBManager.readTelemetryInTimeRange(
+                                                            InspectTypeTool.getMeasurementByCode(batteryInspect.getInspectType().getCode()),
+                                                            device.getId(),
+                                                            batteryInspect.getId(),
+                                                            time10minBefore,
+                                                            scheduleStartTime
+                                                            );
+
+                                                    if(recentBatteryData == null || recentBatteryData.size()==0){
                                                         logger.info(String.format("Online Schedule: device %s-%d has no bettary message", device.getName(), device.getId()));
+
                                                     }
-                                                    else {
+                                                    else{
+                                                        List<Object> latestBatteryData = recentBatteryData.get(recentBatteryData.size()-1);
+                                                        Double lastBatteryValue = (Double)latestBatteryData.get(1);
                                                         boolean batteryIsDesc = true;
-                                                        double lastBettaryValue = Double.parseDouble(inspectDatas.get(0).getResult());
-                                                        // System.out.println("battery info size:" + inspectDatas.size());
-                                                        for (InspectData batteryInspect : inspectDatas) {
-                                                            double currentBettaryValue = Double.parseDouble(batteryInspect.getResult());
-                                                            // System.out.println("battery info:" + batteryInspect.getResult() + ", " + batteryInspect.getCreateDate());
-                                                            if (lastBettaryValue <= currentBettaryValue) {
-                                                                lastBettaryValue = currentBettaryValue;
-                                                            } else {
+
+
+                                                        for(int i=1; i<recentBatteryData.size(); i++){
+                                                            Double batteryValue = (Double)recentBatteryData.get(i).get(1);
+                                                            if(batteryValue < lastBatteryValue){
                                                                 batteryIsDesc = false;
                                                                 break;
+                                                            }
+                                                            else{
+                                                                lastBatteryValue = batteryValue;
                                                             }
                                                         }
                                                         if (batteryIsDesc) {
                                                             // send power message
-                                                            messageController.sendPowerMsg(device, inspect, scheduleStartTime);
+                                                            messageController.sendPowerMsg(device, batteryInspect, scheduleStartTime);
                                                         }
                                                     }
+
                                                 }
                                             }
 
@@ -243,6 +268,11 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                             deviceRepository.save(device);
                                             roomScore +=(alertScore+offSocre);
 
+                                            Date scanDeviceEndTime = new Date();
+
+                                            long timeCost = scanDeviceEndTime.getTime() - scanDeviceStartTime.getTime();
+
+                                            logger.info(String.format("Scan device %d taks %d ms", device.getId(), timeCost));
                                         }
 
                                         logger.info(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), roomLowAlert));
@@ -304,5 +334,11 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                 company.setScore(buildingList.size()>0?companyScore/buildingList.size():(float)0);
                 companyRepository.save(company);
             }
+
+        Date scheduleEndTime = new Date();
+
+        long timeCost = scheduleEndTime.getTime()-scheduleStartTime.getTime();
+
+        logger.info("--- Schedule update-device-status takes %d ms", timeCost);
     }
 }

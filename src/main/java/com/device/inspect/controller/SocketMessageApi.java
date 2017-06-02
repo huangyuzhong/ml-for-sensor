@@ -430,16 +430,18 @@ public class SocketMessageApi {
                 device.setLastActivityTime(deviceSamplingTime);
             }
 
-            try {
-                inspectDataRepository.save(inspectData);
-                LOGGER.info("parsed datagram saved to database inspectData");
-            } catch (Exception e) {
-                LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
-                LOGGER.error("exception stack: ", e);
-                return null;
-            }
+
 
             if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
+                LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
+                try {
+                    inspectDataRepository.save(inspectData);
+                    LOGGER.info("parsed datagram saved to database inspectData");
+                } catch (Exception e) {
+                    LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
+                    LOGGER.error("exception stack: ", e);
+                    return null;
+                }
                 return null;
             }
 
@@ -457,7 +459,6 @@ public class SocketMessageApi {
                         device.setLastRedAlertTime(deviceSamplingTime);
                         device.setStatus(2);
                     }
-
                     // push notification if necessary
                     if (originalInspectValue > deviceInspect.getLowUp()) {
                         messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
@@ -485,6 +486,7 @@ public class SocketMessageApi {
                     } else {
                         messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), originalInspectValue, deviceSamplingTime);
                     }
+
 
                     LOGGER.info("yellow alert");
                 }
@@ -557,7 +559,15 @@ public class SocketMessageApi {
 
             }
 
-            inspectDataRepository.save(inspectData);
+            // write to inspect_data
+            try {
+                inspectDataRepository.save(inspectData);
+                LOGGER.info("parsed datagram saved to database inspectData");
+            } catch (Exception e) {
+                LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
+                LOGGER.error("exception stack: ", e);
+                return null;
+            }
 
             // write data to influx DB
             if(Application.influxDBManager != null){
@@ -598,6 +608,11 @@ public class SocketMessageApi {
                 }
             }
 
+            // LAB-207, comment out, do not write mySQL, instead, getting device status by querying influxdb
+
+            /*
+            
+
             if(onlineData){
                 //因为一个设备可能同时发送多个参数的数据， 所以有多个线程同时update device， 会造成deadlock。
                 //这里加上retry来避免deadlock造成的data丢失
@@ -623,6 +638,7 @@ public class SocketMessageApi {
                     LOGGER.error(String.format("Aborting update device %d after %d approaches", device.getId(), max_retry));
                 }
             }
+            */
 
             return deviceInspect;
         }
