@@ -33,6 +33,8 @@ import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.ByteAndHex;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
+import com.device.inspect.common.util.transefer.StringDate;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
 import org.apache.commons.lang3.time.DateUtils;
@@ -1097,6 +1099,141 @@ public class SelectApiController {
             }
         }
 
+        List<TelemetryData> telemetryDatas = new ArrayList<>();
+
+        for(DeviceInspect deviceInspect: deviceInspects){
+            List<List<Object>> inspectDatas = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+                    device.getId(), deviceInspect.getId(), beginTime, endTime);
+
+
+
+            if(inspectDatas == null || inspectDatas.size() == 0){
+                continue;
+            }
+
+            List<Long> timeSeries = new ArrayList<Long>();
+            List<Float> dataSeries = new ArrayList<Float>();
+            AggregateData aggregateData = new AggregateData();
+            Float maxValue = new Float(Float.MIN_VALUE);
+            Long maxValueTime = null;
+            Float minValue = new Float(Float.MAX_VALUE);
+            Long minValueTime = null;
+            Float sumValue = new Float(0);
+            Integer yellowAlertCount = new Integer(0);
+            Long yellowAlertTime = new Long(0);
+            Integer redAlertCount = new Integer(0);
+            Long redAlertTime = new Long(0);
+
+
+
+
+            for(int i=0; i<inspectDatas.size(); i++){
+                Float result = ((Double) inspectDatas.get(i).get(1)).floatValue();
+                Long timeTick = StringDate.rfc3339ToLong((String)inspectDatas.get(i).get(0));
+
+                sumValue += result;
+                if(result > maxValue){
+                    maxValue = result;
+                    maxValueTime = timeTick;
+                }
+                if(result < minValue){
+                    minValue = result;
+                    minValueTime = timeTick;
+                }
+
+                timeSeries.add(timeTick);
+                dataSeries.add(result);
+
+
+            }
+
+            aggregateData.setMaxValue(maxValue);
+            aggregateData.setMaxValueTime(maxValueTime);
+            aggregateData.setMinValue(minValue);
+            aggregateData.setMinValueTime(minValueTime);
+            aggregateData.setAvgValue(sumValue/inspectDatas.size());
+
+            List<AlertCount> yellowAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
+                    deviceInspect.getInspectType().getId(),
+                    1, beginTime, endTime);
+            List<AlertCount> redAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
+                    deviceInspect.getInspectType().getId(),
+                    2, beginTime, endTime);
+            if(yellowAlertCounts != null && yellowAlertCounts.size() > 0){
+                yellowAlertCount = yellowAlertCounts.size();
+                for(AlertCount alertCount : yellowAlertCounts){
+                    // GX: alert_count.finishDate can be null due to device go offline
+                    // this is a temp hack, using alert_num * 20 sec
+                    if (alertCount.getFinish() == null){
+                        yellowAlertTime += alertCount.getNum() * 20 * 1000;
+
+                    }
+                    else {
+                        yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    }
+                }
+            }
+            if(redAlertCounts != null && redAlertCounts.size() > 0){
+                redAlertCount = redAlertCounts.size();
+                for(AlertCount alertCount : redAlertCounts){
+                    // GX: alert_count.finishDate can be null due to device go offline
+                    // this is a temp hack, using alert_num * 20 sec
+                    if(alertCount.getFinish() == null){
+                        redAlertTime += alertCount.getNum() * 20 * 1000;
+                    }else {
+                        redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
+                    }
+                }
+            }
+            aggregateData.setRedAlertCount(redAlertCount);
+            aggregateData.setRedAlertTotalTime(redAlertTime);
+            aggregateData.setYellowAlertCount(yellowAlertCount);
+            aggregateData.setYellowAlertTotalTime(yellowAlertTime);
+            Float MKT = null;
+            if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty() && Integer.parseInt(requestParam.getMktId()) == deviceInspect.getId()){
+
+                if(inspectDatas != null){
+                    LOGGER.info("MKT calculation: device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
+                    MKT = MKTCalculator.calculateMKTValue(inspectDatas);
+                }
+                else{
+                    LOGGER.info("MKT Monitor Inspect's data is null");
+                }
+
+            }
+
+            if(MKT != null){
+                aggregateData.setMktdata(MKT);
+            }
+
+
+            TelemetryData telemetryData = new TelemetryData();
+
+            //TODO: this will be changed when one device have multiple monitors
+            telemetryData.setMonitorId(device.getMonitorDevice().getNumber());
+
+            telemetryData.setDeviceInspectId(deviceInspect.getId());
+            telemetryData.setName(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+            telemetryData.setTsData(dataSeries);
+            telemetryData.setTsTime(timeSeries);
+            telemetryData.setAggregateData(aggregateData);
+
+            telemetryDatas.add(telemetryData);
+
+        }
+
+        RestMonitorDataOfDevice monitorDataOfDevice = new RestMonitorDataOfDevice();
+        monitorDataOfDevice.setDeviceId(device.getId().toString());
+        monitorDataOfDevice.setDeviceLocation(GetDeviceAddress.getDeviceAddress(device));
+        monitorDataOfDevice.setDeviceLogo(device.getPhoto());
+        monitorDataOfDevice.setDeviceManager(device.getManager().getName());
+        monitorDataOfDevice.setDeviceName(device.getName());
+        monitorDataOfDevice.setEndTime(String.valueOf(endTime.getTime()));
+        monitorDataOfDevice.setStartTime(String.valueOf(String.valueOf(beginTime.getTime())));
+        monitorDataOfDevice.setTelemetryDataList(telemetryDatas);
+
+        /*
+
         List<List<InspectData> > listOfInspectDatas = new ArrayList<>();
         List<InspectData> currentInspectData = new ArrayList<>();
         List<Iterator<InspectData> > listOfIterator = new ArrayList<>();
@@ -1108,16 +1245,27 @@ public class SelectApiController {
         restInspectDataArray.setTimeSeries(timeSeries);
         restInspectDataArray.setTelemetries(telemetryDatas);
 
+
+
+
+
+
         // setup inspect data and iterator
         for(DeviceInspect deviceInspect : deviceInspects){
             List<InspectData> inspectDatas = inspectDataRepository.
                     findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
+
+
+
+
             if(inspectDatas != null && inspectDatas.size() > 0){
                 listOfInspectDatas.add(inspectDatas);
                 Iterator<InspectData> iterator = inspectDatas.iterator();
                 LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %d get %d inspect data.", deviceInspect.getId(), inspectDatas.size()));
                 listOfIterator.add(iterator);
                 currentInspectData.add(iterator.next());
+
+
 
                 TelemetryData telemetryData = new TelemetryData();
                 telemetryData.setDeviceInspectId(inspectDatas.get(0).getDeviceInspect().getId());
@@ -1273,6 +1421,8 @@ public class SelectApiController {
                 }
             }
         }
+
+        */
         return new RestResponse(monitorDataOfDevice);
     }
 }

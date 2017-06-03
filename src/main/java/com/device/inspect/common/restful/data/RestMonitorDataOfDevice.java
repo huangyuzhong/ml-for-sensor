@@ -13,7 +13,9 @@ public class RestMonitorDataOfDevice {
     private String startTime;
     private String endTime;
     private String deviceLogo;
-    private RestInspectDataArray inspectData;
+   // private RestInspectDataArray inspectData;
+
+    private List<TelemetryData> telemetryDataList;
 
     public String getDeviceName(){
         return this.deviceName;
@@ -71,6 +73,7 @@ public class RestMonitorDataOfDevice {
         this.deviceLogo = deviceLogo;
     }
 
+    /*
     public RestInspectDataArray getInspectData(){
         return this.inspectData;
     }
@@ -78,5 +81,9 @@ public class RestMonitorDataOfDevice {
     public void setInspectData(RestInspectDataArray inspectData){
         this.inspectData = inspectData;
     }
+    */
+
+    public List<TelemetryData> getTelemetryDataList() {return this.telemetryDataList;}
+    public void setTelemetryDataList(List<TelemetryData> telemetryDataList){ this.telemetryDataList = telemetryDataList; }
 
 }

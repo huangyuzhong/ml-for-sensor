@@ -336,6 +336,6 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
 
         long timeCost = scheduleEndTime.getTime()-scheduleStartTime.getTime();
 
-        logger.info("--- Schedule update-device-status takes %d ms", timeCost);
+        logger.info(String.format("--- Schedule update-device-status takes %d ms", timeCost));
     }
 }

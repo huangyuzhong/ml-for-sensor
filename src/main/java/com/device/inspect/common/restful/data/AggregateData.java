@@ -6,7 +6,6 @@ import org.springframework.security.access.method.P;
  * Created by zyclincoln on 5/12/17.
  */
 public class AggregateData {
-    private String monitorId;
     private Integer yellowAlertCount;
     private Integer redAlertCount;
     private Long yellowAlertTotalTime;
@@ -18,13 +17,6 @@ public class AggregateData {
     private Float avgValue;
     private Float mktdata;
 
-    public String getMonitorId(){
-        return this.monitorId;
-    }
-
-    public void setMonitorId(String monitorId){
-        this.monitorId = monitorId;
-    }
 
     public Integer getYellowAlertCount(){
         return this.yellowAlertCount;
