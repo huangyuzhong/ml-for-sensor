@@ -98,6 +98,8 @@ public class InfluxDBManager {
 
         String dbName = "intelab";
 
+        Date startTime = new Date();
+
         String queryString = String.format("SELECT value,inspect_status FROM %s WHERE device_id='%d' and inspect_id='%d' ORDER BY time DESC LIMIT 1",
                 inspectType, deviceId, deviceInspectId);
 
@@ -109,6 +111,11 @@ public class InfluxDBManager {
 
             //since a query can contain multiple sub queries, the return value is a list
             List<QueryResult.Result> resultList = result.getResults();
+
+            Date endTime = new Date();
+
+            long timeCost = endTime.getTime() - startTime.getTime();
+            logger.info(String.format("Select query [%s] takes %d ms", queryString, timeCost));
 
             if(resultList != null && resultList.size() > 0){
                 QueryResult.Result tsData = resultList.get(0);
@@ -154,6 +161,8 @@ public class InfluxDBManager {
      * @return number of points meeting the query condition
      */
     private Integer countQuery(String dbName, String queryString){
+
+        Date startTime = new Date();
         Query query = new Query(queryString, dbName);
 
 
@@ -162,6 +171,11 @@ public class InfluxDBManager {
 
             //since a query can contain multiple sub queries, the return value is a list
             List<QueryResult.Result> resultList = result.getResults();
+
+            Date endTime = new Date();
+
+            long timeCost = endTime.getTime() - startTime.getTime();
+            logger.info(String.format("Count Query [%s] takes %d ms", queryString, timeCost));
 
             if(resultList != null && resultList.size() > 0) {
                 QueryResult.Result tsData = resultList.get(0);
