@@ -98,7 +98,7 @@ public class InfluxDBManager {
 
         String dbName = "intelab";
 
-        String queryString = String.format("SELECT value FROM %s WHERE device_id='%d' and inspect_id='%d' ORDER BY time DESC LIMIT 1",
+        String queryString = String.format("SELECT value,inspect_status FROM %s WHERE device_id='%d' and inspect_id='%d' ORDER BY time DESC LIMIT 1",
                 inspectType, deviceId, deviceInspectId);
 
         Query query = new Query(queryString, dbName);
@@ -121,7 +121,7 @@ public class InfluxDBManager {
 
                     // columes should be ['time', 'value']
 
-                    if(columes.size() != 2 || !columes.contains("value") || !columes.contains("time")){
+                    if(columes.size() != 3 || !columes.contains("value") || !columes.contains("time") || !columes.contains("inspect_status")){
                         logger.error("The series in query result is incorrect, no time or value");
                         return null;
                     }

@@ -13,22 +13,19 @@ import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
 import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
 import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.common.util.transefer.InspectTypeTool;
+import com.device.inspect.common.util.transefer.InspectMessage;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.common.util.transefer.StringDate;
-import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.influxdb.InfluxDB;
-import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.text.ParseException;
 import java.util.*;
-import java.text.SimpleDateFormat;
+
 /**
  * Created by Administrator on 2016/7/25.
  */
@@ -100,384 +97,119 @@ public class SocketMessageApi {
         return user;
     }
 
-    public DeviceInspect parseInspectAndSave(String inspectMessage, boolean onlineData) {
-        String monitorTypeCode = inspectMessage.substring(6, 8);
 
 
-        //直接获取解析终端时间报文
-        String deviceDateYear = inspectMessage.substring(34, 36);
-        String deviceDateMonth = inspectMessage.substring(36, 38);
-        String deviceDateDay = inspectMessage.substring(38, 40);
-        String deviceDateHour = inspectMessage.substring(40, 42);
-        String deviceDateMinute = inspectMessage.substring(42, 44);
-        String deviceDateSecond = inspectMessage.substring(44, 46);
-        String strDeviceDate = 20 + "" + deviceDateYear + deviceDateMonth + deviceDateDay + deviceDateHour + deviceDateMinute + deviceDateSecond;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        Date deviceSamplingTime = new Date();
-        try {
-            deviceSamplingTime = sdf.parse(strDeviceDate);
-            deviceSamplingTime.setTime(deviceSamplingTime.getTime());
+    public DeviceInspect parseInspectAndSave(String inspectMessageString, boolean onlineData) {
 
-        } catch (ParseException e) {
-            LOGGER.error("parsing device time string error: " + e.getMessage());
-        }
-
-        String deviceSamplingData = inspectMessage.substring(48, 56);
-        int iDeviceSamplingData = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData), 0, 4);
-        Device device = new Device();
-        String mointorCode = inspectMessage.substring(8, 26);
-        MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(mointorCode);
-        if (null == monitorDevice)
-            return null;
-        if (monitorTypeCode.equals("03")) {
-            monitorDevice.setBattery(String.valueOf(Float.valueOf(iDeviceSamplingData) / 10));
-            monitorDeviceRepository.save(monitorDevice);
-        }
-        device = monitorDevice.getDevice();
-        if (device.getEnable() == 0) {
-            LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
+        InspectMessage inspectMessage = null;
+        try{
+            inspectMessage = new InspectMessage(inspectMessageString);
+        }catch (Exception parseException){
+            LOGGER.error(String.format("Failed to parse inspect message string %s. Err: %s", inspectMessageString, parseException.getMessage()));
             return null;
         }
-        InspectType inspectType = inspectTypeRepository.findByCode(monitorTypeCode);
 
-        InspectData inspectData = new InspectData();
-        if (null != inspectType) {
-            DeviceInspect deviceInspect = deviceInspectRepository.
-                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-            if (null == deviceInspect)
+        // Step1: 从数据库读取设备，监控参数信息
+        Device device = null;
+        MonitorDevice monitorDevice = null;
+        InspectType inspectType = null;
+
+        DeviceInspect deviceInspect = null;
+
+
+        try{
+            monitorDevice = monitorDeviceRepository.findByNumber(inspectMessage.getMonitorSN());
+            if (null == monitorDevice)
                 return null;
-            //测量原值
-            Float originalInspectValue;
-            //添加矫正值
-            Float correctedInspectValue;
-            //判断是否是PT100
 
-            // parsing raw data from remote device
-            try {
-
-                if (monitorTypeCode.equals("00")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 00, pt 100 temperature",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-
-
-                    //将int类型转换成两个doube类型的电压
-                    double AD0 = ((iDeviceSamplingData >> 16) & 0xffff) * 1.024 / 32768;//前两个字节转换成doube类型的电压
-                    double AD1 = (iDeviceSamplingData & 0xffff) * 1.024 / 32768;//后两个字节转换成doube类型的电压
-
-                    double R = (1000 * AD0 - 1000 * AD1) / (3.38 - AD0 - AD1);//生成double类型的电阻
-
-                    LOGGER.info("Resistance is :" + R);
-
-                    //将double类型的电阻转换成float类型
-                    //将电阻四舍五入到小数点两位
-                    BigDecimal bigDecimal = new BigDecimal(Float.valueOf(String.valueOf(R)));
-                    Float r = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
-                    //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
-                    if (pt100Repository.findByResistance(r) != null) {
-                        Pt100 pt100 = pt100Repository.findByResistance(r);
-                        //通过电阻找到对象的温度
-                        String temperature = pt100.getTemperature();
-
-                        originalInspectValue = Float.valueOf(temperature);
-                        //添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-                        //矫正值
-                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                    } else {
-                        //通过电阻找到对应的温度
-                        //从小到大
-                        List<Pt100> list1 = new ArrayList<Pt100>();
-                        //使用默认表查询
-                        list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
-                        //找到对应的Pt100
-                        Pt100 one = list1.get(0);
-                        String temperature1 = one.getTemperature();
-                        Float resistance1 = one.getResistance();
-                        //从大到小
-                        List<Pt100> list2 = new ArrayList<Pt100>();
-                        //使用默认表查询
-                        list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
-                        //找到对应的Pt100
-                        Pt100 two = list2.get(0);
-                        String temperature2 = two.getTemperature();
-                        Float resistance2 = two.getResistance();
-                        //进行线性公式计算出改r下面的温度
-                        float k = (Float.valueOf(temperature2) - Float.valueOf(temperature1)) / (resistance2 - resistance1);
-
-                        float b = Float.valueOf(temperature1) - (k * resistance1);
-
-                        //将温度存入record
-                        originalInspectValue = k * r + b;
-                        //添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-                        //添加矫正值
-                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                    }
-                    //设置检测结果
-
-                } else if (monitorTypeCode.equals("07")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 07, jia wan",
-                            device.getId()));
-                    //判断是不是甲烷
-                    //根据上传的值算出电压
-                    Float v = (Float.valueOf(iDeviceSamplingData) * Float.valueOf(2.018f)) / Float.valueOf(32768);
-
-                    //算出的电压值如果小于0.4   record 都为百分之零
-                    if (v < 0.4) {
-                        inspectData.setCreateDate(deviceSamplingTime);
-                        inspectData.setDevice(device);
-                        inspectData.setDeviceInspect(deviceInspect);
-                        originalInspectValue = 0f;
-                        //添加校正值
-                        inspectData.setResult(String.valueOf(originalInspectValue));
-                        //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-
-                    } else if (v < 2) {
-                        float b = 0.4f;
-                        float k = 1.6f;
-                        originalInspectValue = (v - b) / k;
-
-                        //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-                        inspectData.setCreateDate(deviceSamplingTime);
-                        inspectData.setDevice(device);
-                        inspectData.setDeviceInspect(deviceInspect);
-                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                    } else {
-                        originalInspectValue = 10f;
-                        inspectData.setCreateDate(deviceSamplingTime);
-                        inspectData.setDevice(device);
-                        inspectData.setDeviceInspect(deviceInspect);
-                        inspectData.setResult(String.valueOf(originalInspectValue));
-                        //甲烷添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-
-                    }
-
-                } else if (monitorTypeCode.equals("06")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 06, sdp610 pressure",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    System.out.println("first data: " + deviceSamplingData);
-                    System.out.println(deviceSamplingData.length());
-                    int value = ByteAndHex.byteArrayToInt(ByteAndHex.hexStringToBytes(deviceSamplingData.substring(4)), 0, 2);
-                    System.out.println("part value: " + value);
-                    if (value > 32767) {
-                        value = value - 65536;
-                    }
-                    inspectData.setRealValue(String.valueOf(value));
-                    originalInspectValue = Float.valueOf(value) / 60;
-
-                    // 默认海拔750米， 对应压差调整系数为1.04
-                    correctedInspectValue = originalInspectValue * (float) 1.04;
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                } else if (monitorTypeCode.equals("08") || monitorTypeCode.equals("09")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 08-09, energy",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    //添加测量原值
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 250 * 20 / 18000000;
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                } else if (monitorTypeCode.equals("0a")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 250 / 10000;
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                } else if (monitorTypeCode.equals("0b")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 0b, currency",
-                            device.getId()));
-                    LOGGER.info("e-currency: " + deviceSamplingTime);
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 20 / 10000;
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-
-                } else if (monitorTypeCode.equals("0c") || monitorTypeCode.equals("0d")) {
-                    LOGGER.info(String.format("Device %d, Monitor code 0c-0d, power",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    originalInspectValue = Float.valueOf(iDeviceSamplingData) * 20 * 250 / 10000;
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-
-                } else if (monitorTypeCode.equals("18") || monitorTypeCode.equals("19") || monitorTypeCode.equals("1a")) {
-                    LOGGER.info(String.format("Device %d, Monitor code %s, pt 100 temperature",
-                            device.getId(), monitorTypeCode));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-
-                    double U = iDeviceSamplingData * 1.024 / 32768;
-                    double R = 1002 * U / (3.37 - U) - 0.5;//生成double类型的电阻
-
-                    LOGGER.info("Resistance is :" + R);
-
-                    //将double类型的电阻转换成float类型
-                    //将电阻四舍五入到小数点两位
-                    BigDecimal bigDecimal = new BigDecimal(Float.valueOf(String.valueOf(R)));
-                    Float r = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
-                    //通过设备编号去查找相应的pt100,如果对应的电阻直接有相应的温度
-                    if (pt100Repository.findByResistance(r) != null) {
-                        Pt100 pt100 = pt100Repository.findByResistance(r);
-                        //通过电阻找到对象的温度
-                        String temperature = pt100.getTemperature();
-
-                        originalInspectValue = Float.valueOf(temperature);
-                        //添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-                        //矫正值
-                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                    } else {
-                        //通过电阻找到对应的温度
-                        //从小到大
-                        List<Pt100> list1 = new ArrayList<Pt100>();
-                        //使用默认表查询
-                        list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
-                        //找到对应的Pt100
-                        Pt100 one = list1.get(0);
-                        String temperature1 = one.getTemperature();
-                        Float resistance1 = one.getResistance();
-                        //从大到小
-                        List<Pt100> list2 = new ArrayList<Pt100>();
-                        //使用默认表查询
-                        list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
-                        //找到对应的Pt100
-                        Pt100 two = list2.get(0);
-                        String temperature2 = two.getTemperature();
-                        Float resistance2 = two.getResistance();
-                        //进行线性公式计算出改r下面的温度
-                        float k = (Float.valueOf(temperature2) - Float.valueOf(temperature1)) / (resistance2 - resistance1);
-
-                        float b = Float.valueOf(temperature1) - (k * resistance1);
-
-                        //将温度存入record
-                        originalInspectValue = k * r + b;
-                        //添加测量原值
-                        inspectData.setRealValue(String.valueOf(originalInspectValue));
-                        //添加矫正值
-                        correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                        inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                    }
-                } else if(monitorTypeCode.equals("1b")){
-                    LOGGER.info(String.format("Device %d, Monitor code 0a, voltage",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    Float vRecord = (Float.valueOf(iDeviceSamplingData) * 512 / 10000) / 32768;
-                    originalInspectValue = vRecord * 5 * 1000 / 333;
-                    LOGGER.info(String.format("数据转化的电压为：%d", vRecord));
-                    LOGGER.info(String.format("根据电压转化的电流为：%d", originalInspectValue));
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                } else {
-                    LOGGER.info(String.format("Device %d, Monitor code 0e-0f-10",
-                            device.getId()));
-                    inspectData.setCreateDate(deviceSamplingTime);
-                    inspectData.setDevice(device);
-                    inspectData.setDeviceInspect(deviceInspect);
-                    //添加测量原值
-                    inspectData.setRealValue(String.valueOf(iDeviceSamplingData));
-                    originalInspectValue = Float.valueOf(iDeviceSamplingData) / 1000;
-                    correctedInspectValue = originalInspectValue - (deviceInspect.getZero());
-                    inspectData.setResult(String.valueOf(correctedInspectValue));
-
-                }
-            } catch (Exception e) {
-                LOGGER.error("failed to parse datagram from remote device: " + e.getLocalizedMessage());
-                LOGGER.error("exception stack: ", e);
+            device = monitorDevice.getDevice();
+            if (device.getEnable() == 0) {
+                LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
                 return null;
             }
 
-            /*
+            inspectType = inspectTypeRepository.findByCode(inspectMessage.getInspectTypeCode());
+            if(inspectType == null){
+                LOGGER.warn("Failed to get inspectType using type code " + inspectMessage.getInspectTypeCode());
+                return null;
+            }
+
+            deviceInspect = deviceInspectRepository.
+                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
+
+            if(deviceInspect == null){
+                LOGGER.warn(String.format("Failed to get device inspect by type %s, device %d", inspectType.getName(), device.getId()));
+                return null;
+            }
+
+            if (inspectMessage.getInspectTypeCode().equals("03")) {
+                monitorDevice.setBattery(String.valueOf(Float.valueOf(inspectMessage.getiData()) / 10));
+                monitorDeviceRepository.save(monitorDevice);
+            }
+        }catch (Exception e){
+            LOGGER.error("Failed to get device/monitor/inspectType from database. Err: " + e.toString());
+            return null;
+        }
+
+        // Step 2： 把原始监控数值转换为直观数值
+
+        try{
+            InspectProcessTool.calculateInspectValue(inspectMessage, deviceInspect.getZero(), pt100Repository);
+        }catch (Exception e){
+            LOGGER.error("Failed to calculate inspect value. Err: " + e.toString());
+            e.printStackTrace();
+            return null;
+        }
+
+
+        /*
+        LAB-206, 暂时使用influxdb的数据来判断设备状态， 之后可能会revert
             if(onlineData){
                 device.setLastActivityTime(deviceSamplingTime);
             }
             */
 
 
-            if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
-                LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
-                try {
-                    inspectDataRepository.save(inspectData);
-                    LOGGER.info("parsed datagram saved to database inspectData");
-                } catch (Exception e) {
-                    LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
-                    LOGGER.error("exception stack: ", e);
-                    return null;
-                }
-                return null;
-            }
+        // Step 3: 判断监控值是否触发报警
+        if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
+            LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
+            return deviceInspect;
+        }
 
-            // set alert type, and send alert message if necessary
-            int alert_type = 0;
-            if(deviceInspect.getInspectPurpose() == 0){
-                // alert inspect
-                LOGGER.info("check data against alert");
-                if(deviceInspect.getHighUp() < originalInspectValue || originalInspectValue < deviceInspect.getHighDown()){
-                    alert_type = 2;
-                    inspectData.setType("high");
+        // 如果该参数与报警无关， 退出
+        if(deviceInspect.getInspectPurpose() != 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
+            LOGGER.debug("status data, pass alert check");
+            return deviceInspect;
+        }
 
-                    // update device alert time and alert status
+
+        String inspectStatus = "normal";
+        int alert_type = 0;
+            // alert inspect
+        LOGGER.info("check data against alert");
+        if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
+            inspectStatus = "high";
+            alert_type = 2;
+            // update device alert time and alert status
                     /*
                     if(onlineData) {
                         device.setLastRedAlertTime(deviceSamplingTime);
                         device.setStatus(2);
                     }
                     */
-                    // push notification if necessary
-                    if (originalInspectValue > deviceInspect.getLowUp()) {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
-                    } else {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), originalInspectValue, deviceSamplingTime);
-                    }
+            // push notification if necessary
+            if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+            } else {
+                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+            }
 
-                    LOGGER.info("red alert");
-                }
-                else if(deviceInspect.getLowUp() < originalInspectValue || originalInspectValue < deviceInspect.getLowDown()){
-                    alert_type = 1;
 
-                    // set inspect_data column 'type'
-                    inspectData.setType("low");
+        } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
+            inspectStatus = "low";
+            alert_type = 1;
 
-                    // update device alert time and alert status
+            // update device alert time and alert status
                     /*
                     if(onlineData) {
                         device.setLastYellowAlertTime(deviceSamplingTime);
@@ -485,173 +217,175 @@ public class SocketMessageApi {
                     }
                     */
 
-                    // push notification if necessary
-                    if (originalInspectValue > deviceInspect.getLowUp()) {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), originalInspectValue, deviceSamplingTime);
-                    } else {
-                        messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), originalInspectValue, deviceSamplingTime);
+            // push notification if necessary
+            if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+            } else {
+                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+            }
+        }
+
+        //for debug
+        LOGGER.info("Inspect data is " + inspectStatus);
+
+        // Step 4: 写入监测数据到 influx DB
+        if(Application.influxDBManager != null){
+            try {
+                int retry = 0;
+                int max_try = 3;
+
+                while(retry < max_try) {
+                    boolean writeSuccess = Application.influxDBManager.writeTelemetry(inspectMessage.getSamplingTime(), device.getId(),
+                            device.getName(), device.getDeviceType().getName(),
+                            inspectStatus,  deviceInspect.getId(),
+                            InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                            inspectMessage.getCorrectedValue(), inspectMessage.getOriginalValue());
+
+                    if(!writeSuccess){
+                        Thread.sleep(200);
+                        retry ++;
                     }
+                    else{
+                        LOGGER.info(String.format("Successfully write telemetry %s (%s) to influxdb",
+                                InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), inspectMessage.getCorrectedValue()));
 
-
-                    LOGGER.info("yellow alert");
+                        break;
+                    }
                 }
-                else{
-                    alert_type = 0;
 
-                    inspectData.setType("normal");
-                    LOGGER.info("normal");
+                if(retry >= max_try){
+                    LOGGER.error(String.format("Abort writing telemetry %s (%s) after %d approach",
+                            InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), inspectMessage.getCorrectedValue(), max_try));
                 }
+
+            }catch (Exception e){
+                LOGGER.error(String.format("Failed to parse %s telemetry data %s, %s",
+                        InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                        inspectMessage.getCorrectedValue(), inspectMessage.getOriginalValue()));
+
             }
-            else{
-                inspectData.setType("normal");
-                LOGGER.info("status data, pass alert check");
-            }
+        }
 
-            // update alert_count table, record alert info
-            if(alert_type != 0){
-                InspectData last_inspect = inspectDataRepository.findTopByDeviceIdAndDeviceInspectIdAndCreateDateBeforeOrderByCreateDateDesc(
-                        device.getId(),deviceInspect.getId(), deviceSamplingTime);
-                AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
-                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, deviceSamplingTime);
-                AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
-                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, deviceSamplingTime);
-                if(last_inspect == null ||
-                        last_inspect.getType().equals("normal") ||
-                        deviceSamplingTime.getTime() - last_inspect.getCreateDate().getTime() > 5*60*1000){
-                    // new alert count
-                    createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
+        // Step 5: 更新 alert_count 表, 逻辑描述参看 LAB-194
+        if (!inspectStatus.equals("normal")) {
+
+            // 获取该参数的上一条信息
+            List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), device.getId(), deviceInspect.getId());
+
+
+            // 判断 是否是新的报警
+            boolean isNewAlert = false;
+
+            long lastInspectTime = 0;
+            String lastInspectStatus = null;
+
+            if(lastInspectRecord==null || lastInspectRecord.size()==0){
+                isNewAlert = true;
+            }else{
+                lastInspectTime = StringDate.rfc3339ToLong((String)lastInspectRecord.get(0));
+                lastInspectStatus = (String)lastInspectRecord.get(2);
+
+                if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
+                    isNewAlert = true;
+                }
+                if(lastInspectStatus.equals("normal")){
+                    isNewAlert = true;
                 }
 
-                else{
+            }
+
+            if(isNewAlert){
+                // new alert count
+                createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
+            }else{
+
+                try {
+                    AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                            deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, inspectMessage.getSamplingTime());
+                    AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                            deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
+
                     AlertCount liveAlert = null;
-                    if(last_inspect.getCreateDate().getTime() == last_yellow_alert.getFinish().getTime()){
+                    if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
                         liveAlert = last_yellow_alert;
-                    }
-                    else if(last_inspect.getCreateDate().getTime() == last_red_alert.getFinish().getTime()){
+                    } else if (lastInspectTime == last_red_alert.getFinish().getTime()) {
                         liveAlert = last_red_alert;
                     }
 
-                    if(liveAlert == null){
+                    if (liveAlert == null) {
                         LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s.",
-                                device.getId(), deviceInspect.getId(), deviceSamplingTime.toString()));
+                                device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
 
                         AlertCount newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
                                 last_red_alert : last_yellow_alert;
-                        if(deviceSamplingTime.getTime() - newerCount.getFinish().getTime() > 5*60*1000){
+                        if (inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
                             // create a new alert
-                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
-                        }
-                        else{
+                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
+                        } else {
                             // set newer alert as live alert
                             liveAlert = newerCount;
                         }
                     }
 
-                    if(liveAlert != null){
-                        if(liveAlert.getType() != alert_type){
+                    // 如果与上一条报警是不同的类型， 处理为新报警。
+                    if (liveAlert != null) {
+                        if (liveAlert.getType() != alert_type) {
                             // alert type is not equal, create a new alert
-                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, deviceSamplingTime);
-                        }
-                        else{
+                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
+                        } else {
                             // extend live alert
                             liveAlert.setNum(liveAlert.getNum() + 1);
-                            liveAlert.setFinish(deviceSamplingTime);
+                            liveAlert.setFinish(inspectMessage.getSamplingTime());
                             alertCountRepository.save(liveAlert);
                             LOGGER.info("datagram alert type set and updating to db");
                         }
                     }
-                }
-
-            }
-
-            // write to inspect_data
-            try {
-                inspectDataRepository.save(inspectData);
-
-                //inspectDataRepository.insertData(device.getId(), deviceInspect.getId(), inspectData.getResult(), deviceSamplingTime,
-                //        inspectData.getType(), inspectData.getRealValue());
-
-                //LOGGER.info("parsed datagram saved to database inspectData");
-            } catch (Exception e) {
-                LOGGER.error("failed to save parsed datagram to database. " + e.getLocalizedMessage());
-                LOGGER.error("exception string: ", e.toString());
-                return null;
-            }
-
-            // write data to influx DB
-            if(Application.influxDBManager != null){
-                try {
-                    int retry = 0;
-                    int max_try = 3;
-
-                    while(retry < max_try) {
-                        boolean writeSuccess = Application.influxDBManager.writeTelemetry(deviceSamplingTime, device.getId(),
-                                device.getName(), device.getDeviceType().getName(),
-                                inspectData.getType(),  deviceInspect.getId(),
-                                InspectTypeTool.getMeasurementByCode(monitorTypeCode),
-                                Float.parseFloat(inspectData.getResult()), Float.parseFloat(inspectData.getRealValue()));
-
-                        if(!writeSuccess){
-                            Thread.sleep(200);
-                            retry ++;
-                        }
-                        else{
-                            LOGGER.info(String.format("Successfully write telemetry %s (%s) to influxdb",
-                                    InspectTypeTool.getMeasurementByCode(monitorTypeCode), inspectData.getResult()));
-
-                            break;
-                        }
-                    }
-
-                    if(retry >= max_try){
-                        LOGGER.error(String.format("Abort writing telemetry %s (%s) after %d approach",
-                                InspectTypeTool.getMeasurementByCode(monitorTypeCode), inspectData.getResult(), max_try));
-                    }
-
-
-                }catch (Exception e){
-                    LOGGER.error(String.format("Failed to parse %s telemetry data %s, %s",
-                            InspectTypeTool.getMeasurementByCode(monitorTypeCode),
-                            inspectData.getResult(), inspectData.getRealValue()));
+                }catch(Exception e){
+                    LOGGER.error("Failed to record alert_count. Err: " + e.toString());
+                    e.printStackTrace();
 
                 }
             }
 
-            // LAB-207, comment out, do not write mySQL, instead, getting device status by querying influxdb
-
-            /*
-            
-
-            if(onlineData){
-                //因为一个设备可能同时发送多个参数的数据， 所以有多个线程同时update device， 会造成deadlock。
-                //这里加上retry来避免deadlock造成的data丢失
-                int retry = 0;
-                int max_retry = 5;
-                while(retry < max_retry) {
-                    try {
-                        deviceRepository.save(device);
-                        break;
-                    } catch (Exception e) {
-                        LOGGER.info(String.format("Failed to update device %d, Err: %s", device.getId(), e.toString()));
-
-                        retry ++;
-                        try {
-                            Thread.sleep(random.nextInt(100));
-                        }catch (InterruptedException ie){
-                            LOGGER.warn(String.format("Failed to sleep 0.1 sec. Err: %s", ie.toString()));
-                        }
-                    }
-                }
-
-                if(retry >= max_retry) {
-                    LOGGER.error(String.format("Aborting update device %d after %d approaches", device.getId(), max_retry));
-                }
-            }
-            */
-
-            return deviceInspect;
         }
-        return null;
+
+
+
+
+        // LAB-207, comment out, do not write mySQL, instead, getting device status by querying influxdb
+
+        /*
+
+
+        if(onlineData){
+            //因为一个设备可能同时发送多个参数的数据， 所以有多个线程同时update device， 会造成deadlock。
+            //这里加上retry来避免deadlock造成的data丢失
+            int retry = 0;
+            int max_retry = 5;
+            while(retry < max_retry) {
+                try {
+                    deviceRepository.save(device);
+                    break;
+                } catch (Exception e) {
+                    LOGGER.info(String.format("Failed to update device %d, Err: %s", device.getId(), e.toString()));
+
+                    retry ++;
+                    try {
+                        Thread.sleep(random.nextInt(100));
+                    }catch (InterruptedException ie){
+                        LOGGER.warn(String.format("Failed to sleep 0.1 sec. Err: %s", ie.toString()));
+                    }
+                }
+            }
+
+            if(retry >= max_retry) {
+                LOGGER.error(String.format("Aborting update device %d after %d approaches", device.getId(), max_retry));
+            }
+        }
+        */
+
+        return deviceInspect;
+
     }
 
     // this function may need a better place
@@ -837,9 +571,9 @@ public class SocketMessageApi {
 
                 if(Application.influxDBManager != null){
 
-                    String measurementName = InspectTypeTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
+                    String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
 
-                    String measurementUnit = InspectTypeTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
+                    String measurementUnit = InspectProcessTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
                     List<List<Object>> inspectSeries = null;
                     if(requestParam.get("timeVal") != null){
                         Date startTime = new Date();
@@ -874,9 +608,9 @@ public class SocketMessageApi {
                         }
 
                         RestTelemetryTSData telemetryTSData = new RestTelemetryTSData();
-                        telemetryTSData.setName(measurementName);
+                        telemetryTSData.setName(measurementName.toUpperCase());
                         telemetryTSData.setCode(deviceInspect.getInspectType().getCode());
-                        telemetryTSData.setUnit(measurementUnit);
+                        telemetryTSData.setUnit(measurementUnit.toUpperCase());
                         telemetryTSData.setDeviceInspectId(deviceInspect.getId());
                         telemetryTSData.setTimeSeries(timeSeries);
                         telemetryTSData.setValueSeries(valueSeries);

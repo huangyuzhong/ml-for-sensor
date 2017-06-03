@@ -11,9 +11,8 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
-import com.device.inspect.common.util.transefer.InspectTypeTool;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.controller.MessageController;
-import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,12 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.text.DateFormat;
 
 /**
  * Created by Administrator on 2016/10/18.
@@ -141,7 +138,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                             List<DeviceInspect> inspectList = deviceInspectRepository.findByDeviceId(device.getId());
 
                                             for(DeviceInspect deviceInspect: inspectList){
-                                                inspectTypes.add(InspectTypeTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+                                                inspectTypes.add(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
                                             }
                                             // 统计该房间内近5分钟内有报警的设备数量
                                             // use data in influxdb
@@ -195,7 +192,7 @@ public class MyDeviceStatusScheduleImp implements  MySchedule {
                                                 }
                                                 else{
                                                     List<List<Object>> recentBatteryData = Application.influxDBManager.readTelemetryInTimeRange(
-                                                            InspectTypeTool.getMeasurementByCode(batteryInspect.getInspectType().getCode()),
+                                                            InspectProcessTool.getMeasurementByCode(batteryInspect.getInspectType().getCode()),
                                                             device.getId(),
                                                             batteryInspect.getId(),
                                                             time10minBefore,
