@@ -51,6 +51,8 @@ public class HourlyUtilityCalculation implements MySchedule{
     @Scheduled(cron = "0 10 * * * ? ")
     @Override
     public void scheduleTask() {
+        LOGGER.info("Start scanning utilization data");
+        Date startScanTime = new Date();
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR, cal.get(Calendar.HOUR) - 1);
         cal.set(Calendar.MINUTE, 0);
@@ -75,6 +77,12 @@ public class HourlyUtilityCalculation implements MySchedule{
                     offlineHourQueue.recalculateRequest.get(0).getEndTime().toString()));
             offlineHourQueue.recalculateRequest.remove(0);
         }
+
+        Date endScanTime = new Date();
+
+        long timeCost = endScanTime.getTime() - startScanTime.getTime();
+
+        LOGGER.info(String.format("--- This round of utilization scan takes %d ms ---", timeCost));
     }
 
     public void scanDeviceUtil(Date currentHour, Date targetHour, Device device){

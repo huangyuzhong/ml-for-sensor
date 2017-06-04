@@ -51,6 +51,7 @@ public class InspectProcessTool {
     }
 
     public static String getMeasurementByCode(String code) {
+        code = code.toLowerCase();
         if (inspectTypes.containsKey(code)) {
             return inspectTypes.get(code).get(0);
         } else {
@@ -59,6 +60,7 @@ public class InspectProcessTool {
     }
 
     public static String getMeasurementUnitByCode(String code) {
+        code = code.toLowerCase();
         if (inspectTypes.containsKey(code)) {
 
             return inspectTypes.get(code).get(1);
