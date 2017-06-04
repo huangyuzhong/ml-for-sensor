@@ -19,7 +19,7 @@ import java.util.*;
  * Created by zyclincoln on 3/19/17.
  */
 @Component
-public class HourlyUtilityCalculation implements MySchedule{
+public class HourlyUtilityCalculation{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
     @Autowired
     private DeviceRepository deviceRepository;
@@ -48,8 +48,8 @@ public class HourlyUtilityCalculation implements MySchedule{
     private final static Integer lastStatusFlag = 10;
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
+
     @Scheduled(cron = "0 10 * * * ? ")
-    @Override
     public void scheduleTask() {
         LOGGER.info("Start scanning utilization data");
         Date startScanTime = new Date();

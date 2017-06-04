@@ -246,7 +246,8 @@ public class SocketMessageApi {
                         retry ++;
                     }
                     else{
-                        LOGGER.info(String.format("Successfully write telemetry %s (%s) to influxdb",
+                        LOGGER.info(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
+                                device.getId(),
                                 InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), inspectMessage.getCorrectedValue()));
 
                         break;

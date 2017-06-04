@@ -25,7 +25,7 @@ import java.util.List;
  * Created by zyclincoln on 4/23/17.
  */
 @Component
-public class ScanOfflineData implements  MySchedule{
+public class ScanOfflineData{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 
     @Autowired
@@ -47,7 +47,6 @@ public class ScanOfflineData implements  MySchedule{
     private InspectDataRepository inspectDataRepository;
 
     @Scheduled(cron = "0 */10 * * * ? ")
-    @Override
     public void scheduleTask() {
         if(Application.offlineFTPStorageManager == null){
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
