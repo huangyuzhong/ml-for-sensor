@@ -139,6 +139,8 @@ public class MyDeviceStatusScheduleImp {
                                             for(DeviceInspect deviceInspect: inspectList){
                                                 inspectTypes.add(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
                                             }
+
+                                            Date startTimeScanAlert = new Date();
                                             // 统计该房间内近5分钟内有报警的设备数量
                                             // use data in influxdb
                                             if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
@@ -152,6 +154,8 @@ public class MyDeviceStatusScheduleImp {
                                             else{
                                                 device.setStatus(0);
                                             }
+
+                                            Date startTimeScanDeviceOnline = new Date();
 
                                             // 统计该房间内近5分钟内离线的设备数量
                                             MonitorDevice monitor = device.getMonitorDevice();
@@ -228,6 +232,8 @@ public class MyDeviceStatusScheduleImp {
                                             }
 
 
+                                            Date startTimeScanScore = new Date();
+
                                             // 计算设备健康度，
                                             // TODO: 此处可以优化， 在时间没有跨日的情况下， 很多计算是不需要的。 等整个健康值计算方式确定之后在这个地方一起修改
                                             Float offSocre = (float)50.0;
@@ -266,9 +272,17 @@ public class MyDeviceStatusScheduleImp {
 
                                             Date scanDeviceEndTime = new Date();
 
+                                            long timeCostGetInfo = startTimeScanAlert.getTime() - scanDeviceStartTime.getTime();
+
+                                            long timeCostAlert = startTimeScanDeviceOnline.getTime() - startTimeScanAlert.getTime();
+
+                                            long timeCostOnline = startTimeScanScore.getTime() - startTimeScanDeviceOnline.getTime();
+
+                                            long timeCostScore = scanDeviceEndTime.getTime() - startTimeScanScore.getTime();
+
                                             long timeCost = scanDeviceEndTime.getTime() - scanDeviceStartTime.getTime();
 
-                                            logger.info(String.format("Scan device %d taks %d ms", device.getId(), timeCost));
+                                            logger.info(String.format("Scan device %d taks %d on get inspect, %d on alert, %d on online, %d on score, %d ms total", device.getId(), timeCostGetInfo, timeCostAlert, timeCostOnline, timeCostScore, timeCost));
                                         }
 
                                         logger.info(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), roomLowAlert));
