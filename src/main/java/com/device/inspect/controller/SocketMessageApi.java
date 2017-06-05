@@ -304,7 +304,7 @@ public class SocketMessageApi {
                     AlertCount liveAlert = null;
                     if(last_yellow_alert.getFinish() == null || last_red_alert.getFinish() == null){
                         liveAlert = null;
-                        LOGGER.error(String.format("Device id: %d , found no finish time alert."));
+                        LOGGER.error(String.format("Device id: %d , found no finish time alert.", device.getId()));
                     }
                     else if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
                         liveAlert = last_yellow_alert;
