@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
@@ -334,10 +336,11 @@ public class SocketMessageApi {
                             LOGGER.info("datagram alert type set and updating to db");
                         }
                     }
-                }catch(Exception e){
-                    LOGGER.error("Failed to record alert_count. Err: " + e.toString());
-                    e.printStackTrace();
-
+                    }catch(Exception e){
+                        StringWriter sw = new StringWriter();
+                        e.printStackTrace(new PrintWriter(sw));
+                        String exceptionAsString = sw.toString();
+                        LOGGER.error("Failed to record alert_count. Err: " + e.toString() + exceptionAsString);
                 }
             }
 
