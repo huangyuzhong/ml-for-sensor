@@ -302,8 +302,10 @@ public class SocketMessageApi {
                             deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
                     AlertCount liveAlert = null;
-                    if(last_yellow_alert.getFinish() == null || last_red_alert.getFinish() == null){
-                        liveAlert = null;
+                    if(last_yellow_alert == null || last_red_alert == null){
+                        LOGGER.error(String.format("Device id: %d , inspect data and alert item not match.", device.getId()));
+                    }
+                    else if(last_yellow_alert.getFinish() == null || last_red_alert.getFinish() == null){
                         LOGGER.error(String.format("Device id: %d , found no finish time alert.", device.getId()));
                     }
                     else if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
