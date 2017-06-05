@@ -302,16 +302,10 @@ public class SocketMessageApi {
                             deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
                     AlertCount liveAlert = null;
-                    if(last_yellow_alert == null || last_red_alert == null){
-                        LOGGER.error(String.format("Device id: %d , inspect data and alert item not match.", device.getId()));
-                    }
-                    else if(last_yellow_alert.getFinish() == null || last_red_alert.getFinish() == null){
-                        LOGGER.error(String.format("Device id: %d , found no finish time alert.", device.getId()));
-                    }
-                    else if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
+                    if (last_yellow_alert != null && last_yellow_alert.getFinish() != null &&lastInspectTime == last_yellow_alert.getFinish().getTime()) {
                         liveAlert = last_yellow_alert;
                     }
-                    else if (lastInspectTime == last_red_alert.getFinish().getTime()) {
+                    else if (last_red_alert != null && last_red_alert != null && lastInspectTime == last_red_alert.getFinish().getTime()) {
                         liveAlert = last_red_alert;
                     }
 
@@ -319,8 +313,20 @@ public class SocketMessageApi {
                         LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
                                 device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
 
-                        AlertCount newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
-                                last_red_alert : last_yellow_alert;
+                        AlertCount newerCount = null;
+                        boolean red_alert_available = (last_red_alert != null) && (last_red_alert.getFinish() != null);
+                        boolean yellow_alert_available = (last_yellow_alert != null) && (last_yellow_alert.getFinish() != null);
+                        if(red_alert_available && yellow_alert_available){
+                            newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
+                                    last_red_alert : last_yellow_alert;
+                        }
+                        else if(red_alert_available){
+                            newerCount = last_red_alert;
+                        }
+                        else if(yellow_alert_available){
+                            newerCount = last_yellow_alert;
+                        }
+
                         if (newerCount == null || inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
                             // create a new alert
                             createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
