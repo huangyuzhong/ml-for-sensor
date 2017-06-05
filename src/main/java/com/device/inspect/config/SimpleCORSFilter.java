@@ -38,26 +38,13 @@ public class SimpleCORSFilter implements Filter {
 
         HttpServletRequest request = (HttpServletRequest) req;
 
-        logger.info(String.format("---- %s ---- \r\n", request.getRequestURL()));
-
-
         HttpServletResponse response = (HttpServletResponse) res;
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, X-Auth-Token");
 //        response.addHeader("Access-Control-Allow-Credentials","true");
-        Date startTime = new Date();
-
         chain.doFilter(req, res);
-
-        Date endTime = new Date();
-
-        logger.info(String.format("---start time %s, end time %s---", startTime, endTime));
-        HttpServletResponse response2 = (HttpServletResponse) res;
-
-        logger.info(String.format("response status is %d, %s",response2.getStatus(), response2.toString()));
-
     }
 
     @Override

@@ -87,6 +87,36 @@ public class InfluxDBManager {
 
     }
 
+    public boolean writeAPIOperation(Long startTime, String userName, String url, Integer responseCode, long duration){
+        String dbName = "intelab";
+
+
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("start", startTime.toString())
+                .tag("url", url)
+                .tag("response", responseCode.toString())
+                .tag("user", userName)
+                .retentionPolicy("autogen")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+        Point point = Point.measurement("operation")
+                .time(startTime, TimeUnit.MILLISECONDS)
+                .addField("duration", duration)
+                .build();
+
+        batchPoints.point(point);
+        try {
+            influxDB.write(batchPoints);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+
+            logger.error(String.format("Failed to write API operation data to influxdb. Error: %s", e.toString()));
+            return false;
+        }
+    }
+
     /**
      * 查询指定设备指定参数最近一条信息
      * @param inspectType

@@ -102,7 +102,7 @@ public class SocketServerThread extends Thread {
 
         client.executeMethod(method);
         //打印服务器返回的状态
-        System.out.println(method.getStatusLine());
+        LOGGER.info("insert data api returned HTTP status: " + method.getStatusLine());
         InputStream stream = method.getResponseBodyAsStream();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
@@ -111,7 +111,7 @@ public class SocketServerThread extends Thread {
         while (null != (line = br.readLine())) {
             buf.append(line).append("\n");
         }
-        System.out.println(buf.toString());
+
         String response = buf.toString();
         JSONObject jsonObject = JSON.parseObject(response);
         String result = null;
@@ -120,7 +120,7 @@ public class SocketServerThread extends Thread {
 
         //释放连接
         method.releaseConnection();
-        LOGGER.info(Thread.currentThread().getName()+"当前返回数据:" + result);
+        LOGGER.info(String.format("Insert data 返回JSON: %s, 数据 %s", response, result));
         return result;
     }
 
