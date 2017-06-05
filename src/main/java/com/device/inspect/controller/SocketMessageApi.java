@@ -302,15 +302,15 @@ public class SocketMessageApi {
                             deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
                     AlertCount liveAlert = null;
-                    if (last_yellow_alert != null && last_yellow_alert.getFinish() != null &&lastInspectTime == last_yellow_alert.getFinish().getTime()) {
+                    if (last_yellow_alert != null && last_yellow_alert.getFinish() != null && lastInspectTime == last_yellow_alert.getFinish().getTime()) {
                         liveAlert = last_yellow_alert;
                     }
-                    else if (last_red_alert != null && last_red_alert != null && lastInspectTime == last_red_alert.getFinish().getTime()) {
+                    else if (last_red_alert != null && last_red_alert .getFinish() != null && lastInspectTime == last_red_alert.getFinish().getTime()) {
                         liveAlert = last_red_alert;
                     }
 
                     if (liveAlert == null) {
-                        LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
+                        LOGGER.warn(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
                                 device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
 
                         AlertCount newerCount = null;
