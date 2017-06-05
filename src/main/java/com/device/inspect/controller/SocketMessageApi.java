@@ -1,6 +1,7 @@
 package com.device.inspect.controller;
 
 import com.device.inspect.Application;
+import com.device.inspect.common.cache.MemoryDevice;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Room;
@@ -12,6 +13,7 @@ import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
 import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
+import com.device.inspect.common.service.MemoryCacheDevice;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
@@ -85,6 +87,9 @@ public class SocketMessageApi {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MemoryCacheDevice memoryCacheDevice;
 
     String unit = "s";
 
@@ -162,13 +167,10 @@ public class SocketMessageApi {
         }
 
 
-        /*
-        LAB-206, 暂时使用influxdb的数据来判断设备状态， 之后可能会revert
-            if(onlineData){
-                device.setLastActivityTime(deviceSamplingTime);
-            }
-            */
-
+        // 如果是在线数据，更新内存缓存设备的最新活动信息
+        if(onlineData){
+            memoryCacheDevice.updateDeviceActivityTime(device.getId(), inspectMessage.getSamplingTime());
+        }
 
         // Step 3: 判断监控值是否触发报警
         if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
@@ -190,13 +192,7 @@ public class SocketMessageApi {
         if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
             inspectStatus = "high";
             alert_type = 2;
-            // update device alert time and alert status
-                    /*
-                    if(onlineData) {
-                        device.setLastRedAlertTime(deviceSamplingTime);
-                        device.setStatus(2);
-                    }
-                    */
+
             // push notification if necessary
             if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
                 messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
@@ -209,20 +205,17 @@ public class SocketMessageApi {
             inspectStatus = "low";
             alert_type = 1;
 
-            // update device alert time and alert status
-                    /*
-                    if(onlineData) {
-                        device.setLastYellowAlertTime(deviceSamplingTime);
-                        device.setStatus(1);
-                    }
-                    */
-
             // push notification if necessary
             if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
                 messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
             } else {
                 messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
             }
+        }
+
+        // update device alert time and alert status
+        if(alert_type != 0 && onlineData){
+            memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
         }
 
         //for debug

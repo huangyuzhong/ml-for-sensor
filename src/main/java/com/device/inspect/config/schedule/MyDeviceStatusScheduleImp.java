@@ -1,6 +1,7 @@
 package com.device.inspect.config.schedule;
 
 import com.device.inspect.Application;
+import com.device.inspect.common.cache.MemoryDevice;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
@@ -11,6 +12,7 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.common.service.MemoryCacheDevice;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.controller.MessageController;
 import org.apache.commons.lang3.time.DateUtils;
@@ -20,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Administrator on 2016/10/18.
@@ -64,6 +63,9 @@ public class MyDeviceStatusScheduleImp {
 
     @Autowired
     private MessageController messageController;
+
+    @Autowired
+    private MemoryCacheDevice memoryCacheDevice;
 
     static private Integer bettaryInspectId = 9;
 
@@ -142,27 +144,79 @@ public class MyDeviceStatusScheduleImp {
 
                                             Date startTimeScanAlert = new Date();
                                             // 统计该房间内近5分钟内有报警的设备数量
-                                            // use data in influxdb
-                                            if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
-                                                roomHighALert ++;
-                                                device.setStatus(2);
-                                            }
-                                            else if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "low", time5minBefore, scheduleStartTime) > 0){
-                                                roomLowAlert ++;
-                                                device.setStatus(1);
+
+                                            int alert_type = 0;
+                                            Date latestAlertTime = null;
+                                            MemoryDevice memoryDevice = memoryCacheDevice.get(device.getId());
+                                            if(memoryDevice != null){
+                                                if(memoryDevice.getLastAlertTime() != null && memoryDevice.getLastAlertTime().getTime() - time5minBefore.getTime() > 0){
+                                                    if(memoryDevice.getLastAlertType() == 1){
+                                                        alert_type = 1;
+                                                        latestAlertTime = memoryDevice.getLastAlertTime();
+                                                    }
+                                                    else if(memoryDevice.getLastAlertType() == 2){
+                                                        alert_type = 2;
+                                                        latestAlertTime = memoryDevice.getLastAlertTime();
+                                                    }
+                                                    else if(memoryDevice.getLastAlertType() == 0){
+                                                        alert_type = 0;
+                                                    }
+                                                    else{
+                                                        logger.warn(String.format("Device scan: unknown alert type %d.", memoryDevice.getLastAlertType()));
+                                                    }
+                                                }
                                             }
                                             else{
-                                                device.setStatus(0);
+                                                logger.warn(String.format("Device scan: device %d is not found in cache, use influxdb data", device.getId()));
+                                                // use data in influxdb
+                                                if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
+                                                    alert_type = 2;
+                                                    latestAlertTime = time5minBefore;
+                                                    logger.warn("Device scan: use influxdb data, device alert time may be not precise.");
+                                                }
+                                                else if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "low", time5minBefore, scheduleStartTime) > 0){
+                                                    alert_type = 1;
+                                                    latestAlertTime = time5minBefore;
+                                                    logger.warn("Device scan: use influxdb data, device alert time may be not precise.");
+                                                }
+                                                else{
+                                                    alert_type = 0;
+                                                }
                                             }
+
+                                            if(alert_type == 1){
+                                                roomLowAlert ++;
+                                                device.setLastYellowAlertTime(latestAlertTime);
+                                            }
+                                            else if(alert_type == 2){
+                                                roomHighALert ++;
+                                                device.setLastRedAlertTime(latestAlertTime);
+                                            }
+                                            device.setStatus(alert_type);
 
                                             Date startTimeScanDeviceOnline = new Date();
 
                                             // 统计该房间内近5分钟内离线的设备数量
                                             MonitorDevice monitor = device.getMonitorDevice();
 
-                                            Integer countMonitorDataIn5min = Application.influxDBManager.countDeviceTotalTelemetryByTime(inspectTypes, device.getId(), time5minBefore, scheduleStartTime);
+                                            boolean deviceOnline = false;
+                                            if(memoryDevice != null && memoryDevice.getLastActivityTime() != null){
+                                                if(memoryDevice.getLastActivityTime().getTime() - time5minBefore.getTime() > 0){
+                                                    deviceOnline = true;
+                                                }
+                                                device.setLastActivityTime(memoryDevice.getLastActivityTime());
+                                            }
+                                            else{
+                                                Integer countMonitorDataIn5min = Application.influxDBManager.countDeviceTotalTelemetryByTime(inspectTypes, device.getId(), time5minBefore, scheduleStartTime);
+                                                if(countMonitorDataIn5min > 0){
+                                                    deviceOnline = true;
+                                                }
+                                                device.setLastActivityTime(time5minBefore);
+                                            }
 
-                                            if(countMonitorDataIn5min <= 0){
+                                            deviceRepository.save(device);
+
+                                            if(!deviceOnline){
 
                                                 roomOffline ++;
                                                 if(monitor.getOnline() != 0){
