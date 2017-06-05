@@ -302,14 +302,19 @@ public class SocketMessageApi {
                             deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
                     AlertCount liveAlert = null;
-                    if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
+                    if(last_yellow_alert.getFinish() == null || last_red_alert.getFinish() == null){
+                        liveAlert = null;
+                        LOGGER.error(String.format("Device id: %d , found no finish time alert."));
+                    }
+                    else if (lastInspectTime == last_yellow_alert.getFinish().getTime()) {
                         liveAlert = last_yellow_alert;
-                    } else if (lastInspectTime == last_red_alert.getFinish().getTime()) {
+                    }
+                    else if (lastInspectTime == last_red_alert.getFinish().getTime()) {
                         liveAlert = last_red_alert;
                     }
 
                     if (liveAlert == null) {
-                        LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s.",
+                        LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
                                 device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
 
                         AlertCount newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
@@ -336,14 +341,13 @@ public class SocketMessageApi {
                             LOGGER.info("datagram alert type set and updating to db");
                         }
                     }
-                    }catch(Exception e){
-                        StringWriter sw = new StringWriter();
-                        e.printStackTrace(new PrintWriter(sw));
-                        String exceptionAsString = sw.toString();
-                        LOGGER.error("Failed to record alert_count. Err: " + e.toString() + exceptionAsString);
+                }catch(Exception e){
+                    StringWriter sw = new StringWriter();
+                    e.printStackTrace(new PrintWriter(sw));
+                    String exceptionAsString = sw.toString();
+                    LOGGER.error("Failed to record alert_count. Err: " + e.toString() + exceptionAsString);
                 }
             }
-
         }
 
 
