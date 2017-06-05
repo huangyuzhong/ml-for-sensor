@@ -77,7 +77,7 @@ public class MyDeviceStatusScheduleImp {
      * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
      * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
      */
-    @Scheduled(cron = "0 */5 * * * ? ")
+    @Scheduled(cron = "0 0/5 * * * ? ")
     public void scheduleTask() {
 
         logger.info("Start schedule to summarize device status");
