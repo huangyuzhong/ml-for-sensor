@@ -144,11 +144,12 @@ public class MyDeviceStatusScheduleImp {
 
                                             Date startTimeScanAlert = new Date();
                                             // 统计该房间内近5分钟内有报警的设备数量
-
+                                            // TODO: deal with multiple instance situation, read status from db
                                             int alert_type = 0;
                                             Date latestAlertTime = null;
                                             MemoryDevice memoryDevice = memoryCacheDevice.get(device.getId());
                                             if(memoryDevice != null){
+                                                logger.info(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
                                                 if(memoryDevice.getLastAlertTime() != null && memoryDevice.getLastAlertTime().getTime() - time5minBefore.getTime() > 0){
                                                     if(memoryDevice.getLastAlertType() == 1){
                                                         alert_type = 1;
@@ -167,17 +168,15 @@ public class MyDeviceStatusScheduleImp {
                                                 }
                                             }
                                             else{
-                                                logger.warn(String.format("Device scan: device %d is not found in cache, use influxdb data", device.getId()));
+                                                logger.warn(String.format("Device scan: device %d is not found in cache, use influxdb data, device alert time may be not precise.", device.getId()));
                                                 // use data in influxdb
                                                 if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
                                                     alert_type = 2;
                                                     latestAlertTime = time5minBefore;
-                                                    logger.warn("Device scan: use influxdb data, device alert time may be not precise.");
                                                 }
                                                 else if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "low", time5minBefore, scheduleStartTime) > 0){
                                                     alert_type = 1;
                                                     latestAlertTime = time5minBefore;
-                                                    logger.warn("Device scan: use influxdb data, device alert time may be not precise.");
                                                 }
                                                 else{
                                                     alert_type = 0;
@@ -201,12 +200,14 @@ public class MyDeviceStatusScheduleImp {
 
                                             boolean deviceOnline = false;
                                             if(memoryDevice != null && memoryDevice.getLastActivityTime() != null){
+                                                logger.info(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
                                                 if(memoryDevice.getLastActivityTime().getTime() - time5minBefore.getTime() > 0){
                                                     deviceOnline = true;
                                                 }
                                                 device.setLastActivityTime(memoryDevice.getLastActivityTime());
                                             }
                                             else{
+                                                logger.info(String.format("Device scan: device %d is not found in cache, use influxdb data", device.getId()));
                                                 Integer countMonitorDataIn5min = Application.influxDBManager.countDeviceTotalTelemetryByTime(inspectTypes, device.getId(), time5minBefore, scheduleStartTime);
                                                 if(countMonitorDataIn5min > 0){
                                                     deviceOnline = true;
