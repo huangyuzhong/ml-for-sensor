@@ -321,7 +321,7 @@ public class SocketMessageApi {
 
                         AlertCount newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
                                 last_red_alert : last_yellow_alert;
-                        if (inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
+                        if (newerCount == null || inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
                             // create a new alert
                             createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
                         } else {
