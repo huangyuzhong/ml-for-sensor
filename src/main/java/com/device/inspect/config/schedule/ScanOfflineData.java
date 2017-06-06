@@ -179,11 +179,12 @@ public class ScanOfflineData{
                     alertCountRepository.save(alertCounts.get(index));
                     // erase redundant alert
                     alertCountRepository.delete(alertCounts.get(index+1));
-                    alertCounts.remove(index+1);
 
                     logger.info(String.format("Merge Alert: device id: %d, merge alert id %d, finish at %s and id %d, start at %s into %d",
                             deviceId, alertCounts.get(index).getId(), alertCounts.get(index).getFinish().toString(),
                             alertCounts.get(index+1).getId(), alertCounts.get(index+1).getCreateDate().toString(), alertCounts.get(index).getId()));
+
+                    alertCounts.remove(index+1);
                     // index not move when merging
                     index--;
                     mergedAlert++;
