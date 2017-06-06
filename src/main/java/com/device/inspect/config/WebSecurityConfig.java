@@ -1,6 +1,7 @@
 package com.device.inspect.config;
 
 //import com.device.inspect.config.security.RestAuthenticationEntryPoint;
+import com.device.inspect.config.security.stateless.CustomLogoutSuccessHandler;
 import com.device.inspect.config.security.stateless.LoginUserService;
 import com.device.inspect.config.security.stateless.StatelessLoginFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ public class WebSecurityConfig {
 //        @Autowired
 //        private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
+
         @Autowired
         private LoginUserService loginUserService;
 
@@ -63,7 +65,7 @@ public class WebSecurityConfig {
                             UsernamePasswordAuthenticationFilter.class)
                     .logout()
                     .logoutUrl("/api/rest/logout")
-                    .logoutSuccessUrl("/api/rest/firm/query/inspect/type")
+                    .logoutSuccessHandler(new CustomLogoutSuccessHandler())
                     .deleteCookies("JSESSIONID")
 
                     .permitAll();

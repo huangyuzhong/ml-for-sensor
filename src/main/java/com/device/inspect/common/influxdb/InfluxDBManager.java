@@ -64,7 +64,7 @@ public class InfluxDBManager {
                 .tag("inspect_id", deviceInspectId.toString())
                 .tag("device_type", deviceType)
                 .tag("inspect_status", inspectStatus)
-                .retentionPolicy("autogen")
+                .retentionPolicy("original_telemetry")
                 .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
 

@@ -1,5 +1,8 @@
 package com.device.inspect.config.security.stateless;
 
+import com.device.inspect.Application;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -20,6 +23,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 //	private final TokenAuthenticationService tokenAuthenticationService;
 	private final LoginUserService loginUserService;
     private final Set<String> authorities;
+	protected static Logger logger = LogManager.getLogger(StatelessLoginFilter.class);
 
 	public StatelessLoginFilter(String urlMapping,
 			LoginUserService loginUserService, AuthenticationManager authManager, Set<String> authorities) {
@@ -34,6 +38,9 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
 			throws AuthenticationException, IOException, ServletException {
+
+		long startTime = System.currentTimeMillis();
+
 		String input = request.getInputStream().toString();
 		Map<String,String[]> map2 =request.getParameterMap();
 //		final LoginUser user = new ObjectMapper().readValue(request.getInputStream(), LoginUser.class);
@@ -52,13 +59,39 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 		user.setVerify(verify);
         user.setCompany(company);
 
-		final LoginUser authenticatedUser = loginUserService.loadUserByName(user.getUsername(),user.getVerify(), user.getCompany(),authorities);
+        try {
+			final LoginUser authenticatedUser = loginUserService.loadUserByName(user.getUsername(), user.getVerify(), user.getCompany(), authorities);
+			// Lookup the complete User object from the database and create an Authentication for it
 
-        // Lookup the complete User object from the database and create an Authentication for it
+			final UserAuthentication userAuthentication = new UserAuthentication(authenticatedUser);
 
-        final UserAuthentication userAuthentication = new UserAuthentication(authenticatedUser);
+			long endTime = System.currentTimeMillis();
 
-		return userAuthentication;
+			long authCost = endTime - startTime;
+
+
+
+			if(Application.influxDBManager.writeAPIOperation(startTime, authenticatedUser.getUsername(), request.getRequestURL().toString(), 200, authCost)){
+				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURL().toString(), authenticatedUser.getUsername(), authCost, 200));
+			}
+			else{
+				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURL().toString(), authenticatedUser.getUsername(), authCost, 200));
+			}
+
+			return userAuthentication;
+		}catch (Exception e){
+			long endTime = System.currentTimeMillis();
+
+			long authCost = endTime - startTime;
+        	if(Application.influxDBManager.writeAPIOperation(startTime, name, request.getRequestURL().toString(), 403, authCost)){
+				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURL().toString(), name, authCost, 403));
+			}
+			else{
+				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURL().toString(), name, authCost, 403));
+			}
+        	throw e;
+		}
+
 	}
 
 	@Override
