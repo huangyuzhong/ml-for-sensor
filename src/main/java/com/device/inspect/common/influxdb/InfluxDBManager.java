@@ -342,6 +342,15 @@ public class InfluxDBManager {
     }
 
 
+    /**
+     * 查询指定设备指定时间内所有measurement指定报警类型的条数
+     * @param inspectTypes
+     * @param deviceId
+     * @param inspectStatus
+     * @param startTime
+     * @param endTime
+     * @return
+     */
     public Integer countDeviceTotalAlertByTime(List<String> inspectTypes, Integer deviceId, String inspectStatus, Date startTime, Date endTime){
 
         String dbName = "intelab";
@@ -393,6 +402,33 @@ public class InfluxDBManager {
         }
 
         String queryString = String.format("SELECT count(value) FROM %s WHERE device_id='%d' AND inspect_status='%s' AND time >= %d AND time <= %d",
+                inspectType, deviceId, inspectStatus, startNano, endNano);
+
+        return countQuery(dbName, queryString);
+    }
+
+    /**
+     * 查询指定设备指定时间内指定measurement 非指定信息类型的条数
+     * @param inspectType
+     * @param inspectStatus
+     * @param deviceId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public Integer countDeviceNotCertainStatusByTime(String inspectType, Integer deviceId, String inspectStatus, Date startTime, Date endTime){
+
+        String dbName = "intelab";
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return -1;
+        }
+
+        String queryString = String.format("SELECT count(value) FROM %s WHERE device_id='%d' AND inspect_status<>'%s' AND time >= %d AND time <= %d",
                 inspectType, deviceId, inspectStatus, startNano, endNano);
 
         return countQuery(dbName, queryString);

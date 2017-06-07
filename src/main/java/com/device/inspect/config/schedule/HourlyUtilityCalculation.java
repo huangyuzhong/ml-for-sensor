@@ -1,9 +1,12 @@
 package com.device.inspect.config.schedule;
 
+import com.device.inspect.Application;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.OfflineHourUnit;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.service.OfflineHourQueue;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
+import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import java.util.*;
 @Component
 public class HourlyUtilityCalculation{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
+
     @Autowired
     private DeviceRepository deviceRepository;
 
@@ -33,8 +37,8 @@ public class HourlyUtilityCalculation{
     @Autowired
     private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
 
-    @Autowired
-    private  InspectDataRepository inspectDataRepository;
+  //  @Autowired
+  //  private  InspectDataRepository inspectDataRepository;
 
     @Autowired
     private OfflineHourQueue offlineHourQueue;
@@ -90,6 +94,9 @@ public class HourlyUtilityCalculation{
         Integer lastStatus = lastStatusFlag;
         List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
         List<DeviceInspect> runningInspects = new ArrayList<>();
+
+
+        /*
         List<List<InspectData>> listOfInspectData = new ArrayList<>();
         for (DeviceInspect deviceInspect : deviceInspects) {
             if (deviceInspect.getInspectPurpose() == 1) {
@@ -100,6 +107,23 @@ public class HourlyUtilityCalculation{
                                 currentHour, targetHour));
             }
         }
+        */
+
+        List<List<List<Object>>> listOfInspectData = new ArrayList<>();
+        for (DeviceInspect deviceInspect : deviceInspects) {
+            if (deviceInspect.getInspectPurpose() == 1) {
+                LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
+
+                List<List<Object>> inspectDataList = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+                        device.getId(), deviceInspect.getId(), currentHour, targetHour);
+
+                if(inspectDataList != null){
+                    listOfInspectData.add(inspectDataList);
+                    runningInspects.add(deviceInspect);
+                }
+
+            }
+        }
 
         // no inspect is used for record running status
         if (runningInspects.isEmpty() || listOfInspectData.isEmpty()) {
@@ -108,11 +132,21 @@ public class HourlyUtilityCalculation{
         }
 
         boolean noData = true;
+
+        /*
         for(List<InspectData> inspectDatas : listOfInspectData){
             if(!inspectDatas.isEmpty()){
                 noData = false;
 		        LOGGER.info("Hourly Utilization: target device have data in target time interval");
 		        break;
+            }
+        }
+        */
+        for(List<List<Object>> inspectDataList : listOfInspectData){
+            if(!inspectDataList.isEmpty()){
+                noData = false;
+                LOGGER.info("Hourly Utilization: target device have data in target time interval");
+                break;
             }
         }
         if(noData){
@@ -131,12 +165,55 @@ public class HourlyUtilityCalculation{
 	        LOGGER.info("Hourly Utilization: target device have no data in target time inverval, save zero record to database");
             return;
         }
+
         // initialize running status array
         List<Integer> runningStatusArray = new ArrayList<>(scanScope / timeStep);
         for (int i = 0; i < scanScope / timeStep; i++) {
             runningStatusArray.add(-1);
         }
+
         // scan every inspect data array
+
+        for(int i=0; i<listOfInspectData.size(); i++){
+            List<List<Object>> inspectDataList = listOfInspectData.get(i);
+
+            if(inspectDataList.isEmpty()){
+                continue;
+            }
+            LOGGER.info("Start scanning running status data and get hourly utilization. Inspect id: "
+                    + runningInspects.get(i).getId());
+            // get running status setup of current inspect
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
+                    findByDeviceInspectId(runningInspects.get(i).getId());
+
+            try {
+                for (List<Object> inspectData : inspectDataList) {
+                    // use create time to calculate the index of inspect data in running status array
+                    long tsTime = StringDate.rfc3339ToLong(inspectData.get(0).toString());
+                    Integer indexTimeSlot = Long.valueOf(tsTime - currentHour.getTime()).intValue() / timeStep;
+                    Float value = Float.valueOf(inspectData.get(1).toString());
+                    Integer status = -1;
+                    // calculate the running status of current inspect data
+                    for (DeviceInspectRunningStatus runningStatus : runningStatuses) {
+                        if (value > runningStatus.getThreshold()) {
+                            status = runningStatus.getDeviceRunningStatus().getLevel() > status ?
+                                    runningStatus.getDeviceRunningStatus().getLevel() : status;
+                        }
+                    }
+                    // if running status of current inspect data is larger than original one, update it
+                    if (indexTimeSlot < runningStatusArray.size() && runningStatusArray.get(indexTimeSlot) < status) {
+                        runningStatusArray.set(indexTimeSlot, status);
+                    }
+                }
+            }catch(Exception e){
+                LOGGER.error(String.format("Failed parsing inspect data to running status series. Err: %s", e.toString()));
+                continue;
+            }
+
+        }
+
+        /*
+
         for (List<InspectData> inspectDatas : listOfInspectData) {
             if (inspectDatas.isEmpty()) {
                 continue;
@@ -165,6 +242,7 @@ public class HourlyUtilityCalculation{
                 }
             }
         }
+        */
 
         Integer currentMiss = 0;
         LOGGER.info("Got running status data in this hour, size is " + runningStatusArray.size());
@@ -197,6 +275,31 @@ public class HourlyUtilityCalculation{
 
         if (powerInspect != null) {
             LOGGER.info("Hourly Utilization: found power inspect " + powerInspect.getId());
+
+            List<List<Object>> powerInspectDataList = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(powerInspect.getInspectType().getCode()),
+                    device.getId(), powerInspect.getId(), currentHour, targetHour);
+
+            LOGGER.info(String.format("Found %d power inspect data", powerInspectDataList.size()));
+            if (powerInspectDataList != null && !powerInspectDataList.isEmpty()) {
+
+                Float powerValue = Float.parseFloat(powerInspectDataList.get(0).get(1).toString());
+                powerLower = powerValue;
+                powerUpper = powerValue;
+                energy += powerValue * powerInspectSampleTime;
+
+                for(int i=1; i<powerInspectDataList.size(); i++){
+                    powerValue = Float.parseFloat(powerInspectDataList.get(i).get(1).toString());
+                    if(powerValue < powerLower){
+                        powerLower = powerValue;
+                    }else if(powerValue > powerUpper){
+                        powerUpper = powerValue;
+                    }
+
+                    energy += powerValue * powerInspectSampleTime;
+                }
+            }
+
+            /*
             List<InspectData> powerInspectData = inspectDataRepository.
                     findByDeviceInspectIdAndCreateDateBetweenOrderByResultDesc(powerInspect.getId(),
                             currentHour, targetHour);
@@ -213,9 +316,12 @@ public class HourlyUtilityCalculation{
                 }
             }
 
-            for (InspectData powerData : powerInspectData) {
+
+            for (InspectData powerData : powerInspectDataL) {
                 energy += Float.parseFloat(powerData.getResult()) * powerInspectSampleTime;
             }
+            */
+
             energy = energy / 1000 / 1000;
         }
         DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);

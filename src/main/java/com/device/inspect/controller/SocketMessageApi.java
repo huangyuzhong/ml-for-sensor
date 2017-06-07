@@ -43,9 +43,6 @@ public class SocketMessageApi {
     private MessageController messageController;
 
     @Autowired
-    private  InspectDataRepository inspectDataRepository;
-
-    @Autowired
     private  DeviceRepository deviceRepository;
 
     @Autowired
@@ -467,33 +464,6 @@ public class SocketMessageApi {
     }
 
     /**
-     * 房间绑定设备数据内容
-     * @param roomId
-     * @return
-     */
-    @RequestMapping(value = "/room/current/data",method = RequestMethod.GET)
-    public RestResponse getCurrentDataFromDevice(@RequestParam Integer roomId){
-        Room room = roomRepository.findOne(roomId);
-        if (null!=room.getDevice()){
-            List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(room.getDevice().getId());
-//        List<InspectData> inspectDataList = new ArrayList<InspectData>();
-            List<RestInspectData> list = new ArrayList<RestInspectData>();
-            if (null!=deviceInspectList&&deviceInspectList.size()>0){
-                for (DeviceInspect deviceInspect : deviceInspectList){
-                    InspectData inspectData = inspectDataRepository.
-                            findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(room.getDevice().getId(), deviceInspect.getId());
-                    if (null!=inspectData)
-                        list.add(new RestInspectData(inspectData));
-                }
-            }
-            return new RestResponse(list);
-        }else {
-            return new RestResponse();
-        }
-
-    }
-
-    /**
      * 设备绑定数据内容
      */
     @RequestMapping(value = "/device/current/data", method = RequestMethod.GET)
@@ -533,41 +503,36 @@ public class SocketMessageApi {
                     // when device has status inspect, lowest running level is 0 (shut down)
                     runningLevel = 0;
                 }
-                List<InspectData> inspectDatas;
+
+                String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
+                String measurementUnit = InspectProcessTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
+                List<List<Object>> inspectSeries = null;
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();
                     startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
-                    inspectDatas = inspectDataRepository.
-                            findTop100ByDeviceInspectIdAndCreateDateAfterOrderByCreateDateDesc(deviceInspect.getId(),
-                                    startTime);
-                    if(inspectDatas == null || inspectDatas.size() == 0){
-                        inspectDatas = inspectDataRepository.
-                                findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
-                    }
+
+                    // each List<Object> is [time, value]
+                    inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
+                            deviceId, deviceInspect.getId(), startTime, new Date());
                 }
                 else{
-                    inspectDatas = inspectDataRepository.
-                            findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
+                    // default to get data in latest 5 minutes
+                    Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
+                    inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
+                            deviceId, deviceInspect.getId(), startTime, new Date());
+
                 }
-                if (null!=inspectDatas&&inspectDatas.size()>0) {
-                    List<RestInspectData> insertDatas = new ArrayList<RestInspectData>();
-                    for (InspectData inspectData : inspectDatas) {
-                        insertDatas.add(new RestInspectData(inspectData));
-                        if(null!=inspectData.getDeviceInspect().getHighDown()){
-                            float m = 0;
-                            if (Float.valueOf(inspectData.getResult())>inspectData.getDeviceInspect().getStandard()){
-                                m = Float.valueOf(inspectData.getResult())-inspectData.getDeviceInspect().getStandard();
-                            }else {
-                                m = inspectData.getDeviceInspect().getStandard()-Float.valueOf(inspectData.getResult());
-                            }
-                            score = score - m/(inspectData.getDeviceInspect().getHighUp()-inspectData.getDeviceInspect().getStandard());
-                        }
-                    }
+
+                List<Long> timeSeries = new ArrayList<Long>();
+                List<Float> valueSeries = new ArrayList<Float>();
+
+                if(inspectSeries != null && inspectSeries.size() > 0) {
+
                     //device running status
                     if(deviceInspect.getInspectPurpose() == 1){ // this inspect is used to guide running status
                         List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
                         for(DeviceInspectRunningStatus status : runningStatuses){
-                            if(Float.parseFloat(inspectDatas.get(0).getResult()) > status.getThreshold()){
+                            if(Float.parseFloat(inspectSeries.get(0).get(1).toString()) > status.getThreshold()){
                                 if(status.getDeviceRunningStatus().getLevel() > runningLevel){
                                     runningLevel = status.getDeviceRunningStatus().getLevel();
                                 }
@@ -575,111 +540,34 @@ public class SocketMessageApi {
                         }
                     }
 
-                    list.add(insertDatas);
+                    // copy data to REST response
+                    for (List<Object> telemetryEntry : inspectSeries) {
+                        String timeRFC3999 = telemetryEntry.get(0).toString();
+
+                        long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
+                        timeSeries.add(timeStamp);
+                        valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
+                    }
+
+                    RestTelemetryTSData telemetryTSData = new RestTelemetryTSData();
+                    telemetryTSData.setName(measurementName.toUpperCase());
+                    telemetryTSData.setCode(deviceInspect.getInspectType().getCode());
+                    telemetryTSData.setUnit(measurementUnit.toUpperCase());
+                    telemetryTSData.setDeviceInspectId(deviceInspect.getId());
+                    telemetryTSData.setTimeSeries(timeSeries);
+                    telemetryTSData.setValueSeries(valueSeries);
+
+                    restTelemetryTSDataList.add(telemetryTSData);
                 }
 
-                if(Application.influxDBManager != null){
-
-                    String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
-
-                    String measurementUnit = InspectProcessTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
-                    List<List<Object>> inspectSeries = null;
-                    if(requestParam.get("timeVal") != null){
-                        Date startTime = new Date();
-                        startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
-
-
-                        // each List<Object> is [time, value]
-                        inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
-                                deviceId, deviceInspect.getId(), startTime, new Date());
-
-
-                    }
-                    else{
-                        // default to get data in latest 5 minutes
-                        Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
-                        inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
-                                deviceId, deviceInspect.getId(), startTime, new Date());
-
-                    }
-
-                    List<Long> timeSeries = new ArrayList<Long>();
-                    List<Float> valueSeries = new ArrayList<Float>();
-
-                    if(inspectSeries != null && inspectSeries.size() > 0) {
-
-                        for (List<Object> telemetryEntry : inspectSeries) {
-                            String timeRFC3999 = telemetryEntry.get(0).toString();
-
-                            long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
-                            timeSeries.add(timeStamp);
-                            valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
-                        }
-
-                        RestTelemetryTSData telemetryTSData = new RestTelemetryTSData();
-                        telemetryTSData.setName(measurementName.toUpperCase());
-                        telemetryTSData.setCode(deviceInspect.getInspectType().getCode());
-                        telemetryTSData.setUnit(measurementUnit.toUpperCase());
-                        telemetryTSData.setDeviceInspectId(deviceInspect.getId());
-                        telemetryTSData.setTimeSeries(timeSeries);
-                        telemetryTSData.setValueSeries(valueSeries);
-
-                        restTelemetryTSDataList.add(telemetryTSData);
-                    }
-                }
             }
         }
-        map.put("list", list);
-        map.put("score", score);
         map.put("runningStatus", runningLevel);
 
-        if(Application.influxDBManager != null){
-            map.put("tsdata", restDeviceMonitoringTSData);
-        }
+        map.put("tsdata", restDeviceMonitoringTSData);
         return new RestResponse(map);
 
     }
-
-    /**
-     * 设备警报图表
-     * @param deviceId
-     * @return
-     */
-    @RequestMapping(value = "/device/chart/{deviceId}")
-    public RestResponse getTopTwentyData(@PathVariable Integer deviceId){
-        Device device = deviceRepository.findOne(deviceId);
-        List<DeviceInspect> deviceInspectList = deviceInspectRepository.findByDeviceId(deviceId);
-        Map map = new HashMap();
-        List<List> list = new ArrayList<List>();
-        Float  score = Float.valueOf(100);
-        if (null!=deviceInspectList&&deviceInspectList.size()>0){
-            for (DeviceInspect deviceInspect : deviceInspectList){
-                List<InspectData> inspectDatas = inspectDataRepository.
-                        findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(deviceId, deviceInspect.getId());
-                if (null!=inspectDatas&&inspectDatas.size()>0) {
-                    List<RestInspectData> insertDatas = new ArrayList<RestInspectData>();
-                    for (InspectData inspectData : inspectDatas) {
-                        insertDatas.add(new RestInspectData(inspectData));
-                        if(null!=inspectData.getDeviceInspect().getHighDown()){
-                            float m=0;
-                            if (Float.valueOf(inspectData.getResult())>inspectData.getDeviceInspect().getStandard()){
-                                m = Float.valueOf(inspectData.getResult())-inspectData.getDeviceInspect().getStandard();
-                            }else {
-                                m = inspectData.getDeviceInspect().getStandard()-Float.valueOf(inspectData.getResult());
-                            }
-                            score = score - m/(inspectData.getDeviceInspect().getHighUp()-inspectData.getDeviceInspect().getStandard());
-                        }
-                    }
-                    list.add(insertDatas);
-                }
-            }
-        }
-        map.put("list",list);
-        map.put("score",score);
-
-        return new RestResponse(map);
-    }
-
 
 
 }

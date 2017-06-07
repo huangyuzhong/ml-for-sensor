@@ -34,8 +34,6 @@ public class MyDeviceStatusScheduleImp {
     @Autowired
     private DeviceRepository deviceRepository;
 
-    @Autowired
-    private InspectDataRepository inspectDataRepository;
 
     @Autowired
     private RoomRepository roomRepository;

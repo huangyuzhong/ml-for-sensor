@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceFloor;
@@ -14,6 +15,10 @@ import com.device.inspect.common.repository.device.DeviceInspectRepository;
 import com.device.inspect.common.repository.device.InspectDataRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.service.MessageSendService;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
+import com.device.inspect.common.util.transefer.StringDate;
+import org.apache.commons.httpclient.util.DateUtil;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +39,6 @@ public class MessageController {
 
     private static final Logger LOGGER = LogManager.getLogger(MessageController.class);
 
-    @Autowired
-    private InspectDataRepository inspectDataRepository;
 
     @Autowired
     private MessageSendRepository messageSendRepository;
@@ -89,51 +92,61 @@ public class MessageController {
 
         String message = String.format(alertFormat, device.getCode(), device.getName(), formatter.format(sampleTime),
                 deviceInspect.getName());
+
+        DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
+
         // if this alerting inspect is not door, get door status if door is an inspect of this device.
         if(deviceInspect.getInspectType().getId() != doorInspectId){
-            DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
-            InspectData doorInspectData = null;
-            if(doorInspect != null){
-                doorInspectData = inspectDataRepository.
-                        findTopByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), doorInspect.getId());
-            }
+            if(doorInspect != null) {
+                List<Object> doorInspectData = Application.influxDBManager.readLatestTelemetry(InspectProcessTool.getMeasurementByCode(doorInspect.getInspectType().getCode()),
+                        device.getId(), doorInspect.getId());
 
-            message += String.format(valueFormat, standard, value);
-            if(doorInspectData != null && Float.parseFloat(doorInspectData.getResult()) == doorOpen) {
-                LOGGER.info(String.format("alerting inspect %d of device %d is with door open.",
-                        deviceInspect.getId(),
-                        device.getId()));
-                message += doorInfoFormat;
+
+                message += String.format(valueFormat, standard, value);
+
+                if (doorInspectData != null && ((Double) doorInspectData.get(1)).floatValue() == doorOpen) {
+                    LOGGER.info(String.format("alerting inspect %d of device %d is with door open.",
+                            deviceInspect.getId(),
+                            device.getId()));
+                    message += doorInfoFormat;
+                }
             }
         }
         else{
             // this alerting inspect is door inspect
             // get top 20 value of door inspect from db, and find how long has the door been open
-            DeviceInspect deviceDoorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
-            List<InspectData> inspectDatas = inspectDataRepository.findTop20ByDeviceIdAndDeviceInspectIdOrderByCreateDateDesc(device.getId(), deviceDoorInspect.getId());
-            Long openMilisecond = new Long(0);
-            for(InspectData inspectData : inspectDatas) {
-                if(Float.parseFloat(inspectData.getResult()) == doorOpen){
-                    openMilisecond = sampleTime.getTime() - inspectData.getCreateDate().getTime();
+            Date time3minBefore = DateUtils.addMinutes(sampleTime, -3);
+            List<List<Object>> doorInspectData = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(doorInspect.getInspectType().getCode()),
+                    device.getId(), doorInspect.getId(), time3minBefore, sampleTime);
+
+            if(doorInspectData != null && doorInspectData.size() > 0){
+                Long openMilisecond = new Long(0);
+
+                for(int i=doorInspectData.size()-1; i>=0; i--){
+                    if(((Double)doorInspectData.get(i).get(1)).floatValue() == doorOpen){
+                        openMilisecond = sampleTime.getTime() - StringDate.rfc3339ToLong((String)doorInspectData.get(i).get(0));
+                    }
+                    else{
+                        break;
+                    }
+
+                }
+                // if the continuous open time is less than one minutes, do nothing
+                if(openMilisecond < 1*60*1000){
+                    LOGGER.info(String.format("Device %d, door open for %d sec, less than 1 minutes, skip push notification",
+                            device.getId(),
+                            openMilisecond / 1000));
+                    return;
                 }
                 else{
-                    break;
+                    LOGGER.info(String.format("Device %d, door open for %d sec, more than 1 minutes, moving forward on push notification",
+                            device.getId(),
+                            openMilisecond / 1000));
+                    message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
+
                 }
             }
-            // if the continuous open time is less than one minutes, do nothing
-            if(openMilisecond < 1*60*1000){
-                LOGGER.info(String.format("Device %d, door open for %d sec, less than 1 minutes, skip push notification",
-                        device.getId(),
-                        openMilisecond / 1000));
-                return;
-            }
-            else{
-                LOGGER.info(String.format("Device %d, door open for %d sec, more than 1 minutes, moving forward on push notification",
-                        device.getId(),
-                        openMilisecond / 1000));
-                message += String.format(doorAlertFormat, (int)(openMilisecond/1000/60));
 
-            }
         }
 
         // get location of the device

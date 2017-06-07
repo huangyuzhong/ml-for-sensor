@@ -8,7 +8,9 @@ import com.device.inspect.common.repository.device.DeviceInspectRepository;
 import com.device.inspect.common.repository.device.InspectDataRepository;
 import com.device.inspect.common.repository.device.MonitorDeviceRepository;
 import com.device.inspect.common.service.OfflineHourQueue;
+import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.controller.SocketMessageApi;
+import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,8 +45,6 @@ public class ScanOfflineData{
     @Autowired
     private AlertCountRepository alertCountRepository;
 
-    @Autowired
-    private InspectDataRepository inspectDataRepository;
 
     @Scheduled(cron = "0 */10 * * * ? ")
     public void scheduleTask() {
@@ -151,26 +151,14 @@ public class ScanOfflineData{
                         alertCounts.get(index).getType() == alertCounts.get(index+1).getType() &&
                         (alertCounts.get(index+1).getCreateDate().getTime() - alertCounts.get(index).getFinish().getTime()) < 2*60*1000){
 
-                    // check inspect data in this time period hold same alert type
-                    List<InspectData> inspectDatas = inspectDataRepository.findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(
-                            deviceInspect.getId(), alertCounts.get(index).getFinish(), alertCounts.get(index+1).getCreateDate());
-                    boolean holdSameAlert = true;
+                    // check inspect data in this time period which is not same alert type
+                    // if got such data, we don't merge
                     int originalAlertType = alertCounts.get(index).getType();
-                    for(InspectData inspectData : inspectDatas){
-                        int alertType = 0;
-                        if(inspectData.getType().equals("high")){
-                            alertType = 2;
-                        }
-                        else if(inspectData.getType().equals("low")){
-                            alertType = 1;
-                        }
+                    String alertStatusString = originalAlertType == 2 ? "high" : " low";
+                    int countOtherStatus = Application.influxDBManager.countDeviceNotCertainStatusByTime(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+                            deviceId, alertStatusString, alertCounts.get(index).getFinish(), alertCounts.get(index+1).getCreateDate());
 
-                        if(alertType != originalAlertType){
-                            holdSameAlert = false;
-                            break;
-                        }
-                    }
-                    if(!holdSameAlert){
+                    if (countOtherStatus > 0){
                         continue;
                     }
 
@@ -184,8 +172,9 @@ public class ScanOfflineData{
                             deviceId, alertCounts.get(index).getId(), alertCounts.get(index).getFinish().toString(),
                             alertCounts.get(index+1).getId(), alertCounts.get(index+1).getCreateDate().toString(), alertCounts.get(index).getId()));
 
+
                     alertCounts.remove(index+1);
-                    // index not move when merging
+                    // index not move when merging, so we can merge it to the next alert if necessary
                     index--;
                     mergedAlert++;
                 }

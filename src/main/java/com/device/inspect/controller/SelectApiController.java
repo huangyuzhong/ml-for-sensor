@@ -112,9 +112,6 @@ public class SelectApiController {
     private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
 
     @Autowired
-    private  InspectDataRepository inspectDataRepository;
-
-    @Autowired
     private  DeviceInspectRepository deviceInspectRepository;
 
     @Autowired
