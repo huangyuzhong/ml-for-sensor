@@ -177,44 +177,41 @@ public class SocketMessageApi {
             return deviceInspect;
         }
 
-        // 如果该参数与报警无关， 退出
-        if(deviceInspect.getInspectPurpose() != 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
-            LOGGER.debug("status data, pass alert check");
-            return deviceInspect;
-        }
-
-
         String inspectStatus = "normal";
         int alert_type = 0;
+        if(deviceInspect.getInspectPurpose() == 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
+
             // alert inspect
-        LOGGER.info("check data against alert");
-        if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
-            inspectStatus = "high";
-            alert_type = 2;
+            LOGGER.info("check data against alert");
+            if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
+                inspectStatus = "high";
+                alert_type = 2;
 
-            // push notification if necessary
-            if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
-                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-            } else {
-                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                // push notification if necessary
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                } else {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                }
+
+
+            } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
+                inspectStatus = "low";
+                alert_type = 1;
+
+                // push notification if necessary
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                } else {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                }
             }
 
-
-        } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
-            inspectStatus = "low";
-            alert_type = 1;
-
-            // push notification if necessary
-            if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
-                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-            } else {
-                messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+            // update device alert time and alert status
+            if(alert_type != 0 && onlineData){
+                memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
             }
-        }
 
-        // update device alert time and alert status
-        if(alert_type != 0 && onlineData){
-            memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
         }
 
         //for debug
