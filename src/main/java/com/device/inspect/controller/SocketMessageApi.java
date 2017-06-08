@@ -518,7 +518,6 @@ public class SocketMessageApi {
                     Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                             deviceId, deviceInspect.getId(), startTime, new Date());
-
                 }
 
                 List<Long> timeSeries = new ArrayList<Long>();
