@@ -506,14 +506,15 @@ public class SocketMessageApi {
                 List<List<Object>> inspectSeries = null;
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();
-                    startTime.setTime(startTime.getTime() - Long.parseLong(requestParam.get("timeVal")));
+                    startTime.setTime(Long.parseLong(requestParam.get("timeVal")));
 
                     // each List<Object> is [time, value]
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                             deviceId, deviceInspect.getId(), startTime, new Date());
                 }
-                else{
-                    // default to get data in latest 5 minutes
+
+                if(inspectSeries == null || inspectSeries.isEmpty()){
+                    // if timeVal variable is not set or there is no data in given time val, search recent 5 minutes' data
                     Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                             deviceId, deviceInspect.getId(), startTime, new Date());
