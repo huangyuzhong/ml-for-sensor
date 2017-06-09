@@ -496,9 +496,14 @@ public class SocketMessageApi {
         Integer runningLevel = -1;
         if (null!=deviceInspectList&&deviceInspectList.size()>0){
             for (DeviceInspect deviceInspect : deviceInspectList){
-                if(deviceInspect.getInspectPurpose() == 1 && runningLevel == -1){
+                boolean isStatusInspect = false;
+                boolean isNotRequiredData = false;
+                if(deviceInspect.getInspectPurpose() == 1){
                     // when device has status inspect, lowest running level is 0 (shut down)
-                    runningLevel = 0;
+                    isStatusInspect = true;
+                    if(runningLevel == -1){
+                        runningLevel = 0;
+                    }
                 }
 
                 String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
@@ -511,6 +516,13 @@ public class SocketMessageApi {
                     // each List<Object> is [time, value]
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                             deviceId, deviceInspect.getId(), startTime, new Date());
+                    // for status inspect, if there is no data in given timeVal, try to get recent 5 minutes data, and set flag for not sending these data back
+                    if(inspectSeries.isEmpty() && isStatusInspect){
+                        startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
+                        inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
+                                deviceId, deviceInspect.getId(), startTime, new Date());
+                        isNotRequiredData = true;
+                    }
                 }
                 else{
                     // default to get data in latest 5 minutes
@@ -536,13 +548,15 @@ public class SocketMessageApi {
                         }
                     }
 
-                    // copy data to REST response
-                    for (List<Object> telemetryEntry : inspectSeries) {
-                        String timeRFC3999 = telemetryEntry.get(0).toString();
+                    // copy data to REST response, if the data is not required (only used for get running status), do not send them back
+                    if(!isNotRequiredData) {
+                        for (List<Object> telemetryEntry : inspectSeries) {
+                            String timeRFC3999 = telemetryEntry.get(0).toString();
 
-                        long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
-                        timeSeries.add(timeStamp);
-                        valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
+                            long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
+                            timeSeries.add(timeStamp);
+                            valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
+                        }
                     }
 
                     RestTelemetryTSData telemetryTSData = new RestTelemetryTSData();
