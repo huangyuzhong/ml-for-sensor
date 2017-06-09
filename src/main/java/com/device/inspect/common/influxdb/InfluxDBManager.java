@@ -38,6 +38,18 @@ public class InfluxDBManager {
 
     }
 
+    public InfluxDBManager(String serverIp, String username, String password){
+        this.serverIp = serverIp;
+        influxDB = InfluxDBFactory.connect(String.format("http://%s:%d", serverIp, port), username, password);
+    }
+
+    public InfluxDBManager(String serverIp, Integer port, String username, String password){
+        this.serverIp = serverIp;
+        this.port = port;
+
+        influxDB = InfluxDBFactory.connect(String.format("http://%s:%d", serverIp, port), username, password);
+    }
+
     /**
      * 写入设备指定参数的监控信息
      * @param samplingTime

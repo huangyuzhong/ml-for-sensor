@@ -87,15 +87,36 @@ public class Application {
                 intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
             }
 
-            if(generalConfig.getInfluxdb() != null && generalConfig.getInfluxdb().get("enabled").equals("true")){
+            if(generalConfig.getInfluxdb() != null){
                 String influxDBServerIp = generalConfig.getInfluxdb().get("server_ip");
                 if(influxDBServerIp != null){
                     String influxDBServerPort = generalConfig.getInfluxdb().get("port");
 
-                    if(influxDBServerPort != null){
-                        influxDBManager = new InfluxDBManager(influxDBServerIp, Integer.parseInt(influxDBServerPort));
-                    }else{
-                        influxDBManager = new InfluxDBManager(influxDBServerIp);
+                    String configAuthenticationEnabled = generalConfig.getInfluxdb().get("authentication_enabled");
+
+                    Boolean isAuth = false;
+                    if(configAuthenticationEnabled != null){
+                        isAuth = Boolean.parseBoolean(configAuthenticationEnabled);
+                    }
+
+                    String username = generalConfig.getInfluxdb().get("username");
+                    String password = generalConfig.getInfluxdb().get("password");
+
+                    if(isAuth){
+                        assert(username != null);
+                        assert (password != null);
+                        LOGGER.info("Create influxdb manager with user " + username);
+                        if(influxDBServerPort != null){
+                            influxDBManager = new InfluxDBManager(influxDBServerIp, Integer.parseInt(influxDBServerPort), username, password);
+                        }else{
+                            influxDBManager = new InfluxDBManager(influxDBServerIp, username, password);
+                        }
+                    }else {
+                       if (influxDBServerPort != null) {
+                            influxDBManager = new InfluxDBManager(influxDBServerIp, Integer.parseInt(influxDBServerPort));
+                        } else {
+                            influxDBManager = new InfluxDBManager(influxDBServerIp);
+                        }
                     }
 
                 }
