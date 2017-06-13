@@ -104,6 +104,17 @@ public class FTPStorageManager implements FileUploadService {
        catch(Exception e){
            e.printStackTrace();
        }
+       finally{
+           try{
+               if(client.isConnected()){
+                   client.logout();
+                   client.disconnect();
+               }
+           }
+           catch(Exception e){
+               e.printStackTrace();
+           }
+       }
     }
 
     public String uploadFile(MultipartFile file, String containerName, String blobName, String oldName){
