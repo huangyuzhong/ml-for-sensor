@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
@@ -123,7 +125,13 @@ public class ScanOfflineData{
                     logger.info(String.format("File Tail of Offline Data File %s is illegal, pass.", ftpFile.getName()));
                 }
                 fileStream.close();
+
+                // backup file
+                InputStream is = new ByteArrayInputStream(fileStream.toByteArray());
+                Application.offlineFTPStorageManager.storeFile(ftpFile.getName(), "backup", is);
+                // delete original one
                 Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
+
             }
 
             long endTIme = System.currentTimeMillis();

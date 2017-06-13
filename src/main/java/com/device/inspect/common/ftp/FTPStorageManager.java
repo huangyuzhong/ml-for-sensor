@@ -5,6 +5,7 @@ import org.apache.commons.net.ftp.FTPClient;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
@@ -115,6 +116,36 @@ public class FTPStorageManager implements FileUploadService {
                e.printStackTrace();
            }
        }
+    }
+
+    public boolean storeFile(String filename, String path, InputStream is){
+        client = new FTPClient();
+        boolean status = false;
+        try{
+            client.connect(ftpHost);
+            client.login(user, password);
+            client.enterLocalPassiveMode();
+            client.setFileType(FTP.BINARY_FILE_TYPE);
+            client.changeWorkingDirectory(path);
+            status = client.storeFile(filename, is);
+            client.logout();
+            client.disconnect();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            try{
+                if(client.isConnected()){
+                    client.logout();
+                    client.disconnect();
+                }
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+        return status;
     }
 
     public String uploadFile(MultipartFile file, String containerName, String blobName, String oldName){
