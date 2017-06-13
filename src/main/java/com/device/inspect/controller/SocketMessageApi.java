@@ -517,7 +517,7 @@ public class SocketMessageApi {
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                             deviceId, deviceInspect.getId(), startTime, new Date());
                     // for status inspect, if there is no data in given timeVal, try to get recent 5 minutes data, and set flag for not sending these data back
-                    if(inspectSeries.isEmpty() && isStatusInspect){
+                    if(inspectSeries == null && isStatusInspect){
                         startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
                         inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
                                 deviceId, deviceInspect.getId(), startTime, new Date());
