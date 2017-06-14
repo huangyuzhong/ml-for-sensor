@@ -294,6 +294,7 @@ public class OperateController {
                 }
             }
         }
+
         deviceRepository.save(device);
 
         return new RestResponse(new RestDevice(device));
