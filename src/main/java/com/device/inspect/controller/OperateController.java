@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.rowset.serial.SerialException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -520,10 +521,14 @@ public class OperateController {
         }
         child.setCreateDate(new Date());
         child.setPassword(null==map.get("password")?"123":map.get("password"));
-        child.setUserName(map.get("userName"));
-        child.setDepartment(map.get("department"));
+        try {
+            child.setUserName(java.net.URLDecoder.decode(map.get("userName"),"UTF-8"));
+            child.setDepartment(java.net.URLDecoder.decode(map.get("department"),"UTF-8"));
+            child.setJob(java.net.URLDecoder.decode(map.get("job"),"UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         child.setJobNum(map.get("jobNum"));
-        child.setJob(map.get("job"));
         child.setRemoveAlert("0");
         userRepository.save(child);
         if (roleAuthorityList.size()==1){
