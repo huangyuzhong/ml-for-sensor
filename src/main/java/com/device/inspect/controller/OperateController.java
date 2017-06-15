@@ -227,8 +227,13 @@ public class OperateController {
             return new RestResponse("设备信息出错！",1005,null);
         if (device.getManager()!=null&&device.getManager()!=user1)
             return new RestResponse("你不是此设备的设备管理员",1005,null);
-        if (null!=map.get("name"))
-            device.setName(map.get("name"));
+        if (null!=map.get("name")) {
+            try {
+                device.setName(java.net.URLDecoder.decode(map.get("name"), "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
         if (null!=map.get("creator"))
             device.setCreator(map.get("creator"));
         if (null!=map.get("maintain"))
