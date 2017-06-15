@@ -411,6 +411,9 @@ public class FileController {
         RestResponse restResponse = null;
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
+        param.put("code", java.net.URLDecoder.decode(param.get("code"),"UTF-8"));
+        param.put("name", java.net.URLDecoder.decode(param.get("name"),"UTF-8"));
+        param.put("monitorCode", java.net.URLDecoder.decode(param.get("monitorCode"),"UTF-8"));
         Device device = new Device();
         if (null == user)
             restResponse = new RestResponse("用户信息出错！",1005, null);
