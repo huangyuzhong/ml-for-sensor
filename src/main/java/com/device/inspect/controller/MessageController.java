@@ -98,7 +98,8 @@ public class MessageController {
         // if this alerting inspect is not door, get door status if door is an inspect of this device.
         if(deviceInspect.getInspectType().getId() != doorInspectId){
             if(doorInspect != null) {
-                List<Object> doorInspectData = Application.influxDBManager.readLatestTelemetry(InspectProcessTool.getMeasurementByCode(doorInspect.getInspectType().getCode()),
+                List<Object> doorInspectData = Application.influxDBManager.readLatestTelemetry(
+                        deviceInspect.getInspectType().getMeasurement(),
                         device.getId(), doorInspect.getId());
 
 
@@ -116,7 +117,8 @@ public class MessageController {
             // this alerting inspect is door inspect
             // get top 20 value of door inspect from db, and find how long has the door been open
             Date time3minBefore = DateUtils.addMinutes(sampleTime, -3);
-            List<List<Object>> doorInspectData = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(doorInspect.getInspectType().getCode()),
+            List<List<Object>> doorInspectData = Application.influxDBManager.readTelemetryInTimeRange(
+                    deviceInspect.getInspectType().getMeasurement(),
                     device.getId(), doorInspect.getId(), time3minBefore, sampleTime);
 
             if(doorInspectData != null && doorInspectData.size() > 0){

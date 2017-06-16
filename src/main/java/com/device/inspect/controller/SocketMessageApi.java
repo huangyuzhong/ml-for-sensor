@@ -227,7 +227,7 @@ public class SocketMessageApi {
                     boolean writeSuccess = Application.influxDBManager.writeTelemetry(inspectMessage.getSamplingTime(), device.getId(),
                             device.getName(), device.getDeviceType().getName(),
                             inspectStatus,  deviceInspect.getId(),
-                            InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                            deviceInspect.getInspectType().getMeasurement(),
                             inspectMessage.getCorrectedValue(), inspectMessage.getOriginalValue());
 
                     if(!writeSuccess){
@@ -237,7 +237,9 @@ public class SocketMessageApi {
                     else{
                         LOGGER.info(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
                                 device.getId(),
-                                InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), inspectMessage.getCorrectedValue()));
+                                //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                                deviceInspect.getInspectType().getMeasurement(),
+                                inspectMessage.getCorrectedValue()));
 
                         break;
                     }
@@ -245,12 +247,15 @@ public class SocketMessageApi {
 
                 if(retry >= max_try){
                     LOGGER.error(String.format("Abort writing telemetry %s (%s) after %d approach",
-                            InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), inspectMessage.getCorrectedValue(), max_try));
+                            deviceInspect.getInspectType().getMeasurement(),
+                            //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                            inspectMessage.getCorrectedValue(), max_try));
                 }
 
             }catch (Exception e){
                 LOGGER.error(String.format("Failed to parse %s telemetry data %s, %s",
-                        InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
+                        deviceInspect.getInspectType().getMeasurement(),
+                        //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
                         inspectMessage.getCorrectedValue(), inspectMessage.getOriginalValue()));
 
             }
@@ -260,7 +265,10 @@ public class SocketMessageApi {
         if (!inspectStatus.equals("normal")) {
 
             // 获取该参数的上一条信息
-            List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()), device.getId(), deviceInspect.getId());
+            List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(
+                    deviceInspect.getInspectType().getMeasurement(),
+                    device.getId(),
+                    deviceInspect.getId());
 
 
             // 判断 是否是新的报警
@@ -506,8 +514,10 @@ public class SocketMessageApi {
                     }
                 }
 
-                String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
-                String measurementUnit = InspectProcessTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
+                //String measurementName = InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode());
+                String measurementName = deviceInspect.getInspectType().getMeasurement();
+                String measurementUnit = deviceInspect.getInspectType().getUnit();
+                        //InspectProcessTool.getMeasurementUnitByCode(deviceInspect.getInspectType().getCode());
                 List<List<Object>> inspectSeries = null;
                 if(requestParam.get("timeVal") != null){
                     Date startTime = new Date();

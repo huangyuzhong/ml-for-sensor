@@ -114,7 +114,8 @@ public class HourlyUtilityCalculation{
             if (deviceInspect.getInspectPurpose() == 1) {
                 LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
 
-                List<List<Object>> inspectDataList = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+                List<List<Object>> inspectDataList = Application.influxDBManager.readTelemetryInTimeRange(
+                        deviceInspect.getInspectType().getMeasurement(),
                         device.getId(), deviceInspect.getId(), currentHour, targetHour);
 
                 if(inspectDataList != null){
@@ -276,7 +277,8 @@ public class HourlyUtilityCalculation{
         if (powerInspect != null) {
             LOGGER.info("Hourly Utilization: found power inspect " + powerInspect.getId());
 
-            List<List<Object>> powerInspectDataList = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(powerInspect.getInspectType().getCode()),
+            List<List<Object>> powerInspectDataList = Application.influxDBManager.readTelemetryInTimeRange(
+                    powerInspect.getInspectType().getMeasurement(),
                     device.getId(), powerInspect.getId(), currentHour, targetHour);
 
             LOGGER.info(String.format("Found %d power inspect data", powerInspectDataList.size()));

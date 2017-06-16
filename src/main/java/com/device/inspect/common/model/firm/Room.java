@@ -27,7 +27,7 @@ public class Room {
     private Integer highAlert;
     private Integer online;
     private Integer offline;
-    private Integer total;
+    private Integer total=0;
     private Float score;
     private Integer enable;
 

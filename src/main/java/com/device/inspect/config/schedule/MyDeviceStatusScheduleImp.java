@@ -137,7 +137,8 @@ public class MyDeviceStatusScheduleImp {
                                             List<DeviceInspect> inspectList = deviceInspectRepository.findByDeviceId(device.getId());
 
                                             for(DeviceInspect deviceInspect: inspectList){
-                                                inspectTypes.add(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+                                                //inspectTypes.add(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+                                                inspectTypes.add(deviceInspect.getInspectType().getMeasurement());
                                             }
 
                                             Date startTimeScanAlert = new Date();
@@ -248,7 +249,7 @@ public class MyDeviceStatusScheduleImp {
                                                 }
                                                 else{
                                                     List<List<Object>> recentBatteryData = Application.influxDBManager.readTelemetryInTimeRange(
-                                                            InspectProcessTool.getMeasurementByCode(batteryInspect.getInspectType().getCode()),
+                                                            batteryInspect.getInspectType().getMeasurement(),
                                                             device.getId(),
                                                             batteryInspect.getId(),
                                                             time10minBefore,

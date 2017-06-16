@@ -1099,7 +1099,9 @@ public class SelectApiController {
         List<TelemetryData> telemetryDatas = new ArrayList<>();
 
         for(DeviceInspect deviceInspect: deviceInspects){
-            List<List<Object>> inspectDatas = Application.influxDBManager.readTelemetryInTimeRange(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+            List<List<Object>> inspectDatas = Application.influxDBManager.readTelemetryInTimeRange(
+                    deviceInspect.getInspectType().getMeasurement(),
+//                    InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
                     device.getId(), deviceInspect.getId(), beginTime, endTime);
 
 
@@ -1210,7 +1212,8 @@ public class SelectApiController {
             telemetryData.setMonitorId(device.getMonitorDevice().getNumber());
 
             telemetryData.setDeviceInspectId(deviceInspect.getId());
-            telemetryData.setName(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+            telemetryData.setName(deviceInspect.getInspectType().getMeasurement());
+                    //InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
             telemetryData.setTsData(dataSeries);
             telemetryData.setTsTime(timeSeries);
             telemetryData.setAggregateData(aggregateData);

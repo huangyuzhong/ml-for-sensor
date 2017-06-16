@@ -163,7 +163,9 @@ public class ScanOfflineData{
                     // if got such data, we don't merge
                     int originalAlertType = alertCounts.get(index).getType();
                     String alertStatusString = originalAlertType == 2 ? "high" : " low";
-                    int countOtherStatus = Application.influxDBManager.countDeviceNotCertainStatusByTime(InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
+                    int countOtherStatus = Application.influxDBManager.countDeviceNotCertainStatusByTime(
+                            deviceInspect.getInspectType().getMeasurement(),
+                            //InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
                             deviceId, alertStatusString, alertCounts.get(index).getFinish(), alertCounts.get(index+1).getCreateDate());
 
                     if (countOtherStatus > 0){
