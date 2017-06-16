@@ -22,11 +22,11 @@ public class Storey {
     private Float ypoint;
     private List<Room> roomList;
 //    private Integer alterNum;
-    private Integer lowAlert;
-    private Integer highAlert;
-    private Integer online;
-    private Integer offline;
-    private Integer total;
+    private Integer lowAlert = 0;
+    private Integer highAlert = 0;
+    private Integer online = 0;
+    private Integer offline = 0;
+    private Integer total = 0;
     private Float score;
     private Integer enable;
 
