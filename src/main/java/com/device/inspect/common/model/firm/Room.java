@@ -17,17 +17,17 @@ public class Room {
     private Storey floor;
     private Float xPoint;
     private Float yPoint;
-    private Integer deviceNum;
+    private Integer deviceNum = 0;
     private Date createDate;
     private String background;
     private Device device;
     private List<Device> deviceList;
 //    private Integer alterNum;
-    private Integer lowAlert;
-    private Integer highAlert;
-    private Integer online;
-    private Integer offline;
-    private Integer total=0;
+    private Integer lowAlert = 0;
+    private Integer highAlert = 0;
+    private Integer online = 0;
+    private Integer offline = 0;
+    private Integer total = 0;
     private Float score;
     private Integer enable;
 
