@@ -94,7 +94,7 @@ public class HourlyUtilityCalculation{
         Integer lastStatus = lastStatusFlag;
         List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
         List<DeviceInspect> runningInspects = new ArrayList<>();
-
+        List<DeviceInspect> lastHourRunningInspects = new ArrayList<>();
 
         /*
         List<List<InspectData>> listOfInspectData = new ArrayList<>();
@@ -110,6 +110,9 @@ public class HourlyUtilityCalculation{
         */
 
         List<List<List<Object>>> listOfInspectData = new ArrayList<>();
+        Date lastHourTime = new Date();
+        lastHourTime.setTime(currentHour.getTime() - 5*60*1000);
+
         for (DeviceInspect deviceInspect : deviceInspects) {
             if (deviceInspect.getInspectPurpose() == 1) {
                 LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
@@ -118,11 +121,31 @@ public class HourlyUtilityCalculation{
                         deviceInspect.getInspectType().getMeasurement(),
                         device.getId(), deviceInspect.getId(), currentHour, targetHour);
 
+
+                List<List<Object>> lastHourStatus = Application.influxDBManager.readTelemetryInTimeRange(
+                        deviceInspect.getInspectType().getMeasurement(),
+                        device.getId(), deviceInspect.getId(), lastHourTime, currentHour);
+
+                // calculate running status of current device inspect in last hour
+                if(lastHourStatus != null && lastHourStatus.size() > 0){
+                    List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
+                            findByDeviceInspectId(deviceInspect.getId());
+                    Integer lastStatusOfCurrentInspect = lastStatusFlag;
+                    for(DeviceInspectRunningStatus runningStatus : runningStatuses){
+                        if(runningStatus.getThreshold() < Float.parseFloat(lastHourStatus.get(lastHourStatus.size() - 1).get(1).toString())){
+                            lastStatusOfCurrentInspect = runningStatus.getDeviceRunningStatus().getLevel() > lastStatusOfCurrentInspect ?
+                                    runningStatus.getDeviceRunningStatus().getLevel() : lastStatusOfCurrentInspect;
+                        }
+                    }
+                    LOGGER.info(String.format("Hourly Utilization: inspect %d has running level %d in last hour", deviceInspect.getId(), lastStatusOfCurrentInspect));
+                    lastStatus = lastStatusOfCurrentInspect > lastStatus ? lastStatusOfCurrentInspect : lastStatus;
+                    LOGGER.info("Hourly Utilization: update last status to " + lastStatus.toString());
+                }
+
                 if(inspectDataList != null){
                     listOfInspectData.add(inspectDataList);
                     runningInspects.add(deviceInspect);
                 }
-
             }
         }
 
@@ -173,8 +196,9 @@ public class HourlyUtilityCalculation{
             runningStatusArray.add(-1);
         }
 
-        // scan every inspect data array
 
+
+        // scan every inspect data array
         for(int i=0; i<listOfInspectData.size(); i++){
             List<List<Object>> inspectDataList = listOfInspectData.get(i);
 
