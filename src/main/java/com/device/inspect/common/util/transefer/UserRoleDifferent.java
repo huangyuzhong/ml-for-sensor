@@ -11,7 +11,7 @@ public class UserRoleDifferent {
     private static final String SERVICEMANAGER = "SERVICE_MANAGER";
     private static final String SERVICEWORKER = "SERVICE_BUSINESS";
     private static final String FIRMMANAGER = "FIRM_MANAGER";
-    private static final String FIRMWORKER = "FIRM_WORKER";
+    private static final String FIRMWORKER = "DEVICE_MANAGER";  //4 设备管理员
     private static final String FIRMSCIENTIST = "FIRM_SCIENTIST";
 
     /**
