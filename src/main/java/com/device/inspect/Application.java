@@ -5,6 +5,8 @@ import com.device.inspect.common.ftp.FTPStorageManager;
 import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.service.FileUploadService;
 import com.device.inspect.common.setting.GeneralConfig;
+import com.device.inspect.common.util.thread.AppShutdownHook;
+import com.device.inspect.common.util.thread.IoTMessageWorker;
 import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
@@ -21,6 +23,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -44,12 +48,36 @@ public class Application {
     public static FTPStorageManager offlineFTPStorageManager = null;
     public static InfluxDBManager influxDBManager = null;
 
+    private static List<IoTMessageWorker> ioTMessageWorkers = null;
+    private static final int IoTWorkerNumber = 4;
+
+
+    public static void Stop(){
+        for(IoTMessageWorker worker: ioTMessageWorkers){
+            worker.Stop();
+        }
+
+        try{
+            Thread.sleep(500);
+            for(IoTMessageWorker worker: ioTMessageWorkers){
+                if(worker.isAlive()){
+                    LOGGER.warn(String.format("IoT message worker %s is still alive", worker.getName()));
+                }
+            }
+        }catch (Exception ex){
+            LOGGER.error("Exceptiion in stopping intelab-wbe. Err:" + ex.getMessage());
+        }
+    }
+
     public static void main(String[] args) throws Throwable
     {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
-        socketServerStart();
+        //socketServerStart();
+        startMQWorkers();
+
+        Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
     }
 
     private static void loadAppConfig() throws Throwable{
@@ -122,6 +150,20 @@ public class Application {
                 }
             }
 
+            if(generalConfig.getRabbitmq() != null){
+                String mqBrokerIp = generalConfig.getRabbitmq().get("broker_ip");
+                assert (mqBrokerIp != null);
+
+                String username = generalConfig.getRabbitmq().get("username");
+                String password = generalConfig.getRabbitmq().get("password");
+                String telemetry_queue = generalConfig.getRabbitmq().get("telemetry_queue_name");
+
+                assert(username != null);
+                assert(password != null);
+                assert (telemetry_queue != null);
+
+            }
+
             String offlineFTPConfigFilePath = String.format("%s/intelab-configs/%s/offlineFTP.yaml", homePath, intelabEnvironmentName);;
             File offlineFTPConfigFile = new File(offlineFTPConfigFilePath);
             if(offlineFTPConfigFile.exists() && !offlineFTPConfigFile.isDirectory()){
@@ -164,5 +206,22 @@ public class Application {
     }
 
 
+    private static void startMQWorkers(){
+
+        ioTMessageWorkers = new ArrayList<IoTMessageWorker>();
+
+        for(int i=0; i<IoTWorkerNumber; i++){
+            IoTMessageWorker worker = new IoTMessageWorker(i);
+
+            ioTMessageWorkers.add(worker);
+
+
+        }
+
+        for(IoTMessageWorker worker: ioTMessageWorkers){
+            worker.start();
+        }
+
+    }
 
 }

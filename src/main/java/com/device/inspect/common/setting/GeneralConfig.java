@@ -12,6 +12,8 @@ public class GeneralConfig {
 
     private Map<String, String> influxdb;
 
+    private Map<String, String> rabbitmq;
+
     public void setStorage(Map<String, String> mediaStorage){
         this.storage = mediaStorage;
     }
@@ -27,4 +29,9 @@ public class GeneralConfig {
     public Map<String, String> getInfluxdb() { return this.influxdb; }
 
     public void setInfluxdb(Map<String, String> influxdb) { this.influxdb = influxdb; }
+
+    public Map<String, String> getRabbitmq() { return this.rabbitmq; }
+
+    public void setRabbitmq(Map<String, String> rabbitmq) { this.rabbitmq = rabbitmq; }
+
 }
