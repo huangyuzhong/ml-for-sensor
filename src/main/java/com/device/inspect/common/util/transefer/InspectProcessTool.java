@@ -47,6 +47,15 @@ public class InspectProcessTool {
         map.put("1a", Arrays.asList("temperature_PT100", "degree"));
         map.put("1b", Arrays.asList("current", "A"));
 
+        map.put("23", Arrays.asList("DTSD106_AU", "V"));
+        map.put("24", Arrays.asList("DTSD106_BU", "V"));
+        map.put("25", Arrays.asList("DTSD106_CU", "V"));
+        map.put("26", Arrays.asList("DTSD106_AI", "A"));
+        map.put("27", Arrays.asList("DTSD106_BI", "A"));
+        map.put("28", Arrays.asList("DTSD106_CI", "A"));
+        map.put("29", Arrays.asList("DTSD106_P", "KW"));
+        map.put("2a", Arrays.asList("DTSD106_E", "KWH"));
+
         return map;
     }
 
