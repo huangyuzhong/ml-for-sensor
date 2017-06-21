@@ -262,32 +262,24 @@ public class InspectProcessTool {
         } else if (inspectMessage.getInspectTypeCode().equals("1b")) {  // IRING
             Float vRecord = (Float.valueOf(inspectMessage.getiData()) * 512 / 10000) / 32768;
             originalInspectValue = vRecord * 5 * 1000 / 333;
-            LOGGER.info(String.format("数据转化的电压为：%d", vRecord));
-            LOGGER.info(String.format("根据电压转化的电流为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if (inspectMessage.getInspectTypeCode().equals("1c") || inspectMessage.getInspectTypeCode().equals("1d") || inspectMessage.getInspectTypeCode().equals("1f")) {  // MPU_AX, MPU_AY, MPU_AZ
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/32768 * 2;
-            LOGGER.info(String.format("根据电压转化的加速度为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if (inspectMessage.getInspectTypeCode().equals("20") || inspectMessage.getInspectTypeCode().equals("21") || inspectMessage.getInspectTypeCode().equals("22")) {  // MPU_GX, MPU_GY, MPU_AZ
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/32768 * 2000;
-            LOGGER.info(String.format("根据电压转化的角速度为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("23") || inspectMessage.getInspectTypeCode().equals("24") || inspectMessage.getInspectTypeCode().equals("25")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/40;  // 值=DATA*U0*Ubb/10000; 单位：V;
-            LOGGER.info(String.format("根据电压转化的相电压为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("26") || inspectMessage.getInspectTypeCode().equals("27") || inspectMessage.getInspectTypeCode().equals("28")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/10;  // 值=DATA*I0*Ibb/10000; 单位：A;
-            LOGGER.info(String.format("根据电压转化的相电流为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("29")){
             originalInspectValue = Float.valueOf(inspectMessage.getiData())*3/40;  // 值=VALUE*250*5*200*3/10000 /1000; 单位：kW;
-            LOGGER.info(String.format("根据电压转化的三相功率为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("2a")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/72;  // 值=DATA*250*5*200/18000000; 单位：kWh;
-            LOGGER.info(String.format("根据电压转化的三相电能为：%d", originalInspectValue));
             correctedInspectValue = originalInspectValue - zero;
         } else {
             //添加测量原值
