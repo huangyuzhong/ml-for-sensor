@@ -47,14 +47,14 @@ public class InspectProcessTool {
         map.put("1a", Arrays.asList("temperature_PT100", "degree"));
         map.put("1b", Arrays.asList("current", "A"));
 
-        map.put("22", Arrays.asList("DTSD106_AU", "V"));
-        map.put("23", Arrays.asList("DTSD106_BU", "V"));
-        map.put("24", Arrays.asList("DTSD106_CU", "V"));
-        map.put("25", Arrays.asList("DTSD106_AI", "A"));
-        map.put("26", Arrays.asList("DTSD106_BI", "A"));
-        map.put("27", Arrays.asList("DTSD106_CI", "A"));
-        map.put("28", Arrays.asList("DTSD106_P", "KW"));
-        map.put("29", Arrays.asList("DTSD106_E", "KWH"));
+        map.put("22", Arrays.asList("phase_voltage_a", "V"));
+        map.put("23", Arrays.asList("phase_voltage_b", "V"));
+        map.put("24", Arrays.asList("phase_voltage_c", "V"));
+        map.put("25", Arrays.asList("phase_current_a", "A"));
+        map.put("26", Arrays.asList("phase_current_b", "A"));
+        map.put("27", Arrays.asList("phase_current_c", "A"));
+        map.put("28", Arrays.asList("three_phase_power", "KW"));
+        map.put("29", Arrays.asList("three_phase_energy", "KWH"));
 
         return map;
     }
@@ -276,7 +276,7 @@ public class InspectProcessTool {
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/10;  // 值=DATA*I0*Ibb/10000; 单位：A;
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("28")){
-            originalInspectValue = Float.valueOf(inspectMessage.getiData())*3/40;  // 值=VALUE*250*5*200*3/10000 /1000; 单位：kW;
+            originalInspectValue = Float.valueOf((short)(inspectMessage.getiData()).intValue())*3/40;  // 值=VALUE*250*5*200*3/10000 /1000; 单位：kW;
             correctedInspectValue = originalInspectValue - zero;
         } else if(inspectMessage.getInspectTypeCode().equals("29")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/72;  // 值=DATA*250*5*200/18000000; 单位：kWh;
