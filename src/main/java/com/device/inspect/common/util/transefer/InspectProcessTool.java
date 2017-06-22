@@ -47,14 +47,14 @@ public class InspectProcessTool {
         map.put("1a", Arrays.asList("temperature_PT100", "degree"));
         map.put("1b", Arrays.asList("current", "A"));
 
-        map.put("23", Arrays.asList("DTSD106_AU", "V"));
-        map.put("24", Arrays.asList("DTSD106_BU", "V"));
-        map.put("25", Arrays.asList("DTSD106_CU", "V"));
-        map.put("26", Arrays.asList("DTSD106_AI", "A"));
-        map.put("27", Arrays.asList("DTSD106_BI", "A"));
-        map.put("28", Arrays.asList("DTSD106_CI", "A"));
-        map.put("29", Arrays.asList("DTSD106_P", "KW"));
-        map.put("2a", Arrays.asList("DTSD106_E", "KWH"));
+        map.put("22", Arrays.asList("DTSD106_AU", "V"));
+        map.put("23", Arrays.asList("DTSD106_BU", "V"));
+        map.put("24", Arrays.asList("DTSD106_CU", "V"));
+        map.put("25", Arrays.asList("DTSD106_AI", "A"));
+        map.put("26", Arrays.asList("DTSD106_BI", "A"));
+        map.put("27", Arrays.asList("DTSD106_CI", "A"));
+        map.put("28", Arrays.asList("DTSD106_P", "KW"));
+        map.put("29", Arrays.asList("DTSD106_E", "KWH"));
 
         return map;
     }
@@ -263,22 +263,22 @@ public class InspectProcessTool {
             Float vRecord = (Float.valueOf(inspectMessage.getiData()) * 512 / 10000) / 32768;
             originalInspectValue = vRecord * 5 * 1000 / 333;
             correctedInspectValue = originalInspectValue - zero;
-        } else if (inspectMessage.getInspectTypeCode().equals("1c") || inspectMessage.getInspectTypeCode().equals("1d") || inspectMessage.getInspectTypeCode().equals("1f")) {  // MPU_AX, MPU_AY, MPU_AZ
+        } else if (inspectMessage.getInspectTypeCode().equals("1c") || inspectMessage.getInspectTypeCode().equals("1d") || inspectMessage.getInspectTypeCode().equals("1e")) {  // MPU_AX, MPU_AY, MPU_AZ
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/32768 * 2;
             correctedInspectValue = originalInspectValue - zero;
-        } else if (inspectMessage.getInspectTypeCode().equals("20") || inspectMessage.getInspectTypeCode().equals("21") || inspectMessage.getInspectTypeCode().equals("22")) {  // MPU_GX, MPU_GY, MPU_AZ
+        } else if (inspectMessage.getInspectTypeCode().equals("1f") || inspectMessage.getInspectTypeCode().equals("20") || inspectMessage.getInspectTypeCode().equals("21")) {  // MPU_GX, MPU_GY, MPU_AZ
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/32768 * 2000;
             correctedInspectValue = originalInspectValue - zero;
-        } else if(inspectMessage.getInspectTypeCode().equals("23") || inspectMessage.getInspectTypeCode().equals("24") || inspectMessage.getInspectTypeCode().equals("25")){
+        } else if(inspectMessage.getInspectTypeCode().equals("22") || inspectMessage.getInspectTypeCode().equals("23") || inspectMessage.getInspectTypeCode().equals("24")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/40;  // 值=DATA*U0*Ubb/10000; 单位：V;
             correctedInspectValue = originalInspectValue - zero;
-        } else if(inspectMessage.getInspectTypeCode().equals("26") || inspectMessage.getInspectTypeCode().equals("27") || inspectMessage.getInspectTypeCode().equals("28")){
+        } else if(inspectMessage.getInspectTypeCode().equals("25") || inspectMessage.getInspectTypeCode().equals("26") || inspectMessage.getInspectTypeCode().equals("27")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/10;  // 值=DATA*I0*Ibb/10000; 单位：A;
             correctedInspectValue = originalInspectValue - zero;
-        } else if(inspectMessage.getInspectTypeCode().equals("29")){
+        } else if(inspectMessage.getInspectTypeCode().equals("28")){
             originalInspectValue = Float.valueOf(inspectMessage.getiData())*3/40;  // 值=VALUE*250*5*200*3/10000 /1000; 单位：kW;
             correctedInspectValue = originalInspectValue - zero;
-        } else if(inspectMessage.getInspectTypeCode().equals("2a")){
+        } else if(inspectMessage.getInspectTypeCode().equals("29")){
             originalInspectValue = (Float.valueOf(inspectMessage.getiData()))/72;  // 值=DATA*250*5*200/18000000; 单位：kWh;
             correctedInspectValue = originalInspectValue - zero;
         } else {
