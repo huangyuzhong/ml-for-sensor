@@ -2,10 +2,12 @@ package com.device.inspect.common.restful.device;
 
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.restful.charater.RestScientistDevice;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.util.time.MyCalendar;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import javax.jws.soap.SOAPBinding;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,7 +49,7 @@ public class RestDevice {
     private RestDeviceVersion deviceVersion;
     private Long yellowAlertCountToday = new Long(0);
     private Long redAlertCountToday = new Long(0);
-    private List<ScientistDevice> scientists;  //DATE 2017/6/22; CREATOR @FGZ
+    private List<RestScientistDevice> scientists;  //DATE 2017/6/22; CREATOR @FGZ
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -98,7 +100,16 @@ public class RestDevice {
             days = MyCalendar.getDateSpace(device.getCreateDate(),new Date());
 
         this.deviceVersion = null==device.getDeviceVersion()?null:new RestDeviceVersion(device.getDeviceVersion());
-        this.scientists = device.getScientistDeviceList();
+
+     // DATE 2017/6/22; CREATOR @FGZ; START
+        if (null!=device.getScientistDeviceList() && device.getScientistDeviceList().size()>0){
+            this.scientists = new ArrayList<RestScientistDevice>();
+            for (ScientistDevice scientistDevice : device.getScientistDeviceList()){
+                if (null != scientistDevice)
+                    this.scientists.add(new RestScientistDevice(scientistDevice));
+            }
+        }
+     // DATE 2017/6/22; CREATOR @FGZ; END
     }
 
     public Integer getId() {
@@ -331,11 +342,11 @@ public class RestDevice {
 
     public Long getRedAlertCountToday() {return this.redAlertCountToday; }
 // DATE 2017/6/22; CREATOR @FGZ; START
-    public List<ScientistDevice> getScientists() {
+    public List<RestScientistDevice> getScientists() {
         return scientists;
     }
 
-    public void setScientists(List<ScientistDevice> scientists) {
+    public void setScientists(List<RestScientistDevice> scientists) {
         this.scientists = scientists;
     }
 // DATE 2017/6/22; CREATOR @FGZ; END
