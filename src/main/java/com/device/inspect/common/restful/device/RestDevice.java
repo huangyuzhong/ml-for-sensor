@@ -47,6 +47,7 @@ public class RestDevice {
     private RestDeviceVersion deviceVersion;
     private Long yellowAlertCountToday = new Long(0);
     private Long redAlertCountToday = new Long(0);
+    private List<ScientistDevice> scientists;  //DATE 2017/6/22; CREATOR @FGZ
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -97,6 +98,7 @@ public class RestDevice {
             days = MyCalendar.getDateSpace(device.getCreateDate(),new Date());
 
         this.deviceVersion = null==device.getDeviceVersion()?null:new RestDeviceVersion(device.getDeviceVersion());
+        this.scientists = device.getScientistDeviceList();
     }
 
     public Integer getId() {
@@ -328,5 +330,13 @@ public class RestDevice {
     public void setRedAlertCountToday(Long alertCount) { this.redAlertCountToday = alertCount; }
 
     public Long getRedAlertCountToday() {return this.redAlertCountToday; }
+// DATE 2017/6/22; CREATOR @FGZ; START
+    public List<ScientistDevice> getScientists() {
+        return scientists;
+    }
 
+    public void setScientists(List<ScientistDevice> scientists) {
+        this.scientists = scientists;
+    }
+// DATE 2017/6/22; CREATOR @FGZ; END
 }
