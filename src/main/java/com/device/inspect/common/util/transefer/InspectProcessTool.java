@@ -122,28 +122,33 @@ public class InspectProcessTool {
                 //从小到大
                 List<Pt100> list1 = new ArrayList<Pt100>();
                 //使用默认表查询
-                list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
-                //找到对应的Pt100
-                Pt100 one = list1.get(0);
-                String temperature1 = one.getTemperature();
-                Float resistance1 = one.getResistance();
-                //从大到小
-                List<Pt100> list2 = new ArrayList<Pt100>();
-                //使用默认表查询
-                list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
-                //找到对应的Pt100
-                Pt100 two = list2.get(0);
-                String temperature2 = two.getTemperature();
-                Float resistance2 = two.getResistance();
-                //进行线性公式计算出改r下面的温度
-                float k = (Float.valueOf(temperature2) - Float.valueOf(temperature1)) / (resistance2 - resistance1);
+                if (r>=18.52 && r<=212.5){
+                    list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
+                    //找到对应的Pt100
+                    Pt100 one = list1.get(0);
+                    String temperature1 = one.getTemperature();
+                    Float resistance1 = one.getResistance();
+                    //从大到小
+                    List<Pt100> list2 = new ArrayList<Pt100>();
+                    //使用默认表查询
+                    list2 = pt100Repository.findByResistanceBeforeOrderByResistanceASC(r);
+                    //找到对应的Pt100
+                    Pt100 two = list2.get(0);
+                    String temperature2 = two.getTemperature();
+                    Float resistance2 = two.getResistance();
+                    //进行线性公式计算出改r下面的温度
+                    float k = (Float.valueOf(temperature2) - Float.valueOf(temperature1)) / (resistance2 - resistance1);
 
-                float b = Float.valueOf(temperature1) - (k * resistance1);
+                    float b = Float.valueOf(temperature1) - (k * resistance1);
 
-                //将温度存入测量原值
-                originalInspectValue = k * r + b;
-                //添加矫正值
-                correctedInspectValue = originalInspectValue - zero;
+                    //将温度存入测量原值
+                    originalInspectValue = k * r + b;
+                    //添加矫正值
+                    correctedInspectValue = originalInspectValue - zero;
+                }else{
+                    originalInspectValue = -200f;
+                    correctedInspectValue = originalInspectValue-100f;
+                }
 
             }
             //设置检测结果

@@ -165,6 +165,9 @@ public class SocketMessageApi {
             return null;
         }
 
+        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)
+            return null;
+
 
         // 如果是在线数据，更新内存缓存设备的最新活动信息
         if(onlineData){
