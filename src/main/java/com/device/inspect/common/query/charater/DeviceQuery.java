@@ -147,9 +147,10 @@ public class DeviceQuery extends Querier<Device> {
         objectRoot = setFetch(queryParamenter, objectRoot);
         query.groupBy(objectRoot.get("id"));
         TypedQuery<Device> q = entityManager.createQuery(query);
+        long total = q.getResultList().size();
         q = setLimit(q, start, limit);
         List<Device> results = q.getResultList();
-        return new PageImpl<>(results, new PageRequest(start/limit,limit), queryCount(cb, queryParamenter));
+        return new PageImpl<>(results, new PageRequest(start/limit,limit), total);
     }
 
 }
