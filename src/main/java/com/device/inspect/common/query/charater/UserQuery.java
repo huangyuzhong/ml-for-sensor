@@ -81,9 +81,10 @@ public class UserQuery extends Querier<User> {
         query.groupBy(objectRoot.get("id"));
 
         TypedQuery<User> q = entityManager.createQuery(query);
+        long total = q.getResultList().size();
         q = setLimit(q, start, limit);
         List<User> results = q.getResultList();
-        return new PageImpl<>(results, new PageRequest(start/limit,limit), queryCount(cb, queryParamenter));
+        return new PageImpl<>(results, new PageRequest(start/limit,limit), total);
     }
 
 }
