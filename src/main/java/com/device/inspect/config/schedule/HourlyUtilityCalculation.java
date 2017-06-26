@@ -7,6 +7,7 @@ import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.service.OfflineHourQueue;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.common.util.transefer.StringDate;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,6 @@ public class HourlyUtilityCalculation{
     @Autowired
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
 
-    @Autowired
-    private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
 
   //  @Autowired
   //  private  InspectDataRepository inspectDataRepository;
@@ -174,18 +173,10 @@ public class HourlyUtilityCalculation{
             }
         }
         if(noData){
-            DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
-            if(hourlyUtilization == null){
-                hourlyUtilization = new DeviceHourlyUtilization();
-            }
-            hourlyUtilization.setPowerUpperBound((float)0);
-            hourlyUtilization.setPowerLowerBound((float)0);
-            hourlyUtilization.setRunningTime(0);
-            hourlyUtilization.setIdleTime(0);
-            hourlyUtilization.setConsumedEnergy((float)0);
-            hourlyUtilization.setDeviceId(device);
-            hourlyUtilization.setStartHour(currentHour);
-            deviceHourlyUtilizationRepository.save(hourlyUtilization);
+
+            Application.influxDBManager.writeHourlyUtilization(currentHour, device.getId(), device.getName(), device.getDeviceType().getName(),
+                    0,0,0,0,0,false);
+
 	        LOGGER.info("Hourly Utilization: target device have no data in target time inverval, save zero record to database");
             return;
         }
@@ -350,21 +341,13 @@ public class HourlyUtilityCalculation{
 
             energy = energy / 1000 / 1000;
         }
-        DeviceHourlyUtilization hourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
-        if (hourlyUtilization == null) {
-            hourlyUtilization = new DeviceHourlyUtilization();
-            hourlyUtilization.setDeviceId(device);
-            hourlyUtilization.setStartHour(currentHour);
+
+        if(!Application.influxDBManager.writeHourlyUtilization(currentHour, device.getId(), device.getName(), device.getDeviceType().getName(),
+                runningSecond, idleSecond, powerLower, powerUpper, energy, true)){
+            LOGGER.error("Failed to write new hourly utilization data to influxdb for device " + device.getId());
         }
 
-        hourlyUtilization.setIdleTime(idleSecond);
-        hourlyUtilization.setRunningTime(runningSecond);
 
-        hourlyUtilization.setPowerUpperBound(powerUpper);
-        hourlyUtilization.setPowerLowerBound(powerLower);
-
-        hourlyUtilization.setConsumedEnergy(energy);
-        deviceHourlyUtilizationRepository.save(hourlyUtilization);
     }
 
     public void scanMissedHourForAllDevice(Date currentHour, Date targetHour) {
@@ -372,8 +355,10 @@ public class HourlyUtilityCalculation{
         Iterable<Device> deviceList = deviceRepository.findAll();
         for (Device device : deviceList) {
             // if current hour of target device has no record, calculate it, and retry 10 times in total if db fail.
-            DeviceHourlyUtilization deviceHourlyUtilization = deviceHourlyUtilizationRepository.findByDeviceIdIdAndStartHour(device.getId(), currentHour);
-            if (deviceHourlyUtilization == null) {
+
+            List<List<Object>> deviceHourlyUtilizationData = Application.influxDBManager.readDeviceUtilizationInTimeRange(device.getId(), currentHour, DateUtils.addMinutes(currentHour, 10));
+
+            if (deviceHourlyUtilizationData == null || deviceHourlyUtilizationData.size() == 0){
                 List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
                 for (DeviceInspect deviceInspect : deviceInspects) {
                     if (deviceInspect.getInspectPurpose() == 1) {

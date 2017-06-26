@@ -109,9 +109,6 @@ public class SelectApiController {
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
 
     @Autowired
-    private DeviceHourlyUtilizationRepository deviceHourlyUtilizationRepository;
-
-    @Autowired
     private  DeviceInspectRepository deviceInspectRepository;
 
     @Autowired
@@ -940,14 +937,19 @@ public class SelectApiController {
         }
         System.out.println("begin time: " + beginTime + ", end time: " + endTime);
 
-        List<DeviceHourlyUtilization> utilizations = deviceHourlyUtilizationRepository.
-                findByDeviceIdIdAndStartHourBetweenOrderByStartHourAsc(device.getId(), beginTime, endTime);
+
+        List<List<Object>> utilizationList = Application.influxDBManager.readDeviceUtilizationInTimeRange(device.getId(), beginTime, endTime);
 
         List<RestHourlyUtilization> restHourlyUtilizations = new ArrayList<>();
-        for(DeviceHourlyUtilization utilization : utilizations){
-            RestHourlyUtilization restHourlyUtilization = new RestHourlyUtilization(utilization.getStartHour().getTime(),
-                    (float)utilization.getRunningTime()/3600, (float)(utilization.getIdleTime())/3600);
+        for(int i=0; i<utilizationList.size(); i++){
+            long timeStamp = StringDate.rfc3339ToLong((String)utilizationList.get(i).get(0));
+            float runningSeconds = ((Double)utilizationList.get(i).get(1)).floatValue();
+            float idleSeconds = ((Double)utilizationList.get(i).get(2)).floatValue();
+
+            RestHourlyUtilization restHourlyUtilization = new RestHourlyUtilization(timeStamp,
+                    runningSeconds/3600, idleSeconds/3600);
             restHourlyUtilizations.add(restHourlyUtilization);
+
         }
 
         return new RestResponse(new RestHourlyUtilizationList(device.getId(), restHourlyUtilizations));
@@ -990,8 +992,9 @@ public class SelectApiController {
             endTime = beginCalendar.getTime();
         }
         System.out.println("begin time: " + beginTime + ", end time: " + endTime);
-        List<DeviceHourlyUtilization> utilizations = deviceHourlyUtilizationRepository.
-                findByDeviceIdIdAndStartHourBetweenOrderByStartHourAsc(device.getId(), beginTime, endTime);
+
+        List<List<Object>> utilizationList = Application.influxDBManager.readDeviceUtilizationInTimeRange(device.getId(), beginTime, endTime);
+
 
         Float totalRunningHours = new Float(0);
         Float totalIdleHours = new Float(0);
@@ -1004,31 +1007,41 @@ public class SelectApiController {
         Integer leastOftenUsedHourUsedTime = new Integer(Integer.MAX_VALUE);
         Float offTimeHours = new Float(0);
 
-        for(DeviceHourlyUtilization utilization : utilizations){
-            totalRunningHours += (float)utilization.getRunningTime()/3600;
-            totalIdleHours += (float)utilization.getIdleTime()/3600;
-            if(utilization.getPowerLowerBound() < powerLowerBound){
-                powerLowerBound = utilization.getPowerLowerBound();
+        for(int i=0; i<utilizationList.size(); i++){
+            long timeStamp = StringDate.rfc3339ToLong((String)utilizationList.get(i).get(0));
+            Integer runningSeconds = ((Double)utilizationList.get(i).get(1)).intValue();
+            Integer idleSeconds = ((Double)utilizationList.get(i).get(2)).intValue();
+
+            float power_lower = ((Double)utilizationList.get(i).get(3)).floatValue();
+            float power_upper = ((Double)utilizationList.get(i).get(4)).floatValue();
+            float energy = ((Double)utilizationList.get(i).get(5)).floatValue();
+
+            totalRunningHours += (float)runningSeconds / 3600;
+
+            totalIdleHours += (float)idleSeconds / 3600;
+
+            if(power_lower < powerLowerBound){
+                powerLowerBound = power_lower;
             }
-            if(utilization.getPowerUpperBound() > powerUpperBound){
-                powerUpperBound = utilization.getPowerUpperBound();
+            if(power_upper > powerUpperBound){
+                powerUpperBound = power_upper;
             }
 
             Calendar calendar = Calendar.getInstance();
-            calendar.setTime(utilization.getStartHour());
+            calendar.setTime(new Date(timeStamp));
             Integer currentHour = calendar.get(Calendar.HOUR_OF_DAY);
-            totalConsumedEnergy += utilization.getConsumedEnergy();
-            if(utilization.getRunningTime() > mostOftenUsedHourUsedTime){
-                mostOftenUsedHourUsedTime = utilization.getRunningTime();
+            totalConsumedEnergy += energy;
+            if(runningSeconds > mostOftenUsedHourUsedTime){
+                mostOftenUsedHourUsedTime = runningSeconds;
                 mostOftenUsedHour = calendar.getTimeInMillis();
             }
-            if(utilization.getRunningTime() < leastOftenUsedHourUsedTime){
-                leastOftenUsedHourUsedTime = utilization.getRunningTime();
+            if(runningSeconds < leastOftenUsedHourUsedTime){
+                leastOftenUsedHourUsedTime = runningSeconds;
                 leastOftenUsedHour = calendar.getTimeInMillis();
             }
 
             if(currentHour < 9 || currentHour >= 18){
-                offTimeHours += (float)utilization.getRunningTime()/3600;
+                offTimeHours += (float)runningSeconds/3600;
             }
         }
 

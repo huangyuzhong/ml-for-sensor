@@ -13,6 +13,7 @@ import org.influxdb.dto.Point;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.influxdb.impl.TimeUtil;
+import org.apache.commons.lang3.time.DateUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -99,6 +100,84 @@ public class InfluxDBManager {
 
     }
 
+    /**
+     * 写入指定设备指定时间的每小时利用率数据
+     * @param samplingTime
+     * @param deviceId
+     * @param deviceName
+     * @param deviceType
+     * @param running_time
+     * @param idle_time
+     * @param power_lower_bound
+     * @param power_upper_bound
+     * @param consumed_energy
+     * @param overwrite
+     * @return
+     */
+    public boolean writeHourlyUtilization(Date samplingTime, Integer deviceId, String deviceName, String deviceType,
+                                          Integer running_time, Integer idle_time,
+                                          float power_lower_bound, float power_upper_bound,
+                                          float consumed_energy, boolean overwrite){
+
+        List<List<Object>> existingUtilization = readDeviceUtilizationInTimeRange(deviceId, samplingTime, DateUtils.addMinutes(samplingTime, 10));
+
+        if (existingUtilization != null && existingUtilization.size() > 0){
+            if (overwrite){
+                logger.info(String.format("utilization data of device %d at hour %s already exist, since overwrite is true, deleting", deviceId, samplingTime));
+
+                if(!deleteDeviceUtilizationInTimeRange(deviceId, samplingTime, DateUtils.addMinutes(samplingTime, 10))){
+                    logger.warn(String.format("FAILED to delete utilization data of device %d at hour %s , do not add new one", deviceId, samplingTime));
+                    return false;
+                }
+            }else{
+                logger.info(String.format("utilization data of device %d at hour %s already exist, since overwrite is False, skipping", deviceId, samplingTime));
+                return true;
+            }
+
+        }
+
+        String dbName = "intelab";
+
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("device_id", deviceId.toString())
+                .tag("device_name", deviceName)
+                .tag("device_type", deviceType)
+                .retentionPolicy("utilizations")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+        Point point = Point.measurement("utilization_rate")
+                .time(samplingTime.getTime(), TimeUnit.MILLISECONDS)
+                .addField("running_seconds", running_time)
+                .addField("idle_seconds", idle_time)
+                .addField("power_lower_bound", power_lower_bound)
+                .addField("power_upper_bound", power_upper_bound)
+                .addField("consumed_energy", consumed_energy)
+                .build();
+
+        batchPoints.point(point);
+        try {
+            influxDB.write(batchPoints);
+            logger.info(String.format("Successfully write hourly utilization data to influxdb. device %d, time %s, running seconds %s", deviceId, samplingTime, running_time));
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+
+            logger.error(String.format("Failed to write utilization data to influxdb. Error: %s", e.toString()));
+            return false;
+        }
+
+    }
+
+    /**
+     * 写入调用API的TS数据, 包括用户, 链接, 返回值, 消耗时间
+     * @param startTime
+     * @param userName
+     * @param url
+     * @param responseCode
+     * @param duration
+     * @return
+     */
     public boolean writeAPIOperation(Long startTime, String userName, String url, Integer responseCode, long duration){
         String dbName = "intelab";
 
@@ -108,7 +187,7 @@ public class InfluxDBManager {
                 .tag("url", url)
                 .tag("response", responseCode.toString())
                 .tag("user", userName)
-                .retentionPolicy("autogen")
+                .retentionPolicy("operations")
                 .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
 
@@ -447,6 +526,7 @@ public class InfluxDBManager {
     }
 
 
+
     /**
      * 查询指定设备指定measurement指定参数指定时间内的报警信息。 注意， 同一设备的可能对同种measurement有多个参数。
      * 例如， 一台大型设备可能不同的部分会有不同的温度
@@ -513,6 +593,111 @@ public class InfluxDBManager {
             logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
 
             return null;
+        }
+    }
+
+    /**
+     * 查询指定设备指定时间内的利用率。
+     * @param deviceId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<List<Object>> readDeviceUtilizationInTimeRange(Integer deviceId, Date startTime, Date endTime){
+
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT running_seconds,idle_seconds,power_lower_bound,power_upper_bound,consumed_energy FROM utilizations.utilization_rate WHERE device_id='%d' AND time >= %d AND time < %d ORDER BY time",
+                         deviceId, startNano, endNano);
+
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            //since a query can contain multiple sub queries, the return value is a list
+            List<QueryResult.Result> resultList = result.getResults();
+
+            if(resultList != null && resultList.size() > 0){
+                QueryResult.Result tsData = resultList.get(0);
+
+                List<QueryResult.Series> series = tsData.getSeries();
+
+                if(series != null && series.size() > 0){
+                    List<String> columes = series.get(0).getColumns();
+
+                    // columes should be ['time', running_seconds,idle_seconds,power_lower_bound,power_upper_bound,consumed_energy]
+
+                    if(columes.size() != 6 || !columes.contains("time")){
+                        logger.error("The series in query result is incorrect, no time or value");
+                        return null;
+                    }
+
+                    return series.get(0).getValues();
+
+                }
+
+            }
+
+            return null;
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query utilization from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 删除指定设备指定时间内的利用率。
+     * @param deviceId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public boolean deleteDeviceUtilizationInTimeRange(Integer deviceId, Date startTime, Date endTime){
+
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+
+        }
+
+        String queryString =
+                String.format("DELETE FROM utilizations.utilization_rate WHERE device_id='%d' AND time >= %d AND time < %d ORDER BY time",
+                        deviceId, startNano, endNano);
+
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            return true;
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query utilization from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return false;
         }
     }
 }
