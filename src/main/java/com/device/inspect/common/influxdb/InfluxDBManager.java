@@ -126,7 +126,7 @@ public class InfluxDBManager {
                 logger.info(String.format("utilization data of device %d at hour %s already exist, since overwrite is true, deleting", deviceId, samplingTime));
 
                 if(!deleteDeviceUtilizationInTimeRange(deviceId, samplingTime, DateUtils.addMinutes(samplingTime, 10))){
-                    logger.warn(String.format("FAILED to delete utilization data of device %d at hour %s , do not add new one", deviceId, samplingTime));
+                    logger.error(String.format("FAILED to delete utilization data of device %d at hour %s , do not add new one", deviceId, samplingTime));
                     return false;
                 }
             }else{
@@ -537,7 +537,7 @@ public class InfluxDBManager {
      * @param endTime
      * @return
      */
-    public List<List<Object>> readTelemetryInTimeRange(String inspectType, Integer deviceId, Integer deviceInspectId, Date startTime, Date endTime){
+    public List<List<Object>> readTelemetryInTimeRange(String inspectType, Integer deviceId, Integer deviceInspectId, Date startTime, Date endTime, int granularity){
 
         String dbName = "intelab";
 
@@ -550,9 +550,25 @@ public class InfluxDBManager {
             return null;
         }
 
-        String queryString =
-                String.format("SELECT value FROM %s WHERE device_id='%d' AND inspect_id='%d' AND time >= %d AND time <= %d ORDER BY time",
-                inspectType, deviceId, deviceInspectId, startNano, endNano);
+        String retentionPolicy;
+
+        switch(granularity){
+            case Calendar.MINUTE: retentionPolicy = "ten_min"; break;
+            case Calendar.HOUR: retentionPolicy = "hourly"; break;
+            case Calendar.DATE: retentionPolicy = "daily"; break;
+            default: retentionPolicy="original_telemetry";
+        }
+
+        String queryString = null;
+
+        if(retentionPolicy == "original_telemetry"){
+            queryString = String.format("SELECT value FROM %s WHERE device_id='%d' AND inspect_id='%d' AND time >= %d AND time <= %d ORDER BY time",
+                    inspectType, deviceId, deviceInspectId, startNano, endNano);
+        }else{
+            queryString = String.format("SELECT mean_value as value FROM %s.%s WHERE device_id='%d' AND inspect_id='%d' AND time >= %d AND time <= %d ORDER BY time",
+                    retentionPolicy, inspectType, deviceId, deviceInspectId, startNano, endNano);
+        }
+
 
         Query query = new Query(queryString, dbName);
 

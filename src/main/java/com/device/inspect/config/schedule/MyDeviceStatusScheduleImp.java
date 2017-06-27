@@ -253,7 +253,8 @@ public class MyDeviceStatusScheduleImp {
                                                             device.getId(),
                                                             batteryInspect.getId(),
                                                             time10minBefore,
-                                                            scheduleStartTime
+                                                            scheduleStartTime,
+                                                            Calendar.SECOND
                                                             );
 
                                                     if(recentBatteryData == null || recentBatteryData.size()==0){

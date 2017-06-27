@@ -1109,13 +1109,33 @@ public class SelectApiController {
             }
         }
 
+        // decide the time granularity according to the timespan between beginTime and endTime
+
+        long timeSpan = (endTime.getTime() - beginTime.getTime()) / 1000; //in seconds
+
+
+        // shorter than 6 hours, using non-aggregated data
+        int timeGranularity = Calendar.SECOND;
+
+
+        if(timeSpan > 3600 * 24 * 30){
+            // longer than a month, using daily average data
+            timeGranularity = Calendar.DATE;
+        }else if(timeSpan > 3600 * 24 * 5){
+            // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
+            timeGranularity = Calendar.HOUR;
+        }else if(timeSpan > 3600 * 6){
+            // longer than 6 hours, using 10-min data, at most 144 * 5 entry per inspect
+            timeGranularity = Calendar.MINUTE;
+        }
+
         List<TelemetryData> telemetryDatas = new ArrayList<>();
 
         for(DeviceInspect deviceInspect: deviceInspects){
             List<List<Object>> inspectDatas = Application.influxDBManager.readTelemetryInTimeRange(
                     deviceInspect.getInspectType().getMeasurement(),
 //                    InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
-                    device.getId(), deviceInspect.getId(), beginTime, endTime);
+                    device.getId(), deviceInspect.getId(), beginTime, endTime, timeGranularity);
 
 
 
@@ -1135,8 +1155,6 @@ public class SelectApiController {
             Long yellowAlertTime = new Long(0);
             Integer redAlertCount = new Integer(0);
             Long redAlertTime = new Long(0);
-
-
 
 
             for(int i=0; i<inspectDatas.size(); i++){

@@ -119,7 +119,7 @@ public class MessageController {
             Date time3minBefore = DateUtils.addMinutes(sampleTime, -3);
             List<List<Object>> doorInspectData = Application.influxDBManager.readTelemetryInTimeRange(
                     deviceInspect.getInspectType().getMeasurement(),
-                    device.getId(), doorInspect.getId(), time3minBefore, sampleTime);
+                    device.getId(), doorInspect.getId(), time3minBefore, sampleTime, Calendar.SECOND);
 
             if(doorInspectData != null && doorInspectData.size() > 0){
                 Long openMilisecond = new Long(0);

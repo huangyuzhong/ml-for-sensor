@@ -11,6 +11,7 @@ import java.util.List;
 public interface DeviceInspectRepository extends CrudRepository<DeviceInspect,Integer> {
     public DeviceInspect findByInspectTypeIdAndDeviceId(Integer InspectTypeId,Integer DeviceId);
     public List<DeviceInspect> findByDeviceId(Integer DeviceId);
+    public List<DeviceInspect> findByDeviceIdAndInspectPurpose(Integer DeviceId, Integer InspectPurpose);
     public DeviceInspect findById(Integer Id);
     public DeviceInspect save(DeviceInspect deviceInspect);
 }

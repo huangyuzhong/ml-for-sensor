@@ -528,12 +528,12 @@ public class SocketMessageApi {
 
                     // each List<Object> is [time, value]
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
-                            deviceId, deviceInspect.getId(), startTime, new Date());
+                            deviceId, deviceInspect.getId(), startTime, new Date(), Calendar.SECOND);
                     // for status inspect, if there is no data in given timeVal, try to get recent 5 minutes data, and set flag for not sending these data back
                     if(inspectSeries == null && isStatusInspect){
                         startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
                         inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
-                                deviceId, deviceInspect.getId(), startTime, new Date());
+                                deviceId, deviceInspect.getId(), startTime, new Date(), Calendar.SECOND);
                         isNotRequiredData = true;
                     }
                 }
@@ -541,7 +541,7 @@ public class SocketMessageApi {
                     // default to get data in latest 5 minutes
                     Date startTime = new Date (currentTime.getTime() - 5 * 60 * 1000);
                     inspectSeries = Application.influxDBManager.readTelemetryInTimeRange(measurementName,
-                            deviceId, deviceInspect.getId(), startTime, new Date());
+                            deviceId, deviceInspect.getId(), startTime, new Date(), Calendar.SECOND);
                 }
 
                 List<Long> timeSeries = new ArrayList<Long>();

@@ -45,17 +45,20 @@ public class HourlyUtilityCalculation{
     private final static Integer offlineTimeStep = 300 * 1000;
     private final static Integer scanScope = 3600 * 1000;
     private final static Integer timeStep = 20 * 1000;
-    private final static Integer powerInspectTypeId = 14;
+    private final static Integer[] powerInspectTypeId = {14, 25, 42};
     private final static Integer powerInspectSampleTime = 60*1000;
 
     private final static Integer lastStatusFlag = 10;
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
 
-    @Scheduled(cron = "0 10 * * * ? ")
+    @Scheduled(cron = "0 40 * * * ? ")
     public void scheduleTask() {
         LOGGER.info("Start scanning utilization data");
+
         Date startScanTime = new Date();
+
+        /*
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR, cal.get(Calendar.HOUR) - 1);
         cal.set(Calendar.MINUTE, 0);
@@ -69,6 +72,7 @@ public class HourlyUtilityCalculation{
             LOGGER.info("Begin scan missing utilization data from: " + currentHour + ", to " + targetHour);
             scanMissedHourForAllDevice(currentHour, targetHour);
         }
+        */
 
         while(!offlineHourQueue.recalculateRequest.isEmpty()){
             scanDeviceUtil(offlineHourQueue.recalculateRequest.get(0).getBeginTime(),
@@ -93,7 +97,7 @@ public class HourlyUtilityCalculation{
         Integer lastStatus = lastStatusFlag;
         List<DeviceInspect> deviceInspects = deviceInspectRepository.findByDeviceId(device.getId());
         List<DeviceInspect> runningInspects = new ArrayList<>();
-        List<DeviceInspect> lastHourRunningInspects = new ArrayList<>();
+        List<DeviceInspect> lastHourRunningInspects = deviceInspectRepository.findByDeviceIdAndInspectPurpose(device.getId(), 1);
 
         /*
         List<List<InspectData>> listOfInspectData = new ArrayList<>();
@@ -108,49 +112,67 @@ public class HourlyUtilityCalculation{
         }
         */
 
+        Map<DeviceInspect, List<DeviceInspectRunningStatus>> inspectStatusMap = new HashMap<>();
+
+        for(DeviceInspect deviceInspect: lastHourRunningInspects){
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+            if(runningStatuses == null || runningStatuses.size() == 0){
+                LOGGER.info(String.format("Device %d, inpsect %d, has no running status setup", device.getId(), deviceInspect.getId()));
+                continue;
+            }
+            else{
+                runningInspects.add(deviceInspect);
+                inspectStatusMap.put(deviceInspect, runningStatuses);
+            }
+        }
+
+        if(runningInspects.size() == 0){
+            LOGGER.info("There is no active status inspects for device " + device.getId());
+            return;
+        }
+
         List<List<List<Object>>> listOfInspectData = new ArrayList<>();
         Date lastHourTime = new Date();
         lastHourTime.setTime(currentHour.getTime() - 5*60*1000);
 
-        for (DeviceInspect deviceInspect : deviceInspects) {
-            if (deviceInspect.getInspectPurpose() == 1) {
-                LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
+        for (DeviceInspect deviceInspect : runningInspects) {
+            LOGGER.info("Hourly Utilization: found status monitor " + deviceInspect.getId());
 
-                List<List<Object>> inspectDataList = Application.influxDBManager.readTelemetryInTimeRange(
-                        deviceInspect.getInspectType().getMeasurement(),
-                        device.getId(), deviceInspect.getId(), currentHour, targetHour);
+            List<List<Object>> inspectDataList = Application.influxDBManager.readTelemetryInTimeRange(
+                    deviceInspect.getInspectType().getMeasurement(),
+                    device.getId(), deviceInspect.getId(), currentHour, targetHour, Calendar.SECOND);
 
 
-                List<List<Object>> lastHourStatus = Application.influxDBManager.readTelemetryInTimeRange(
-                        deviceInspect.getInspectType().getMeasurement(),
-                        device.getId(), deviceInspect.getId(), lastHourTime, currentHour);
+            List<List<Object>> lastHourStatus = Application.influxDBManager.readTelemetryInTimeRange(
+                    deviceInspect.getInspectType().getMeasurement(),
+                    device.getId(), deviceInspect.getId(), lastHourTime, currentHour, Calendar.SECOND);
 
-                // calculate running status of current device inspect in last hour
-                if(lastHourStatus != null && lastHourStatus.size() > 0){
-                    List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
-                            findByDeviceInspectId(deviceInspect.getId());
-                    Integer lastStatusOfCurrentInspect = lastStatusFlag;
-                    for(DeviceInspectRunningStatus runningStatus : runningStatuses){
-                        if(runningStatus.getThreshold() < Float.parseFloat(lastHourStatus.get(lastHourStatus.size() - 1).get(1).toString())){
-                            lastStatusOfCurrentInspect = runningStatus.getDeviceRunningStatus().getLevel() > lastStatusOfCurrentInspect ?
-                                    runningStatus.getDeviceRunningStatus().getLevel() : lastStatusOfCurrentInspect;
-                        }
+            // calculate running status of current device inspect in last hour
+            if(lastHourStatus != null && lastHourStatus.size() > 0){
+                List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
+                        findByDeviceInspectId(deviceInspect.getId());
+                Integer lastStatusOfCurrentInspect = lastStatusFlag;
+                for(DeviceInspectRunningStatus runningStatus : runningStatuses){
+                    if(runningStatus.getThreshold() < Float.parseFloat(lastHourStatus.get(lastHourStatus.size() - 1).get(1).toString())){
+                        lastStatusOfCurrentInspect = runningStatus.getDeviceRunningStatus().getLevel() > lastStatusOfCurrentInspect ?
+                                runningStatus.getDeviceRunningStatus().getLevel() : lastStatusOfCurrentInspect;
                     }
-                    LOGGER.info(String.format("Hourly Utilization: inspect %d has running level %d in last hour", deviceInspect.getId(), lastStatusOfCurrentInspect));
-                    lastStatus = lastStatusOfCurrentInspect > lastStatus ? lastStatusOfCurrentInspect : lastStatus;
-                    LOGGER.info("Hourly Utilization: update last status to " + lastStatus.toString());
                 }
-
-                if(inspectDataList != null){
-                    listOfInspectData.add(inspectDataList);
-                    runningInspects.add(deviceInspect);
-                }
+                LOGGER.info(String.format("Hourly Utilization: inspect %d has running level %d in last hour", deviceInspect.getId(), lastStatusOfCurrentInspect));
+                lastStatus = lastStatusOfCurrentInspect > lastStatus ? lastStatusOfCurrentInspect : lastStatus;
+                LOGGER.info("Hourly Utilization: update last status to " + lastStatus.toString());
             }
+
+            if(inspectDataList != null){
+                listOfInspectData.add(inspectDataList);
+
+            }
+
         }
 
         // no inspect is used for record running status
-        if (runningInspects.isEmpty() || listOfInspectData.isEmpty()) {
-            LOGGER.info("Hourly Utilization: target device have not status inspect, pass");
+        if ( listOfInspectData.isEmpty()) {
+            LOGGER.info("Hourly Utilization: target device have not status inspect data, pass");
 	        return;
         }
 
@@ -199,8 +221,7 @@ public class HourlyUtilityCalculation{
             LOGGER.info("Start scanning running status data and get hourly utilization. Inspect id: "
                     + runningInspects.get(i).getId());
             // get running status setup of current inspect
-            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.
-                    findByDeviceInspectId(runningInspects.get(i).getId());
+            List<DeviceInspectRunningStatus> runningStatuses = inspectStatusMap.get(runningInspects.get(i));
 
             try {
                 for (List<Object> inspectData : inspectDataList) {
@@ -284,7 +305,17 @@ public class HourlyUtilityCalculation{
             }
         }
 
-        DeviceInspect powerInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(powerInspectTypeId, device.getId());
+        DeviceInspect powerInspect = null;
+
+        for(Integer typeId: powerInspectTypeId) {
+            DeviceInspect queryPowerInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(typeId, device.getId());
+            if(queryPowerInspect != null){
+                powerInspect = queryPowerInspect;
+                break;
+            }
+        }
+
+
         Float powerLower = new Float(0);
         Float powerUpper = new Float(0);
         Float energy = new Float(0);
@@ -294,7 +325,7 @@ public class HourlyUtilityCalculation{
 
             List<List<Object>> powerInspectDataList = Application.influxDBManager.readTelemetryInTimeRange(
                     powerInspect.getInspectType().getMeasurement(),
-                    device.getId(), powerInspect.getId(), currentHour, targetHour);
+                    device.getId(), powerInspect.getId(), currentHour, targetHour, Calendar.SECOND);
 
             LOGGER.info(String.format("Found %d power inspect data", powerInspectDataList.size()));
             if (powerInspectDataList != null && !powerInspectDataList.isEmpty()) {
