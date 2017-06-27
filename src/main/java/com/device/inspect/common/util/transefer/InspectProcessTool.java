@@ -122,7 +122,7 @@ public class InspectProcessTool {
                 //从小到大
                 List<Pt100> list1 = new ArrayList<Pt100>();
                 //使用默认表查询
-                if (r>=18.52 && r<=212.5){
+                if (r>=18.52 && r<=212.5){  //这两个值分别为pt100表中的resistance字段的最大值和最小值.在这两个范围内的值,目前定义为合法值.
                     list1 = pt100Repository.findByResistanceAfterOrderByResistanceDESC(r);
                     //找到对应的Pt100
                     Pt100 one = list1.get(0);

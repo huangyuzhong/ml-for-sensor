@@ -165,7 +165,7 @@ public class SocketMessageApi {
             return null;
         }
 
-        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)
+        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)  //这个判断如果为true的话，表示上面的r值为非法值，则不需要进行一下处理，直接返回。
             return null;
 
 
