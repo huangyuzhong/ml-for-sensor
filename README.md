@@ -5,33 +5,42 @@
   ```
   export INTELAB_ENV={环境名称}
   ```
+  
+  在/etc/environment里加入
+  HOME=/home/ilabservice
+  INTELAB_ENV={环境名称}
  
  * 重新打开shell。
 
 2. 克隆代码
  
-  ```
-  cd /*the directory you want to put the code*/
-  ```
+  intelab-wbe
+  intelab-configs
+  intelab-tools
   
- * 修改application.properties里的数据库地址指向该环境的数据库。
+ * 修改intelab-configs/{环境名称}/application.properties里的数据库地址指向该环境的数据库。
+ * copy intelab-configs/{环境名称}/log4j2.xml到 intelab-wbe/src/main/resources/
  
 3. 编译生成运行包
   
   ```
   mvn package
   ```
+  
+4. copy intelab-wbe/scripts/upstart/intelab-wbe.conf 到/etc/init/
 
-4. 进入target目录并运行, spring.config.location中输入config文件地址
+
+5. 运行 wbe
 
 ```
-  cd ./target
-  nohup java -jar /*target .jar file*/ --spring.config.location=${home}/intelab-configs/${INTELAB_ENV}/application.properties &
+  sudo start intelab-wbe
 ```
-使用nohup可以使退出ssh时后端依然在运行
 
 如果使用intellij运行，需要在edit configuration 中，spring boot setting 里添加spring.config.location，值为config的文件路径名
-  
+
+PS: 以下两个components是合同WBE一起工作的
+* socket server 类似操作. 
+* rabbitmq 运行正常 
 
 5. 改动
   改动文件之后，需要将原先的进程关闭，然后重新启动
