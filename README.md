@@ -14,9 +14,9 @@
 
 2. 克隆代码
  
-  intelab-wbe
-  intelab-configs
-  intelab-tools
+ - intelab-wbe
+ - intelab-configs
+ - intelab-tools
   
  * 修改intelab-configs/{环境名称}/application.properties里的数据库地址指向该环境的数据库。
  * copy intelab-configs/{环境名称}/log4j2.xml到 intelab-wbe/src/main/resources/
