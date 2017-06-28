@@ -7,9 +7,12 @@
   ```
   
   在/etc/environment里加入
+  
+  ```
   HOME=/home/ilabservice
   INTELAB_ENV={环境名称}
- 
+  ```
+  
  * 重新打开shell。
 
 2. 克隆代码
