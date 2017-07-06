@@ -40,6 +40,7 @@ import com.device.inspect.controller.request.*;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.Page;
@@ -942,7 +943,7 @@ public class SelectApiController {
 
         List<RestHourlyUtilization> restHourlyUtilizations = new ArrayList<>();
         for(int i=0; i<utilizationList.size(); i++){
-            long timeStamp = StringDate.rfc3339ToLong((String)utilizationList.get(i).get(0));
+            long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String)utilizationList.get(i).get(0));
             float runningSeconds = ((Double)utilizationList.get(i).get(1)).floatValue();
             float idleSeconds = ((Double)utilizationList.get(i).get(2)).floatValue();
 
@@ -1008,7 +1009,8 @@ public class SelectApiController {
         Float offTimeHours = new Float(0);
 
         for(int i=0; i<utilizationList.size(); i++){
-            long timeStamp = StringDate.rfc3339ToLong((String)utilizationList.get(i).get(0));
+
+            long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String)utilizationList.get(i).get(0));
             Integer runningSeconds = ((Double)utilizationList.get(i).get(1)).intValue();
             Integer idleSeconds = ((Double)utilizationList.get(i).get(2)).intValue();
 
@@ -1159,7 +1161,7 @@ public class SelectApiController {
 
             for(int i=0; i<inspectDatas.size(); i++){
                 Float result = ((Double) inspectDatas.get(i).get(1)).floatValue();
-                Long timeTick = StringDate.rfc3339ToLong((String)inspectDatas.get(i).get(0));
+                Long timeTick = TimeUtil.fromInfluxDBTimeFormat((String)inspectDatas.get(i).get(0));
 
                 sumValue += result;
                 if(result > maxValue){

@@ -5,6 +5,7 @@ import com.device.inspect.common.util.transefer.StringDate;
 import com.device.inspect.controller.SocketMessageApi;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.impl.TimeUtil;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class MKTCalculator {
             double sum = 0;
             long total_time = 0;
             for(int i = 0; i < inspectDatas.size() - 1; i++){
-                long time = StringDate.rfc3339ToLong((String)inspectDatas.get(i).get(0)) - StringDate.rfc3339ToLong((String)inspectDatas.get(i + 1).get(0));
+                long time = TimeUtil.fromInfluxDBTimeFormat((String)inspectDatas.get(i).get(0)) - TimeUtil.fromInfluxDBTimeFormat((String)inspectDatas.get(i + 1).get(0));
                 total_time += time;
                 sum += time * Math.exp(- deltaHDivR/(((Double) inspectDatas.get(i).get(1))*1.8 + 32));
             }

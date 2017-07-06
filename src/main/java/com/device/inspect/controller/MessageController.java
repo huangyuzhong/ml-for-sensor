@@ -21,6 +21,7 @@ import org.apache.commons.httpclient.util.DateUtil;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -126,7 +127,7 @@ public class MessageController {
 
                 for(int i=doorInspectData.size()-1; i>=0; i--){
                     if(((Double)doorInspectData.get(i).get(1)).floatValue() == doorOpen){
-                        openMilisecond = sampleTime.getTime() - StringDate.rfc3339ToLong((String)doorInspectData.get(i).get(0));
+                        openMilisecond = sampleTime.getTime() - TimeUtil.fromInfluxDBTimeFormat((String)doorInspectData.get(i).get(0));
                     }
                     else{
                         break;

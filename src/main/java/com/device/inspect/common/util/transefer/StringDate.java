@@ -103,24 +103,4 @@ public class StringDate {
         return date.getTime();
     }
 
-
-    public static long rfc3339ToLong(String time){
-        try {
-            String[] e = time.split("T");
-            String datePart = e[0];
-            String timePart = e[1].substring(0, e[1].length() - 1);
-            SimpleDateFormat dateDF = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat timeDF = new SimpleDateFormat("HH:mm:ss.SSS");
-            dateDF.setTimeZone(TimeZone.getTimeZone("UTC"));
-            timeDF.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-            if(timePart.lastIndexOf(".") < 0){
-                timePart += ".000";
-            }
-
-            return dateDF.parse(datePart).getTime() + timeDF.parse(timePart).getTime();
-        } catch (Exception var6) {
-            throw new RuntimeException("unexpected date format", var6);
-        }
-    }
 }

@@ -10,6 +10,7 @@ import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -226,7 +227,7 @@ public class HourlyUtilityCalculation{
             try {
                 for (List<Object> inspectData : inspectDataList) {
                     // use create time to calculate the index of inspect data in running status array
-                    long tsTime = StringDate.rfc3339ToLong(inspectData.get(0).toString());
+                    long tsTime = TimeUtil.fromInfluxDBTimeFormat(inspectData.get(0).toString());
                     Integer indexTimeSlot = Long.valueOf(tsTime - currentHour.getTime()).intValue() / timeStep;
                     Float value = Float.valueOf(inspectData.get(1).toString());
                     Integer status = -1;

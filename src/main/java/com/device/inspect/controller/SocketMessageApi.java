@@ -20,6 +20,7 @@ import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -283,7 +284,7 @@ public class SocketMessageApi {
             if(lastInspectRecord==null || lastInspectRecord.size()==0){
                 isNewAlert = true;
             }else{
-                lastInspectTime = StringDate.rfc3339ToLong((String)lastInspectRecord.get(0));
+                lastInspectTime = TimeUtil.fromInfluxDBTimeFormat((String)lastInspectRecord.get(0));
                 lastInspectStatus = (String)lastInspectRecord.get(2);
 
                 if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
@@ -566,7 +567,7 @@ public class SocketMessageApi {
                         for (List<Object> telemetryEntry : inspectSeries) {
                             String timeRFC3999 = telemetryEntry.get(0).toString();
 
-                            long timeStamp = StringDate.rfc3339ToLong(timeRFC3999);
+                            long timeStamp = TimeUtil.fromInfluxDBTimeFormat(timeRFC3999);
                             timeSeries.add(timeStamp);
                             valueSeries.add(Float.parseFloat(telemetryEntry.get(1).toString()));
                         }

@@ -183,7 +183,6 @@ public class InfluxDBManager {
 
 
         BatchPoints batchPoints = BatchPoints.database(dbName)
-                .tag("start", startTime.toString())
                 .tag("url", url)
                 .tag("response", responseCode.toString())
                 .tag("user", userName)
