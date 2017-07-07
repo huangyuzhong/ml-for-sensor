@@ -205,7 +205,7 @@ deviceId					�����豸ID
             ]
         },
         "createDate": 1467799007000,
-        "creator": "���ı�Ƶ����",
+        "serialNo": "���ı�Ƶ����",
         "purchase": 1468835839000,
         "photo": "logos1",
         "manager": {
@@ -406,7 +406,7 @@ GET��/api/rest/firm/device/types
                           ]
                       },
                       "createDate": 1468317410000,
-                      "creator": "ĳ����",
+                      "serialNo": "ĳ����",
                       "purchase": 1468231422000,
                       "photo": "logos2",
                       "manager": {

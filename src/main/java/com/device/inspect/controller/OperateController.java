@@ -234,8 +234,8 @@ public class OperateController {
                 e.printStackTrace();
             }
         }
-        if (null!=map.get("creator"))
-            device.setCreator(map.get("creator"));
+        if (null!=map.get("serialNo"))
+            device.setSerialNo(map.get("serialNo"));
         if (null!=map.get("maintain"))
             device.setMaintain(map.get("maintain"));
         if (null!=map.get("maintainAlterDays"))

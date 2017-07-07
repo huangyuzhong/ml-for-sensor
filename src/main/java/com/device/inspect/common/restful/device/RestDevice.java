@@ -23,7 +23,7 @@ public class RestDevice {
     private String name;
     private RestDeviceType deviceType;
     private Date createDate;
-    private String creator;
+    private String serialNo;
     private Date purchase;
     private String photo;
     private RestUser manager;
@@ -57,7 +57,7 @@ public class RestDevice {
         this.name = device.getName();
         this.deviceType = null==device.getDeviceType()?null:new RestDeviceType(device.getDeviceType());
         this.createDate = device.getCreateDate();
-        this.creator = device.getCreator();
+        this.serialNo = device.getSerialNo();
         this.purchase = device.getPurchase();
         this.manager = null==device.getManager()?null:new RestUser(device.getManager());
         this.photo = device.getPhoto();
@@ -152,12 +152,12 @@ public class RestDevice {
         this.createDate = createDate;
     }
 
-    public String getCreator() {
-        return creator;
+    public String getSerialNo() {
+        return serialNo;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
     }
 
     public Date getPurchase() {

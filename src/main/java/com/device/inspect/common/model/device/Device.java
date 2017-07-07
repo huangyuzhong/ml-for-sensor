@@ -21,7 +21,7 @@ public class Device {
     private String name;
     private DeviceType deviceType;
     private Date createDate;
-    private String creator;
+    private String serialNo;
     private Date purchase;
     private String photo;
     private User manager;
@@ -95,12 +95,13 @@ public class Device {
         this.createDate = createDate;
     }
 
-    public String getCreator() {
-        return creator;
+    @Column(name = "serial_no")
+    public String getSerialNo() {
+        return serialNo;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
+    public void setSerialNo(String serialNo) {
+        this.serialNo = serialNo;
     }
 
     @Column(name = "purchase_date")

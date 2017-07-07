@@ -203,7 +203,7 @@ SET FOREIGN_KEY_CHECKS=0;
   `name` VARCHAR(255) NULL,
   `type_id` INT NULL,
   `create_date` DATETIME NULL,
-  `creator` VARCHAR(255) NULL,
+  `serial_no` VARCHAR(255) NULL,
   `purchase_date` DATETIME NULL,
   `photo` VARCHAR(255) NULL,
   `manager_user_id` INT NULL,
