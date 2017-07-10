@@ -65,13 +65,8 @@ public class LoginUserService {
                 throw new UsernameNotFoundException("you are not a firm account!");
         }
         if (null!=companyId&&UserRoleDifferent.userStartWithFirm(user)){
-            String realId = "";
-            try {
-                realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-            if (!user.getCompany().getId().toString().equals(realId))
+            
+            if (!user.getCompany().getCompanyId().equals(companyId))
                 throw new UsernameNotFoundException("user's company isn't correct!");
 
         }
