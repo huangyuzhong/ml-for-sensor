@@ -559,13 +559,16 @@ public class SelectApiController {
 //            return new RestResponse("用户未登陆",1005,null);
         if (null==companyId||companyId.equals(""))
             return new RestResponse("没有正确的访问参数！",null);
+        /*
         String realId = "";
         try {
             realId = URLDecoder.decode(ByteAndHex.convertMD5(companyId),"UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        Company company = companyRepository.findOne(Integer.valueOf(realId));
+        */
+        //Company company = companyRepository.findOne(Integer.valueOf(realId));
+        Company company = companyRepository.findByCompanyId(companyId);
         if (null==company)
             return new RestResponse("当前登陆页面不是企业URL！",1005,null);
         return new RestResponse(new RestCompany(company));
