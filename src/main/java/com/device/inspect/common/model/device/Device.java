@@ -49,6 +49,7 @@ public class Device {
     private Date lastActivityTime;
     private Date lastYellowAlertTime;
     private Date lastRedAlertTime;
+    private int enableSharing;
 
     @Id
     @GeneratedValue()
@@ -346,5 +347,14 @@ public class Device {
 
     public void setLastRedAlertTime(Date lastRedAlertTime){
         this.lastRedAlertTime = lastRedAlertTime;
+    }
+
+    @Column(name = "enable_sharing  ")
+    public int getEnableSharing() {
+        return enableSharing;
+    }
+
+    public void setEnableSharing(int enableSharing) {
+        this.enableSharing = enableSharing;
     }
 }

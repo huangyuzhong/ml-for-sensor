@@ -530,6 +530,7 @@ public class FileController {
                 device.setRoom(room);
                 device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
                 device.setEnable(1);
+                device.setEnableSharing(Integer.parseInt(param.get("enableSharing")));
                 Room room1=device.getRoom();
                 room1.setTotal(room1.getTotal()+1);
                 room1.setOffline(room1.getOffline()+1);
