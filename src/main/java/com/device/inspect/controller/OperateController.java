@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import DNA.sdk.wallet.UserWalletManager;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -21,6 +22,7 @@ import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.*;
+import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusRequest;
@@ -535,6 +537,12 @@ public class OperateController {
         }
         child.setJobNum(map.get("jobNum"));
         child.setRemoveAlert("0");
+
+        // 新增用户前，给该用户上链
+        UserWalletManager wallet = InitWallet.getWallet();
+        String address = wallet.createAccount();
+        child.setAccountAddress(address);
+
         userRepository.save(child);
         if (roleAuthorityList.size()==1){
             Role role = new Role();

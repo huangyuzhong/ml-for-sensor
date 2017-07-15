@@ -32,6 +32,7 @@ public class User {
     private Integer bindEmail;
     private Integer verify;
     private String removeAlert;
+    private String accountAddress;
 
     @Id
     @GeneratedValue()
@@ -195,5 +196,14 @@ public class User {
 
     public void setRemoveAlert(String removeAlert) {
         this.removeAlert = removeAlert;
+    }
+
+    @Column(name = "account_address")
+    public String getAccountAddress() {
+        return accountAddress;
+    }
+
+    public void setAccountAddress(String accountAddress) {
+        this.accountAddress = accountAddress;
     }
 }
