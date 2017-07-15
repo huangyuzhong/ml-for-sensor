@@ -39,7 +39,7 @@ public class Company {
     private Float lng;
     private String companyId;
     private String features;
-
+    private String accountAddress;
 
     @Id
     @GeneratedValue()
@@ -266,5 +266,14 @@ public class Company {
 
     public void setFeatures(String features) {
         this.features = features;
+    }
+
+    @Column(name = "account_address")
+    public String getAccountAddress(){
+        return this.accountAddress;
+    }
+
+    public void setAccountAddress(String accountAddress){
+        this.accountAddress = accountAddress;
     }
 }

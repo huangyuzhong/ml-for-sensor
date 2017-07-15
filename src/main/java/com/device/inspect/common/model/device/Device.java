@@ -4,6 +4,7 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.sun.org.apache.xpath.internal.operations.String;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -50,6 +51,9 @@ public class Device {
     private Date lastYellowAlertTime;
     private Date lastRedAlertTime;
     private int enableSharing;
+    private String deviceChainKey;
+    private String rentClause;
+    private Double rentPrice;
 
     @Id
     @GeneratedValue()
@@ -356,5 +360,32 @@ public class Device {
 
     public void setEnableSharing(int enableSharing) {
         this.enableSharing = enableSharing;
+    }
+
+    @Column(name = "device_chain_key")
+    public String getDeviceChainKey(){
+        return this.deviceChainKey;
+    }
+
+    public void setDeviceChainKey(String deviceChainKey){
+        this.deviceChainKey = deviceChainKey;
+    }
+
+    @Column(name = "rent_clause")
+    public String getRentClause(){
+        return this.rentClause;
+    }
+
+    public void setRentClause(String rentClause){
+        this.rentClause = rentClause;
+    }
+
+    @Column(name = "rent_price")
+    public Double getRentPrice(){
+        return this.rentPrice;
+    }
+
+    public void setRentPrice(Double rentPrice){
+        this.rentPrice = rentPrice;
     }
 }
