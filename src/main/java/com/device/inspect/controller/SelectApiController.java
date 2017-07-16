@@ -1010,43 +1010,44 @@ public class SelectApiController {
         Long leastOftenUsedHour = new Long(-1);
         Integer leastOftenUsedHourUsedTime = new Integer(Integer.MAX_VALUE);
         Float offTimeHours = new Float(0);
+        
+        if(utilizationList != null) {
+            for (int i = 0; i < utilizationList.size(); i++) {
+                long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String) utilizationList.get(i).get(0));
+                Integer runningSeconds = ((Double) utilizationList.get(i).get(1)).intValue();
+                Integer idleSeconds = ((Double) utilizationList.get(i).get(2)).intValue();
 
-        for(int i=0; i<utilizationList.size(); i++){
+                float power_lower = ((Double) utilizationList.get(i).get(3)).floatValue();
+                float power_upper = ((Double) utilizationList.get(i).get(4)).floatValue();
+                float energy = ((Double) utilizationList.get(i).get(5)).floatValue();
 
-            long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String)utilizationList.get(i).get(0));
-            Integer runningSeconds = ((Double)utilizationList.get(i).get(1)).intValue();
-            Integer idleSeconds = ((Double)utilizationList.get(i).get(2)).intValue();
+                totalRunningHours += (float) runningSeconds / 3600;
 
-            float power_lower = ((Double)utilizationList.get(i).get(3)).floatValue();
-            float power_upper = ((Double)utilizationList.get(i).get(4)).floatValue();
-            float energy = ((Double)utilizationList.get(i).get(5)).floatValue();
+                totalIdleHours += (float) idleSeconds / 3600;
 
-            totalRunningHours += (float)runningSeconds / 3600;
+                if (power_lower < powerLowerBound) {
+                    powerLowerBound = power_lower;
+                }
+                if (power_upper > powerUpperBound) {
+                    powerUpperBound = power_upper;
+                }
 
-            totalIdleHours += (float)idleSeconds / 3600;
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(new Date(timeStamp));
+                Integer currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+                totalConsumedEnergy += energy;
+                if (runningSeconds > mostOftenUsedHourUsedTime) {
+                    mostOftenUsedHourUsedTime = runningSeconds;
+                    mostOftenUsedHour = calendar.getTimeInMillis();
+                }
+                if (runningSeconds < leastOftenUsedHourUsedTime) {
+                    leastOftenUsedHourUsedTime = runningSeconds;
+                    leastOftenUsedHour = calendar.getTimeInMillis();
+                }
 
-            if(power_lower < powerLowerBound){
-                powerLowerBound = power_lower;
-            }
-            if(power_upper > powerUpperBound){
-                powerUpperBound = power_upper;
-            }
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date(timeStamp));
-            Integer currentHour = calendar.get(Calendar.HOUR_OF_DAY);
-            totalConsumedEnergy += energy;
-            if(runningSeconds > mostOftenUsedHourUsedTime){
-                mostOftenUsedHourUsedTime = runningSeconds;
-                mostOftenUsedHour = calendar.getTimeInMillis();
-            }
-            if(runningSeconds < leastOftenUsedHourUsedTime){
-                leastOftenUsedHourUsedTime = runningSeconds;
-                leastOftenUsedHour = calendar.getTimeInMillis();
-            }
-
-            if(currentHour < 9 || currentHour >= 18){
-                offTimeHours += (float)runningSeconds/3600;
+                if (currentHour < 9 || currentHour >= 18) {
+                    offTimeHours += (float) runningSeconds / 3600;
+                }
             }
         }
 
@@ -1061,6 +1062,7 @@ public class SelectApiController {
         map.put("offTimeHours", offTimeHours);
         return new RestResponse(map);
     }
+
 
     /**
      * 获取设备在时间段内的数据
