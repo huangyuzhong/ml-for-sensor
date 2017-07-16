@@ -25,9 +25,7 @@ import com.device.inspect.common.restful.device.*;
 import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
-import com.device.inspect.controller.request.DeviceTypeInspectRunningStatusRequest;
-import com.device.inspect.controller.request.DeviceTypeRequest;
-import com.device.inspect.controller.request.InspectTypeRequest;
+import com.device.inspect.controller.request.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1478,7 +1476,7 @@ public class OperateController {
      * 设备上链
      **/
     @RequestMapping(value = "/device/upChain/{id}")
-    public RestResponse deviceUpChain(@PathVariable String id){
+    public RestResponse deviceUpChain(Principal principal, @PathVariable String id){
         Device device = deviceRepository.findById(Integer.valueOf(id));
         if(device == null){
             return new RestResponse("设备不存在", 1005, null);
@@ -1492,6 +1490,30 @@ public class OperateController {
         else{
             return new RestResponse(("设备已上链"), 1007, null);
         }
+    }
+
+    /**
+     * 更新上链设备的上链相关信息
+     */
+    @RequestMapping(value = "/device/updateChainDeviceInfo", method = RequestMethod.POST)
+    public RestResponse updateChainDeviceInfo(Principal principal, @RequestBody updateChainDeviceInfoRequest requestParam){
+        return new RestResponse();
+    }
+
+    /**
+     * 申请链上交易
+     */
+    @RequestMapping(value = "/device/makeChainDeal", method = RequestMethod.POST)
+    public RestResponse makeChainDeal(Principal principal, @RequestBody makeChainDealRequest requestParam){
+        return new RestResponse();
+    }
+
+    /**
+     * 确认交易完成
+     */
+    @RequestMapping(value = "/device/finishChainDeal", method = RequestMethod.POST)
+    public RestResponse finishChainDeal(Principal principal, @RequestBody finishChainDealRequest requestPapram){
+        return new RestResponse();
     }
 
 //    /**
