@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name="company_asset")
 public class CompanyAsset{
+    @Id
     private Integer id;
     private Company company;
     private String assetAddress;

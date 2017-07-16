@@ -11,13 +11,14 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "user_asset")
 public class UserAsset {
+    @Id
     private Integer id;
     private User user;
     private String assetAddress;
     private String assetName;
 
     @Id
-    @GeneratedValue()
+    @GeneratedValue
     public void setId(Integer id){
         this.id = id;
     }

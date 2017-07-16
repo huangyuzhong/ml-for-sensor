@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Table(name = "deal_record")
 public class DealRecord {
-
+    @Id
     private Integer id;
     private Device device;
     private User lessor;
