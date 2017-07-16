@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.Role;
@@ -26,6 +27,8 @@ import com.device.inspect.common.restful.firm.RestBuilding;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
+import com.device.inspect.common.service.InitWallet;
+import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.Application;
@@ -1078,6 +1081,12 @@ public class FileController {
                     company.setLogin(String.format("%s.ilabservice.cloud", domain_name));
                 }
 
+                if ((param.get("companyOnChain").toString()).equals("true")) {
+                    UserWalletManager wallet = InitWallet.getWallet();
+                    String address = wallet.createAccount();
+                    company.setAccountAddress(address);
+                }
+
                 company=companyRepository.save(company);
 
 
@@ -1152,6 +1161,12 @@ public class FileController {
 //                    out.flush();
 //                    out.close();
 //                    return;
+                }
+
+                if ((param.get("companyOnChain").toString()).equals("true") && company.getAccountAddress() == null) {
+                    UserWalletManager wallet = InitWallet.getWallet();
+                    String address = wallet.createAccount();
+                    company.setAccountAddress(address);
                 }
 
                 company=companyRepository.save(company);
