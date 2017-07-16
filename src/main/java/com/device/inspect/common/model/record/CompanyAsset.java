@@ -25,7 +25,7 @@ public class CompanyAsset{
         return this.id;
     }
 
-    @ManyToOne()
+    @ManyToOne(targetEntity = Company.class)
     @JoinColumn(name = "company_id")
     @NotNull
     public void setCompany(Company company){

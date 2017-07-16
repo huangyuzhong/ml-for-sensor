@@ -27,7 +27,7 @@ public class UserAsset {
         return this.id;
     }
 
-    @ManyToOne()
+    @ManyToOne(targetEntity = User.class)
     @JoinColumn(name = "user_id")
     @NotNull
     public void setUser(User user){

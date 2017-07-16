@@ -34,7 +34,7 @@ public class DealRecord {
         return this.id;
     }
 
-    @ManyToOne
+    @ManyToOne(targetEntity = Device.class)
     @JoinColumn(name = "device_id")
     public Device getDevice(){
         return this.device;
@@ -44,7 +44,7 @@ public class DealRecord {
         this.device = device;
     }
 
-    @ManyToOne
+    @ManyToOne(targetEntity = User.class)
     @JoinColumn(name = "user_id")
     public User getLessor(){
         return this.lessor;
@@ -54,7 +54,7 @@ public class DealRecord {
         this.lessor = lessor;
     }
 
-    @ManyToOne
+    @ManyToOne(targetEntity = User.class)
     @JoinColumn(name = "user_id")
     public User getLessee(){
         return this.lessee;
