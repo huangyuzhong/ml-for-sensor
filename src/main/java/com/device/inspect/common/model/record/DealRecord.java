@@ -13,19 +13,39 @@ import java.util.Date;
 @Table(name = "deal_record")
 public class DealRecord {
     @Id
+    @GeneratedValue()
     private Integer id;
+
+    @ManyToOne(targetEntity = Device.class)
+    @JoinColumn(name = "device_id")
     private Device device;
+
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "user_id")
     private User lessor;
+
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "user_id")
     private User lessee;
+
+    @Column(name = "price")
     private Double price;
+
+    @Column(name = "begin_time")
     private Date beginTime;
+
+    @Column(name = "end_time")
     private Date endTime;
+
+    @Column(name = "device_serial_number")
     private String deviceSerialNumber;
+
+    @Column(name = "aggrement")
     private String aggrement;
+
+    @Column(name = "status")
     private Integer status;
 
-    @Id
-    @GeneratedValue()
     public void setId(Integer id){
         this.id = id;
     }
@@ -34,8 +54,6 @@ public class DealRecord {
         return this.id;
     }
 
-    @ManyToOne(targetEntity = Device.class)
-    @JoinColumn(name = "device_id")
     public Device getDevice(){
         return this.device;
     }
@@ -44,8 +62,6 @@ public class DealRecord {
         this.device = device;
     }
 
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(name = "user_id")
     public User getLessor(){
         return this.lessor;
     }
@@ -54,8 +70,6 @@ public class DealRecord {
         this.lessor = lessor;
     }
 
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(name = "user_id")
     public User getLessee(){
         return this.lessee;
 
@@ -65,7 +79,6 @@ public class DealRecord {
         this.lessee = lessee;
     }
 
-    @Column(name = "price")
     public Double getPrice(){
         return this.price;
     }
@@ -74,7 +87,6 @@ public class DealRecord {
         this.price = price;
     }
 
-    @Column(name = "begin_time")
     public Date getBeginTime(){
         return this.beginTime;
     }
@@ -83,7 +95,6 @@ public class DealRecord {
         this.beginTime = beginTime;
     }
 
-    @Column(name = "end_time")
     public Date getEndTime(){
         return this.endTime;
     }
@@ -92,7 +103,6 @@ public class DealRecord {
         this.endTime = endTime;
     }
 
-    @Column(name = "device_serial_number")
     public String getDeviceSerialNumber(){
         return this.deviceSerialNumber;
     }
@@ -101,7 +111,6 @@ public class DealRecord {
         this.deviceSerialNumber = deviceSerialNumber;
     }
 
-    @Column(name = "aggrement")
     public String getAggrement(){
         return this.aggrement;
     }
@@ -110,7 +119,6 @@ public class DealRecord {
         this.aggrement = aggrement;
     }
 
-    @Column(name = "status")
     public Integer getStatus(){
         return this.status;
     }

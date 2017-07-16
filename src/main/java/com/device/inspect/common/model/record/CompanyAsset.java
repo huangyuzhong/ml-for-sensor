@@ -10,13 +10,22 @@ import javax.validation.constraints.NotNull;
 @Table(name="company_asset")
 public class CompanyAsset{
     @Id
+    @GeneratedValue()
     private Integer id;
+
+    @ManyToOne(targetEntity = Company.class)
+    @JoinColumn(name = "company_id")
+    @NotNull
     private Company company;
+
+    @Column(name = "asset_address")
+    @NotNull
     private String assetAddress;
+
+    @Column(name = "asset_name")
+    @NotNull
     private String assetName;
 
-    @Id
-    @GeneratedValue()
     public void setId(Integer id){
         this.id = id;
     }
@@ -25,9 +34,6 @@ public class CompanyAsset{
         return this.id;
     }
 
-    @ManyToOne(targetEntity = Company.class)
-    @JoinColumn(name = "company_id")
-    @NotNull
     public void setCompany(Company company){
         this.company = company;
     }
@@ -36,8 +42,6 @@ public class CompanyAsset{
         return this.company = company;
     }
 
-    @Column(name = "asset_address")
-    @NotNull
     public void setAssetAddress(String assetAddress){
         this.assetAddress = assetAddress;
     }
@@ -46,8 +50,6 @@ public class CompanyAsset{
         return this.assetAddress;
     }
 
-    @Column(name = "asset_name")
-    @NotNull
     public void setAssetName(String assetName){
         this.assetName = assetName;
     }

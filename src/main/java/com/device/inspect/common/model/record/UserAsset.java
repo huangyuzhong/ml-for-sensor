@@ -12,13 +12,22 @@ import javax.validation.constraints.NotNull;
 @Table(name = "user_asset")
 public class UserAsset {
     @Id
+    @GeneratedValue
     private Integer id;
+
+    @ManyToOne(targetEntity = User.class)
+    @JoinColumn(name = "user_id")
+    @NotNull
     private User user;
+
+    @Column(name = "asset_address")
+    @NotNull
     private String assetAddress;
+
+    @Column(name = "asset_name")
+    @NotNull
     private String assetName;
 
-    @Id
-    @GeneratedValue
     public void setId(Integer id){
         this.id = id;
     }
@@ -27,9 +36,6 @@ public class UserAsset {
         return this.id;
     }
 
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(name = "user_id")
-    @NotNull
     public void setUser(User user){
         this.user = user;
     }
@@ -38,8 +44,6 @@ public class UserAsset {
         return this.user = user;
     }
 
-    @Column(name = "asset_address")
-    @NotNull
     public void setAssetAddress(String assetAddress){
         this.assetAddress = assetAddress;
     }
@@ -48,8 +52,6 @@ public class UserAsset {
         return this.assetAddress;
     }
 
-    @Column(name = "asset_name")
-    @NotNull
     public void setAssetName(String assetName){
         this.assetName = assetName;
     }
