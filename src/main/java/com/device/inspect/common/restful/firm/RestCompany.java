@@ -38,6 +38,7 @@ public class RestCompany {
     private String location;
     private String companyId;
     private String features;
+    private String accountAddress;
 
     public RestCompany(@NotNull Company company){
         this.id = company.getId();
@@ -68,6 +69,7 @@ public class RestCompany {
             this.location=company.getLng()+","+company.getLat();
         this.companyId=company.getCompanyId();
         this.features = company.getFeatures();
+        this.accountAddress = company.getAccountAddress();
     }
 
     public Integer getId() {
@@ -273,4 +275,12 @@ public class RestCompany {
     public String getFeatures() {return features;}
 
     public void setFeatures(String features) { this.features = features; }
+
+    public String getAccountAddress() {
+        return accountAddress;
+    }
+
+    public void setAccountAddress(String accountAddress) {
+        this.accountAddress = accountAddress;
+    }
 }

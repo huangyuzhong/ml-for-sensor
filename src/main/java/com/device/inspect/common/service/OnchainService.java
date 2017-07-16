@@ -11,7 +11,6 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.repository.charater.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.device.inspect.common.service.InitWallet.url;
 
@@ -20,10 +19,9 @@ import static com.device.inspect.common.service.InitWallet.url;
  */
 public class OnchainService {
 
-    @Autowired
-    private UserRepository userRepository;
-
     private static final Logger LOGGER = LogManager.getLogger(OnchainService.class);
+
+    private UserWalletManager wallet = InitWallet.getWallet();
 
     private String registerAddr = "AQrzw7oAzbM9YyskXevu87fG933Tes4efv"; //资产所有人
     private String rewardAddr = "Af4MFkKMVZeJD55M5KXrfw7n1jSwhSEvfv";   //积分所有人
@@ -34,25 +32,8 @@ public class OnchainService {
     private String user0Addr = "ASKpNaaKkPQqHjiF3RJm7BZdDsRdQrbsbs";   //用户1 账号
     private String user1Addr = "AVra1GeYivUUeoT7HKvJzhFhuWwdT2WYz5";   //用户2 账号
     private long assetsIssued = 100000000;  //每次签发的资产
-    private long rewardIssued = 100000000;  //每次签发的积分
-
-    /**
-     * 将指定用户上传到区块链
-     * @param user
-     * @return
-     */
-    public boolean userUpChain(User user){
-        // 在区块链上创建一个账户，将返回的地址保存的数据库当中
-        UserWalletManager wallet = InitWallet.getWallet();
-        String address = wallet.createAccount();
-        user.setAccountAddress(address);
-        if (userRepository.save(user) != null)
-            return true;
-        return false;
-    }
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
-        UserWalletManager wallet = InitWallet.getWallet();
         Transaction tx;
         String txHex;
         boolean success = false;
