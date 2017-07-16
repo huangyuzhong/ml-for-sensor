@@ -369,7 +369,7 @@ public class RestDevice {
 // DATE 2017/6/22; CREATOR @FGZ; END
 
     public Integer getEnableSharing() {return this.enableSharing;}
-    public void setEnableSharing(Integer enableSharing) {this.enableSharing = enableSharing};
+    public void setEnableSharing(Integer enableSharing) {this.enableSharing = enableSharing;}
 
     public Double getRentPrice() {return this.rentPrice; }
     public void setRentPrice(Double rentPrice) { this.rentPrice = rentPrice; }
