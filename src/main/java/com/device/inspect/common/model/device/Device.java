@@ -4,7 +4,6 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
-import com.sun.org.apache.xpath.internal.operations.String;
 
 import javax.persistence.*;
 import java.util.Date;

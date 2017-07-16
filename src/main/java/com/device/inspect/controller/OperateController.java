@@ -1474,6 +1474,26 @@ public class OperateController {
         return new RestResponse(deviceScientist);
     }
 
+    /**
+     * 设备上链
+     **/
+    @RequestMapping(value = "/device/upChain/{id}")
+    public RestResponse deviceUpChain(@PathVariable String id){
+        Device device = deviceRepository.findById(Integer.valueOf(id));
+        if(device == null){
+            return new RestResponse("设备不存在", 1005, null);
+        }
+        if(device.getDeviceChainKey() == null || device.getDeviceChainKey().equals("")){
+            if(device.getRentPrice() == null){
+                return new RestResponse("租金未设置", 1006, null);
+            }
+            return new RestResponse();
+        }
+        else{
+            return new RestResponse(("设备已上链"), 1007, null);
+        }
+    }
+
 //    /**
 //     * 内部测试接口
 //     * @param
