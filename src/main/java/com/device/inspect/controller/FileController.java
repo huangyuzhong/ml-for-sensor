@@ -27,7 +27,6 @@ import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
 import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.Application;
 import org.apache.logging.log4j.LogManager;

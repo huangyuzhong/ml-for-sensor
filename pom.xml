@@ -201,6 +201,31 @@
             <scope>system</scope>
             <systemPath>${basedir}/src/main/resources/lib/taobao.jar</systemPath>
         </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.54</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/bcprov-jdk15on-1.54.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>DNA</groupId>
+            <artifactId>DNA</artifactId>
+            <version>0.0.1</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/DNA-SDK-0.0.1-SNAPSHOT(1).jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.14.2</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/sqlite-jdbc-3.14.2.jar</systemPath>
+        </dependency>
+
         <dependency>
             <groupId>com.microsoft.azure</groupId>
             <artifactId>azure-storage</artifactId>
