@@ -49,7 +49,7 @@ public class Device {
     private Date lastActivityTime;
     private Date lastYellowAlertTime;
     private Date lastRedAlertTime;
-    private int enableSharing;
+    private Integer enableSharing;
     private String deviceChainKey;
     private String rentClause;
     private Double rentPrice;
@@ -353,7 +353,7 @@ public class Device {
     }
 
     @Column(name = "enable_sharing  ")
-    public int getEnableSharing() {
+    public Integer getEnableSharing() {
         return enableSharing;
     }
 

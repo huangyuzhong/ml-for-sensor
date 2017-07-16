@@ -50,6 +50,10 @@ public class RestDevice {
     private Long yellowAlertCountToday = new Long(0);
     private Long redAlertCountToday = new Long(0);
     private List<RestScientistDevice> scientists;  //DATE 2017/6/22; CREATOR @FGZ
+    private Integer enableSharing;
+    private String deviceChainKey;
+    private String rentClause;
+    private Double rentPrice;
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -110,6 +114,19 @@ public class RestDevice {
             }
         }
      // DATE 2017/6/22; CREATOR @FGZ; END
+        if(null != device.getEnableSharing()){
+            this.enableSharing = device.getEnableSharing();
+        }
+        if(null != device.getDeviceChainKey()){
+            this.deviceChainKey = device.getDeviceChainKey();
+        }
+        if(null != device.getRentPrice()){
+            this.rentPrice = device.getRentPrice();
+        }
+        if(null != device.getRentClause()){
+            this.rentClause = device.getRentClause();
+        }
+
     }
 
     public Integer getId() {
@@ -350,4 +367,17 @@ public class RestDevice {
         this.scientists = scientists;
     }
 // DATE 2017/6/22; CREATOR @FGZ; END
+
+    public Integer getEnableSharing() {return this.enableSharing;}
+    public void setEnableSharing(Integer enableSharing) {this.enableSharing = enableSharing};
+
+    public Double getRentPrice() {return this.rentPrice; }
+    public void setRentPrice(Double rentPrice) { this.rentPrice = rentPrice; }
+
+    public String getDeviceChainKey() {return this.deviceChainKey; }
+    public void setDeviceChainKey(String deviceChainKey) { this.deviceChainKey = deviceChainKey;}
+
+    public String getRentClause() {return this.rentClause;}
+    public void setRentClause(String rentClause) { this.rentClause = rentClause;}
+
 }
