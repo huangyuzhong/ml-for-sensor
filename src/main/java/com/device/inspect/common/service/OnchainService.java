@@ -12,12 +12,14 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.repository.charater.UserRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import static com.device.inspect.common.service.InitWallet.url;
 
 /**
  * Created by fgz on 2017/7/13.
  */
+@Component
 public class OnchainService {
 
     private static final Logger LOGGER = LogManager.getLogger(OnchainService.class);
