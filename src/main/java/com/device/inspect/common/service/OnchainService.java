@@ -5,6 +5,7 @@ import DNA.Core.Transaction;
 import DNA.Core.TransferTransaction;
 import DNA.Helper;
 import DNA.Network.Rest.RestNode;
+import DNA.sdk.info.account.AccountAsset;
 import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.User;
@@ -26,14 +27,19 @@ public class OnchainService {
     private UserWalletManager wallet = InitWallet.getWallet();
 
     private String registerAddr = "AQrzw7oAzbM9YyskXevu87fG933Tes4efv"; //资产所有人
-    private String rewardAddr = "Af4MFkKMVZeJD55M5KXrfw7n1jSwhSEvfv";   //积分所有人
-    private String agencyAddr = "ARtfmVhnh39CXFndEgXCcxfADUdWmD8Nv6";  //中间商 账号
+    public static String rewardAddr = "Af4MFkKMVZeJD55M5KXrfw7n1jSwhSEvfv";   //积分所有人
+    public static String agencyAddr = "ARtfmVhnh39CXFndEgXCcxfADUdWmD8Nv6";  //中间商 账号
     private String updaterAddr = "AVaKEVVeBy5uGkNhCFwxq3iHpyMAm5CD8f"; //更新 状态的账号，改账号已在区块链配置，其他账号无权更新状态
     private String department0Addr = "ANR74azedN2Fmd6qTpYZSfVPthSw3DgZN9"; //部门0  账号
     private String department1Addr = "AZgdpWNg36SDLHb4FubMX5DDUFij6Uf6G6"; //部门1 账号
     private String user0Addr = "ASKpNaaKkPQqHjiF3RJm7BZdDsRdQrbsbs";   //用户1 账号
     private String user1Addr = "AVra1GeYivUUeoT7HKvJzhFhuWwdT2WYz5";   //用户2 账号
     private long assetsIssued = 100000000;  //每次签发的资产
+
+    public AccountAsset getAccountAsset(String userAddr){
+        return wallet.getAccountAsset(userAddr);
+    }
+
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
         Transaction tx;
