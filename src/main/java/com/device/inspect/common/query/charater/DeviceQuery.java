@@ -39,6 +39,13 @@ public class DeviceQuery extends Querier<Device> {
             }
         });
 
+        queryFilterMap.put("enableSharing", new DeviceQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<Device> deviceRoot) {
+                return cb.equal(deviceRoot.get("enableSharing"),object);
+            }
+        });
+
 
 //        queryFilterMap.put("typeId", new DeviceQueryFilter() {
 //            @Override

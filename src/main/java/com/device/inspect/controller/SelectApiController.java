@@ -436,6 +436,53 @@ public class SelectApiController {
 
     }
 
+    /**
+     * 查询用户设备列表信息
+     * @param requestParam
+     * @return
+     */
+    @RequestMapping(value = "/enableSharing/devices",method = RequestMethod.GET)
+    public RestResponse getAllDevicesByEnableSharing(@RequestParam Map<String,String> requestParam){
+        Integer limit = 10;
+        Integer start = 0;
+
+        requestParam.put("enableSharing", "1");
+
+        if (requestParam.containsKey("limit")) {
+            limit = Integer.valueOf(requestParam.get("limit"));
+            requestParam.remove("limit");
+        }
+
+        if (requestParam.containsKey("start")) {
+            start = Integer.valueOf(requestParam.get("start"));
+            requestParam.remove("start");
+        }
+
+        if (requestParam.containsKey("roomId")){
+            if (requestParam.get("roomId").toString()!=""){
+                if (requestParam.containsKey("floorId"))
+                    requestParam.remove("floorId");
+                if (requestParam.containsKey("buildingId"))
+                    requestParam.remove("buildingId");
+            }else{
+                requestParam.remove("roomId");
+            }
+        }
+        if (requestParam.containsKey("floorId")){
+            if (requestParam.get("floorId").toString()!=""){
+                if (requestParam.containsKey("buildingId"))
+                    requestParam.remove("buildingId");
+            }else{
+                requestParam.remove("floorId");
+            }
+        }
+
+        Page<Device> devicePage = new DeviceQuery(entityManager)
+                .query(requestParam, start, limit, new Sort(Sort.Direction.DESC, "createDate"));
+
+        return new RestResponse(assembleDevices(devicePage));
+    }
+
 
 
     /**
