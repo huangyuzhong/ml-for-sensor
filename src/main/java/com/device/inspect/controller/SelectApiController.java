@@ -9,6 +9,7 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
@@ -20,6 +21,7 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.data.*;
@@ -114,6 +116,9 @@ public class SelectApiController {
 
     @Autowired
     private AlertCountRepository alertCountRepository;
+
+    @Autowired
+    private DealRecordRepository dealRecordRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1462,5 +1467,11 @@ public class SelectApiController {
 
         */
         return new RestResponse(monitorDataOfDevice);
+    }
+
+    @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
+    public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId){
+        List<DealRecord> dealRecords = dealRecordRepository.findByLessorIdOrLesseeId(userId, userId);
+        return new RestResponse(dealRecords);
     }
 }
