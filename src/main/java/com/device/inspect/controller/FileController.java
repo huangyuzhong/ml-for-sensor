@@ -1163,10 +1163,23 @@ public class FileController {
 //                    return;
                 }
 
-                if ((param.get("companyOnChain").toString()).equals("true") && company.getAccountAddress() == null) {
+                if ((param.get("companyOnChain").toString()).equals("true")) {
                     UserWalletManager wallet = InitWallet.getWallet();
-                    String address = wallet.createAccount();
-                    company.setAccountAddress(address);
+                    if (company.getAccountAddress() == null){
+                        String address = wallet.createAccount();
+                        company.setAccountAddress(address);
+                    }
+
+                    // 将所属该公司的user全部上链
+                    List<User> users = userRepository.findByCompanyId(company.getId());
+                    for (User userOfCompany : users) {
+                        // 先判断user本身是否已经上链
+                        if (userOfCompany.getAccountAddress() == null) {
+                            String userAddress = wallet.createAccount();
+                            userOfCompany.setAccountAddress(userAddress);
+                            userRepository.save(userOfCompany);
+                        }
+                    }
                 }
 
                 company=companyRepository.save(company);
