@@ -10,6 +10,7 @@ import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealRecord;
+import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
@@ -22,6 +23,7 @@ import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
+import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.data.*;
@@ -30,6 +32,7 @@ import com.device.inspect.Application;
 import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
+import com.device.inspect.common.restful.record.DeviceRunningStatusHistoryRecord;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
@@ -112,7 +115,7 @@ public class SelectApiController {
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
 
     @Autowired
-    private  DeviceInspectRepository deviceInspectRepository;
+    private DeviceInspectRepository deviceInspectRepository;
 
     @Autowired
     private AlertCountRepository alertCountRepository;
@@ -120,61 +123,67 @@ public class SelectApiController {
     @Autowired
     private DealRecordRepository dealRecordRepository;
 
-    private User judgeByPrincipal(Principal principal){
-        if (null == principal||null==principal.getName())
+    @Autowired
+    private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
+    private User judgeByPrincipal(Principal principal) {
+        if (null == principal || null == principal.getName())
             throw new UsernameNotFoundException("You are not login!");
         User user = userRepository.findByName(principal.getName());
-        if (null==user)
+        if (null == user)
             throw new UsernameNotFoundException("user not found!");
         return user;
     }
 
     /**
      * 查询个人信息
+     *
      * @param principal
      * @return
      */
     @RequestMapping(value = "/person/info/{userId}")
-    public RestResponse getUserMessage(Principal principal,@PathVariable Integer userId){
-        User user1=judgeByPrincipal(principal);
-        if (user1==null)
-            return new RestResponse("用户未登录",1005,null);
+    public RestResponse getUserMessage(Principal principal, @PathVariable Integer userId) {
+        User user1 = judgeByPrincipal(principal);
+        if (user1 == null)
+            return new RestResponse("用户未登录", 1005, null);
         User user = userRepository.findOne(userId);
-        if (null==user)
-            return new RestResponse("user not found!",1005,null);
+        if (null == user)
+            return new RestResponse("user not found!", 1005, null);
         return new RestResponse(new RestUser(user));
     }
 
     /**
      * 用户的个人信息
+     *
      * @param principal
      * @return 用户的个人信息
      */
     @RequestMapping(value = "/person/mine/info")
-    public RestResponse getMyMessage(Principal principal){
+    public RestResponse getMyMessage(Principal principal) {
         User user = judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登录",1005,null);
+        if (user == null)
+            return new RestResponse("用户未登录", 1005, null);
         return new RestResponse(new RestUser(user));
     }
 
     /**
      * 查询所有的楼
+     *
      * @param principal
      * @param map
      * @return
      */
     @RequestMapping(value = "/buildings")
-    public RestResponse getBuildings(Principal principal,@RequestParam  Map<String,String> map){
+    public RestResponse getBuildings(Principal principal, @RequestParam Map<String, String> map) {
         User user = judgeByPrincipal(principal);
-        if (null == user.getCompany()){
-            return new RestResponse("user's information incorrect!",1005,null);
+        if (null == user.getCompany()) {
+            return new RestResponse("user's information incorrect!", 1005, null);
         }
 
         Application.LOGGER.info(String.format("Find buildings of company %s, %s", user.getCompany().getName(), user.getCompany().getId()));
         List<Building> list = new ArrayList<Building>();
-        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
-            list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(),Integer.valueOf(map.get("enable")));
+        if (null != map.get("enable") && (map.get("enable").equals("0") || map.get("enable").equals("1")))
+            list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(), Integer.valueOf(map.get("enable")));
         else
             list = buildingRepository.findByCompanyId(user.getCompany().getId());
         user.getCompany().setBuildings(list);
@@ -183,53 +192,55 @@ public class SelectApiController {
 
     /**
      * 查询所有的层
+     *
      * @param principal
      * @param map
      * @return
      */
-     @RequestMapping(value = "/floors",method = RequestMethod.GET)
-     public RestResponse getFloors(Principal principal,@RequestParam Map<String,String> map) {
-         User user=judgeByPrincipal(principal);
-         if (user==null)
-             return new RestResponse("用户未登录",1005,null);
-         String buildId = map.get("buildId");
-         Building build = null;
-         if (null!=buildId){
-             build = buildingRepository.findOne(Integer.valueOf(buildId));
-         }
+    @RequestMapping(value = "/floors", method = RequestMethod.GET)
+    public RestResponse getFloors(Principal principal, @RequestParam Map<String, String> map) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登录", 1005, null);
+        String buildId = map.get("buildId");
+        Building build = null;
+        if (null != buildId) {
+            build = buildingRepository.findOne(Integer.valueOf(buildId));
+        }
 
-         if (null == build) {
-             return new RestResponse("floors information correct!", 1005, null);
-         }
-         List<Storey> list = new ArrayList<Storey>();
-         if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
-            list = storeyRepository.findByBuildIdAndEnable(Integer.valueOf(buildId),Integer.valueOf(map.get("enable")));
-         else list = storeyRepository.findByBuildId(Integer.valueOf(buildId));
-         build.setFloorList(list);
-         return new RestResponse(new RestIndexFloor(build));
-     }
+        if (null == build) {
+            return new RestResponse("floors information correct!", 1005, null);
+        }
+        List<Storey> list = new ArrayList<Storey>();
+        if (null != map.get("enable") && (map.get("enable").equals("0") || map.get("enable").equals("1")))
+            list = storeyRepository.findByBuildIdAndEnable(Integer.valueOf(buildId), Integer.valueOf(map.get("enable")));
+        else list = storeyRepository.findByBuildId(Integer.valueOf(buildId));
+        build.setFloorList(list);
+        return new RestResponse(new RestIndexFloor(build));
+    }
 
     /**
      * 查询所有的室
+     *
      * @param principal
      * @param map
      * @return
      */
-    @RequestMapping(value = "/rooms",method = RequestMethod.GET)
-    public  RestResponse getRooms(Principal principal,@RequestParam Map<String,String> map){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+    @RequestMapping(value = "/rooms", method = RequestMethod.GET)
+    public RestResponse getRooms(Principal principal, @RequestParam Map<String, String> map) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
         String floorId = map.get("floorId");
         Storey floor = null;
-        if (null!=floorId)
+        if (null != floorId)
             floor = storeyRepository.findOne(Integer.valueOf(floorId));
-        if (null == floor){
-            return  new RestResponse("rooms information correct!",1005,null);
+        if (null == floor) {
+            return new RestResponse("rooms information correct!", 1005, null);
         }
         List<Room> list = new ArrayList<Room>();
-        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
-            list = roomRepository.findByFloorIdAndEnable(Integer.valueOf(floorId),Integer.valueOf(map.get("enable")));
+        if (null != map.get("enable") && (map.get("enable").equals("0") || map.get("enable").equals("1")))
+            list = roomRepository.findByFloorIdAndEnable(Integer.valueOf(floorId), Integer.valueOf(map.get("enable")));
         else list = roomRepository.findByFloorId(Integer.valueOf(floorId));
         floor.setRoomList(list);
         return new RestResponse(new RestIndexRoom(floor));
@@ -237,25 +248,26 @@ public class SelectApiController {
 
     /**
      * 查询所有的设备
+     *
      * @param principal
      * @param map
      * @return
      */
-    @RequestMapping(value = "/devices",method = RequestMethod.GET)
-    public  RestResponse getDevices(Principal principal,@RequestParam Map<String,String> map){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+    @RequestMapping(value = "/devices", method = RequestMethod.GET)
+    public RestResponse getDevices(Principal principal, @RequestParam Map<String, String> map) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
         String roomId = map.get("roomId");
         Room room = null;
-        if (null!=roomId)
+        if (null != roomId)
             room = roomRepository.findOne(Integer.valueOf(roomId));
-        if (null == room||null ==room.getId()){
-            return  new RestResponse("devices information correct!",1005,null);
+        if (null == room || null == room.getId()) {
+            return new RestResponse("devices information correct!", 1005, null);
         }
         List<Device> list = new ArrayList<Device>();
-        if (null!=map.get("enable")&&(map.get("enable").equals("0")||map.get("enable").equals("1")))
-            list = deviceRepository.findByRoomIdAndEnable(Integer.valueOf(roomId),Integer.valueOf(map.get("enable")));
+        if (null != map.get("enable") && (map.get("enable").equals("0") || map.get("enable").equals("1")))
+            list = deviceRepository.findByRoomIdAndEnable(Integer.valueOf(roomId), Integer.valueOf(map.get("enable")));
         else list = deviceRepository.findByRoomId(Integer.valueOf(roomId));
         room.setDeviceList(list);
         return new RestResponse(new RestIndexDevice(room));
@@ -263,29 +275,30 @@ public class SelectApiController {
 
     /**
      * 查询单个的设备
+     *
      * @param principal
      * @param deviceId
      * @return
      */
-    @RequestMapping(value = "/device",method = RequestMethod.GET)
-    public  RestResponse getDevice(Principal principal,@RequestParam Integer deviceId){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+    @RequestMapping(value = "/device", method = RequestMethod.GET)
+    public RestResponse getDevice(Principal principal, @RequestParam Integer deviceId) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
         Device device = deviceRepository.findOne(deviceId);
-        if (null == device|| null ==device.getId()){
-            return  new RestResponse("device information correct!",1005,null);
+        if (null == device || null == device.getId()) {
+            return new RestResponse("device information correct!", 1005, null);
         }
-        List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceIdAndEnable(deviceId,1);
+        List<DeviceFloor> deviceFloorList = deviceFloorRepository.findByDeviceIdAndEnable(deviceId, 1);
         device.setDeviceFloorList(deviceFloorList);
 
         RestDevice restDevice = new RestDevice(device);
         List<RestDeviceInspect> restDeviceInspects = new ArrayList<>();
-        for(DeviceInspect inspect : device.getDeviceInspectList()){
+        for (DeviceInspect inspect : device.getDeviceInspectList()) {
             List<DeviceInspectRunningStatus> statuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(inspect.getId());
             RestDeviceInspect restInspect = new RestDeviceInspect(inspect);
             List<RestDeviceInspectRunningStatus> restStatuses = new ArrayList<>();
-            for(DeviceInspectRunningStatus status : statuses){
+            for (DeviceInspectRunningStatus status : statuses) {
                 restStatuses.add(new RestDeviceInspectRunningStatus(status));
             }
             restInspect.setRunningStatus(restStatuses);
@@ -297,10 +310,10 @@ public class SelectApiController {
         Date utcTimeForBeijingMidnight = MyCalendar.getUtcTimeForMidnight(new Date(), 8);
 
         Long todayHighAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                2,utcTimeForBeijingMidnight,new Date());
+                2, utcTimeForBeijingMidnight, new Date());
 
         Long todayLowAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                1,utcTimeForBeijingMidnight,new Date());
+                1, utcTimeForBeijingMidnight, new Date());
 
         restDevice.setYellowAlertCountToday(todayLowAlert);
         restDevice.setRedAlertCountToday(todayHighAlert);
@@ -310,22 +323,23 @@ public class SelectApiController {
 
     /**
      * 查询所有的设备种类
+     *
      * @return
      */
-    @RequestMapping(value = "/device/types",method = RequestMethod.GET)
-    public RestResponse getAllDeviceTypes(Principal principal,@RequestParam Integer enable){
+    @RequestMapping(value = "/device/types", method = RequestMethod.GET)
+    public RestResponse getAllDeviceTypes(Principal principal, @RequestParam Integer enable) {
         User user = judgeByPrincipal(principal);
-        if (null==user.getCompany()&&UserRoleDifferent.userStartWithFirm(user))
-            return new RestResponse("user's information wrong!",1005,null);
+        if (null == user.getCompany() && UserRoleDifferent.userStartWithFirm(user))
+            return new RestResponse("user's information wrong!", 1005, null);
         List<DeviceType> list = new ArrayList<DeviceType>();
         list.addAll(deviceTypeRepository.findByEnableAndCompanyIdIsNull(enable));
-        if (UserRoleDifferent.userStartWithFirm(user)){
-            list.addAll(deviceTypeRepository.findByCompanyIdAndEnable(user.getCompany().getId(),enable));
+        if (UserRoleDifferent.userStartWithFirm(user)) {
+            list.addAll(deviceTypeRepository.findByCompanyIdAndEnable(user.getCompany().getId(), enable));
         }
 //        Iterable<DeviceType> deviceTypeIterable = deviceTypeRepository.findAll();
         List<RestDeviceType> deviceTypes = new ArrayList<RestDeviceType>();
-        if (null!=list)
-            for (DeviceType deviceType: list)
+        if (null != list)
+            for (DeviceType deviceType : list)
                 deviceTypes.add(new RestDeviceType(deviceType));
 
         return new RestResponse(deviceTypes);
@@ -333,21 +347,22 @@ public class SelectApiController {
 
     /**
      * 查询设备类型参数
+     *
      * @param deviceTypeId
      * @return
      */
     @RequestMapping(value = "/device/type/request/{deviceTypeId}")
-    public RestResponse getCurrentDeviceTypeRequest(Principal principal,@PathVariable Integer deviceTypeId){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+    public RestResponse getCurrentDeviceTypeRequest(Principal principal, @PathVariable Integer deviceTypeId) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
         DeviceType deviceType = deviceTypeRepository.findOne(deviceTypeId);
-        if (null==deviceType)
-            return new RestResponse("当前设备类型不存在！",1905,null);
+        if (null == deviceType)
+            return new RestResponse("当前设备类型不存在！", 1905, null);
         DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
         List<InspectTypeRequest> requests = new ArrayList<InspectTypeRequest>();
-        if (null!=deviceType.getDeviceTypeInspectList()){
-            for (DeviceTypeInspect deviceTypeInspect:deviceType.getDeviceTypeInspectList()){
+        if (null != deviceType.getDeviceTypeInspectList()) {
+            for (DeviceTypeInspect deviceTypeInspect : deviceType.getDeviceTypeInspectList()) {
                 InspectTypeRequest request = new InspectTypeRequest();
                 request.setId(deviceTypeInspect.getInspectType().getId());
                 request.setName(deviceTypeInspect.getInspectType().getName());
@@ -361,7 +376,7 @@ public class SelectApiController {
 
                 List<DeviceTypeInspectRunningStatus> statuses = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspect.getId());
                 List<DeviceTypeInspectRunningStatusRequest> restStatus = new ArrayList<>();
-                for(DeviceTypeInspectRunningStatus status : statuses){
+                for (DeviceTypeInspectRunningStatus status : statuses) {
                     DeviceTypeInspectRunningStatusRequest statusRequest = new DeviceTypeInspectRunningStatusRequest();
                     statusRequest.setId(status.getId());
                     statusRequest.setThreshold(status.getThreshold());
@@ -381,17 +396,18 @@ public class SelectApiController {
 
     /**
      * 查询用户设备列表信息
+     *
      * @param principal
      * @param requestParam
      * @return
      */
-    @RequestMapping(value = "/manager/devices",method = RequestMethod.GET)
-    public RestResponse getAllDevicesByManger(Principal principal,@RequestParam Map<String,String> requestParam){
+    @RequestMapping(value = "/manager/devices", method = RequestMethod.GET)
+    public RestResponse getAllDevicesByManger(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
         User user = judgeByPrincipal(principal);
-        if (null == user||null == user.getCompany()){
-            return new RestResponse("user's information error!",1005,null);
+        if (null == user || null == user.getCompany()) {
+            return new RestResponse("user's information error!", 1005, null);
         }
 
         Integer limit = 10;
@@ -407,25 +423,25 @@ public class SelectApiController {
             requestParam.remove("start");
         }
 
-        if (!requestParam.containsKey("userId")){
-            requestParam.put("userId",user.getId().toString());
+        if (!requestParam.containsKey("userId")) {
+            requestParam.put("userId", user.getId().toString());
         }
 
-        if (requestParam.containsKey("roomId")){
-            if (requestParam.get("roomId").toString()!=""){
+        if (requestParam.containsKey("roomId")) {
+            if (requestParam.get("roomId").toString() != "") {
                 if (requestParam.containsKey("floorId"))
                     requestParam.remove("floorId");
                 if (requestParam.containsKey("buildingId"))
                     requestParam.remove("buildingId");
-            }else{
+            } else {
                 requestParam.remove("roomId");
             }
         }
-        if (requestParam.containsKey("floorId")){
-            if (requestParam.get("floorId").toString()!=""){
+        if (requestParam.containsKey("floorId")) {
+            if (requestParam.get("floorId").toString() != "") {
                 if (requestParam.containsKey("buildingId"))
                     requestParam.remove("buildingId");
-            }else{
+            } else {
                 requestParam.remove("floorId");
             }
         }
@@ -443,11 +459,12 @@ public class SelectApiController {
 
     /**
      * 查询用户设备列表信息
+     *
      * @param requestParam
      * @return
      */
-    @RequestMapping(value = "/enableSharing/devices",method = RequestMethod.GET)
-    public RestResponse getAllDevicesByEnableSharing(@RequestParam Map<String,String> requestParam){
+    @RequestMapping(value = "/enableSharing/devices", method = RequestMethod.GET)
+    public RestResponse getAllDevicesByEnableSharing(@RequestParam Map<String, String> requestParam) {
         Integer limit = 10;
         Integer start = 0;
 
@@ -463,21 +480,21 @@ public class SelectApiController {
             requestParam.remove("start");
         }
 
-        if (requestParam.containsKey("roomId")){
-            if (requestParam.get("roomId").toString()!=""){
+        if (requestParam.containsKey("roomId")) {
+            if (requestParam.get("roomId").toString() != "") {
                 if (requestParam.containsKey("floorId"))
                     requestParam.remove("floorId");
                 if (requestParam.containsKey("buildingId"))
                     requestParam.remove("buildingId");
-            }else{
+            } else {
                 requestParam.remove("roomId");
             }
         }
-        if (requestParam.containsKey("floorId")){
-            if (requestParam.get("floorId").toString()!=""){
+        if (requestParam.containsKey("floorId")) {
+            if (requestParam.get("floorId").toString() != "") {
                 if (requestParam.containsKey("buildingId"))
                     requestParam.remove("buildingId");
-            }else{
+            } else {
                 requestParam.remove("floorId");
             }
         }
@@ -489,16 +506,16 @@ public class SelectApiController {
     }
 
 
-
     /**
      * 平台用户查询设备列表
+     *
      * @return
      */
-    @RequestMapping(value = "/service/device",method = RequestMethod.GET)
-    public RestResponse getAllDevicesByService(Principal principal,@RequestParam Map<String,String> requestParam){
-        User user=judgeByPrincipal(principal);
-        if (null == user){
-            return new RestResponse("没有此用户",1005,null);
+    @RequestMapping(value = "/service/device", method = RequestMethod.GET)
+    public RestResponse getAllDevicesByService(Principal principal, @RequestParam Map<String, String> requestParam) {
+        User user = judgeByPrincipal(principal);
+        if (null == user) {
+            return new RestResponse("没有此用户", 1005, null);
         }
         Integer limit = 10;
         Integer start = 0;
@@ -519,23 +536,21 @@ public class SelectApiController {
     }
 
 
-
-
-    @RequestMapping(value = "/employees",method = RequestMethod.GET)
-    public RestResponse getAllEmployees(Principal principal,@RequestParam Map<String,String> requestParam){
+    @RequestMapping(value = "/employees", method = RequestMethod.GET)
+    public RestResponse getAllEmployees(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        if (null == principal || null ==principal.getName())
 //            return new RestResponse("not login!",1005,null);
         User user = judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
         List<RoleAuthority> roleAuthorities = new ArrayList<RoleAuthority>();
-        if (null!=user.getRoles())
-            for (Role role:user.getRoles()){
+        if (null != user.getRoles())
+            for (Role role : user.getRoles()) {
                 roleAuthorities.addAll(roleAuthorityRepository.findByParent(role.getRoleAuthority().getId()));
             }
 
-        if (null == user&&null == user.getCompany()&&(null==roleAuthorities||roleAuthorities.size()==0)){
-            return new RestResponse("user's information correct!",1005,null);
+        if (null == user && null == user.getCompany() && (null == roleAuthorities || roleAuthorities.size() == 0)) {
+            return new RestResponse("user's information correct!", 1005, null);
         }
 
         Integer limit = 10;
@@ -551,14 +566,14 @@ public class SelectApiController {
             requestParam.remove("start");
         }
         List<Integer> list = new ArrayList<Integer>();
-        if (null!=roleAuthorities)
-            for (RoleAuthority roleAuthority : roleAuthorities){
+        if (null != roleAuthorities)
+            for (RoleAuthority roleAuthority : roleAuthorities) {
                 list.add(roleAuthority.getId());
             }
 
         requestParam.put("authorityId", JSON.toJSONString(list));
-        if (UserRoleDifferent.userFirmManagerConfirm(user)){
-            requestParam.put("companyId",user.getCompany().getId().toString());
+        if (UserRoleDifferent.userFirmManagerConfirm(user)) {
+            requestParam.put("companyId", user.getCompany().getId().toString());
         }
 
 
@@ -570,28 +585,29 @@ public class SelectApiController {
 
     /**
      * 平台业务员查询所有的业务企业，企业员工查询自己的
+     *
      * @param principal
      * @return
      */
     @RequestMapping(value = "/query/all/company")
-    public RestResponse getAllCompany(Principal principal){
+    public RestResponse getAllCompany(Principal principal) {
         User user = judgeByPrincipal(principal);
-        if (null == user){
-            return new RestResponse("用户信息不存在！",1005,null);
+        if (null == user) {
+            return new RestResponse("用户信息不存在！", 1005, null);
         }
         List<RestCompany> list = new ArrayList<RestCompany>();
-        if (UserRoleDifferent.userServiceManagerConfirm(user)){
-            Map<String,String> requestParam = new HashMap<String,String>();
+        if (UserRoleDifferent.userServiceManagerConfirm(user)) {
+            Map<String, String> requestParam = new HashMap<String, String>();
             Page<Company> companyPage = new CompanyQuery(entityManager)
                     .query(requestParam, 0, 100000, new Sort(Sort.Direction.DESC, "createDate"));
-            list = (List)assembleCompanies(companyPage).get("companies");
-        }else if (UserRoleDifferent.userServiceWorkerConfirm(user)){
-            Map<String,String> requestParam = new HashMap<String,String>();
-            requestParam.put("businessId",user.getId().toString());
+            list = (List) assembleCompanies(companyPage).get("companies");
+        } else if (UserRoleDifferent.userServiceWorkerConfirm(user)) {
+            Map<String, String> requestParam = new HashMap<String, String>();
+            requestParam.put("businessId", user.getId().toString());
             Page<Company> companyPage = new CompanyQuery(entityManager)
                     .query(requestParam, 0, 100000, new Sort(Sort.Direction.DESC, "createDate"));
-            list = (List)assembleCompanies(companyPage).get("companies");
-        }else {
+            list = (List) assembleCompanies(companyPage).get("companies");
+        } else {
             Company company = user.getCompany();
             list.add(new RestCompany(company));
         }
@@ -601,16 +617,17 @@ public class SelectApiController {
 
     /**
      * 登陆页面根据公司URL获取公司信息
+     *
      * @param companyId
      * @return
      */
     @RequestMapping(value = "/query/login/company")
-    public RestResponse getCompanyById(Principal principal,@RequestParam String companyId){
+    public RestResponse getCompanyById(Principal principal, @RequestParam String companyId) {
 //        User user=judgeByPrincipal(principal);
 //        if (user==null)
 //            return new RestResponse("用户未登陆",1005,null);
-        if (null==companyId||companyId.equals(""))
-            return new RestResponse("没有正确的访问参数！",null);
+        if (null == companyId || companyId.equals(""))
+            return new RestResponse("没有正确的访问参数！", null);
         /*
         String realId = "";
         try {
@@ -621,29 +638,30 @@ public class SelectApiController {
         */
         //Company company = companyRepository.findOne(Integer.valueOf(realId));
         Company company = companyRepository.findByCompanyId(companyId);
-        if (null==company)
-            return new RestResponse("当前登陆页面不是企业URL！",1005,null);
+        if (null == company)
+            return new RestResponse("当前登陆页面不是企业URL！", 1005, null);
         return new RestResponse(new RestCompany(company));
     }
 
     /**
      * 根据登录人获取所属公司信息
+     *
      * @param principal
      * @param requestParam
      * @return
      */
     @RequestMapping(value = "/query/mine/company")
-    public RestResponse getCompanyByUserName(Principal principal,@RequestParam Map<String,String> requestParam){
+    public RestResponse getCompanyByUserName(Principal principal, @RequestParam Map<String, String> requestParam) {
         User user = judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
 
-        if (UserRoleDifferent.userServiceWorkerConfirm(user)){
-            requestParam.put("businessId",user.getId().toString());
-        }else if (UserRoleDifferent.userServiceManagerConfirm(user) ){
+        if (UserRoleDifferent.userServiceWorkerConfirm(user)) {
+            requestParam.put("businessId", user.getId().toString());
+        } else if (UserRoleDifferent.userServiceManagerConfirm(user)) {
 
-        }else {
-            return new RestResponse("权限不足！",null);
+        } else {
+            return new RestResponse("权限不足！", null);
         }
 
         Integer limit = 10;
@@ -665,60 +683,61 @@ public class SelectApiController {
         return new RestResponse(assembleCompanies(companyPage));
     }
 
-    private Map assembleCompanies(Page<Company> companyPage){
+    private Map assembleCompanies(Page<Company> companyPage) {
         Map map = new HashMap();
-        map.put("total",String.valueOf(companyPage.getTotalElements()));
-        map.put("thisNum",String.valueOf(companyPage.getNumberOfElements()));
+        map.put("total", String.valueOf(companyPage.getTotalElements()));
+        map.put("thisNum", String.valueOf(companyPage.getNumberOfElements()));
         List<RestCompany> list = new ArrayList<RestCompany>();
-        for (Company company:companyPage.getContent()){
+        for (Company company : companyPage.getContent()) {
             list.add(new RestCompany(company));
         }
-        map.put("companies",list);
+        map.put("companies", list);
         return map;
     }
 
-    private Map assembleDevices(Page<Device> devicePage){
+    private Map assembleDevices(Page<Device> devicePage) {
         Map map = new HashMap();
-        map.put("total",String.valueOf(devicePage.getTotalElements()));
-        map.put("thisNum",String.valueOf(devicePage.getNumberOfElements()));
+        map.put("total", String.valueOf(devicePage.getTotalElements()));
+        map.put("thisNum", String.valueOf(devicePage.getNumberOfElements()));
         List<RestDevice> list = new ArrayList<RestDevice>();
-        for (Device device:devicePage.getContent()){
+        for (Device device : devicePage.getContent()) {
             list.add(new RestDevice(device));
         }
-        map.put("devices",list);
+        map.put("devices", list);
         return map;
     }
 
-    private Map assembleUsers(User userRoot,Page<User> userPage){
+    private Map assembleUsers(User userRoot, Page<User> userPage) {
         Map map = new HashMap();
-        map.put("pages",String.valueOf(userPage.getTotalPages()));
-        map.put("total",String.valueOf(userPage.getTotalElements()));
-        map.put("thisNum",String.valueOf(userPage.getNumberOfElements()));
+        map.put("pages", String.valueOf(userPage.getTotalPages()));
+        map.put("total", String.valueOf(userPage.getTotalElements()));
+        map.put("thisNum", String.valueOf(userPage.getNumberOfElements()));
         List<User> list = new ArrayList<User>();
-        for (User user:userPage.getContent()){
+        for (User user : userPage.getContent()) {
             list.add(user);
         }
 
-        map.put("userList",new RestIndexUser(userRoot,list));
+        map.put("userList", new RestIndexUser(userRoot, list));
         return map;
     }
 
     /**
-     *获取当前企业所有员工(仅包含企业管理员和设备管理员)
+     * 获取当前企业所有员工(仅包含企业管理员和设备管理员)
+     *
      * @param
      * @return
      */
     @RequestMapping(value = "/colleges/manager")
-    public RestResponse getMyCompanyWorkers(Principal  principal){
+    public RestResponse getMyCompanyWorkers(Principal principal) {
         User user = judgeByPrincipal(principal);
-        if (null==user)
-            return new RestResponse("用户信息出错！",1005,null);
+        if (null == user)
+            return new RestResponse("用户信息出错！", 1005, null);
 
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
-        for (User userEnch : list){
-            if(null!=userEnch.getRoles()&&(UserRoleDifferent.userFirmWorkerConfirm(userEnch)||
-                    UserRoleDifferent.userFirmManagerConfirm(userEnch))){
+        for (User userEnch : list) {
+            if (null != userEnch.getRoles() && (UserRoleDifferent.userFirmWorkerConfirm(userEnch) ||
+                    UserRoleDifferent.userFirmManagerConfirm(userEnch))) {
                 RestUser restUser = new RestUser(userEnch);
                 result.add(restUser);
             }
@@ -728,10 +747,11 @@ public class SelectApiController {
 
     /**
      * 获取设备的检测参数
+     *
      * @return
      */
     @RequestMapping(value = "/query/inspect/type")
-    public RestResponse getAllInspectType(Principal principal){
+    public RestResponse getAllInspectType(Principal principal) {
 //        if (null==principal)
 //            throw new UsernameNotFoundException("you are not login!");
 //        User user = userRepository.findByName(principal.getName());
@@ -742,16 +762,16 @@ public class SelectApiController {
 
         DeviceTypeRequest deviceTypeRequest = new DeviceTypeRequest();
         List<InspectTypeRequest> list = new ArrayList<InspectTypeRequest>();
-        if (null!=iterable){
-            for (InspectType inspectType:iterable){
+        if (null != iterable) {
+            for (InspectType inspectType : iterable) {
                 InspectTypeRequest inspectTypeRequest = new InspectTypeRequest();
                 inspectTypeRequest.setId(inspectType.getId());
                 inspectTypeRequest.setName(inspectType.getName());
                 List<DeviceTypeInspectRunningStatus> runningStatuses =
                         deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(inspectType.getId());
                 List<DeviceTypeInspectRunningStatusRequest> runningStatusRequests = new ArrayList<>();
-                if(null!=runningStatuses){
-                    for(DeviceTypeInspectRunningStatus status : runningStatuses){
+                if (null != runningStatuses) {
+                    for (DeviceTypeInspectRunningStatus status : runningStatuses) {
                         runningStatusRequests.add(new DeviceTypeInspectRunningStatusRequest(status));
                     }
                     inspectTypeRequest.setRunningStatus(runningStatusRequests);
@@ -780,19 +800,20 @@ public class SelectApiController {
 
     /**
      * 获取用户所在企业所有的科学家
+     *
      * @param principal
      * @return
      */
     @RequestMapping("/colleges/scientist")
-    public RestResponse getMyScientist(Principal principal){
+    public RestResponse getMyScientist(Principal principal) {
         User user = judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
 
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
-        for (User userEnch : list){
-            if(UserRoleDifferent.userScientistConfirm(userEnch)){
+        for (User userEnch : list) {
+            if (UserRoleDifferent.userScientistConfirm(userEnch)) {
                 RestUser restUser = new RestUser(userEnch);
                 result.add(restUser);
             }
@@ -802,46 +823,47 @@ public class SelectApiController {
 
     /**
      * 删除公司人员
+     *
      * @param principal
      * @param userId
      * @return
      */
     @RequestMapping(value = "/take/over/colleges")
-    public RestResponse getAllCompanyColleges(Principal principal,@RequestParam Integer userId){
+    public RestResponse getAllCompanyColleges(Principal principal, @RequestParam Integer userId) {
         User user = judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
 
         if (!UserRoleDifferent.userFirmManagerConfirm(user))
-            return new RestResponse("权限不足，无法查询！",1005,null);
+            return new RestResponse("权限不足，无法查询！", 1005, null);
         User old = userRepository.findOne(userId);
         boolean deviceManagerFlag = UserRoleDifferent.userFirmWorkerConfirm(old);
         boolean scentistFlag = UserRoleDifferent.userScientistConfirm(old);
 
-        if (null==old)
-            return new RestResponse("请选择要删除的人员！",1005,null);
+        if (null == old)
+            return new RestResponse("请选择要删除的人员！", 1005, null);
         List<User> list = userRepository.findByCompanyId(user.getCompany().getId());
         List<RestUser> result = new ArrayList<RestUser>();
-        for (User userEnch : list){
+        for (User userEnch : list) {
             if (!userEnch.getId().equals(old.getId())) {
                 //判断是否是设备管理员
                 boolean overManageFlag = UserRoleDifferent.userFirmWorkerConfirm(userEnch);
                 //是否是科学家
                 boolean overScientist = UserRoleDifferent.userScientistConfirm(userEnch);
-                if(deviceManagerFlag&&scentistFlag) {
+                if (deviceManagerFlag && scentistFlag) {
                     if (overManageFlag && overScientist) {
                         RestUser restUser = new RestUser(userEnch);
                         result.add(restUser);
                     }
-                }else {
-                    if (deviceManagerFlag){
-                        if (UserRoleDifferent.userFirmManagerConfirm(userEnch)||
-                                deviceManagerFlag==overManageFlag){
+                } else {
+                    if (deviceManagerFlag) {
+                        if (UserRoleDifferent.userFirmManagerConfirm(userEnch) ||
+                                deviceManagerFlag == overManageFlag) {
                             RestUser restUser = new RestUser(userEnch);
                             result.add(restUser);
                         }
                     }
-                    if (scentistFlag&&scentistFlag==overScientist){
+                    if (scentistFlag && scentistFlag == overScientist) {
                         RestUser restUser = new RestUser(userEnch);
                         result.add(restUser);
                     }
@@ -853,48 +875,50 @@ public class SelectApiController {
 
     /**
      * 查询所有版本号接口
+     *
      * @param principal 验证用户是否登陆
      * @return
      */
     @RequestMapping(value = "/service/get/versions")
-    public RestResponse getAllVersion(Principal principal){
-        User user=judgeByPrincipal(principal);
-        if (user==null)
-            return new RestResponse("用户未登陆",1005,null);
+    public RestResponse getAllVersion(Principal principal) {
+        User user = judgeByPrincipal(principal);
+        if (user == null)
+            return new RestResponse("用户未登陆", 1005, null);
 
-       if (UserRoleDifferent.userServiceManagerConfirm(user)){
-           Iterable<DeviceVersion> iterable=deviceVersionRepository.findAll();
-           List<RestDeviceVersion> list=new ArrayList<RestDeviceVersion>();
-           if (null!=iterable){
+        if (UserRoleDifferent.userServiceManagerConfirm(user)) {
+            Iterable<DeviceVersion> iterable = deviceVersionRepository.findAll();
+            List<RestDeviceVersion> list = new ArrayList<RestDeviceVersion>();
+            if (null != iterable) {
 
-               for (DeviceVersion deviceVersion:iterable){
-                   list.add(new RestDeviceVersion(deviceVersion));
-               }
-               return new RestResponse(list);
-           }else {
-               return new RestResponse("没有历史版本更新",1005,null);
-           }
-       }else {
-           return new RestResponse("权限不足！",1005,null);
-       }
+                for (DeviceVersion deviceVersion : iterable) {
+                    list.add(new RestDeviceVersion(deviceVersion));
+                }
+                return new RestResponse(list);
+            } else {
+                return new RestResponse("没有历史版本更新", 1005, null);
+            }
+        } else {
+            return new RestResponse("权限不足！", 1005, null);
+        }
     }
 
 
     /**
      * 获取所有运行状态
+     *
      * @param principal
      * @return
      */
     @RequestMapping(value = "/device/running_status", method = RequestMethod.GET)
-    public RestResponse getDeviceRunningStatus(Principal principal){
+    public RestResponse getDeviceRunningStatus(Principal principal) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
         Iterable<DeviceRunningStatus> iterable = deviceRunningStatusRepository.findAll();
 
         List<RunningStatusRequest> list = new ArrayList<RunningStatusRequest>();
-        if (null!=iterable){
-            for (DeviceRunningStatus status:iterable){
+        if (null != iterable) {
+            for (DeviceRunningStatus status : iterable) {
                 RunningStatusRequest runningStatusRequest = new RunningStatusRequest();
                 runningStatusRequest.setId(status.getId());
                 runningStatusRequest.setName(status.getName());
@@ -908,18 +932,19 @@ public class SelectApiController {
 
     /**
      * 获取设备种类监控参数对应状态
+     *
      * @param deviceTypeInspectId
      * @return
      */
     @RequestMapping(value = "/device/type/status", method = RequestMethod.GET)
-    public RestResponse getDeviceTypeInspectRunningStatus(Principal principal, @RequestParam Integer deviceTypeInspectId){
+    public RestResponse getDeviceTypeInspectRunningStatus(Principal principal, @RequestParam Integer deviceTypeInspectId) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
         List<DeviceTypeInspectRunningStatus> iterable = deviceTypeInspectRunningStatusRepository.findByDeviceTypeInspectId(deviceTypeInspectId);
         List<RestDeviceTypeInspectRunningStatus> list = new ArrayList<>();
-        if(null!=iterable){
-            for(DeviceTypeInspectRunningStatus status: iterable){
+        if (null != iterable) {
+            for (DeviceTypeInspectRunningStatus status : iterable) {
                 RestDeviceTypeInspectRunningStatus deviceTypeInspectRunningStatus = new RestDeviceTypeInspectRunningStatus(status);
                 list.add(deviceTypeInspectRunningStatus);
             }
@@ -929,18 +954,19 @@ public class SelectApiController {
 
     /**
      * 获取设备监控参数对应状态
+     *
      * @param deviceInspectId
      * @return
      */
     @RequestMapping(value = "/device/inspect/status", method = RequestMethod.GET)
-    public RestResponse getDeviceInspectRunningStatus(Principal principal, @RequestParam Integer deviceInspectId){
+    public RestResponse getDeviceInspectRunningStatus(Principal principal, @RequestParam Integer deviceInspectId) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
         List<DeviceInspectRunningStatus> iterable = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspectId);
         List<RestDeviceInspectRunningStatus> list = new ArrayList<>();
-        if(null!=iterable){
-            for(DeviceInspectRunningStatus status: iterable){
+        if (null != iterable) {
+            for (DeviceInspectRunningStatus status : iterable) {
                 RestDeviceInspectRunningStatus deviceInspectRunningStatus = new RestDeviceInspectRunningStatus(status);
                 list.add(deviceInspectRunningStatus);
             }
@@ -952,26 +978,25 @@ public class SelectApiController {
      * 获取最近一周的某设备的hourly设备利用率
      */
     @RequestMapping(value = "/device/utilization", method = RequestMethod.GET)
-    public RestResponse getWeekUtilization(Principal principal, @RequestParam Map<String, String> requestParam){
+    public RestResponse getWeekUtilization(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
-        if(!requestParam.containsKey("deviceId")){
+        if (!requestParam.containsKey("deviceId")) {
             return new RestResponse("设备id为空", 1006, null);
         }
         Device device;
         device = deviceRepository.findById(Integer.parseInt(requestParam.get("deviceId")));
-        if(device == null){
+        if (device == null) {
             return new RestResponse("设备不存在", 1006, null);
         }
 
         Date beginTime, endTime;
-        if(requestParam.containsKey("startTime")){
+        if (requestParam.containsKey("startTime")) {
             beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
-            if(requestParam.containsKey("endTime")){
+            if (requestParam.containsKey("endTime")) {
                 endTime = new Date(Long.parseLong(requestParam.get("endTime")));
-            }
-            else{
+            } else {
                 Calendar endCalendar = Calendar.getInstance();
                 endCalendar.setTime(beginTime);
                 endCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) + 6);
@@ -979,8 +1004,7 @@ public class SelectApiController {
                 endCalendar.set(Calendar.MINUTE, 59);
                 endTime = endCalendar.getTime();
             }
-        }
-        else{
+        } else {
             Calendar endCalendar = Calendar.getInstance();
             endTime = endCalendar.getTime();
             Calendar beginCalendar = Calendar.getInstance();
@@ -997,13 +1021,13 @@ public class SelectApiController {
         List<List<Object>> utilizationList = Application.influxDBManager.readDeviceUtilizationInTimeRange(device.getId(), beginTime, endTime);
 
         List<RestHourlyUtilization> restHourlyUtilizations = new ArrayList<>();
-        for(int i=0; i<utilizationList.size(); i++){
-            long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String)utilizationList.get(i).get(0));
-            float runningSeconds = ((Double)utilizationList.get(i).get(1)).floatValue();
-            float idleSeconds = ((Double)utilizationList.get(i).get(2)).floatValue();
+        for (int i = 0; i < utilizationList.size(); i++) {
+            long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String) utilizationList.get(i).get(0));
+            float runningSeconds = ((Double) utilizationList.get(i).get(1)).floatValue();
+            float idleSeconds = ((Double) utilizationList.get(i).get(2)).floatValue();
 
             RestHourlyUtilization restHourlyUtilization = new RestHourlyUtilization(timeStamp,
-                    runningSeconds/3600, idleSeconds/3600);
+                    runningSeconds / 3600, idleSeconds / 3600);
             restHourlyUtilizations.add(restHourlyUtilization);
 
         }
@@ -1015,27 +1039,26 @@ public class SelectApiController {
      * 获取昨日设备利用率情况
      */
     @RequestMapping(value = "/device/daily/utilization", method = RequestMethod.GET)
-    public RestResponse getYesterdayUtilization(Principal principal, @RequestParam Map<String,String> requestParam){
+    public RestResponse getYesterdayUtilization(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
-        if(!requestParam.containsKey("deviceId")){
+        if (!requestParam.containsKey("deviceId")) {
             return new RestResponse("设备id为空", 1006, null);
         }
         Device device;
         device = deviceRepository.findById(Integer.parseInt(requestParam.get("deviceId")));
-        if(device == null){
+        if (device == null) {
             return new RestResponse("设备不存在", 1006, null);
         }
 
 
         Date beginTime, endTime;
-        if(requestParam.containsKey("date")){
+        if (requestParam.containsKey("date")) {
             beginTime = new Date(Long.parseLong(requestParam.get("date")));
             // endTime is 23 hours and 30 minutes later, to ensure including util data of 24 hours
-            endTime = new Date(Long.parseLong(requestParam.get("date")) + 23*60*60*1000 + 30*60*1000);
-        }
-        else{
+            endTime = new Date(Long.parseLong(requestParam.get("date")) + 23 * 60 * 60 * 1000 + 30 * 60 * 1000);
+        } else {
             Calendar beginCalendar = Calendar.getInstance();
             beginCalendar.set(Calendar.MINUTE, 0);
             beginCalendar.set(Calendar.SECOND, 0);
@@ -1062,8 +1085,8 @@ public class SelectApiController {
         Long leastOftenUsedHour = new Long(-1);
         Integer leastOftenUsedHourUsedTime = new Integer(Integer.MAX_VALUE);
         Float offTimeHours = new Float(0);
-        
-        if(utilizationList != null) {
+
+        if (utilizationList != null) {
             for (int i = 0; i < utilizationList.size(); i++) {
                 long timeStamp = TimeUtil.fromInfluxDBTimeFormat((String) utilizationList.get(i).get(0));
                 Integer runningSeconds = ((Double) utilizationList.get(i).get(1)).intValue();
@@ -1128,42 +1151,41 @@ public class SelectApiController {
      * http://localhost/api/rest/firm/device/monitorData
      */
     @RequestMapping(value = "/device/monitorData", method = RequestMethod.POST)
-    public RestResponse getMonitorData(Principal principal, @RequestBody MonitorDataOfDeviceRequest requestParam){
+    public RestResponse getMonitorData(Principal principal, @RequestBody MonitorDataOfDeviceRequest requestParam) {
 //        User user = judgeByPrincipal(principal);
 //        if(user == null)
 //            return new RestResponse("用户未登陆",1005,null);
-        if(requestParam.getDeviceId() == null){
+        if (requestParam.getDeviceId() == null) {
             return new RestResponse("设备id为空", 1006, null);
         }
         Device device;
         device = deviceRepository.findById(Integer.parseInt(requestParam.getDeviceId()));
-        if(device == null){
+        if (device == null) {
             return new RestResponse("设备不存在", 1006, null);
         }
 
-        if(requestParam.getBeginTime() == null || requestParam.getEndTime() == null){
+        if (requestParam.getBeginTime() == null || requestParam.getEndTime() == null) {
             return new RestResponse("起止时间未设置", 1006, null);
         }
         Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
         Date endTime = new Date(Long.parseLong(requestParam.getEndTime()));
-        long interval = 60*1000/Integer.parseInt(requestParam.getSampleRate());
+        long interval = 60 * 1000 / Integer.parseInt(requestParam.getSampleRate());
         long beginMillisecond = beginTime.getTime();
         long endMillisecond = endTime.getTime();
         LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s, interval: %s.", beginTime.toString(), endTime.toString(), String.valueOf(interval)));
-        if(requestParam.getMonitorId() == null){
+        if (requestParam.getMonitorId() == null) {
             return new RestResponse("监控参数ID未设置", 1006, null);
         }
 
         List<String> deviceInspectIds = requestParam.getMonitorId();
         List<DeviceInspect> deviceInspects = new ArrayList<>();
 
-        for(String deviceInspectId : deviceInspectIds){
+        for (String deviceInspectId : deviceInspectIds) {
             DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(deviceInspectId));
-            if(deviceInspect != null){
+            if (deviceInspect != null) {
                 LOGGER.info(String.format("Get Device Monitor: monitor %d is found.", deviceInspect.getId()));
                 deviceInspects.add(deviceInspect);
-            }
-            else{
+            } else {
                 LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is not found.", deviceInspectId));
             }
         }
@@ -1177,28 +1199,27 @@ public class SelectApiController {
         int timeGranularity = Calendar.SECOND;
 
 
-        if(timeSpan > 3600 * 24 * 30){
+        if (timeSpan > 3600 * 24 * 30) {
             // longer than a month, using daily average data
             timeGranularity = Calendar.DATE;
-        }else if(timeSpan > 3600 * 24 * 5){
+        } else if (timeSpan > 3600 * 24 * 5) {
             // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
             timeGranularity = Calendar.HOUR;
-        }else if(timeSpan > 3600 * 6){
+        } else if (timeSpan > 3600 * 6) {
             // longer than 6 hours, using 10-min data, at most 144 * 5 entry per inspect
             timeGranularity = Calendar.MINUTE;
         }
 
         List<TelemetryData> telemetryDatas = new ArrayList<>();
 
-        for(DeviceInspect deviceInspect: deviceInspects){
+        for (DeviceInspect deviceInspect : deviceInspects) {
             List<List<Object>> inspectDatas = Application.influxDBManager.readTelemetryInTimeRange(
                     deviceInspect.getInspectType().getMeasurement(),
 //                    InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()),
                     device.getId(), deviceInspect.getId(), beginTime, endTime, timeGranularity);
 
 
-
-            if(inspectDatas == null || inspectDatas.size() == 0){
+            if (inspectDatas == null || inspectDatas.size() == 0) {
                 continue;
             }
 
@@ -1216,16 +1237,16 @@ public class SelectApiController {
             Long redAlertTime = new Long(0);
 
 
-            for(int i=0; i<inspectDatas.size(); i++){
+            for (int i = 0; i < inspectDatas.size(); i++) {
                 Float result = ((Double) inspectDatas.get(i).get(1)).floatValue();
-                Long timeTick = TimeUtil.fromInfluxDBTimeFormat((String)inspectDatas.get(i).get(0));
+                Long timeTick = TimeUtil.fromInfluxDBTimeFormat((String) inspectDatas.get(i).get(0));
 
                 sumValue += result;
-                if(result > maxValue){
+                if (result > maxValue) {
                     maxValue = result;
                     maxValueTime = timeTick;
                 }
-                if(result < minValue){
+                if (result < minValue) {
                     minValue = result;
                     minValueTime = timeTick;
                 }
@@ -1240,7 +1261,7 @@ public class SelectApiController {
             aggregateData.setMaxValueTime(maxValueTime);
             aggregateData.setMinValue(minValue);
             aggregateData.setMinValueTime(minValueTime);
-            aggregateData.setAvgValue(sumValue/inspectDatas.size());
+            aggregateData.setAvgValue(sumValue / inspectDatas.size());
 
             List<AlertCount> yellowAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
                     deviceInspect.getInspectType().getId(),
@@ -1248,28 +1269,27 @@ public class SelectApiController {
             List<AlertCount> redAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
                     deviceInspect.getInspectType().getId(),
                     2, beginTime, endTime);
-            if(yellowAlertCounts != null && yellowAlertCounts.size() > 0){
+            if (yellowAlertCounts != null && yellowAlertCounts.size() > 0) {
                 yellowAlertCount = yellowAlertCounts.size();
-                for(AlertCount alertCount : yellowAlertCounts){
+                for (AlertCount alertCount : yellowAlertCounts) {
                     // GX: alert_count.finishDate can be null due to device go offline
                     // this is a temp hack, using alert_num * 20 sec
-                    if (alertCount.getFinish() == null){
+                    if (alertCount.getFinish() == null) {
                         yellowAlertTime += alertCount.getNum() * 20 * 1000;
 
-                    }
-                    else {
+                    } else {
                         yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
                     }
                 }
             }
-            if(redAlertCounts != null && redAlertCounts.size() > 0){
+            if (redAlertCounts != null && redAlertCounts.size() > 0) {
                 redAlertCount = redAlertCounts.size();
-                for(AlertCount alertCount : redAlertCounts){
+                for (AlertCount alertCount : redAlertCounts) {
                     // GX: alert_count.finishDate can be null due to device go offline
                     // this is a temp hack, using alert_num * 20 sec
-                    if(alertCount.getFinish() == null){
+                    if (alertCount.getFinish() == null) {
                         redAlertTime += alertCount.getNum() * 20 * 1000;
-                    }else {
+                    } else {
                         redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
                     }
                 }
@@ -1279,19 +1299,18 @@ public class SelectApiController {
             aggregateData.setYellowAlertCount(yellowAlertCount);
             aggregateData.setYellowAlertTotalTime(yellowAlertTime);
             Float MKT = null;
-            if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty() && Integer.parseInt(requestParam.getMktId()) == deviceInspect.getId()){
+            if (requestParam.getMktId() != null && !requestParam.getMktId().isEmpty() && Integer.parseInt(requestParam.getMktId()) == deviceInspect.getId()) {
 
-                if(inspectDatas != null){
+                if (inspectDatas != null) {
                     LOGGER.info("MKT calculation: device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
                     MKT = MKTCalculator.calculateMKTValue(inspectDatas);
-                }
-                else{
+                } else {
                     LOGGER.info("MKT Monitor Inspect's data is null");
                 }
 
             }
 
-            if(MKT != null){
+            if (MKT != null) {
                 aggregateData.setMktdata(MKT);
             }
 
@@ -1303,7 +1322,7 @@ public class SelectApiController {
 
             telemetryData.setDeviceInspectId(deviceInspect.getId());
             telemetryData.setName(deviceInspect.getInspectType().getMeasurement());
-                    //InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
+            //InspectProcessTool.getMeasurementByCode(deviceInspect.getInspectType().getCode()));
             telemetryData.setTsData(dataSeries);
             telemetryData.setTsTime(timeSeries);
             telemetryData.setAggregateData(aggregateData);
@@ -1517,8 +1536,40 @@ public class SelectApiController {
     }
 
     @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
-    public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId){
+    public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId) {
         List<DealRecord> dealRecords = dealRecordRepository.findByLessorIdOrLesseeId(userId, userId);
         return new RestResponse(dealRecords);
+    }
+
+    @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
+    public RestResponse getDeviceRunningStatusHistory(Principal principal, @RequestParam Map<String, String> requestParam) {
+//        User user = judgeByPrincipal(principal);
+//        if(user == null)
+//            return new RestResponse("用户未登陆",1005,null);
+        if (!requestParam.containsKey("deviceId")) {
+            return new RestResponse("设备id为空", 1006, null);
+        }
+        if (!requestParam.containsKey("beginTime")) {
+            return new RestResponse("起始时间未设置", 1006, null);
+        }
+
+        List<DeviceRunningStatusHistory> histories = null;
+        if (!requestParam.containsKey("endTime")) {
+            histories = deviceRunningStatusHistoryRepository.findByDeviceIdAndChangeTimeAfterOrderByChangeTimeAsc(
+                    Integer.parseInt(requestParam.get("deviceId")),
+                    new Date(Long.parseLong(requestParam.get("beginTime"))));
+        } else {
+            histories = deviceRunningStatusHistoryRepository.findByDeviceIdAndChangeTimeBetweenOrderByChangeTimeAsc(
+                    Integer.parseInt(requestParam.get("deviceId")),
+                    new Date(Long.parseLong(requestParam.get("beginTime"))),
+                    new Date(Long.parseLong(requestParam.get("endTime"))));
+        }
+
+        List<DeviceRunningStatusHistoryRecord> records = new ArrayList<>();
+        for(DeviceRunningStatusHistory history : histories){
+            records.add(new DeviceRunningStatusHistoryRecord(history.getId(), history.getDevice().getId(),
+                    history.getChangeTime().getTime(), history.getChangeToStatus()));
+        }
+        return new RestResponse(records);
     }
 }

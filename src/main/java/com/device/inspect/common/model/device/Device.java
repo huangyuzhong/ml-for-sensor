@@ -53,6 +53,7 @@ public class Device {
     private String deviceChainKey;
     private String rentClause;
     private Double rentPrice;
+    private Integer latestRunningStatus;
 
     @Id
     @GeneratedValue()
@@ -386,5 +387,14 @@ public class Device {
 
     public void setRentPrice(Double rentPrice){
         this.rentPrice = rentPrice;
+    }
+
+    @Column(name = "latest_running_status")
+    public Integer getLatestRunningStatus(){
+        return this.latestRunningStatus;
+    }
+
+    public void setLatestRunningStatus(Integer latestRunningStatus){
+        this.latestRunningStatus = latestRunningStatus;
     }
 }

@@ -5,9 +5,11 @@ import com.device.inspect.common.cache.MemoryDevice;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.device.RestInspectData;
@@ -90,6 +92,10 @@ public class SocketMessageApi {
 
     @Autowired
     private MemoryCacheDevice memoryCacheDevice;
+
+    @Autowired
+    private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
 
     String unit = "s";
 
@@ -364,6 +370,31 @@ public class SocketMessageApi {
             }
         }
 
+        // step-6: 如果是状态数据，查看设备状态是否发生变化
+        if(deviceInspect.getInspectPurpose() == 1){
+            LOGGER.info("check data against status");
+            Integer runningStatus = 0;
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+            if(runningStatuses != null && runningStatuses.size() > 0) {
+                for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
+                    if(inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()){
+                        runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
+                    }
+                }
+
+                if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
+                    device.setLatestRunningStatus(runningStatus);
+                    DeviceRunningStatusHistory history = new DeviceRunningStatusHistory();
+                    history.setDevice(device);
+                    history.setChangeTime(inspectMessage.getSamplingTime());
+                    history.setChangeToStatus(runningStatus);
+
+                    LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
+                    deviceRepository.save(device);
+                    deviceRunningStatusHistoryRepository.save(history);
+                }
+            }
+        }
 
 
 
