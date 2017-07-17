@@ -15,4 +15,6 @@ public interface UserRepository extends CrudRepository<User,Integer> {
     public List<User> findByCompanyId(Integer CompanyId);
 
     public List<User> findAll();
+
+    public User findById(Integer id);
 }

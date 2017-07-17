@@ -1,6 +1,8 @@
 package com.device.inspect.controller;
 
 import DNA.sdk.wallet.UserWalletManager;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -9,6 +11,8 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.DealRecord;
+import com.device.inspect.common.model.record.DeviceDisableTime;
 import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
@@ -18,12 +22,18 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.common.repository.record.DealRecordRepository;
+import com.device.inspect.common.repository.record.DeviceDisableTimeRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.*;
+import com.device.inspect.common.restful.record.BlockChainDealDetail;
+import com.device.inspect.common.restful.record.BlockChainDealRecord;
 import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
+import com.device.inspect.common.service.OnchainService;
+import com.device.inspect.common.service.TemporalStrategyChecker;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
 import org.apache.logging.log4j.LogManager;
@@ -120,6 +130,15 @@ public class OperateController {
 
     @Autowired
     private DeviceInspectRunningStatusRepository deviceInspectRunningStatusRepository;
+
+    @Autowired
+    private DeviceDisableTimeRepository deviceDisableTimeRepository;
+
+    @Autowired
+    private DealRecordRepository dealRecordRepository;
+
+    @Autowired
+    private OnchainService onchainService;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1505,7 +1524,94 @@ public class OperateController {
      */
     @RequestMapping(value = "/device/makeChainDeal", method = RequestMethod.POST)
     public RestResponse makeChainDeal(Principal principal, @RequestBody makeChainDealRequest requestParam){
-        return new RestResponse();
+        // check parameter is validate
+        if(requestParam.getLesseeId() == null){
+            return new RestResponse(("租用者id不能为空"), 1006, null);
+        }
+        if(requestParam.getDeviceId() == null){
+            return new RestResponse(("设备id不能为空"), 1006, null);
+        }
+        if(requestParam.getBeginTime() == null || requestParam.getEndTime() == null){
+            return new RestResponse(("租用时间不能为空"), 1006, null);
+        }
+
+        User lessee = userRepository.findById(requestParam.getLesseeId());
+        if(lessee == null){
+            return new RestResponse(("租用者id不存在"), 1007, null);
+        }
+        if(lessee.getAccountAddress() == null || lessee.getAccountAddress().equals("")){
+            return new RestResponse(("租用者不在区块链上"), 1007, null);
+        }
+
+        Device device = deviceRepository.findById(requestParam.getDeviceId());
+        if(device == null){
+            return new RestResponse(("设备id不存在"), 1007, null);
+        }
+        if(device.getDeviceChainKey() == null || device.getDeviceChainKey().equals("")){
+            return new RestResponse(("设备不在区块链上"), 1007, null);
+        }
+
+        User lessor = device.getManager();
+        if(lessor == null){
+            return new RestResponse(("承租用户不存在"), 1007, null);
+        }
+        if(lessor.getAccountAddress() == null || lessor.getAccountAddress().equals("")){
+            return new RestResponse(("承租者不在区块链上"), 1007, null);
+        }
+
+        // check request time interval is validate
+        Date beginTime = new Date(requestParam.getBeginTime());
+        Date endTime = new Date(requestParam.getEndTime());
+
+        // check whether request time interval fit allowed temporal strategy
+        List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(device.getId());
+        for(DeviceDisableTime timeStrategy : deviceDisableTimes){
+            if(!TemporalStrategyChecker.checkRequestTimeByStrategy(timeStrategy.getStrategyType(), timeStrategy.getContent(), beginTime, endTime)){
+                return new RestResponse(("申请的使用时间已被禁用"), 1007, null);
+            }
+        }
+
+        // check whether request time interval is not used by others
+        int conflictDeal = dealRecordRepository.countByDeviceIdAndBeginTimeBetween(device.getId(), beginTime, endTime) +
+                dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime);
+        if(conflictDeal > 0){
+            return new RestResponse(("申请的使用时间与其他交易冲突"), 1007, null);
+        }
+
+        DealRecord dealRecord = new DealRecord();
+        dealRecord.setStatus(0);
+        dealRecord.setAggrement(device.getRentClause());
+        dealRecord.setBeginTime(beginTime);
+        dealRecord.setEndTime(endTime);
+        dealRecord.setDevice(device);
+        dealRecord.setDeviceSerialNumber(device.getSerialNo());
+        dealRecord.setLessee(lessee);
+        dealRecord.setLessor(lessor);
+        dealRecord.setPrice(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600);
+        try{
+            dealRecordRepository.save(dealRecord);
+            DealRecord getRecord = dealRecordRepository.findTopByDeviceIdAndBeginTimeAndEndTime(device.getId(), beginTime, endTime);
+            BlockChainDealDetail data = new BlockChainDealDetail(getRecord.getId(), getRecord.getDevice().getId(), getRecord.getLessor().getId(),
+                    getRecord.getLessee().getId(), getRecord.getPrice(), getRecord.getBeginTime().getTime(), getRecord.getEndTime().getTime(),
+                    getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
+            BlockChainDealRecord value = new BlockChainDealRecord("创建交易", data);
+            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()) + String.valueOf(getRecord.getDevice().getId()),
+                    "", JSON.toJSONString(value));
+            if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                throw new Exception("return value from block chain is not equal to original");
+            }
+            return new RestResponse(getRecord);
+        }
+        catch(Exception e){
+            LOGGER.error(e.getMessage());
+            DealRecord getRecord = dealRecordRepository.findTopByDeviceIdAndBeginTimeAndEndTime(device.getId(), beginTime, endTime);
+            if(getRecord != null){
+                dealRecordRepository.delete(getRecord);
+            }
+        }
+        // try to make deal
+
+        return new RestResponse(("申请失败"), 1007, null);
     }
 
     /**
