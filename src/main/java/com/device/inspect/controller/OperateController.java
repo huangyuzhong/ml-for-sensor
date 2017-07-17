@@ -234,6 +234,42 @@ public class OperateController {
     }
 
     /**
+     * 修改设备详细概况
+     * @param deviceId
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/deviceDetail/{deviceId}")
+    public RestResponse operateDeviceDetail(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登陆",1005,null);
+        Device device = deviceRepository.findOne(deviceId);
+        if (null == device)
+            return new RestResponse("设备信息出错！",1005,null);
+        if (device.getManager()!=null&&device.getManager()!=user1)
+            return new RestResponse("你不是此设备的设备管理员",1005,null);
+
+        if (null!=map.get("enableSharing")) {
+            Integer enableSharing = Integer.parseInt(map.get("enableSharing"));
+            device.setEnableSharing(enableSharing);
+
+            if (enableSharing == 1 && device.getDeviceChainKey() == null){
+                UserWalletManager wallet = InitWallet.getWallet();
+                String deviceChainKey = wallet.createAccount();
+                device.setDeviceChainKey(deviceChainKey);
+            }
+        }
+        if (null!=map.get("rentClause"))
+            device.setRentClause(map.get("rentClause"));
+        if (null!=map.get("rentPrice"))
+            device.setRentPrice(Double.parseDouble(map.get("rentPrice")));
+
+        deviceRepository.save(device);
+        return new RestResponse(new RestDevice(device));
+    }
+
+    /**
      * 修改设备基本概况
      * @param deviceId
      * @param map
