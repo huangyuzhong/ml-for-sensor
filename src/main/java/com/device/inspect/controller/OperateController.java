@@ -1,5 +1,6 @@
 package com.device.inspect.controller;
 
+import DNA.sdk.info.account.AccountAsset;
 import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -54,6 +55,8 @@ import java.security.Principal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.device.inspect.common.setting.Defination.*;
 
 /**
  * Created by Administrator on 2016/8/1.
@@ -1579,7 +1582,7 @@ public class OperateController {
         }
 
         DealRecord dealRecord = new DealRecord();
-        dealRecord.setStatus(0);
+        dealRecord.setStatus(ONCHAIN_DEAL_STATUS_DEAL);
         dealRecord.setAggrement(device.getRentClause());
         dealRecord.setBeginTime(beginTime);
         dealRecord.setEndTime(endTime);
@@ -1587,7 +1590,8 @@ public class OperateController {
         dealRecord.setDeviceSerialNumber(device.getSerialNo());
         dealRecord.setLessee(lessee);
         dealRecord.setLessor(lessor);
-        dealRecord.setPrice(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600);
+        double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600)).intValue();
+        dealRecord.setPrice(price);
         try{
             dealRecordRepository.save(dealRecord);
             DealRecord getRecord = dealRecordRepository.findTopByDeviceIdAndBeginTimeAndEndTime(device.getId(), beginTime, endTime);
@@ -1600,6 +1604,16 @@ public class OperateController {
             if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
                 throw new Exception("return value from block chain is not equal to original");
             }
+
+            // transfer rent price to agency
+            AccountAsset info = onchainService.getAccountAsset(OnchainService.agencyAddr);
+            if(info == null || info.canUseAssets == null || info.canUseAssets.size() == 0){
+                LOGGER.error(String.format("Finish Deal: agency have no asset"));
+                return new RestResponse(getRecord);
+            }
+            String assetId = info.canUseAssets.get(0).assetid;
+            onchainService.transfer(assetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), getRecord.getLessee().getCompany().getAccountAddress(), OnchainService.agencyAddr);
+
             return new RestResponse(getRecord);
         }
         catch(Exception e){
@@ -1619,7 +1633,101 @@ public class OperateController {
      */
     @RequestMapping(value = "/device/finishChainDeal", method = RequestMethod.POST)
     public RestResponse finishChainDeal(Principal principal, @RequestBody finishChainDealRequest requestPapram){
-        return new RestResponse();
+        Integer dealId = requestPapram.getDealId();
+        if(dealId == null){
+            return new RestResponse(("交易id不能为空"), 1006, null);
+        }
+        Integer operatorId = requestPapram.getOperateUserId();
+        if(operatorId == null){
+            return new RestResponse(("操作申请者id不能为空"), 1006, null);
+        }
+        String operation = requestPapram.getOperation();
+        if(operation == null){
+            return new RestResponse(("操作不能为空"), 1006, null);
+        }
+
+        if(!ONCHAIN_DEAL_OPERATION_SET.contains(operation)){
+            return new RestResponse(("操作类型不支持"), 1007, null);
+        }
+
+        DealRecord record = dealRecordRepository.findOne(dealId);
+        if(record == null){
+            return new RestResponse(("交易id无效"), 1007, null);
+        }
+
+        if(operatorId != record.getLessor().getId() && operatorId != record.getLessee().getId()){
+            return new RestResponse(("操作申请者非租赁双方"), 1007, null);
+        }
+        if(record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH){
+            return new RestResponse(("无效操作，交易已结束"), 1007, null);
+        }
+        if(record.getStatus() == ONCHAIN_DEAL_STATUS_CANCELLED){
+            return new RestResponse(("无效操作，交易已取消"), 1007, null);
+        }
+        if(record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING){
+            return new RestResponse(("无效操作，交易正在执行中"), 1007, null);
+        }
+
+        Integer original_status = record.getStatus();
+        Boolean finish = false;
+        if(operatorId == record.getLessor().getId()){
+            if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM);
+            }
+            else if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
+                finish = true;
+            }
+        }
+
+        if(operatorId == record.getLessee().getId()){
+            if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM);
+            }
+            else if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
+                finish = true;
+            }
+        }
+
+        try{
+            BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor().getId(),
+                    record.getLessee().getId(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
+                    record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
+            BlockChainDealRecord value = new BlockChainDealRecord("更新交易", data);
+            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                    "", JSON.toJSONString(value));
+            if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                throw new Exception("return value from block chain is not equal to original");
+            }
+        }
+        catch(Exception e){
+            LOGGER.error(e.getMessage());
+            return new RestResponse(("更新区块链失败"), 1007, null);
+        }
+
+        dealRecordRepository.save(record);
+        if(finish){
+            AccountAsset info = onchainService.getAccountAsset(OnchainService.agencyAddr);
+            if(info == null || info.canUseAssets == null || info.canUseAssets.size() == 0){
+                LOGGER.error(String.format("Finish Deal: agency have no asset"));
+                return new RestResponse(record);
+            }
+            String assetId = info.canUseAssets.get(0).assetid;
+            onchainService.transfer(assetId, record.getPrice().intValue(), "支付租金,交易id:"+record.getId(), OnchainService.agencyAddr, record.getLessor().getCompany().getAccountAddress());
+
+            AccountAsset pointInfo = onchainService.getAccountAsset(OnchainService.rewardAddr);
+            if(pointInfo == null || pointInfo.canUseAssets == null || pointInfo.canUseAssets.size() == 0){
+                LOGGER.error(String.format("Finish Deal: reward account have no asset"));
+                return new RestResponse(record);
+            }
+            String rewardAssetId = pointInfo.canUseAssets.get(0).assetid;
+            int rewardPoint = (int)(record.getPrice().intValue()*0.1);
+            onchainService.transfer(rewardAssetId, rewardPoint, "支付积分,交易id:"+record.getId(), OnchainService.rewardAddr, record.getLessor().getAccountAddress());
+            onchainService.transfer(rewardAssetId, rewardPoint, "支付积分,交易id:"+record.getId(), OnchainService.rewardAddr, record.getLessee().getAccountAddress());
+        }
+
+        return new RestResponse(record);
     }
 
 //    /**
