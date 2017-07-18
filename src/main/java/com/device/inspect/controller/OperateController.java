@@ -235,11 +235,70 @@ public class OperateController {
 
     /**
      * 修改设备详细概况
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/find/deviceDisableTimeByDeviceId")
+    public RestResponse findDeviceDisableTimeByDeviceId(Principal principal, @RequestParam Map<String,String> map){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登陆",1005,null);
+        if (null != map.get("deviceId")){
+            Integer deviceId = Integer.parseInt(map.get("deviceId"));
+            List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
+            return new RestResponse(new RestDeviceDisableTime(deviceDisableTimes.get(0)));
+        }
+        return new RestResponse("设备信息出错！",1005,null);
+    }
+
+    /**
+     * 操作设备不可租赁时间段
+     * @param principal
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/add/deviceDisableTime")
+    public RestResponse addDeviceDisableTime(Principal principal, @RequestParam Map<String,String> map){
+        User user1=judgeByPrincipal(principal);
+        if (user1==null)
+            return new RestResponse("用户未登陆",1005,null);
+        if (map.containsKey("id")){  // 修改设备不可租赁时间组
+            DeviceDisableTime deviceDisableTime = deviceDisableTimeRepository.findOne(Integer.parseInt(map.get("id")));
+            if (null != map.get("strategyType")){
+                deviceDisableTime.setStrategyType(map.get("strategyType"));
+            }
+            if (null != map.get("content")){
+                deviceDisableTime.setContent(map.get("content"));
+            }
+            deviceDisableTimeRepository.save(deviceDisableTime);
+            return new RestResponse(deviceDisableTime);
+        }else{  // 新增设备不可租赁时间组
+            DeviceDisableTime deviceDisableTime = new DeviceDisableTime();
+            if (null != map.get("deviceId")){
+                Device device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
+                if (device == null)
+                    return new RestResponse("设备信息出错！",1005,null);
+                else
+                    deviceDisableTime.setDevice(device);
+            }
+            if (null != map.get("strategyType")){
+                deviceDisableTime.setStrategyType(map.get("strategyType"));
+            }
+            if (null != map.get("content")){
+                deviceDisableTime.setContent(map.get("content"));
+            }
+            deviceDisableTimeRepository.save(deviceDisableTime);
+            return new RestResponse("操作成功！", null);
+        }
+    }
+
+    /**
+     * 修改设备详细概况
      * @param deviceId
      * @param map
      * @return
      */
-    @RequestMapping(value = "/deviceDetail/{deviceId}")
+    @RequestMapping(value = "/deviceSharing/{deviceId}")
     public RestResponse operateDeviceDetail(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
         User user1=judgeByPrincipal(principal);
         if (user1==null)
@@ -247,8 +306,6 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
-        if (device.getManager()!=null&&device.getManager()!=user1)
-            return new RestResponse("你不是此设备的设备管理员",1005,null);
 
         if (null!=map.get("enableSharing")) {
             Integer enableSharing = Integer.parseInt(map.get("enableSharing"));

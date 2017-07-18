@@ -549,6 +549,21 @@ public class FileController {
                 company.setTotal(company.getTotal()+1);
                 company.setOffline(company.getOffline()+1);
                 companyRepository.save(company);
+
+                if (null!=param.get("enableSharing")) {
+                    Integer enableSharing = Integer.parseInt(param.get("enableSharing"));
+                    if (enableSharing == 1 || enableSharing == 0){
+                        UserWalletManager wallet = InitWallet.getWallet();
+                        String deviceChainKey = wallet.createAccount();
+                        device.setDeviceChainKey(deviceChainKey);
+                    }
+                    device.setEnableSharing(enableSharing);
+                }
+                if (null!=param.get("rentClause"))
+                    device.setRentClause(param.get("rentClause"));
+                if (null!=param.get("rentPrice"))
+                    device.setRentPrice(Double.parseDouble(param.get("rentPrice")));
+
                 deviceRepository.save(device);
                 monitorDevice = new MonitorDevice();
                 monitorDevice.setBattery("100");

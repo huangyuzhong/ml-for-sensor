@@ -54,6 +54,7 @@ public class RestDevice {
     private String deviceChainKey;
     private String rentClause;
     private Double rentPrice;
+    private Integer latestRunningStatus;
 
     public RestDevice(@NotNull Device device) {
         this.id = device.getId();
@@ -125,6 +126,9 @@ public class RestDevice {
         }
         if(null != device.getRentClause()){
             this.rentClause = device.getRentClause();
+        }
+        if (null != device.getLatestRunningStatus()){
+            this.latestRunningStatus = device.getLatestRunningStatus();
         }
 
     }
@@ -380,4 +384,11 @@ public class RestDevice {
     public String getRentClause() {return this.rentClause;}
     public void setRentClause(String rentClause) { this.rentClause = rentClause;}
 
+    public Integer getLatestRunningStatus() {
+        return latestRunningStatus;
+    }
+
+    public void setLatestRunningStatus(Integer latestRunningStatus) {
+        this.latestRunningStatus = latestRunningStatus;
+    }
 }
