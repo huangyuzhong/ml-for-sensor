@@ -5,6 +5,7 @@ import DNA.Core.Transaction;
 import DNA.Core.TransferTransaction;
 import DNA.Helper;
 import DNA.Network.Rest.RestNode;
+import DNA.sdk.helper.OnChainSDKHelper;
 import DNA.sdk.info.account.AccountAsset;
 import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSONObject;
@@ -14,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
+import static com.device.inspect.common.service.InitWallet.getWallet;
 import static com.device.inspect.common.service.InitWallet.url;
 
 /**
@@ -39,7 +41,6 @@ public class OnchainService {
     public AccountAsset getAccountAsset(String userAddr){
         return wallet.getAccountAsset(userAddr);
     }
-
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
         Transaction tx;
