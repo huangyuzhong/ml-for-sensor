@@ -33,6 +33,27 @@ public class CheckFinishDeal {
 
     @Scheduled(cron = "0 */10 * * * ? ")
     public void scheduleTask() {
+        LOGGER.info("Check Execut Deal: begin checking deal record which meets rent start time");
+        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeAfter(ONCHAIN_DEAL_STATUS_DEAL, new Date());
+        for(DealRecord record : beginRecords){
+            try{
+                record.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING);
+                BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor().getId(),
+                        record.getLessee().getId(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
+                        record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
+                BlockChainDealRecord value = new BlockChainDealRecord("更新交易状态", data);
+                JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                        "", JSON.toJSONString(value));
+                if (!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))) {
+                    throw new Exception("return value from block chain is not equal to original");
+                }
+                dealRecordRepository.save(record);
+            }
+            catch(Exception e){
+                LOGGER.error("Check Finish Deal Error: " + e.getMessage());
+            }
+        }
+
         LOGGER.info("Check Finish Deal: begin checking deal record which meets rent end time");
 
         List<DealRecord> records = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING, new Date());
@@ -48,11 +69,11 @@ public class CheckFinishDeal {
                 if (!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))) {
                     throw new Exception("return value from block chain is not equal to original");
                 }
+                dealRecordRepository.save(record);
             }
             catch(Exception e){
                 LOGGER.error("Check Finish Deal Error: " + e.getMessage());
             }
-            dealRecordRepository.save(record);
         }
     }
 }

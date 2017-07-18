@@ -3,6 +3,7 @@ package com.device.inspect.common.service;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -16,7 +17,7 @@ public class TemporalStrategyChecker {
 
     private static final Logger LOGGER = LogManager.getLogger(TemporalStrategyChecker.class);
 
-    private static final Pattern dailyPattern = Pattern.compile("^d+:d+-d+:d+");
+    private static final Pattern dailyPattern = Pattern.compile("^(\\d+):(\\d+)-(\\d+):(\\d+)(.*)$");
 
     public static boolean checkRequestTimeByStrategy(String strategy, String content, Date beginTime, Date endTime){
         if(strategy.equals("daily")){
@@ -30,13 +31,15 @@ public class TemporalStrategyChecker {
                 Integer beginMinutes = beginHour*60 + beginMinute;
                 Integer endMinutes = endHour*60 + endMinute;
 
-                Calendar beginCal = Calendar.getInstance(TimeZone.getTimeZone("CST"));
+                Calendar beginCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
                 beginCal.setTime(beginTime);
-                Calendar endCal = Calendar.getInstance(TimeZone.getTimeZone("CST"));
+
+                Calendar endCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
                 endCal.setTime(endTime);
 
                 Integer reqBeginMinutes = beginCal.get(Calendar.HOUR_OF_DAY) * 60 + beginCal.get(Calendar.MINUTE);
                 Integer reqEndMinutes = endCal.get(Calendar.HOUR_OF_DAY)*60 + endCal.get(Calendar.MINUTE);
+
 
                 boolean crossDay = false;
                 if(beginCal.get(Calendar.HOUR_OF_DAY) > endCal.get(Calendar.HOUR_OF_DAY)){
@@ -55,10 +58,10 @@ public class TemporalStrategyChecker {
                     }
                 }
                 else{
-                    if(reqBeginMinutes < beginMinutes && beginMinutes < reqEndMinutes){
+                    if(beginMinutes < reqBeginMinutes && reqBeginMinutes < endMinutes){
                         return false;
                     }
-                    else if(reqBeginMinutes < endMinutes && endMinutes < reqEndMinutes){
+                    else if(beginMinutes < reqEndMinutes && reqEndMinutes < endMinutes){
                         return false;
                     }
                     else{

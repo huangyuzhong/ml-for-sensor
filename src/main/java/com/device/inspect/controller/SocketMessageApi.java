@@ -392,6 +392,9 @@ public class SocketMessageApi {
                     LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
                     deviceRepository.save(device);
                     deviceRunningStatusHistoryRepository.save(history);
+
+                    // comment line below temporarily,
+                    //writeDeviceRunningStatus(device, inspectMessage, runningStatus);
                 }
             }
         }
@@ -432,6 +435,34 @@ public class SocketMessageApi {
 
         return deviceInspect;
 
+    }
+
+    void writeDeviceRunningStatus(Device device, InspectMessage inspectMessage, Integer runningStatus){
+        int retry = 0;
+        int max_try = 3;
+
+        try {
+            while (retry < max_try) {
+                boolean writeSuccess = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(), device.getName(), device.getDeviceType().getName(), runningStatus);
+
+                if (!writeSuccess) {
+                    Thread.sleep(200);
+                    retry++;
+                } else {
+                    LOGGER.info(String.format("Successfully write Device [%d] running status %s to influxdb",
+                            device.getId(), runningStatus));
+
+                    break;
+                }
+            }
+
+            if (retry >= max_try) {
+                LOGGER.error(String.format("Abort writing device %s running status (%s) after %d approach",
+                        device.getId(), runningStatus,  max_try));
+            }
+        }catch (Exception e){
+            LOGGER.error("Failed to write running status. Err:" + e.toString());
+        }
     }
 
     // this function may need a better place
