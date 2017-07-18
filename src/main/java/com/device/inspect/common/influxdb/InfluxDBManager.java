@@ -101,6 +101,44 @@ public class InfluxDBManager {
     }
 
     /**
+     * 写入设备在某时间的运行状态
+     * @param samplingTime
+     * @param deviceId
+     * @param deviceName
+     * @param deviceType
+     * @param status
+     * @return
+     */
+    public boolean writeDeviceOperatingStatus(Date samplingTime, Integer deviceId, String deviceName, String deviceType, int status){
+        String dbName = "intelab";
+
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("device_id", deviceId.toString())
+                .tag("device_name", deviceName)
+                .tag("device_type", deviceType)
+                .retentionPolicy("utilizations")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+        Point point = Point.measurement("operating_status")
+                .time(samplingTime.getTime(), TimeUnit.MILLISECONDS)
+                .addField("value", status)
+                .build();
+
+        batchPoints.point(point);
+        try {
+            influxDB.write(batchPoints);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+
+            logger.error(String.format("Failed to write operating status to influxdb. Error: %s", e.toString()));
+            return false;
+        }
+
+    }
+
+    /**
      * 写入指定设备指定时间的每小时利用率数据
      * @param samplingTime
      * @param deviceId
@@ -269,6 +307,137 @@ public class InfluxDBManager {
         }catch (Exception e){
             e.printStackTrace();
             logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 读取某设备在某时间点之前最近的运行状态
+     * @param deviceId
+     * @param referenceTime
+     * @return
+     */
+    public List<Object> readLatestDeviceOperatingStatus(Integer deviceId, Date referenceTime){
+        String dbName = "intelab";
+
+
+        Date refTime = new Date();
+
+        if (referenceTime != null){
+            refTime = referenceTime;
+        }
+
+        long refTimeNano = refTime.getTime() * 1000000;
+
+        String queryString = String.format("SELECT value FROM utilizations.operating_status WHERE device_id='%d' and time <= %d ORDER BY time DESC LIMIT 1",
+                deviceId, refTimeNano);
+
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            //since a query can contain multiple sub queries, the return value is a list
+            List<QueryResult.Result> resultList = result.getResults();
+
+            if(resultList != null && resultList.size() > 0){
+                QueryResult.Result tsData = resultList.get(0);
+
+                List<QueryResult.Series> series = tsData.getSeries();
+
+                if(series != null && series.size() > 0){
+                    String measurementName = series.get(0).getName();
+                    List<String> columes = series.get(0).getColumns();
+
+                    // columes should be ['time', 'value']
+
+                    if(columes.size() != 2 || !columes.contains("value") || !columes.contains("time") ){
+                        logger.error("The series in query result is incorrect, no time or value");
+                        return null;
+                    }
+
+                    List<List<Object>> tsDataEntries = series.get(0).getValues();
+                    if(tsDataEntries != null && tsDataEntries.size() > 0){
+
+                        return tsDataEntries.get(0);
+                    }
+
+                }
+
+            }
+
+            return null;
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 读取某设备在某时间范围内的状态变化序列
+     * @param deviceId
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<List<Object>> readDeviceOperatingStatusInTimeRange(Integer deviceId, Date startTime, Date endTime){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT value FROM utilizations.operating_status WHERE device_id='%d' AND time >= %d AND time < %d ORDER BY time",
+                        deviceId, startNano, endNano);
+
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            //since a query can contain multiple sub queries, the return value is a list
+            List<QueryResult.Result> resultList = result.getResults();
+
+            if(resultList != null && resultList.size() > 0){
+                QueryResult.Result tsData = resultList.get(0);
+
+                List<QueryResult.Series> series = tsData.getSeries();
+
+                if(series != null && series.size() > 0){
+                    List<String> columes = series.get(0).getColumns();
+
+                    // columes should be ['time', value]
+
+                    if(columes.size() != 2 || !columes.contains("time")){
+                        logger.error("The series in query result is incorrect, no time or value");
+                        return null;
+                    }
+
+                    return series.get(0).getValues();
+
+                }
+
+            }
+
+            return null;
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query utilization from influxDB. query -- %s, Err: %s", queryString, e.toString()));
 
             return null;
         }
