@@ -1659,7 +1659,8 @@ public class OperateController {
         // check request time interval is validate
         Date beginTime = new Date(requestParam.getBeginTime());
         Date endTime = new Date(requestParam.getEndTime());
-
+        LOGGER.info(String.format("make deal: try to make deal for device %d, lessee %d, from %s, to %s", device.getId(), lessee.getId(),
+                beginTime, endTime));
         // check whether request time interval fit allowed temporal strategy
         List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(device.getId());
         for(DeviceDisableTime timeStrategy : deviceDisableTimes){
@@ -1667,14 +1668,14 @@ public class OperateController {
                 return new RestResponse(("申请的使用时间已被禁用"), 1007, null);
             }
         }
-
+        LOGGER.info(String.format("make deal: time inteval is legal"));
         // check whether request time interval is not used by others
         int conflictDeal = dealRecordRepository.countByDeviceIdAndBeginTimeBetween(device.getId(), beginTime, endTime) +
                 dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime);
         if(conflictDeal > 0){
             return new RestResponse(("申请的使用时间与其他交易冲突"), 1007, null);
         }
-
+        LOGGER.info(String.format("make deal: no conflict"));
         DealRecord dealRecord = new DealRecord();
         dealRecord.setStatus(ONCHAIN_DEAL_STATUS_DEAL);
         dealRecord.setAggrement(device.getRentClause());
@@ -1693,13 +1694,12 @@ public class OperateController {
                     getRecord.getLessee().getId(), getRecord.getPrice(), getRecord.getBeginTime().getTime(), getRecord.getEndTime().getTime(),
                     getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
             BlockChainDealRecord value = new BlockChainDealRecord("创建交易", data);
+            LOGGER.info(String.format("make deal: update to block chain"));
             JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()) + String.valueOf(getRecord.getDevice().getId()),
                     "", JSON.toJSONString(value));
-            if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
-                throw new Exception("return value from block chain is not equal to original");
-            }
 
             // transfer rent price to agency
+            LOGGER.info(String.format("make deal: begin transfer asset"));
             AccountAsset info = onchainService.getAccountAsset(OnchainService.agencyAddr);
             if(info == null || info.canUseAssets == null || info.canUseAssets.size() == 0){
                 LOGGER.error(String.format("Finish Deal: agency have no asset"));
@@ -1707,7 +1707,7 @@ public class OperateController {
             }
             String assetId = info.canUseAssets.get(0).assetid;
             onchainService.transfer(assetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), getRecord.getLessee().getCompany().getAccountAddress(), OnchainService.agencyAddr);
-
+            LOGGER.info(String.format("make deal: money transfer finish"));
             return new RestResponse(getRecord);
         }
         catch(Exception e){
