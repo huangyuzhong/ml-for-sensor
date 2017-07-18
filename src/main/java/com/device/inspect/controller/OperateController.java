@@ -234,7 +234,7 @@ public class OperateController {
     }
 
     /**
-     * 修改设备详细概况
+     * 查看共享设备信息
      * @param map
      * @return
      */
@@ -246,7 +246,8 @@ public class OperateController {
         if (null != map.get("deviceId")){
             Integer deviceId = Integer.parseInt(map.get("deviceId"));
             List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
-            return new RestResponse(new RestDeviceDisableTime(deviceDisableTimes.get(0)));
+            RestDeviceDisableTime restDeviceDisableTime = new RestDeviceDisableTime(deviceDisableTimes.get(0));
+            return new RestResponse(restDeviceDisableTime);
         }
         return new RestResponse("设备信息出错！",1005,null);
     }
