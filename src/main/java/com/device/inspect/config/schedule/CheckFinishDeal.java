@@ -31,12 +31,13 @@ public class CheckFinishDeal {
     @Autowired
     private DealRecordRepository dealRecordRepository;
 
-    @Scheduled(cron = "0 */10 * * * ? ")
+    @Scheduled(cron = "0 */1 * * * ? ")
     public void scheduleTask() {
-        LOGGER.info("Check Execut Deal: begin checking deal record which meets rent start time");
-        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeAfter(ONCHAIN_DEAL_STATUS_DEAL, new Date());
+        LOGGER.info(String.format("Check Execut Deal: begin checking deal record which meets rent start time at %s", new Date()));
+        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date());
         for(DealRecord record : beginRecords){
             try{
+                LOGGER.info(String.format("Check Execute Deal: found deal to execute: %d", record.getId()));
                 record.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING);
                 BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
@@ -44,9 +45,6 @@ public class CheckFinishDeal {
                 BlockChainDealRecord value = new BlockChainDealRecord("更新交易状态", data);
                 JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
                         "", JSON.toJSONString(value));
-                if (!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))) {
-                    throw new Exception("return value from block chain is not equal to original");
-                }
                 dealRecordRepository.save(record);
             }
             catch(Exception e){
@@ -66,9 +64,6 @@ public class CheckFinishDeal {
                 BlockChainDealRecord value = new BlockChainDealRecord("更新交易状态", data);
                 JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
                         "", JSON.toJSONString(value));
-                if (!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))) {
-                    throw new Exception("return value from block chain is not equal to original");
-                }
                 dealRecordRepository.save(record);
             }
             catch(Exception e){

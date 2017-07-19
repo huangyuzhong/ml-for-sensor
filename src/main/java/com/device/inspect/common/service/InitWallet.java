@@ -12,7 +12,9 @@ import DNA.sdk.info.account.AccountInfo;
  */
 public class InitWallet {
 
-    public static String url = "http://139.196.115.69:20334";
+//    public static String url = "http://139.196.115.69:20334";
+
+    public static String url = "http://42.159.233.49:50334";
 
     // 定义一个私有构造方法
     private InitWallet(){}

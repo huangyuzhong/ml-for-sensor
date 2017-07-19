@@ -29,10 +29,7 @@ import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.*;
-import com.device.inspect.common.restful.record.BlockChainDealDetail;
-import com.device.inspect.common.restful.record.BlockChainDealRecord;
-import com.device.inspect.common.restful.record.BlockChainDevice;
-import com.device.inspect.common.restful.record.BlockChainDeviceRecord;
+import com.device.inspect.common.restful.record.*;
 import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.service.OnchainService;
@@ -1727,21 +1724,18 @@ public class OperateController {
                     getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
             BlockChainDealRecord value = new BlockChainDealRecord("创建交易", data);
             LOGGER.info(String.format("make deal: update to block chain"));
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()) + String.valueOf(getRecord.getDevice().getId()),
+            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
                     "", JSON.toJSONString(value));
 
             // transfer rent price to agency
-            LOGGER.info(String.format("make deal: begin transfer asset"));
-            AccountAsset info = onchainService.getAccountAsset(OnchainService.agencyAddr);
-            if(info == null || info.canUseAssets == null || info.canUseAssets.size() == 0){
-                LOGGER.info(String.format("Finish Deal: agency have no asset"));
-                return new RestResponse(getRecord);
-            }
-            String assetId = info.canUseAssets.get(0).assetid;
-            String companyAccountAddress = userRepository.findById(getRecord.getLessee()).getAccountAddress();
-            onchainService.transfer(assetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, OnchainService.agencyAddr);
+            String companyAccountAddress = userRepository.findById(getRecord.getLessee()).getCompany().getAccountAddress();
+            LOGGER.info(String.format("make deal: begin transfer asset, company address: %s", companyAccountAddress));
+            onchainService.SyncBlock();
+            onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, OnchainService.agencyAddr);
             LOGGER.info(String.format("make deal: money transfer finish"));
-            return new RestResponse(getRecord);
+            return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                    dealRecord.getAggrement(), dealRecord.getStatus()));
         }
         catch(Exception e){
             LOGGER.error(e.getMessage());
@@ -1783,7 +1777,7 @@ public class OperateController {
             return new RestResponse(("交易id无效"), 1007, null);
         }
 
-        if(operatorId != record.getLessor() && operatorId != record.getLessee()){
+        if(!operatorId.equals(record.getLessor()) && !operatorId.equals(record.getLessee())){
             return new RestResponse(("操作申请者非租赁双方"), 1007, null);
         }
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH){
@@ -1798,7 +1792,7 @@ public class OperateController {
 
         Integer original_status = record.getStatus();
         Boolean finish = false;
-        if(operatorId == record.getLessor()){
+        if(operatorId.equals(record.getLessor())){
             if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM){
                 record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM);
             }
@@ -1808,7 +1802,7 @@ public class OperateController {
             }
         }
 
-        if(operatorId == record.getLessee()){
+        if(operatorId.equals(record.getLessee())){
             if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM){
                 record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM);
             }
@@ -1823,11 +1817,8 @@ public class OperateController {
                     record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                     record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
             BlockChainDealRecord value = new BlockChainDealRecord("更新交易", data);
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                     "", JSON.toJSONString(value));
-            if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
-                throw new Exception("return value from block chain is not equal to original");
-            }
         }
         catch(Exception e){
             LOGGER.error(e.getMessage());
@@ -1835,30 +1826,31 @@ public class OperateController {
         }
 
         dealRecordRepository.save(record);
-        if(finish){
-            AccountAsset info = onchainService.getAccountAsset(OnchainService.agencyAddr);
-            if(info == null || info.canUseAssets == null || info.canUseAssets.size() == 0){
-                LOGGER.error(String.format("Finish Deal: agency have no asset"));
-                return new RestResponse(record);
-            }
-            String assetId = info.canUseAssets.get(0).assetid;
+        if(finish) {
+            try {
 
-            String lessorCompanyAddress = userRepository.findById(record.getLessor()).getAccountAddress();
-            String lesseeCompanyAddress = userRepository.findById(record.getLessee()).getAccountAddress();
-            onchainService.transfer(assetId, record.getPrice().intValue(), "支付租金,交易id:"+record.getId(), OnchainService.agencyAddr, lessorCompanyAddress);
+                String lessorAddress = userRepository.findById(record.getLessor()).getAccountAddress();
+                String lesseeAddress = userRepository.findById(record.getLessee()).getAccountAddress();
+                String lessorCompanyAddress = userRepository.findById(record.getLessor()).getCompany().getAccountAddress();
+                onchainService.SyncBlock();
+                onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), OnchainService.agencyAddr, lessorCompanyAddress);
 
-            AccountAsset pointInfo = onchainService.getAccountAsset(OnchainService.rewardAddr);
-            if(pointInfo == null || pointInfo.canUseAssets == null || pointInfo.canUseAssets.size() == 0){
-                LOGGER.error(String.format("Finish Deal: reward account have no asset"));
-                return new RestResponse(record);
+                int rewardPoint = (int) (record.getPrice().intValue() * 0.1);
+                onchainService.SyncBlock();
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardAddr, lessorAddress);
+                onchainService.SyncBlock();
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardAddr, lesseeAddress);
+
             }
-            String rewardAssetId = pointInfo.canUseAssets.get(0).assetid;
-            int rewardPoint = (int)(record.getPrice().intValue()*0.1);
-            onchainService.transfer(rewardAssetId, rewardPoint, "支付积分,交易id:"+record.getId(), OnchainService.rewardAddr, lessorCompanyAddress);
-            onchainService.transfer(rewardAssetId, rewardPoint, "支付积分,交易id:"+record.getId(), OnchainService.rewardAddr, lesseeCompanyAddress);
+            catch(Exception e){
+                LOGGER.error(e.getMessage());
+                return new RestResponse(("转帐失败"), 1007, null);
+            }
         }
 
-        return new RestResponse(record);
+        return new RestResponse(new RestDealRecord(record.getId(), record.getDevice().getId(), record.getLessor(), record.getLessee(),
+                record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(), record.getDeviceSerialNumber(),
+                record.getAggrement(), record.getStatus()));
     }
 
 //    /**
