@@ -1,6 +1,11 @@
 package com.device.inspect.common.service;
 
+import DNA.sdk.info.account.AccountAsset;
 import DNA.sdk.wallet.UserWalletManager;
+
+import DNA.Wallets.Contract;
+
+import DNA.sdk.info.account.AccountInfo;
 
 /**
  * Created by fgz on 2017/7/13.
@@ -21,7 +26,6 @@ public class InitWallet {
                     String path = "walletDb.dat";
                     String accessToken = "";                // 非必需项，如开启OAuth认证，则需要填写
                     wallet = UserWalletManager.getWallet(path, url, accessToken);
-                    wallet.startSyncBlock();
                 }
             }
         }

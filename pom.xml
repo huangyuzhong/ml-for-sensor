@@ -215,7 +215,7 @@
             <artifactId>DNA</artifactId>
             <version>0.0.1</version>
             <scope>system</scope>
-            <systemPath>${basedir}/src/main/resources/lib/DNA-SDK-0.0.1-SNAPSHOT(1).jar</systemPath>
+            <systemPath>${basedir}/src/main/resources/lib/DNA-SDK.jar</systemPath>
         </dependency>
 
         <dependency>

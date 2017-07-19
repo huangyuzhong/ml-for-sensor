@@ -1537,7 +1537,7 @@ public class SelectApiController {
 
     @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId) {
-        List<DealRecord> dealRecords = dealRecordRepository.findByLessorIdOrLesseeId(userId, userId);
+        List<DealRecord> dealRecords = dealRecordRepository.findByLessorOrLessee(userId, userId);
         return new RestResponse(dealRecords);
     }
 

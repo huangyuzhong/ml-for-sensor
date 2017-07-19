@@ -20,13 +20,11 @@ public class DealRecord {
     @JoinColumn(name = "device_id")
     private Device device;
 
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(name = "id", insertable=false, updatable=false)
-    private User lessor;
+    @Column(name = "lessor_id")
+    private Integer lessor;
 
-    @ManyToOne(targetEntity = User.class)
-    @JoinColumn(name = "id", insertable=false, updatable=false)
-    private User lessee;
+    @Column(name = "lessee_id")
+    private Integer lessee;
 
     @Column(name = "price")
     private Double price;
@@ -62,20 +60,20 @@ public class DealRecord {
         this.device = device;
     }
 
-    public User getLessor(){
+    public Integer getLessor(){
         return this.lessor;
     }
 
-    public void setLessor(User lessor){
+    public void setLessor(Integer lessor){
         this.lessor = lessor;
     }
 
-    public User getLessee(){
+    public Integer getLessee(){
         return this.lessee;
 
     }
 
-    public void setLessee(User lessee){
+    public void setLessee(Integer lessee){
         this.lessee = lessee;
     }
 

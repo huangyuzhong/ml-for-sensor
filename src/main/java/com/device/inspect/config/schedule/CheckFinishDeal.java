@@ -38,8 +38,8 @@ public class CheckFinishDeal {
         for(DealRecord record : beginRecords){
             try{
                 record.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING);
-                BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor().getId(),
-                        record.getLessee().getId(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
+                BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
+                        record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord("更新交易状态", data);
                 JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
@@ -60,8 +60,8 @@ public class CheckFinishDeal {
         for(DealRecord record : records){
             try {
                 record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM);
-                BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor().getId(),
-                        record.getLessee().getId(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
+                BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
+                        record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord("更新交易状态", data);
                 JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
