@@ -279,10 +279,10 @@ public class OperateController {
                 device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备修改", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
-                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                if(returnObject == null){
                     throw new Exception("return value from block chain is not equal to original");
                 }
             }catch(Exception e){
@@ -309,10 +309,10 @@ public class OperateController {
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备新增", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
-                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                if(returnObject == null){
                     throw new Exception("return value from block chain is not equal to original");
                 }
             }catch(Exception e){
