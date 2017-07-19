@@ -1840,8 +1840,10 @@ public class OperateController {
                 onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), OnchainService.agencyAddr, lessorCompanyAddress);
 
                 int rewardPoint = (int) (record.getPrice().intValue() * 0.1);
+                rewardPoint = rewardPoint == 0 ? 1 : rewardPoint;
                 onchainService.SyncBlock();
                 onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lessorAddress);
+                Thread.sleep(7000);
                 onchainService.SyncBlock();
                 onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lesseeAddress);
 
