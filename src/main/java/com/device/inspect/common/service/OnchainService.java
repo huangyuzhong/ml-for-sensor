@@ -65,7 +65,7 @@ public class OnchainService {
     public void SyncBlock() throws Exception {
         while (!wallet.hasFinishedSyncBlock()) {
             System.out.println("blockHeight:" + wallet.blockHeight());
-            Thread.sleep(1000);
+            Thread.sleep(100);
         }
     }
 

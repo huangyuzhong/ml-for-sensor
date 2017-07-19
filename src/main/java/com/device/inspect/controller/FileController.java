@@ -607,7 +607,17 @@ public class FileController {
                 }
                 logger.info("Create Device: finish adding device type inspect information.");
 
-
+                BlockChainDevice data = new BlockChainDevice(device, null);
+                BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备注册", data);
+                try {
+                    JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+                    if(returnObject == null){
+                        throw new Exception("return value from block chain is not equal to original");
+                    }
+                }catch(Exception e){
+                    logger.error(e.getMessage());
+                    return new RestResponse(("更新区块链失败"), 1007, null);
+                }
 
                 deviceRepository.save(device);
                 device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
