@@ -27,6 +27,8 @@ import com.device.inspect.common.restful.firm.RestBuilding;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.firm.RestFloor;
 import com.device.inspect.common.restful.firm.RestRoom;
+import com.device.inspect.common.restful.record.BlockChainDevice;
+import com.device.inspect.common.restful.record.BlockChainDeviceRecord;
 import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
@@ -65,6 +67,9 @@ public class FileController {
     protected static Logger logger = LogManager.getLogger();
 
     @Autowired
+    private OnchainService onchainService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -84,12 +89,6 @@ public class FileController {
 
     @Autowired
     private DeviceTypeRepository deviceTypeRepository;
-
-    @Autowired
-    private InspectTypeRepository inspectTypeRepository;
-
-    @Autowired
-    private DeviceTypeInspectRepository deviceTypeInspectRepository;
 
     @Autowired
     private RoleAuthorityRepository roleAuthorityRepository;
@@ -552,11 +551,6 @@ public class FileController {
 
                 if (null!=param.get("enableSharing")) {
                     Integer enableSharing = Integer.parseInt(param.get("enableSharing"));
-                    if (enableSharing == 1 || enableSharing == 0){
-                        UserWalletManager wallet = InitWallet.getWallet();
-                        String deviceChainKey = wallet.createAccount();
-                        device.setDeviceChainKey(deviceChainKey);
-                    }
                     device.setEnableSharing(enableSharing);
                 }
                 if (null!=param.get("rentClause"))

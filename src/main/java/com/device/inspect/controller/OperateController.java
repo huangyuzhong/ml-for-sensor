@@ -31,6 +31,8 @@ import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.*;
 import com.device.inspect.common.restful.record.BlockChainDealDetail;
 import com.device.inspect.common.restful.record.BlockChainDealRecord;
+import com.device.inspect.common.restful.record.BlockChainDevice;
+import com.device.inspect.common.restful.record.BlockChainDeviceRecord;
 import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.service.OnchainService;
@@ -271,8 +273,25 @@ public class OperateController {
             if (null != map.get("content")){
                 deviceDisableTime.setContent(map.get("content"));
             }
+
+            Device device = null;
+            if (null != map.get("deviceId")){
+                device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
+            }
+            BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            try {
+                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                    throw new Exception("return value from block chain is not equal to original");
+                }
+            }catch(Exception e){
+                LOGGER.error(e.getMessage());
+                return new RestResponse(("更新区块链失败"), 1007, null);
+            }
+
             deviceDisableTimeRepository.save(deviceDisableTime);
-            return new RestResponse(deviceDisableTime);
+            return new RestResponse(new RestDeviceDisableTime(deviceDisableTime));
         }else{  // 新增设备不可租赁时间组
             DeviceDisableTime deviceDisableTime = new DeviceDisableTime();
             if (null != map.get("deviceId")){
@@ -288,6 +307,19 @@ public class OperateController {
             if (null != map.get("content")){
                 deviceDisableTime.setContent(map.get("content"));
             }
+
+            BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            try {
+                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
+                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                    throw new Exception("return value from block chain is not equal to original");
+                }
+            }catch(Exception e){
+                LOGGER.error(e.getMessage());
+                return new RestResponse(("更新区块链失败"), 1007, null);
+            }
+
             deviceDisableTimeRepository.save(deviceDisableTime);
             return new RestResponse("操作成功！", null);
         }
