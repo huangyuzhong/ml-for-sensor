@@ -49,7 +49,7 @@ public class OnchainService {
     String department0PriKey = "d24c06c385429f2a573d85634539b1b5846f6ce80369aefcb5b4dce0480342ed";
     String department1PriKey = "258473fde94f3f2b426dfe80ad1aafdec75b4f18129393cc3d0fe2a6709f70bb";
 
-    String rewardSenderAddr = "AVgUyufEiq78qrPLfE45uGLqZYEfMxMcgv";   //积分发放者
+    public static String rewardSenderAddr = "AVgUyufEiq78qrPLfE45uGLqZYEfMxMcgv";   //积分发放者
     private long assetsIssued = 100000000;  //每次签发的资产
 
     public AccountAsset getAccountAsset(String userAddr){

@@ -1841,9 +1841,9 @@ public class OperateController {
 
                 int rewardPoint = (int) (record.getPrice().intValue() * 0.1);
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardAddr, lessorAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lessorAddress);
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardAddr, lesseeAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lesseeAddress);
 
             }
             catch(Exception e){
