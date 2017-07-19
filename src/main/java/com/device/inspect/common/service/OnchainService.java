@@ -39,8 +39,8 @@ public class OnchainService {
     private String user0Addr = "ASKpNaaKkPQqHjiF3RJm7BZdDsRdQrbsbs";   //用户1 账号
     private String user1Addr = "AVra1GeYivUUeoT7HKvJzhFhuWwdT2WYz5";   //用户2 账号
 
-    public static String AssetId = "0722672748610c3cf0df880dec7e3da6874a288e8bff484696dc040167b96de3";
-    public static String RewordAssetId = "0159353903016d0ee7c687ecd2e89518f82cea2e8911d9848fabc10ceefcf9d7";
+    public static String AssetId = "c2b15086a51ee3abb28a6cdb6debf42b97cd409625b55c4033b912a575726b7c";
+    public static String RewordAssetId = "c87bc5063c7d8fc0366c1410895cd810ab6d37250640fd8882473add55202a6d";
 
     String agencyPriKey = "23ddf7ba8afbbdcc228e30749d0c8ec0958e8fd882453bad0a9e918d97b6c84d";
     String updaterPriKey = "d46f336479abfef0fa4bcfbaa0268138b39fe5e55fc0f2b529ca2e8eb2ba9d91";

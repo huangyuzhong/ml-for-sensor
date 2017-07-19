@@ -245,8 +245,12 @@ public class OperateController {
         if (null != map.get("deviceId")){
             Integer deviceId = Integer.parseInt(map.get("deviceId"));
             List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
-            RestDeviceDisableTime restDeviceDisableTime = new RestDeviceDisableTime(deviceDisableTimes.get(0));
-            return new RestResponse(restDeviceDisableTime);
+            if (deviceDisableTimes.size() == 0)
+                return new RestResponse(null);
+            else{
+                RestDeviceDisableTime restDeviceDisableTime = new RestDeviceDisableTime(deviceDisableTimes.get(0));
+                return new RestResponse(restDeviceDisableTime);
+            }
         }
         return new RestResponse("设备信息出错！",1005,null);
     }
@@ -276,10 +280,10 @@ public class OperateController {
                 device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备修改", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
-                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                if(returnObject == null){
                     throw new Exception("return value from block chain is not equal to original");
                 }
             }catch(Exception e){
@@ -306,10 +310,10 @@ public class OperateController {
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("新增设备", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备新增", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
-                if(!JSON.toJSONString(value).equals(JSON.toJSONString(returnObject))){
+                if(returnObject == null){
                     throw new Exception("return value from block chain is not equal to original");
                 }
             }catch(Exception e){
