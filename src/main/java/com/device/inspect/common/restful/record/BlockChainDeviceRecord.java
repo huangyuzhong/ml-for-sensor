@@ -1,10 +1,14 @@
 package com.device.inspect.common.restful.record;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 /**
  * Created by fgz on 2017/7/18.
  */
 public class BlockChainDeviceRecord {
+    @JSONField(name = "Desc")
     private String desc;
+    @JSONField(name = "Data")
     private BlockChainDevice data;
 
     public BlockChainDeviceRecord() {

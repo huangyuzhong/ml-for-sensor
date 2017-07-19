@@ -1,36 +1,39 @@
 package com.device.inspect.common.restful.record;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import org.springframework.security.access.method.P;
 
 /**
  * Created by zyclincoln on 7/16/17.
  */
 public class BlockChainDealRecord {
-    private String Desc;
-    private BlockChainDealDetail Data;
+    @JSONField(name = "Desc")
+    private String desc;
+    @JSONField(name = "Data")
+    private BlockChainDealDetail data;
 
     public BlockChainDealRecord(){
 
     }
 
     public BlockChainDealRecord(String desc, BlockChainDealDetail data){
-        this.Desc = desc;
-        this.Data = data;
+        this.desc = desc;
+        this.data = data;
     }
 
     public void setDesc(String desc){
-        this.Desc = desc;
+        this.desc = desc;
     }
 
     public String getDesc(){
-        return this.Desc;
+        return this.desc;
     }
 
     public void setData(BlockChainDealDetail data){
-        this.Data = data;
+        this.data = data;
     }
 
     public BlockChainDealDetail getData(){
-        return this.Data;
+        return this.data;
     }
 }
