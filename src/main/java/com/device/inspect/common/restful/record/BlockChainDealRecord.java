@@ -6,31 +6,31 @@ import org.springframework.security.access.method.P;
  * Created by zyclincoln on 7/16/17.
  */
 public class BlockChainDealRecord {
-    private String desc;
-    private BlockChainDealDetail data;
+    private String Desc;
+    private BlockChainDealDetail Data;
 
     public BlockChainDealRecord(){
 
     }
 
     public BlockChainDealRecord(String desc, BlockChainDealDetail data){
-        this.desc = desc;
-        this.data = data;
+        this.Desc = desc;
+        this.Data = data;
     }
 
     public void setDesc(String desc){
-        this.desc = desc;
+        this.Desc = desc;
     }
 
     public String getDesc(){
-        return this.desc;
+        return this.Desc;
     }
 
     public void setData(BlockChainDealDetail data){
-        this.data = data;
+        this.Data = data;
     }
 
     public BlockChainDealDetail getData(){
-        return this.data;
+        return this.Data;
     }
 }

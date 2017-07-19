@@ -14,6 +14,6 @@ public interface DealRecordRepository extends CrudRepository<DealRecord,Integer>
     Integer countByDeviceIdAndEndTimeBetween(Integer deviceId, Date beginTime, Date endTime);
     DealRecord findTopByDeviceIdAndBeginTimeAndEndTime(Integer deviceId, Date beginTime, Date endTime);
     List<DealRecord> findByStatusAndEndTimeBefore(Integer status, Date endTime);
-    List<DealRecord> findByStatusAndBeginTimeAfter(Integer status, Date beginTime);
+    List<DealRecord> findByStatusAndBeginTimeBefore(Integer status, Date beginTime);
     List<DealRecord> findByLessorOrLessee(Integer lessorId, Integer lesseeId);
 }
