@@ -33,6 +33,7 @@ import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.record.DeviceRunningStatusHistoryRecord;
+import com.device.inspect.common.restful.record.RestDealRecord;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
@@ -1538,7 +1539,14 @@ public class SelectApiController {
     @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId) {
         List<DealRecord> dealRecords = dealRecordRepository.findByLessorOrLessee(userId, userId);
-        return new RestResponse(dealRecords);
+        List<RestDealRecord> restDealRecords = new ArrayList<>();
+        for(DealRecord dealRecord: dealRecords){
+            RestDealRecord record = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                    dealRecord.getAggrement(), dealRecord.getStatus());
+            restDealRecords.add(record);
+        }
+        return new RestResponse(restDealRecords);
     }
 
     @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
