@@ -245,8 +245,12 @@ public class OperateController {
         if (null != map.get("deviceId")){
             Integer deviceId = Integer.parseInt(map.get("deviceId"));
             List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
-            RestDeviceDisableTime restDeviceDisableTime = new RestDeviceDisableTime(deviceDisableTimes.get(0));
-            return new RestResponse(restDeviceDisableTime);
+            if (deviceDisableTimes.size() == 0)
+                return new RestResponse(null);
+            else{
+                RestDeviceDisableTime restDeviceDisableTime = new RestDeviceDisableTime(deviceDisableTimes.get(0));
+                return new RestResponse(restDeviceDisableTime);
+            }
         }
         return new RestResponse("设备信息出错！",1005,null);
     }
