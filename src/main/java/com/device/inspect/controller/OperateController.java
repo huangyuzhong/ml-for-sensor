@@ -280,7 +280,7 @@ public class OperateController {
                 device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备修改", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
                 if(returnObject == null){
@@ -310,7 +310,7 @@ public class OperateController {
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备新增", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
             try {
                 JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
                 if(returnObject == null){
@@ -338,6 +338,7 @@ public class OperateController {
         if (user1==null)
             return new RestResponse("用户未登陆",1005,null);
         Device device = deviceRepository.findOne(deviceId);
+        List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
 
@@ -355,6 +356,26 @@ public class OperateController {
             device.setRentClause(map.get("rentClause"));
         if (null!=map.get("rentPrice"))
             device.setRentPrice(Double.parseDouble(map.get("rentPrice")));
+
+        BlockChainDevice data = null;
+        if (deviceDisableTimes.size() == 0){
+            data = new BlockChainDevice(device, null);
+        }else{
+            data = new BlockChainDevice(device, deviceDisableTimes.get(0));
+        }
+        BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁参数设置", data);
+
+        try {
+
+            JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+            if(returnObject == null){
+                throw new Exception("return value from block chain is not equal to original");
+            }
+        }catch(Exception e){
+
+            LOGGER.error(e.getMessage());
+            return new RestResponse(("更新区块链失败"), 1007, null);
+        }
 
         deviceRepository.save(device);
         return new RestResponse(new RestDevice(device));

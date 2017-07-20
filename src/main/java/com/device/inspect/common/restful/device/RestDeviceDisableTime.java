@@ -51,12 +51,23 @@ public class RestDeviceDisableTime {
                     ablePeriod[j][1] = disablePeriod[i][0];
                 } else if (ablePeriod[j][0] == disablePeriod[i][0] && ablePeriod[j][1] > disablePeriod[i][1]){
                     ablePeriod[j][0] = disablePeriod[i][1];
-                } else{
-                    ablePeriod[j][1] = disablePeriod[i][0];  // 需改善
+                } else if (ablePeriod[j][0] == disablePeriod[i][0] && ablePeriod[j][1] == disablePeriod[i][1]){
+                    ablePeriod[j][1] = disablePeriod[i][0];
                 }
             }
             count = countTemp;
         }
+
+        for (int i=0; i<count; i++){
+            if (ablePeriod[i][0] == ablePeriod[i][1]){
+                for (int j=i; j<count-1; j++){
+                    ablePeriod[j][0]=ablePeriod[j+1][0];
+                    ablePeriod[j][1]=ablePeriod[j+1][1];
+                }
+                count--;
+            }
+        }
+
         this.ablePeriodLength = count;
 
         this.duration=0;
