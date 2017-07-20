@@ -280,15 +280,12 @@ public class OperateController {
                 device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
+            data.setTimeStamp(new Date().getTime());
             BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
             try {
-                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
-                if(returnObject == null){
-                    throw new Exception("return value from block chain is not equal to original");
-                }
+                onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("更新区块链失败"), 1007, null);
             }
 
             deviceDisableTimeRepository.save(deviceDisableTime);
@@ -310,15 +307,12 @@ public class OperateController {
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
+            data.setTimeStamp(new Date().getTime());
             BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
             try {
-                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
-                if(returnObject == null){
-                    throw new Exception("return value from block chain is not equal to original");
-                }
+                onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("更新区块链失败"), 1007, null);
             }
 
             deviceDisableTimeRepository.save(deviceDisableTime);
@@ -361,18 +355,13 @@ public class OperateController {
         }else{
             data = new BlockChainDevice(device, deviceDisableTimes.get(0));
         }
+        data.setTimeStamp(new Date().getTime());
         BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁参数设置", data);
 
         try {
-
-            JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
-            if(returnObject == null){
-                throw new Exception("return value from block chain is not equal to original");
-            }
-        }catch(Exception e){
-
-            LOGGER.error(e.getMessage());
-            return new RestResponse(("更新区块链失败"), 1007, null);
+            onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         deviceRepository.save(device);
@@ -1745,9 +1734,9 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(getRecord.getId(), getRecord.getDevice().getId(), getRecord.getLessor(),
                     getRecord.getLessee(), getRecord.getPrice(), getRecord.getBeginTime().getTime(), getRecord.getEndTime().getTime(),
                     getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("创建交易", data);
+            BlockChainDealRecord value = new BlockChainDealRecord("创建交易"+dealRecord.getStatus(), data);
             LOGGER.info(String.format("make deal: update to block chain"));
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
+            onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
                     "", JSON.toJSONString(value));
 
             // transfer rent price to agency
@@ -1839,8 +1828,8 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                     record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                     record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("更新交易", data);
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
+            BlockChainDealRecord value = new BlockChainDealRecord("更新交易"+record.getStatus(), data);
+            onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                     "", JSON.toJSONString(value));
         }
         catch(Exception e){

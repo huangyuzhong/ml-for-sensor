@@ -115,7 +115,7 @@ public class OnchainService {
         return false;
     }
 
-    public JSONObject sendStateUpdateTx(String namespace, String key, String addr, String jsonStr) throws Exception {
+    public void sendStateUpdateTx(String namespace, String key, String addr, String jsonStr) throws Exception {
         addr = updaterAddr;
 
         //状态更新
@@ -125,24 +125,24 @@ public class OnchainService {
         boolean success = false;
         tx = wallet.createStateUpdateTx(namespace, key, jsonStr, addr);
         txHex = wallet.signTx(tx);
-        success = wallet.sendTx(txHex);
+        wallet.sendTx(txHex);
         //System.out.println("StateUpdateTransaction:" + success + ",txid:" + tx.hash().toString());
         //System.out.println(Helper.toHexString(tx.scripts[0].code));
-        Thread.sleep(7000);
+//        Thread.sleep(7000);
+//
+//        JSONObject strJson = null;
+//        RestNode restNode = new RestNode(url);
+//        try {
+//            Transaction newtx = restNode.getRawTransaction(tx.hash().toString());
+//            if (newtx instanceof StateUpdateTransaction) {
+//                StateUpdateTransaction t = (StateUpdateTransaction) newtx;
+//                System.out.println(new String(t.namespace) + "   " + new String(t.key) + "   " + new String(t.value));
+//                strJson = JSONObject.parseObject(new String(t.value));
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
-        JSONObject strJson = null;
-        RestNode restNode = new RestNode(url);
-        try {
-            Transaction newtx = restNode.getRawTransaction(tx.hash().toString());
-            if (newtx instanceof StateUpdateTransaction) {
-                StateUpdateTransaction t = (StateUpdateTransaction) newtx;
-                System.out.println(new String(t.namespace) + "   " + new String(t.key) + "   " + new String(t.value));
-                strJson = JSONObject.parseObject(new String(t.value));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return strJson;
+//        return strJson;
     }
 }

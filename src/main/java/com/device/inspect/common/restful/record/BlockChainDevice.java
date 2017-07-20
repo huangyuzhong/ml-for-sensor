@@ -22,6 +22,7 @@ public class BlockChainDevice {
     private Double rentPrice;
     private Integer[][] disablePeriod;
     private String rentClause;
+    private Long timeStamp;
 
     public BlockChainDevice() {
     }
@@ -137,5 +138,13 @@ public class BlockChainDevice {
 
     public void setRentClause(String rentClause) {
         this.rentClause = rentClause;
+    }
+
+    public Long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(Long timeStamp) {
+        this.timeStamp = timeStamp;
     }
 }

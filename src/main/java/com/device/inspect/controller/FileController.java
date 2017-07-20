@@ -614,13 +614,9 @@ public class FileController {
                 BlockChainDevice data = new BlockChainDevice(device, null);
                 BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备注册", data);
                 try {
-                    JSONObject returnObject = onchainService.sendStateUpdateTx("device", device.getDeviceChainKey(), "", JSON.toJSONString(value));
-                    if(returnObject == null){
-                        throw new Exception("return value from block chain is not equal to original");
-                    }
+                    onchainService.sendStateUpdateTx("device", device.getDeviceChainKey(), "", JSON.toJSONString(value));
                 }catch(Exception e){
                     logger.error(e.getMessage());
-                    return new RestResponse(("更新区块链失败"), 1007, null);
                 }
 
                 deviceRepository.save(device);
