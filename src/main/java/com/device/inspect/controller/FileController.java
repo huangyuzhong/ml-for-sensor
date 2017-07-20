@@ -532,6 +532,7 @@ public class FileController {
                 device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
                 device.setEnable(1);
                 device.setEnableSharing(Integer.parseInt(param.get("enableSharing")));
+                device.setSerialNo("ilabservice");
                 Room room1=device.getRoom();
                 room1.setTotal(room1.getTotal()+1);
                 room1.setOffline(room1.getOffline()+1);
@@ -607,10 +608,13 @@ public class FileController {
                 }
                 logger.info("Create Device: finish adding device type inspect information.");
 
+                device = deviceRepository.findByCode(device.getCode());
+                device.setDeviceChainKey(""+device.getId());
+
                 BlockChainDevice data = new BlockChainDevice(device, null);
                 BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备注册", data);
                 try {
-                    JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+                    JSONObject returnObject = onchainService.sendStateUpdateTx("device", device.getDeviceChainKey(), "", JSON.toJSONString(value));
                     if(returnObject == null){
                         throw new Exception("return value from block chain is not equal to original");
                     }
@@ -620,6 +624,7 @@ public class FileController {
                 }
 
                 deviceRepository.save(device);
+
                 device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
                 roomRepository.save(device.getRoom());
                 device.getRoom().getFloor().setDeviceNum(device.getRoom().getFloor().getDeviceNum()+1);

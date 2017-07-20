@@ -347,9 +347,7 @@ public class OperateController {
             device.setEnableSharing(enableSharing);
 
             if (enableSharing == 1 && device.getDeviceChainKey() == null){
-                UserWalletManager wallet = InitWallet.getWallet();
-                String deviceChainKey = wallet.createAccount();
-                device.setDeviceChainKey(deviceChainKey);
+                device.setDeviceChainKey(""+device.getId());
             }
         }
         if (null!=map.get("rentClause"))
@@ -1739,7 +1737,7 @@ public class OperateController {
         dealRecord.setDeviceSerialNumber(device.getSerialNo());
         dealRecord.setLessee(lessee.getId());
         dealRecord.setLessor(lessor.getId());
-        double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600)).intValue();
+        double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 )).intValue();
         dealRecord.setPrice(price);
         try{
             dealRecordRepository.save(dealRecord);
