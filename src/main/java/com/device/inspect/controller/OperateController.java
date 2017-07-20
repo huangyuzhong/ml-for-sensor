@@ -281,7 +281,7 @@ public class OperateController {
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
             data.setTimeStamp(new Date().getTime());
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("Update Device Rent Time", data);
             try {
                 onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
@@ -308,7 +308,7 @@ public class OperateController {
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
             data.setTimeStamp(new Date().getTime());
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁时间修改", data);
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("Update Device Rent Time", data);
             try {
                 onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
@@ -356,7 +356,7 @@ public class OperateController {
             data = new BlockChainDevice(device, deviceDisableTimes.get(0));
         }
         data.setTimeStamp(new Date().getTime());
-        BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备租赁参数设置", data);
+        BlockChainDeviceRecord value = new BlockChainDeviceRecord("Set Device Rent Parameter", data);
 
         try {
             onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
@@ -1734,7 +1734,7 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(getRecord.getId(), getRecord.getDevice().getId(), getRecord.getLessor(),
                     getRecord.getLessee(), getRecord.getPrice(), getRecord.getBeginTime().getTime(), getRecord.getEndTime().getTime(),
                     getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("创建交易"+dealRecord.getStatus(), data);
+            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
             LOGGER.info(String.format("make deal: update to block chain"));
             onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
                     "", JSON.toJSONString(value));
@@ -1828,7 +1828,7 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                     record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                     record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("更新交易"+record.getStatus(), data);
+            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
             onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                     "", JSON.toJSONString(value));
         }

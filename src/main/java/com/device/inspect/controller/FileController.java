@@ -612,7 +612,7 @@ public class FileController {
                 device.setDeviceChainKey(""+device.getId());
 
                 BlockChainDevice data = new BlockChainDevice(device, null);
-                BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备注册", data);
+                BlockChainDeviceRecord value = new BlockChainDeviceRecord("Device Register", data);
                 try {
                     onchainService.sendStateUpdateTx("device", device.getDeviceChainKey(), "", JSON.toJSONString(value));
                 }catch(Exception e){
