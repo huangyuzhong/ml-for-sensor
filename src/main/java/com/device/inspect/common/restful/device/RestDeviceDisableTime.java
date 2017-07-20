@@ -47,6 +47,12 @@ public class RestDeviceDisableTime {
                     ablePeriod[count][0] = disablePeriod[i][1];
                     ablePeriod[count][1] = temp;
                     countTemp++;
+                } else if (ablePeriod[j][0] < disablePeriod[i][0] && ablePeriod[j][1] == disablePeriod[i][1]){
+                    ablePeriod[j][1] = disablePeriod[i][0];
+                } else if (ablePeriod[j][0] == disablePeriod[i][0] && ablePeriod[j][1] > disablePeriod[i][1]){
+                    ablePeriod[j][0] = disablePeriod[i][1];
+                } else{
+                    ablePeriod[j][1] = disablePeriod[i][0];  // 需改善
                 }
             }
             count = countTemp;
