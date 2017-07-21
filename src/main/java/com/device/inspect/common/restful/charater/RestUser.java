@@ -3,9 +3,11 @@ package com.device.inspect.common.restful.charater;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.firm.Company;
+import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
 import java.io.UnsupportedEncodingException;
@@ -40,6 +42,8 @@ public class RestUser {
     private String roleNames;
     private String companyId;
     private String removeAlert;
+    private String accountAddress;
+    private String assetId;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -81,6 +85,12 @@ public class RestUser {
             }
         }
         this.removeAlert=user.getRemoveAlert();
+        this.accountAddress=user.getAccountAddress();
+
+        OnchainService onchainService = new OnchainService();
+        if (this.accountAddress != null){
+            this.assetId=onchainService.getAssetId(accountAddress);
+        }
     }
 
 
@@ -255,5 +265,21 @@ public class RestUser {
 
     public void setRemoveAlert(String removeAlert) {
         this.removeAlert = removeAlert;
+    }
+
+    public String getAccountAddress() {
+        return accountAddress;
+    }
+
+    public void setAccountAddress(String accountAddress) {
+        this.accountAddress = accountAddress;
+    }
+
+    public String getAssetId() {
+        return assetId;
+    }
+
+    public void setAssetId(String assetId) {
+        this.assetId = assetId;
     }
 }
