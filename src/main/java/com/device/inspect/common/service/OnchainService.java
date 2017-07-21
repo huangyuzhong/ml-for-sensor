@@ -42,9 +42,13 @@ public class OnchainService {
         }
     }
     public String getAssetId(String accountAddress){
-        AccountAsset accountAsset = wallet.getAccountAsset(accountAddress);
-        List<Asset> assetList = accountAsset.canUseAssets;
-        return assetList.get(0).assetid;
+        if (accountAddress != null){
+            AccountAsset accountAsset = wallet.getAccountAsset(accountAddress);
+            List<Asset> assetList = accountAsset.canUseAssets;
+            return assetList.get(0).assetid;
+        }else{
+            return null;
+        }
     }
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
