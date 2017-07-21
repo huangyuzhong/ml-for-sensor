@@ -1743,7 +1743,7 @@ public class OperateController {
             String companyAccountAddress = userRepository.findById(getRecord.getLessee()).getCompany().getAccountAddress();
             LOGGER.info(String.format("make deal: begin transfer asset, company address: %s", companyAccountAddress));
             onchainService.SyncBlock();
-            onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, OnchainService.agencyAddr);
+            onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, InitWallet.agencyAddr);
             LOGGER.info(String.format("make deal: money transfer finish"));
             return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
@@ -1845,15 +1845,15 @@ public class OperateController {
                 String lesseeAddress = userRepository.findById(record.getLessee()).getAccountAddress();
                 String lessorCompanyAddress = userRepository.findById(record.getLessor()).getCompany().getAccountAddress();
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), OnchainService.agencyAddr, lessorCompanyAddress);
+                onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), InitWallet.agencyAddr, lessorCompanyAddress);
 
                 int rewardPoint = (int) (record.getPrice().intValue() * 0.1);
                 rewardPoint = rewardPoint == 0 ? 1 : rewardPoint;
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lessorAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lessorAddress);
                 Thread.sleep(7000);
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lesseeAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lesseeAddress);
 
             }
             catch(Exception e){
