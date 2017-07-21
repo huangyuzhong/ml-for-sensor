@@ -83,6 +83,8 @@ public class ScanOfflineData{
                 logger.info(String.format("Begin Scan Offline Data File %s", ftpFile.getName()));
 
                 Long timeStamp = Long.valueOf(ftpFile.getName().substring(ftpFile.getName().lastIndexOf('-') + 1));
+
+                // the ftp offline data file
                 String monitorCode = ftpFile.getName().substring(0, ftpFile.getName().indexOf('-'));
                 Device device = null;
                 Date beginTime = null;
@@ -91,6 +93,8 @@ public class ScanOfflineData{
                     beginTime = new Date(timeStamp);
                     endTime = new Date(beginTime.getTime() + 60*60*1000);
                     MonitorDevice monitorDevice = monitorDeviceRepository.findByNumber(monitorCode);
+                    // 这里的逻辑在单终端对应多设备之后需要修改, 每一个ftp 文件里可能会有多个设备的数据.
+                    // 需要把从文件里读出的数据按照设备id group起来.
                     if(monitorDevice != null){
                         device = monitorDevice.getDevice();
                     }
@@ -112,7 +116,8 @@ public class ScanOfflineData{
                         }
                     }
 
-                    logger.info("Scan Offline Data: add recalculate request");
+                    logger.info(String.format("%d Offline data of device %d is added to db", fileStringArray.length, device.getId()));
+
                     requestQueue.recalculateRequest.add(new OfflineHourUnit(beginTime, endTime, device));
                     logger.info(String.format("Scan Offline Data: add recalculate request of device %d from %s to %s to queue.",
                             device.getId(), beginTime.toString(), endTime.toString()));
@@ -128,8 +133,11 @@ public class ScanOfflineData{
 
                 // backup file
                 InputStream is = new ByteArrayInputStream(fileStream.toByteArray());
+                logger.info(String.format("FTP: store offline data file %s to backup folder", ftpFile.getName()));
+
                 Application.offlineFTPStorageManager.storeFile(ftpFile.getName(), "backup", is);
                 // delete original one
+                logger.info(String.format("FTP: delete offline data file %s from monitoring folder", ftpFile.getName()));
                 Application.offlineFTPStorageManager.deleteFile(ftpFile.getName(), "monitoring");
 
             }
