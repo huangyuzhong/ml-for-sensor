@@ -1203,9 +1203,9 @@ public class SelectApiController {
         if (timeSpan > 3600 * 24 * 30) {
             // longer than a month, using daily average data
             timeGranularity = Calendar.DATE;
-        } else if (timeSpan > 3600 * 24 * 5) {
-            // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
-            timeGranularity = Calendar.HOUR;
+//        } else if (timeSpan > 3600 * 24 * 5) {
+//            // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
+//            timeGranularity = Calendar.HOUR;
         } else if (timeSpan > 3600 * 6) {
             // longer than 6 hours, using 10-min data, at most 144 * 5 entry per inspect
             timeGranularity = Calendar.MINUTE;
