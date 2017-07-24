@@ -88,7 +88,7 @@ public class RestUser {
         this.accountAddress=user.getAccountAddress();
 
         OnchainService onchainService = new OnchainService();
-        if (this.accountAddress != null){
+        if (this.accountAddress != null && !this.accountAddress.isEmpty()){
             this.assetId=onchainService.getAssetId(accountAddress);
         }
     }
