@@ -87,10 +87,10 @@ public class RestUser {
         this.removeAlert=user.getRemoveAlert();
         this.accountAddress=user.getAccountAddress();
 
-        OnchainService onchainService = new OnchainService();
-        if (this.accountAddress != null){
-            this.assetId=onchainService.getAssetId(accountAddress);
-        }
+//        OnchainService onchainService = new OnchainService();
+//        if (this.accountAddress != null && !this.accountAddress.isEmpty()){
+//            this.assetId=onchainService.getAssetId(accountAddress);
+//        }
     }
 
 

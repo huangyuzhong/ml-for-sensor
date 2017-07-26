@@ -391,7 +391,8 @@ public class SocketMessageApi {
 
                     LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
                     deviceRepository.save(device);
-                    deviceRunningStatusHistoryRepository.save(history);
+                    Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
+                            device.getName(), device.getDeviceType().getName(), runningStatus);
 
                     // comment line below temporarily,
                     //writeDeviceRunningStatus(device, inspectMessage, runningStatus);
@@ -558,6 +559,11 @@ public class SocketMessageApi {
         restDeviceMonitoringTSData.setEndTime(String.valueOf(currentTime.getTime()));
 
         if(requestParam.get("timeVal") != null){
+            Long startTime = Long.parseLong(requestParam.get("timeVal"));
+            // if timeVal is less than 10 sec before current server time, return 10 sec before current server time as begin time
+            if(startTime > new Date().getTime() - 1000*10 ){
+                requestParam.put("timeVal", String.valueOf(new Date().getTime() - 1000*10));
+            }
             restDeviceMonitoringTSData.setStartTime(requestParam.get("timeVal"));
 
         }else{
