@@ -391,7 +391,8 @@ public class SocketMessageApi {
 
                     LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
                     deviceRepository.save(device);
-                    deviceRunningStatusHistoryRepository.save(history);
+                    Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
+                            device.getName(), device.getDeviceType().getName(), runningStatus);
 
                     // comment line below temporarily,
                     //writeDeviceRunningStatus(device, inspectMessage, runningStatus);
