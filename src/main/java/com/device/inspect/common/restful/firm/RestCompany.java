@@ -73,10 +73,10 @@ public class RestCompany {
         this.companyId=company.getCompanyId();
         this.features = company.getFeatures();
         this.accountAddress = company.getAccountAddress();
-        OnchainService onchainService = new OnchainService();
-        if (this.accountAddress != null){
-            this.assetId =onchainService.getAssetId(this.accountAddress);
-        }
+//        OnchainService onchainService = new OnchainService();
+//        if (this.accountAddress != null){
+//            this.assetId =onchainService.getAssetId(this.accountAddress);
+//        }
     }
 
     public Integer getId() {

@@ -186,6 +186,9 @@ public class MessageController {
                 LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
             }
 
+            // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
+//            MessageSendService.sendMessageToInteLabManager(message);  //因为虚拟机上不存在端口，会抛出相应的异常，所以暂时先将它屏蔽掉。
+
             try {
                 MessageSend newMessageSend = new MessageSend();
                 newMessageSend.setCreate(sampleTime);

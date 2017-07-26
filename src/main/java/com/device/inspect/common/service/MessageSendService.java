@@ -332,6 +332,86 @@ public class MessageSendService {
         }
     }
 
+
+    // 收件人的手机号码
+    private static final String receiverNum = "18317958912";
+
+    /**
+     * 推送短信
+     * @param content  短信内容
+     * @return
+     */
+    public static boolean sendMessageToManager(String content){
+        try {
+            String at_cmgf = "at+cmgf=0";  // 指定机器用中文发送短信
+
+            // 以下是把发送内容转化为报文code BEGIN
+            String code = "0011000d91";  // 报文的前缀
+            code+=NumTrans(receiverNum);
+            code+="0008a0";  // "0008"表示PDU编码表，"ao"表示短信在服务器存放时间
+            String contentUni = string2Unicode(content);
+            int length = contentUni.length();
+            int charNum = length/2;
+
+            String str_m = Integer.toHexString(charNum);
+            String str ="00";
+            str_m=str.substring(0, 2-str_m.length())+str_m;
+
+            code+=str_m+contentUni;
+            // END
+
+            String at_cmgs = "at+cmgs="+(code.length()/2-1);  // 指定后面发送的报文的长度，19=code.length/2-1。
+
+            WriteSerialPort.write(at_cmgf, at_cmgs, code);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            LOGGER.info(e.getMessage());
+            return false;
+        }
+    }
+
+    public static void sendMessageToInteLabManager (String str){
+        int strCount = 1;
+        if (str.length() > 70){
+            while(str.length()/67 != 0){
+                String subStr = str.substring(0, 67);
+                str = str.substring(67);
+                sendMessageToManager("("+strCount+")"+subStr);
+                strCount++;
+            }
+        }
+        sendMessageToManager("("+strCount+")"+str);
+    }
+
+    // 将收件人号码按报文要求进行转化
+    private static String NumTrans(String receiverNum) {
+        receiverNum = "86"+receiverNum+"f";
+        StringBuffer sb = new StringBuffer(receiverNum);
+        for (int i=1; i<sb.length(); i=i+2){
+            char ch = sb.charAt(i);
+            sb.setCharAt(i, sb.charAt(i-1));
+            sb.setCharAt(i-1, ch);
+        }
+        return sb.toString();
+    }
+
+    // 中文转化为Unicode码
+    private static String string2Unicode(String string) {
+        StringBuffer unicode = new StringBuffer();
+        for (int i = 0; i < string.length(); i++) {
+            // 取出每一个字符
+            char c = string.charAt(i);
+            String str_m = Integer.toHexString(c);
+            String str ="0000";
+            str_m=str.substring(0, 4-str_m.length())+str_m;
+            // 转换为unicode
+            unicode.append(str_m);
+        }
+        return unicode.toString();
+    }
+
+
     /**
      * 创建一封只包含文本的简单邮件
      *
