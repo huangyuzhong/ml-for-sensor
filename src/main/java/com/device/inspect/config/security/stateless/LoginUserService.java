@@ -1,5 +1,6 @@
 package com.device.inspect.config.security.stateless;
 
+import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -8,6 +9,8 @@ import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +25,8 @@ import java.util.Set;
 
 @Service
 public class LoginUserService {
+
+    protected static Logger logger = LogManager.getLogger(LoginUserService.class);
 
 	@Autowired
 	private UserRepository userRepository;
@@ -75,6 +80,7 @@ public class LoginUserService {
         }
 
         if((new Date().getTime() - user.getLatestPasswordUpdateTime().getTime()) > 90*24*60*60*1000 ){
+            logger.info(String.format("password expired, %s, %s", new Date(), user.getLatestPasswordUpdateTime()));
             throw new UsernameNotFoundException("password is expired");
         }
 
