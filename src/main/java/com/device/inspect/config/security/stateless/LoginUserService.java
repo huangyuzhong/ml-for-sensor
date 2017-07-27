@@ -54,10 +54,8 @@ public class LoginUserService {
 
         List<Role> roles = roleRepository.findByUserId(user.getId());
         user.setRoles(roles);
-//        System.out.println(roles.toString());
         List<Role> newRoles = new ArrayList<>(roleNames.size());
-//        if (null != role&&roleNames.contains(role.getAuthority()))
-//            newRoles.add(role);
+
         if (null==companyId&&!UserRoleDifferent.userStartWithService(user))
             throw new UsernameNotFoundException("you're not a service manager!");
         if(null!=user.getRoles()&&UserRoleDifferent.userStartWithService(user)){
@@ -84,8 +82,7 @@ public class LoginUserService {
 		final LoginUser loginUser =  new LoginUser(user);
 		loginUser.setRoles(newRoles);
         detailsChecker.check(loginUser);
-//        System.out.println(loginUser.getRoles().toString());
-//        System.out.println(loginUser.getUsername());
+
 		return loginUser;
 	}
 }
