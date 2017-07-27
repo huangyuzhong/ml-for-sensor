@@ -1358,6 +1358,11 @@ public class SelectApiController {
         return new RestResponse(restDealRecords);
     }
 
+    /**
+    * Test Example
+    * curl "http://fm.test.ilabservice.cloud/api/rest/firm/device/runningStatusHistory?deviceId=339&startTime=1501122059000&endTime=1501123059000"
+    **/
+
     @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
     public RestResponse getDeviceRunningStatusHistory(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        User user = judgeByPrincipal(principal);
