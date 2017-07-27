@@ -51,12 +51,12 @@ public class LoginUserService {
         }
 
         // check whether login retry times has exceed maximum limit
-        if((new Date().getTime() -  user.getLastPasswordErrorDate().getTime()) < 24*60*60*1000 && user.getPasswordErrorRetryTimes() == 3 ){
+        if(user.getLastPasswordErrorDate() != null && (new Date().getTime() -  user.getLastPasswordErrorDate().getTime()) < 24*60*60*1000 && user.getPasswordErrorRetryTimes() == 3 ){
             throw new UsernameNotFoundException("RETRY_TIMES_REACHED");
         }
 
         if (!String.valueOf(user.getPassword()).equals(verify)){
-            if(new Date().getTime() - user.getLastPasswordErrorDate().getTime() > 24*60*60*1000){
+            if(user.getLastPasswordErrorDate() == null || new Date().getTime() - user.getLastPasswordErrorDate().getTime() > 24*60*60*1000){
                 user.setLastPasswordErrorDate(new Date());
                 user.setPasswordErrorRetryTimes(1);
                 userRepository.save(user);
