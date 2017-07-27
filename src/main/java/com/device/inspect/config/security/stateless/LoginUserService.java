@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -48,8 +49,23 @@ public class LoginUserService {
         if (user == null) {
             throw new UsernameNotFoundException("user not found!");
         }
+
+        // check whether login retry times has exceed maximum limit
+        if((new Date().getTime() -  user.getLastPasswordErrorDate().getTime()) < 24*60*60*1000 && user.getPasswordErrorRetryTimes() == 3 ){
+            throw new UsernameNotFoundException("RETRY_TIMES_REACHED");
+        }
+
         if (!String.valueOf(user.getPassword()).equals(verify)){
-            throw new UsernameNotFoundException("user's password isn't correct!");
+            if(new Date().getTime() - user.getLastPasswordErrorDate().getTime() > 24*60*60*1000){
+                user.setLastPasswordErrorDate(new Date());
+                user.setPasswordErrorRetryTimes(1);
+                userRepository.save(user);
+            }
+            else{
+                user.setPasswordErrorRetryTimes(user.getPasswordErrorRetryTimes() + 1);
+                userRepository.save(user);
+            }
+            throw new UsernameNotFoundException(String.format("user's password isn't correct! %d", user.getPasswordErrorRetryTimes()));
         }
 
         List<Role> roles = roleRepository.findByUserId(user.getId());
