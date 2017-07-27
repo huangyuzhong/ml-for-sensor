@@ -81,6 +81,7 @@ public class LoginUserService {
 
         if((new Date().getTime() - user.getLatestPasswordUpdateTime().getTime()) > 90*24*60*60*1000 ){
             logger.info(String.format("password expired, %s, %s", new Date(), user.getLatestPasswordUpdateTime()));
+            logger.info(String.format("%ld, %ld", new Date().getTime(), user.getLatestPasswordUpdateTime().getTime()));
             throw new UsernameNotFoundException("password is expired");
         }
 
