@@ -216,17 +216,33 @@ public class InfluxDBManager {
      * @param duration
      * @return
      */
-    public boolean writeAPIOperation(Long startTime, String userName, String url, Integer responseCode, long duration){
+    public boolean writeAPIOperation(Long startTime, String userName, String url, String httpMethod, String parameters, Integer responseCode, long duration){
         String dbName = "intelab";
 
 
-        BatchPoints batchPoints = BatchPoints.database(dbName)
-                .tag("url", url)
-                .tag("response", responseCode.toString())
-                .tag("user", userName)
-                .retentionPolicy("operations")
-                .consistency(InfluxDB.ConsistencyLevel.ALL)
-                .build();
+        BatchPoints batchPoints;
+
+        if(parameters == null || parameters=="") {
+            batchPoints = BatchPoints.database(dbName)
+                    .tag("url", url)
+                    .tag("method", httpMethod)
+                    .tag("response", responseCode.toString())
+                    .tag("username", userName)
+                    .retentionPolicy("operations")
+                    .consistency(InfluxDB.ConsistencyLevel.ALL)
+                    .build();
+        }else{
+            batchPoints = BatchPoints.database(dbName)
+                    .tag("url", url)
+                    .tag("method", httpMethod)
+                    .tag("parameters", parameters)
+                    .tag("response", responseCode.toString())
+                    .tag("username", userName)
+                    .retentionPolicy("operations")
+                    .consistency(InfluxDB.ConsistencyLevel.ALL)
+                    .build();
+        }
+
 
         Point point = Point.measurement("operation")
                 .time(startTime, TimeUnit.MILLISECONDS)
@@ -243,6 +259,160 @@ public class InfluxDBManager {
             logger.error(String.format("Failed to write API operation data to influxdb. Error: %s", e.toString()));
             return false;
         }
+    }
+
+    public List<Object> readLatestOperation(String url, String userName){
+        String dbName = "intelab";
+
+        Date startTime = new Date();
+
+        String queryString = String.format("SELECT url, method, parameters, \"duration\" FROM operations.operation WHERE url='%s' and username='%s' and response='200' ORDER BY time DESC LIMIT 1",
+                url, userName);
+
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            //since a query can contain multiple sub queries, the return value is a list
+            List<QueryResult.Result> resultList = result.getResults();
+
+            Date endTime = new Date();
+
+            long timeCost = endTime.getTime() - startTime.getTime();
+            logger.debug(String.format("Select query [%s] takes %d ms", queryString, timeCost));
+
+            if(resultList != null && resultList.size() > 0){
+                QueryResult.Result tsData = resultList.get(0);
+
+                List<QueryResult.Series> series = tsData.getSeries();
+
+                if(series != null && series.size() > 0){
+                    List<String> columes = series.get(0).getColumns();
+
+                    // columes should be ['time', 'value']
+
+                    if(!columes.contains("time")){
+                        logger.error("The series in influxdb query result is incorrect, no time");
+                        return null;
+                    }
+
+                    List<List<Object>> tsDataEntries = series.get(0).getValues();
+                    if(tsDataEntries != null && tsDataEntries.size() > 0){
+
+                        return tsDataEntries.get(0);
+                    }
+
+                }
+
+            }
+
+            return null;
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    public Date getLatestPasswordUpdateTime(String userName){
+        List<Object> timeEntry = readLatestOperation("/api/rest/operate/modify/password", userName);
+
+        if (timeEntry == null || timeEntry.size() == 0){
+            return new GregorianCalendar(1970, 1, 1).getTime();
+        }
+        return new Date(TimeUtil.fromInfluxDBTimeFormat((String)timeEntry.get(0)));
+    }
+
+    private List<List<Object>> executeQuery(String queryString, String dbName){
+        Query query = new Query(queryString, dbName);
+
+
+        try {
+            QueryResult result = influxDB.query(query);
+
+            //since a query can contain multiple sub queries, the return value is a list
+            List<QueryResult.Result> resultList = result.getResults();
+
+            if(resultList != null && resultList.size() > 0){
+                QueryResult.Result tsData = resultList.get(0);
+
+                List<QueryResult.Series> series = tsData.getSeries();
+
+                if(series != null && series.size() > 0){
+                    List<String> columes = series.get(0).getColumns();
+
+                    // columes should be ['time', value]
+
+                    if( !columes.contains("time") || !columes.contains("url")){
+                        logger.error("The series in query result is incorrect, no time or url");
+                        return null;
+                    }
+
+                    return series.get(0).getValues();
+
+                }
+
+            }
+
+            return null;
+
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    public List<List<Object>> readAPIByMethodUsernameInTimeRange(String method, String userName, Date startTime, Date endTime){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE username='%s' AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT 1000",
+                        userName, method, startNano, endNano);
+
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+
+
+    }
+
+    public List<List<Object>> readAPIByMethondCompanyInTimeRange(String method, String companyName, Date startTime, Date endTime){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE username =~ /@%s$/ AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT 1000",
+                        companyName, method, startNano, endNano);
+
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+
     }
 
     /**
