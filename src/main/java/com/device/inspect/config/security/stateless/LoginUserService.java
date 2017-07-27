@@ -72,14 +72,19 @@ public class LoginUserService {
             userRepository.save(user);
             throw new UsernameNotFoundException(String.format("user's password isn't correct! %d", user.getPasswordErrorRetryTimes()));
         }
-
+        else{
+            if(user.getPasswordErrorRetryTimes() != 0){
+                user.setPasswordErrorRetryTimes(0);
+                userRepository.save(user);
+            }
+        }
         // check whether password is expired (longer than 90 days)
         if(user.getLatestPasswordUpdateTime() == null){
             user.setLatestPasswordUpdateTime(new Date());
             userRepository.save(user);
         }
 
-	long password_used_time = new Date().getTime() - user.getLatestPasswordUpdateTime().getTime();
+	    long password_used_time = new Date().getTime() - user.getLatestPasswordUpdateTime().getTime();
         if( password_used_time - new Long(90*24*60*60)*1000 > 0 ){
             throw new UsernameNotFoundException("password is expired");
         }
