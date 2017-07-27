@@ -1359,7 +1359,7 @@ public class OperateController {
      */
     @RequestMapping(value = "/reset/password", method = RequestMethod.GET)
     public RestResponse resetPassword(Principal principal, @RequestParam Map<String, String> map){
-//        User operator = judgeByPrincipal(principal);
+        User operator = judgeByPrincipal(principal);
         if(map.get("userId") == null){
             return new RestResponse("用户id不能为空", 1006, null);
         }
