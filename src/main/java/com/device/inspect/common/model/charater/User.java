@@ -228,7 +228,7 @@ public class User {
         this.passwordErrorRetryTimes = passwordErrorRetryTimes;
     }
 
-    @Column(name = "lastest_password_update_time")
+    @Column(name = "latest_password_update_time")
     public Date getLatestPasswordUpdateTime(){
         return this.latestPasswordUpdateTime;
     }
