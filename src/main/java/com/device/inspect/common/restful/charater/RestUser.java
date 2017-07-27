@@ -44,6 +44,7 @@ public class RestUser {
     private String removeAlert;
     private String accountAddress;
     private String assetId;
+    private Long latestPasswordUpdateTime;
 
     public RestUser(@NotNull User user){
         this.id = user.getId();
@@ -86,7 +87,7 @@ public class RestUser {
         }
         this.removeAlert=user.getRemoveAlert();
         this.accountAddress=user.getAccountAddress();
-
+        this.latestPasswordUpdateTime = user.getLatestPasswordUpdateTime().getTime();
 //        OnchainService onchainService = new OnchainService();
 //        if (this.accountAddress != null && !this.accountAddress.isEmpty()){
 //            this.assetId=onchainService.getAssetId(accountAddress);
@@ -281,5 +282,13 @@ public class RestUser {
 
     public void setAssetId(String assetId) {
         this.assetId = assetId;
+    }
+
+    public Long getLatestPasswordUpdateTime(){
+        return this.latestPasswordUpdateTime;
+    }
+
+    public void setLatestPasswordUpdateTime(Long latestPasswordUpdateTime){
+        this.latestPasswordUpdateTime = latestPasswordUpdateTime;
     }
 }

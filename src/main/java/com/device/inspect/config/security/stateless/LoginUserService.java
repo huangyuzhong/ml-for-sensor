@@ -55,17 +55,27 @@ public class LoginUserService {
             throw new UsernameNotFoundException("RETRY_TIMES_REACHED");
         }
 
+        // check whether password is correct
         if (!String.valueOf(user.getPassword()).equals(verify)){
             if(user.getLastPasswordErrorDate() == null || new Date().getTime() - user.getLastPasswordErrorDate().getTime() > 24*60*60*1000){
                 user.setLastPasswordErrorDate(new Date());
                 user.setPasswordErrorRetryTimes(1);
-                userRepository.save(user);
             }
             else{
                 user.setPasswordErrorRetryTimes(user.getPasswordErrorRetryTimes() + 1);
-                userRepository.save(user);
             }
+            userRepository.save(user);
             throw new UsernameNotFoundException(String.format("user's password isn't correct! %d", user.getPasswordErrorRetryTimes()));
+        }
+
+        // check whether password is expired (longer than 90 days)
+        if(user.getLatestPasswordUpdateTime() == null){
+            user.setLatestPasswordUpdateTime(new Date());
+            userRepository.save(user);
+        }
+
+        if((new Date().getTime() - user.getLatestPasswordUpdateTime().getTime()) > 90*24*60*60*1000 ){
+            throw new UsernameNotFoundException("password is expired");
         }
 
         List<Role> roles = roleRepository.findByUserId(user.getId());

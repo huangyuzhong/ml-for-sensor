@@ -35,6 +35,7 @@ public class User {
     private String accountAddress;
     private Date lastPasswordErrorDate;
     private Integer passwordErrorRetryTimes;
+    private Date latestPasswordUpdateTime;
 
     @Id
     @GeneratedValue()
@@ -225,5 +226,14 @@ public class User {
 
     public void setPasswordErrorRetryTimes(Integer passwordErrorRetryTimes){
         this.passwordErrorRetryTimes = passwordErrorRetryTimes;
+    }
+
+    @Column(name = "lastest_password_update_time")
+    public Date getLatestPasswordUpdateTime(){
+        return this.latestPasswordUpdateTime;
+    }
+
+    public void setLatestPasswordUpdateTime(Date latestPasswordUpdateTime){
+        this.latestPasswordUpdateTime = latestPasswordUpdateTime;
     }
 }

@@ -1351,6 +1351,31 @@ public class OperateController {
         return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
+    /**
+     * 重置密码
+     * @param principal
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/reset/password", method = RequestMethod.GET)
+    public RestResponse resetPassword(Principal principal, @RequestParam Map<String, String> map){
+        if(map.get("userId") == null){
+            return new RestResponse("用户id不能为空", 1006, null);
+        }
+        if(map.get("password") == null){
+            return new RestResponse("用户密码不能为空", 1006, null);
+        }
+        User user = userRepository.findById(Integer.parseInt(map.get("userId")));
+        if(user == null){
+            return new RestResponse("用户id非法", 1006, null);
+        }
+        user.setPassword(map.get("password"));
+        user.setLatestPasswordUpdateTime(new Date());
+        user.setPasswordErrorRetryTimes(0);
+        userRepository.save(user);
+        return new RestResponse("修改成功", null);
+    }
+
 
     /**
      * 修改密码
@@ -1367,6 +1392,7 @@ public class OperateController {
             if (map.get("password")==null||"".equals(map.get("password")))
                 return new RestResponse("新密码不能为空！",1005,null);
             user.setPassword(map.get("password"));
+            user.setLatestPasswordUpdateTime(new Date());
             userRepository.save(user);
             return new RestResponse("修改成功！",null);
         }else {
