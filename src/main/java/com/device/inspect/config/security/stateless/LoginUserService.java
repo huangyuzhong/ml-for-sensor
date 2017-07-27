@@ -57,7 +57,7 @@ public class LoginUserService {
 
         // check whether login retry times has exceed maximum limit
         if(user.getLastPasswordErrorDate() != null && (new Date().getTime() -  user.getLastPasswordErrorDate().getTime()) < 24*60*60*1000 && user.getPasswordErrorRetryTimes() == 3 ){
-            throw new UsernameNotFoundException("RETRY_TIMES_REACHED");
+            throw new UsernameNotFoundException(String.format("user's password isn't correct! %d", user.getPasswordErrorRetryTimes()));
         }
 
         // check whether password is correct
