@@ -79,9 +79,8 @@ public class LoginUserService {
             userRepository.save(user);
         }
 
-        if((new Date().getTime() - user.getLatestPasswordUpdateTime().getTime()) > 90*24*60*60*1000 ){
-            logger.info(String.format("password expired, %s, %s", new Date(), user.getLatestPasswordUpdateTime()));
-            logger.info(String.format("%ld, %ld", new Date().getTime(), user.getLatestPasswordUpdateTime().getTime()));
+	long password_used_time = new Date().getTime() - user.getLatestPasswordUpdateTime().getTime();
+        if( password_used_time - new Long(90*24*60*60)*1000 > 0 ){
             throw new UsernameNotFoundException("password is expired");
         }
 
