@@ -1101,7 +1101,7 @@ public class FileController {
                     company.setLogin(String.format("%s.ilabservice.cloud", domain_name));
                 }
 
-                if ((param.get("companyOnChain").toString()).equals("true")) {
+                if ("true".equals(param.get("companyOnChain").toString())) {
                     UserWalletManager wallet = InitWallet.getWallet();
                     String address = wallet.createAccount();
                     company.setAccountAddress(address);
