@@ -35,6 +35,7 @@ import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.record.DeviceRunningStatusHistoryRecord;
 import com.device.inspect.common.restful.record.RestDealRecord;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
+import com.device.inspect.common.service.GetCameraAccessToken;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.time.MyCalendar;
@@ -126,6 +127,9 @@ public class SelectApiController {
 
     @Autowired
     private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
+    @Autowired
+    private CameraListRepository cameraListRepository;
 
     private User judgeByPrincipal(Principal principal) {
         if (null == principal || null == principal.getName())
@@ -1203,9 +1207,9 @@ public class SelectApiController {
         if (timeSpan > 3600 * 24 * 30) {
             // longer than a month, using daily average data
             timeGranularity = Calendar.DATE;
-        } else if (timeSpan > 3600 * 24 * 5) {
-            // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
-            timeGranularity = Calendar.HOUR;
+//        } else if (timeSpan > 3600 * 24 * 5) {
+//            // longer than 5 days, using hourly data, at most 30 * 24 entry per inspect
+//            timeGranularity = Calendar.HOUR;
         } else if (timeSpan > 3600 * 6) {
             // longer than 6 hours, using 10-min data, at most 144 * 5 entry per inspect
             timeGranularity = Calendar.MINUTE;
@@ -1342,197 +1346,6 @@ public class SelectApiController {
         monitorDataOfDevice.setStartTime(String.valueOf(String.valueOf(beginTime.getTime())));
         monitorDataOfDevice.setTelemetryDataList(telemetryDatas);
 
-        /*
-
-        List<List<InspectData> > listOfInspectDatas = new ArrayList<>();
-        List<InspectData> currentInspectData = new ArrayList<>();
-        List<Iterator<InspectData> > listOfIterator = new ArrayList<>();
-
-        RestInspectDataArray restInspectDataArray = new RestInspectDataArray();
-        List<Long> timeSeries = new ArrayList<>();
-        List<TelemetryData> telemetryDatas = new ArrayList<>();
-
-        restInspectDataArray.setTimeSeries(timeSeries);
-        restInspectDataArray.setTelemetries(telemetryDatas);
-
-
-
-
-
-
-        // setup inspect data and iterator
-        for(DeviceInspect deviceInspect : deviceInspects){
-            List<InspectData> inspectDatas = inspectDataRepository.
-                    findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
-
-
-
-
-            if(inspectDatas != null && inspectDatas.size() > 0){
-                listOfInspectDatas.add(inspectDatas);
-                Iterator<InspectData> iterator = inspectDatas.iterator();
-                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %d get %d inspect data.", deviceInspect.getId(), inspectDatas.size()));
-                listOfIterator.add(iterator);
-                currentInspectData.add(iterator.next());
-
-
-
-                TelemetryData telemetryData = new TelemetryData();
-                telemetryData.setDeviceInspectId(inspectDatas.get(0).getDeviceInspect().getId());
-                telemetryData.setName(inspectDatas.get(0).getDeviceInspect().getName());
-                telemetryData.setTsData(new ArrayList<Float>());
-                telemetryDatas.add(telemetryData);
-            }
-            else{
-                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is empty data list in given interval", deviceInspect.getId()));
-            }
-        }
-        LOGGER.info(String.format("Get Device Monitor: current Inspect Data size: %d", currentInspectData.size()));
-        RestMonitorDataOfDevice monitorDataOfDevice = new RestMonitorDataOfDevice();
-        monitorDataOfDevice.setDeviceId(device.getId().toString());
-        monitorDataOfDevice.setDeviceLocation(GetDeviceAddress.getDeviceAddress(device));
-        monitorDataOfDevice.setDeviceLogo(device.getPhoto());
-        monitorDataOfDevice.setDeviceManager(device.getManager().getName());
-        monitorDataOfDevice.setDeviceName(device.getName());
-        monitorDataOfDevice.setEndTime(String.valueOf(endTime.getTime()));
-        monitorDataOfDevice.setStartTime(String.valueOf(String.valueOf(beginTime.getTime())));
-        monitorDataOfDevice.setInspectData(restInspectDataArray);
-
-        LOGGER.info("Get Device Monitor: begin parse data");
-        for(long currentMillisecond = beginMillisecond; currentMillisecond < endMillisecond; currentMillisecond = currentMillisecond + interval){
-            boolean hasDataInThisInterval = false;
-            for(int index = 0; index < currentInspectData.size(); index++){
-                if(currentInspectData.get(index) != null
-                        && currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
-                    hasDataInThisInterval = true;
-                    break;
-                }
-            }
-
-            if(hasDataInThisInterval){
-                timeSeries.add(currentMillisecond);
-
-                for(int index = 0; index < currentInspectData.size(); index++){
-                    int dataCount = 0;
-                    float dataSum = 0;
-                    while(currentInspectData.get(index) != null &&
-                            currentInspectData.get(index).getCreateDate().getTime() <= currentMillisecond + interval){
-                        InspectData nextInspectData = listOfIterator.get(index).hasNext() ? listOfIterator.get(index).next() : null;
-                        dataCount++;
-                        dataSum += Float.parseFloat(currentInspectData.get(index).getResult());
-
-                        currentInspectData.set(index, nextInspectData);
-                    }
-                    if(dataCount > 0){
-                        Float averageValue = new Float(dataSum/dataCount);
-                        telemetryDatas.get(index).getTsData().add(averageValue);
-                    }
-                    else{
-                        telemetryDatas.get(index).getTsData().add(null);
-                    }
-                }
-            }
-        }
-
-        LOGGER.info("Get Device Monitor: begin aggregate data");
-        for(int index = 0; index < listOfInspectDatas.size(); index++){
-            List<InspectData> inspectDatas = listOfInspectDatas.get(index);
-            AggregateData aggregateData = new AggregateData();
-            aggregateData.setMonitorId(inspectDatas.get(0).getDeviceInspect().getId().toString());
-            Float maxValue = new Float(Float.MIN_VALUE);
-            Date maxValueTime = null;
-            Float minValue = new Float(Float.MAX_VALUE);
-            Date minValueTime = null;
-            Float sumValue = new Float(0);
-            Integer yellowAlertCount = new Integer(0);
-            Long yellowAlertTime = new Long(0);
-            Integer redAlertCount = new Integer(0);
-            Long redAlertTime = new Long(0);
-            for(InspectData inspectData : inspectDatas){
-                Float result = Float.parseFloat(inspectData.getResult());
-                sumValue += result;
-                if(result > maxValue){
-                    maxValue = result;
-                    maxValueTime = inspectData.getCreateDate();
-                }
-                if(result < minValue){
-                    minValue = result;
-                    minValueTime = inspectData.getCreateDate();
-                }
-            }
-            aggregateData.setMaxValue(maxValue);
-            aggregateData.setMaxValueTime(maxValueTime.getTime());
-            aggregateData.setMinValue(minValue);
-            aggregateData.setMinValueTime(minValueTime.getTime());
-            aggregateData.setAvgValue(sumValue/inspectDatas.size());
-
-            List<AlertCount> yellowAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
-                    inspectDatas.get(0).getDeviceInspect().getInspectType().getId(),
-                    1, beginTime, endTime);
-            List<AlertCount> redAlertCounts = alertCountRepository.findByDeviceIdAndInspectTypeIdAndTypeAndCreateDateBetween(device.getId(),
-                    inspectDatas.get(0).getDeviceInspect().getInspectType().getId(),
-                    2, beginTime, endTime);
-            if(yellowAlertCounts != null && yellowAlertCounts.size() > 0){
-                yellowAlertCount = yellowAlertCounts.size();
-                for(AlertCount alertCount : yellowAlertCounts){
-                    // GX: alert_count.finishDate can be null due to device go offline
-                    // this is a temp hack, using alert_num * 20 sec
-                    if (alertCount.getFinish() == null){
-                        yellowAlertTime += alertCount.getNum() * 20 * 1000;
-
-                    }
-                    else {
-                        yellowAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
-                    }
-                }
-            }
-            if(redAlertCounts != null && redAlertCounts.size() > 0){
-                redAlertCount = redAlertCounts.size();
-                for(AlertCount alertCount : redAlertCounts){
-                    // GX: alert_count.finishDate can be null due to device go offline
-                    // this is a temp hack, using alert_num * 20 sec
-                    if(alertCount.getFinish() == null){
-                        redAlertTime += alertCount.getNum() * 20 * 1000;
-                    }else {
-                        redAlertTime += alertCount.getFinish().getTime() - alertCount.getCreateDate().getTime();
-                    }
-                }
-            }
-            aggregateData.setRedAlertCount(redAlertCount);
-            aggregateData.setRedAlertTotalTime(redAlertTime);
-            aggregateData.setYellowAlertCount(yellowAlertCount);
-            aggregateData.setYellowAlertTotalTime(yellowAlertTime);
-            restInspectDataArray.getTelemetries().get(index).setAggregateData(aggregateData);
-        }
-
-        Double MKT = null;
-        if(requestParam.getMktId() != null && !requestParam.getMktId().isEmpty()){
-            DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(requestParam.getMktId()));
-            if(deviceInspect != null){
-                List<InspectData> inspectDatas = inspectDataRepository.
-                        findByDeviceInspectIdAndCreateDateBetweenOrderByCreateDateAsc(deviceInspect.getId(), beginTime, endTime);
-                if(inspectDatas != null){
-                    LOGGER.info("device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
-                    MKT = MKTCalculator.calculateMKT(inspectDatas);
-                }
-                else{
-                    LOGGER.info("MKT Monitor Inspect's data is null");
-                }
-            }
-            else{
-                LOGGER.info("MKT Monitor Inspect is not existed");
-            }
-        }
-
-        if(MKT != null){
-            for(int index = 0; index < restInspectDataArray.getTelemetries().size(); index++){
-                if(restInspectDataArray.getTelemetries().get(index).getDeviceInspectId() == Integer.parseInt(requestParam.getMktId())){
-                    restInspectDataArray.getTelemetries().get(index).getAggregateData().setMktdata(new Float(MKT.floatValue()));
-                }
-            }
-        }
-
-        */
         return new RestResponse(monitorDataOfDevice);
     }
 
@@ -1549,6 +1362,12 @@ public class SelectApiController {
         return new RestResponse(restDealRecords);
     }
 
+    /**
+     * 获取设备运行状态历史
+     * Test Example
+     * curl "http://fm.test.ilabservice.cloud/api/rest/firm/device/runningStatusHistory?deviceId=339&startTime=1501122059000&endTime=1501123059000"
+     **/
+
     @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
     public RestResponse getDeviceRunningStatusHistory(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        User user = judgeByPrincipal(principal);
@@ -1557,27 +1376,84 @@ public class SelectApiController {
         if (!requestParam.containsKey("deviceId")) {
             return new RestResponse("设备id为空", 1006, null);
         }
-        if (!requestParam.containsKey("beginTime")) {
+        Integer deviceId = Integer.parseInt(requestParam.get("deviceId"));
+        if (!requestParam.containsKey("startTime")) {
             return new RestResponse("起始时间未设置", 1006, null);
         }
+        Date beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
 
-        List<DeviceRunningStatusHistory> histories = null;
-        if (!requestParam.containsKey("endTime")) {
-            histories = deviceRunningStatusHistoryRepository.findByDeviceIdAndChangeTimeAfterOrderByChangeTimeAsc(
-                    Integer.parseInt(requestParam.get("deviceId")),
-                    new Date(Long.parseLong(requestParam.get("beginTime"))));
-        } else {
-            histories = deviceRunningStatusHistoryRepository.findByDeviceIdAndChangeTimeBetweenOrderByChangeTimeAsc(
-                    Integer.parseInt(requestParam.get("deviceId")),
-                    new Date(Long.parseLong(requestParam.get("beginTime"))),
-                    new Date(Long.parseLong(requestParam.get("endTime"))));
+        Date endTime = new Date();
+        if(requestParam.containsKey("endTime")){
+            endTime.setTime(Long.parseLong(requestParam.get("endTime")));
         }
 
-        List<DeviceRunningStatusHistoryRecord> records = new ArrayList<>();
-        for(DeviceRunningStatusHistory history : histories){
-            records.add(new DeviceRunningStatusHistoryRecord(history.getId(), history.getDevice().getId(),
-                    history.getChangeTime().getTime(), history.getChangeToStatus()));
+        List<List<Object>> statusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(deviceId, beginTime, endTime);
+        if(statusHistories == null || statusHistories.size() == 0){
+            final List<Object> statusHistory = Application.influxDBManager.readLatestDeviceOperatingStatus(deviceId, beginTime);
+            if(statusHistory == null || statusHistory.size() == 0){
+                return new RestResponse("该设备没有状态历史",1007, null);
+            }
+
+            statusHistories = new ArrayList<List<Object>>(){{
+                add(statusHistory);
+            }};
         }
-        return new RestResponse(records);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("deviceId", deviceId);
+        result.put("operatingStatusList", statusHistories);
+
+        return new RestResponse(result);
+    }
+
+    /**
+     * 获取设备对应摄像头列表
+     *
+     * test example
+     *
+     * query:
+     * curl "http://localhost/api/rest/firm/device/cameraList?deviceId=339"
+     *
+     * return:
+     * {"error":0,"message":"OK","data":{"cameraList":[{"id":1,
+     * "name":"Test Camera","deviceId":339,"serialNo":"728370397",
+     * "url":"http://hls.open.ys7.com/openlive/5760a3686c444b379392293aaf425b75.hd.m3u8","description":null}]}}
+     */
+
+    @RequestMapping(value = "/device/cameraList", method = RequestMethod.GET)
+    public RestResponse getDeviceCameraList(Principal principal, @RequestParam Map<String, String> param){
+        if(param.get("deviceId") == null){
+            return new RestResponse("设备id不能为空", 1006, null);
+        }
+
+        List<CameraList> cameraLists = cameraListRepository.findByDeviceId(Integer.parseInt(param.get("deviceId")));
+        Map<String, Object> result = new HashMap<>();
+        result.put("cameraList", cameraLists);
+        return new RestResponse(result);
+    }
+
+    /**
+     * 获取摄像头的AccessToken
+     *
+     * test example
+     *
+     * query:
+     * curl "http://localhost/api/rest/firm/device/cameraToken"
+     *
+     * return:
+     * {"error":0,"message":"OK","data":{"accessToken":"at.c06civwza7mkneps8yrzkarb2z0p3aa1-45er9dgqis-1enogbg-j8b3bghts"}}
+     */
+
+    @RequestMapping(value = "/device/cameraToken", method = RequestMethod.GET)
+    public RestResponse getCameraToken(Principal principal){
+        String accessToken = GetCameraAccessToken.getAccessToken();
+        if(accessToken != null && !accessToken.isEmpty()){
+            Map<String, Object> result = new HashMap<>();
+            result.put("accessToken", accessToken);
+            return new RestResponse(result);
+        }
+        else{
+            return new RestResponse("获取accessToken失败", 1006, null);
+        }
     }
 }

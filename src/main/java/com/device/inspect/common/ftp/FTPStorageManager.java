@@ -24,6 +24,7 @@ public class FTPStorageManager implements FileUploadService {
     final private String ftpHost;
     final private String user;
     final private String password;
+    final private Integer ftpPort;
     final private String urlPrefix = "ftpFile/";
     private FTPClient client = null;
 
@@ -31,13 +32,19 @@ public class FTPStorageManager implements FileUploadService {
         this.ftpHost = config.get("ftpHost");
         this.user = config.get("user");
         this.password = config.get("password");
+        if(config.get("ftpPort") != null){
+            this.ftpPort = Integer.parseInt(config.get("ftpPort"));
+        }
+        else{
+            this.ftpPort = 21;
+        }
     }
 
     public FTPFile[] getFileListOnDirectory(String path){
         client = new FTPClient();
         FTPFile[] fileList = null;
         try{
-            client.connect(ftpHost);
+            client.connect(ftpHost, ftpPort);
             client.login(user, password);
             client.enterLocalPassiveMode();
             client.changeWorkingDirectory(path);
@@ -66,7 +73,7 @@ public class FTPStorageManager implements FileUploadService {
     public void downloadFile(String filename, String path, OutputStream file){
         client = new FTPClient();
         try{
-            client.connect(ftpHost);
+            client.connect(ftpHost, ftpPort);
             client.login(user, password);
             client.enterLocalPassiveMode();
             client.setFileType(FTP.BINARY_FILE_TYPE);
@@ -94,7 +101,7 @@ public class FTPStorageManager implements FileUploadService {
     public void deleteFile(String filename, String path){
        client = new FTPClient();
        try{
-           client.connect(ftpHost);
+           client.connect(ftpHost, ftpPort);
            client.login(user, password);
            client.enterLocalPassiveMode();
            client.changeWorkingDirectory(path);
@@ -122,7 +129,7 @@ public class FTPStorageManager implements FileUploadService {
         client = new FTPClient();
         boolean status = false;
         try{
-            client.connect(ftpHost);
+            client.connect(ftpHost, ftpPort);
             client.login(user, password);
             client.enterLocalPassiveMode();
             client.setFileType(FTP.BINARY_FILE_TYPE);
@@ -163,7 +170,7 @@ public class FTPStorageManager implements FileUploadService {
                 foldersName.remove(foldersName.size() - 1);
             }
 
-            client.connect(ftpHost);
+            client.connect(ftpHost, ftpPort);
             client.login(user, password);
             client.setFileType(FTP.BINARY_FILE_TYPE);
 

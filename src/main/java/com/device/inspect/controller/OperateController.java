@@ -142,6 +142,9 @@ public class OperateController {
     @Autowired
     private OnchainService onchainService;
 
+    @Autowired
+    private CameraListRepository cameraListRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -280,15 +283,12 @@ public class OperateController {
                 device = deviceRepository.findOne(Integer.parseInt(map.get("deviceId")));
             }
             BlockChainDevice data = new BlockChainDevice(device, deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备修改", data);
+            data.setTimeStamp(new Date().getTime());
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("Update Device Rent Time", data);
             try {
-                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
-                if(returnObject == null){
-                    throw new Exception("return value from block chain is not equal to original");
-                }
+                onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("更新区块链失败"), 1007, null);
             }
 
             deviceDisableTimeRepository.save(deviceDisableTime);
@@ -310,15 +310,12 @@ public class OperateController {
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
-            BlockChainDeviceRecord value = new BlockChainDeviceRecord("设备新增", data);
+            data.setTimeStamp(new Date().getTime());
+            BlockChainDeviceRecord value = new BlockChainDeviceRecord("Update Device Rent Time", data);
             try {
-                JSONObject returnObject = onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
-                if(returnObject == null){
-                    throw new Exception("return value from block chain is not equal to original");
-                }
+                onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice().getId()), "", JSON.toJSONString(value));
             }catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("更新区块链失败"), 1007, null);
             }
 
             deviceDisableTimeRepository.save(deviceDisableTime);
@@ -338,6 +335,7 @@ public class OperateController {
         if (user1==null)
             return new RestResponse("用户未登陆",1005,null);
         Device device = deviceRepository.findOne(deviceId);
+        List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(deviceId);
         if (null == device)
             return new RestResponse("设备信息出错！",1005,null);
 
@@ -346,15 +344,28 @@ public class OperateController {
             device.setEnableSharing(enableSharing);
 
             if (enableSharing == 1 && device.getDeviceChainKey() == null){
-                UserWalletManager wallet = InitWallet.getWallet();
-                String deviceChainKey = wallet.createAccount();
-                device.setDeviceChainKey(deviceChainKey);
+                device.setDeviceChainKey(""+device.getId());
             }
         }
         if (null!=map.get("rentClause"))
             device.setRentClause(map.get("rentClause"));
         if (null!=map.get("rentPrice"))
             device.setRentPrice(Double.parseDouble(map.get("rentPrice")));
+
+        BlockChainDevice data = null;
+        if (deviceDisableTimes.size() == 0){
+            data = new BlockChainDevice(device, null);
+        }else{
+            data = new BlockChainDevice(device, deviceDisableTimes.get(0));
+        }
+        data.setTimeStamp(new Date().getTime());
+        BlockChainDeviceRecord value = new BlockChainDeviceRecord("Set Device Rent Parameter", data);
+
+        try {
+            onchainService.sendStateUpdateTx("device", String.valueOf(device.getId()), "", JSON.toJSONString(value));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         deviceRepository.save(device);
         return new RestResponse(new RestDevice(device));
@@ -716,6 +727,51 @@ public class OperateController {
         }
         return new RestResponse("创建成功！",null);
     }
+
+    /**
+     * 添加摄像头
+     * @param principal
+     * @param param
+     * @return
+     *
+     * Test Example
+     * curl -H "Content-Type: application/json" -X POST --data '{"deviceId":339,
+     * "name":"Test Camera","serialNo":"728370397",
+     * "url":"http://hls.open.ys7.com/openlive/5760a3686c444b379392293aaf425b75.hd.m3u8"}'
+     * http://localhost/api/rest/operate/create/camera
+     */
+
+    @RequestMapping(value = "/create/camera", method = RequestMethod.POST)
+    public RestResponse createCamera(Principal principal, @RequestBody Map<String, String> param){
+//        User user = judgeByPrincipal(principal);
+//        if(null == user){
+//            return new RestResponse("用户信息错误", 1006, null);
+//        }
+        if(param.get("deviceId") == null){
+            return new RestResponse("设备id不能为空", 1006, null);
+        }
+        if(param.get("name") == null){
+            return new RestResponse("摄像头不能为空", 1006, null);
+        }
+        if(param.get("serialNo") == null){
+            return new RestResponse("摄像头序列号不能为空", 1006, null);
+        }
+        if(param.get("url") == null){
+            return new RestResponse("视频播放地址不能为空", 1006, null);
+        }
+
+        CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), param.get("url"), param.get("description"));
+        try{
+            cameraListRepository.save(camera);
+        }
+        catch(Exception e){
+            LOGGER.info(String.format("Create Camera Failed: %s", e.getMessage()));
+            return new RestResponse("添加失败", 1007, null);
+        }
+        return new RestResponse("添加成功", null);
+    }
+
+
 
     /**
      * 修改用户信息
@@ -1343,6 +1399,33 @@ public class OperateController {
         return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
+    /**
+     * 重置密码
+     * @param principal
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/reset/password", method = RequestMethod.GET)
+    public RestResponse resetPassword(Principal principal, @RequestParam Map<String, String> map){
+        User operator = judgeByPrincipal(principal);
+        if(map.get("userId") == null){
+            return new RestResponse("用户id不能为空", 1006, null);
+        }
+        if(map.get("password") == null){
+            return new RestResponse("用户密码不能为空", 1006, null);
+        }
+        User user = userRepository.findById(Integer.parseInt(map.get("userId")));
+        if(user == null){
+            return new RestResponse("用户id非法", 1006, null);
+        }
+        LOGGER.info(String.format("reset password for user %d", user.getId()));
+        user.setPassword(map.get("password"));
+        user.setLatestPasswordUpdateTime(new Date());
+        user.setPasswordErrorRetryTimes(0);
+        userRepository.save(user);
+        return new RestResponse("修改成功", null);
+    }
+
 
     /**
      * 修改密码
@@ -1359,6 +1442,7 @@ public class OperateController {
             if (map.get("password")==null||"".equals(map.get("password")))
                 return new RestResponse("新密码不能为空！",1005,null);
             user.setPassword(map.get("password"));
+            user.setLatestPasswordUpdateTime(new Date());
             userRepository.save(user);
             return new RestResponse("修改成功！",null);
         }else {
@@ -1718,7 +1802,7 @@ public class OperateController {
         dealRecord.setDeviceSerialNumber(device.getSerialNo());
         dealRecord.setLessee(lessee.getId());
         dealRecord.setLessor(lessor.getId());
-        double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600)).intValue();
+        double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 )).intValue();
         dealRecord.setPrice(price);
         try{
             dealRecordRepository.save(dealRecord);
@@ -1726,16 +1810,16 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(getRecord.getId(), getRecord.getDevice().getId(), getRecord.getLessor(),
                     getRecord.getLessee(), getRecord.getPrice(), getRecord.getBeginTime().getTime(), getRecord.getEndTime().getTime(),
                     getRecord.getDeviceSerialNumber(), getRecord.getAggrement(), getRecord.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("创建交易", data);
+            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
             LOGGER.info(String.format("make deal: update to block chain"));
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
+            onchainService.sendStateUpdateTx("deal", String.valueOf(getRecord.getId()),
                     "", JSON.toJSONString(value));
 
             // transfer rent price to agency
             String companyAccountAddress = userRepository.findById(getRecord.getLessee()).getCompany().getAccountAddress();
             LOGGER.info(String.format("make deal: begin transfer asset, company address: %s", companyAccountAddress));
             onchainService.SyncBlock();
-            onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, OnchainService.agencyAddr);
+            onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, InitWallet.agencyAddr);
             LOGGER.info(String.format("make deal: money transfer finish"));
             return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
@@ -1820,8 +1904,8 @@ public class OperateController {
             BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                     record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                     record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
-            BlockChainDealRecord value = new BlockChainDealRecord("更新交易", data);
-            JSONObject returnObject = onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
+            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
+            onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                     "", JSON.toJSONString(value));
         }
         catch(Exception e){
@@ -1837,15 +1921,15 @@ public class OperateController {
                 String lesseeAddress = userRepository.findById(record.getLessee()).getAccountAddress();
                 String lessorCompanyAddress = userRepository.findById(record.getLessor()).getCompany().getAccountAddress();
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), OnchainService.agencyAddr, lessorCompanyAddress);
+                onchainService.transfer(OnchainService.AssetId, record.getPrice().intValue(), "支付租金,交易id:" + record.getId(), InitWallet.agencyAddr, lessorCompanyAddress);
 
                 int rewardPoint = (int) (record.getPrice().intValue() * 0.1);
                 rewardPoint = rewardPoint == 0 ? 1 : rewardPoint;
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lessorAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lessorAddress);
                 Thread.sleep(7000);
                 onchainService.SyncBlock();
-                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), OnchainService.rewardSenderAddr, lesseeAddress);
+                onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lesseeAddress);
 
             }
             catch(Exception e){

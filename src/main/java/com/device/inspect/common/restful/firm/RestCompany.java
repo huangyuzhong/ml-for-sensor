@@ -2,7 +2,9 @@ package com.device.inspect.common.restful.firm;
 
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.restful.charater.RestUser;
+import com.device.inspect.common.service.OnchainService;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
@@ -39,6 +41,7 @@ public class RestCompany {
     private String companyId;
     private String features;
     private String accountAddress;
+    private String assetId;
 
     public RestCompany(@NotNull Company company){
         this.id = company.getId();
@@ -70,6 +73,10 @@ public class RestCompany {
         this.companyId=company.getCompanyId();
         this.features = company.getFeatures();
         this.accountAddress = company.getAccountAddress();
+//        OnchainService onchainService = new OnchainService();
+//        if (this.accountAddress != null){
+//            this.assetId =onchainService.getAssetId(this.accountAddress);
+//        }
     }
 
     public Integer getId() {
@@ -282,5 +289,13 @@ public class RestCompany {
 
     public void setAccountAddress(String accountAddress) {
         this.accountAddress = accountAddress;
+    }
+
+    public String getAssetId() {
+        return assetId;
+    }
+
+    public void setAssetId(String assetId) {
+        this.assetId = assetId;
     }
 }

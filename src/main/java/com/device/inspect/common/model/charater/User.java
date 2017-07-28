@@ -33,6 +33,9 @@ public class User {
     private Integer verify;
     private String removeAlert;
     private String accountAddress;
+    private Date lastPasswordErrorDate;
+    private Integer passwordErrorRetryTimes;
+    private Date latestPasswordUpdateTime;
 
     @Id
     @GeneratedValue()
@@ -205,5 +208,32 @@ public class User {
 
     public void setAccountAddress(String accountAddress) {
         this.accountAddress = accountAddress;
+    }
+
+    @Column(name = "last_password_error_date")
+    public Date getLastPasswordErrorDate(){
+        return this.lastPasswordErrorDate;
+    }
+
+    public void setLastPasswordErrorDate(Date lastPasswordErrorDate){
+        this.lastPasswordErrorDate = lastPasswordErrorDate;
+    }
+
+    @Column(name = "password_error_retry_times")
+    public Integer getPasswordErrorRetryTimes(){
+        return this.passwordErrorRetryTimes;
+    }
+
+    public void setPasswordErrorRetryTimes(Integer passwordErrorRetryTimes){
+        this.passwordErrorRetryTimes = passwordErrorRetryTimes;
+    }
+
+    @Column(name = "latest_password_update_time")
+    public Date getLatestPasswordUpdateTime(){
+        return this.latestPasswordUpdateTime;
+    }
+
+    public void setLatestPasswordUpdateTime(Date latestPasswordUpdateTime){
+        this.latestPasswordUpdateTime = latestPasswordUpdateTime;
     }
 }
