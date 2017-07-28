@@ -35,6 +35,7 @@ import com.device.inspect.common.restful.page.*;
 import com.device.inspect.common.restful.record.DeviceRunningStatusHistoryRecord;
 import com.device.inspect.common.restful.record.RestDealRecord;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
+import com.device.inspect.common.service.GetCameraAccessToken;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.time.MyCalendar;
@@ -126,6 +127,9 @@ public class SelectApiController {
 
     @Autowired
     private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
+    @Autowired
+    private CameraListRepository cameraListRepository;
 
     private User judgeByPrincipal(Principal principal) {
         if (null == principal || null == principal.getName())
@@ -1359,9 +1363,10 @@ public class SelectApiController {
     }
 
     /**
-    * Test Example
-    * curl "http://fm.test.ilabservice.cloud/api/rest/firm/device/runningStatusHistory?deviceId=339&startTime=1501122059000&endTime=1501123059000"
-    **/
+     * 获取设备运行状态历史
+     * Test Example
+     * curl "http://fm.test.ilabservice.cloud/api/rest/firm/device/runningStatusHistory?deviceId=339&startTime=1501122059000&endTime=1501123059000"
+     **/
 
     @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
     public RestResponse getDeviceRunningStatusHistory(Principal principal, @RequestParam Map<String, String> requestParam) {
@@ -1401,4 +1406,54 @@ public class SelectApiController {
         return new RestResponse(result);
     }
 
+    /**
+     * 获取设备对应摄像头列表
+     *
+     * test example
+     *
+     * query:
+     * curl "http://localhost/api/rest/firm/device/cameraList?deviceId=339"
+     *
+     * return:
+     * {"error":0,"message":"OK","data":{"cameraList":[{"id":1,
+     * "name":"Test Camera","deviceId":339,"serialNo":"728370397",
+     * "url":"http://hls.open.ys7.com/openlive/5760a3686c444b379392293aaf425b75.hd.m3u8","description":null}]}}
+     */
+
+    @RequestMapping(value = "/device/cameraList", method = RequestMethod.GET)
+    public RestResponse getDeviceCameraList(Principal principal, @RequestParam Map<String, String> param){
+        if(param.get("deviceId") == null){
+            return new RestResponse("设备id不能为空", 1006, null);
+        }
+
+        List<CameraList> cameraLists = cameraListRepository.findByDeviceId(Integer.parseInt(param.get("deviceId")));
+        Map<String, Object> result = new HashMap<>();
+        result.put("cameraList", cameraLists);
+        return new RestResponse(result);
+    }
+
+    /**
+     * 获取摄像头的AccessToken
+     *
+     * test example
+     *
+     * query:
+     * curl "http://localhost/api/rest/firm/device/cameraToken"
+     *
+     * return:
+     * {"error":0,"message":"OK","data":{"accessToken":"at.c06civwza7mkneps8yrzkarb2z0p3aa1-45er9dgqis-1enogbg-j8b3bghts"}}
+     */
+
+    @RequestMapping(value = "/device/cameraToken", method = RequestMethod.GET)
+    public RestResponse getCameraToken(Principal principal){
+        String accessToken = GetCameraAccessToken.getAccessToken();
+        if(accessToken != null && !accessToken.isEmpty()){
+            Map<String, Object> result = new HashMap<>();
+            result.put("accessToken", accessToken);
+            return new RestResponse(result);
+        }
+        else{
+            return new RestResponse("获取accessToken失败", 1006, null);
+        }
+    }
 }
