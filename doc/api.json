@@ -1,0 +1,75 @@
+{
+	"objects":{
+		"RestTelemetryTSData": {
+			"name": {
+				"type": "string"
+			},
+			"code": {
+				"type": "string"
+			},
+			"unit": {
+				"type": "string"
+			},
+			"deviceInspectId":{
+				"type": "integer"
+			},
+			"timeSeries": {
+				"type": "array",
+				"array_type": "integer"
+			},
+			"valueSeries": {
+				"type": "array",
+				"array_type": "float"
+			}
+		},
+		"RestDeviceMonitoringTSData": {
+			"deviceName": {
+				"type": "string"
+			},
+			"deviceId": {
+				"type": "integer"
+			},
+			"startTime": {
+				"type": "string"
+			},
+			"endTime": {
+				"type": "string"
+			},
+			"telemetries": {
+				"type": "array",
+				"array_type": "RestTelemetryTSData"
+			}
+		}
+	},
+
+	"base_path": "/api/rest",
+	"apis": {
+
+		"/device/current/data": {
+			"method": "GET",
+			"docstring": "get monitoring data of a device from specified time till now",
+			"request_schema": {
+				"properties": {
+					"deviceId": {
+						"type": "integer"
+					},
+					"timeVal": {
+						"type": "integer"
+					}
+				},
+				"required": ["deviceId"]
+			},
+			"reply_schema": {
+				"properties":{
+					"running_status": {
+						"type": "integer"
+					},
+					"tsData": {
+						"type": "RestDeviceMonitoringTSData"
+
+					}
+				}
+			}
+		}
+	}
+}
