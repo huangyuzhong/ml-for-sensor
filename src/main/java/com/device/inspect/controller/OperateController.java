@@ -142,6 +142,9 @@ public class OperateController {
     @Autowired
     private OnchainService onchainService;
 
+    @Autowired
+    private CameraListRepository cameraListRepository;
+
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
             throw new UsernameNotFoundException("You are not login!");
@@ -724,6 +727,51 @@ public class OperateController {
         }
         return new RestResponse("创建成功！",null);
     }
+
+    /**
+     * 添加摄像头
+     * @param principal
+     * @param param
+     * @return
+     *
+     * Test Example
+     * curl -H "Content-Type: application/json" -X POST --data '{"deviceId":339,
+     * "name":"Test Camera","serialNo":"728370397",
+     * "url":"http://hls.open.ys7.com/openlive/5760a3686c444b379392293aaf425b75.hd.m3u8"}'
+     * http://localhost/api/rest/operate/create/camera
+     */
+
+    @RequestMapping(value = "/create/camera", method = RequestMethod.POST)
+    public RestResponse createCamera(Principal principal, @RequestBody Map<String, String> param){
+//        User user = judgeByPrincipal(principal);
+//        if(null == user){
+//            return new RestResponse("用户信息错误", 1006, null);
+//        }
+        if(param.get("deviceId") == null){
+            return new RestResponse("设备id不能为空", 1006, null);
+        }
+        if(param.get("name") == null){
+            return new RestResponse("摄像头不能为空", 1006, null);
+        }
+        if(param.get("serialNo") == null){
+            return new RestResponse("摄像头序列号不能为空", 1006, null);
+        }
+        if(param.get("url") == null){
+            return new RestResponse("视频播放地址不能为空", 1006, null);
+        }
+
+        CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), param.get("url"), param.get("description"));
+        try{
+            cameraListRepository.save(camera);
+        }
+        catch(Exception e){
+            LOGGER.info(String.format("Create Camera Failed: %s", e.getMessage()));
+            return new RestResponse("添加失败", 1007, null);
+        }
+        return new RestResponse("添加成功", null);
+    }
+
+
 
     /**
      * 修改用户信息
@@ -1351,6 +1399,33 @@ public class OperateController {
         return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
+    /**
+     * 重置密码
+     * @param principal
+     * @param map
+     * @return
+     */
+    @RequestMapping(value = "/reset/password", method = RequestMethod.GET)
+    public RestResponse resetPassword(Principal principal, @RequestParam Map<String, String> map){
+        User operator = judgeByPrincipal(principal);
+        if(map.get("userId") == null){
+            return new RestResponse("用户id不能为空", 1006, null);
+        }
+        if(map.get("password") == null){
+            return new RestResponse("用户密码不能为空", 1006, null);
+        }
+        User user = userRepository.findById(Integer.parseInt(map.get("userId")));
+        if(user == null){
+            return new RestResponse("用户id非法", 1006, null);
+        }
+        LOGGER.info(String.format("reset password for user %d", user.getId()));
+        user.setPassword(map.get("password"));
+        user.setLatestPasswordUpdateTime(new Date());
+        user.setPasswordErrorRetryTimes(0);
+        userRepository.save(user);
+        return new RestResponse("修改成功", null);
+    }
+
 
     /**
      * 修改密码
@@ -1367,6 +1442,7 @@ public class OperateController {
             if (map.get("password")==null||"".equals(map.get("password")))
                 return new RestResponse("新密码不能为空！",1005,null);
             user.setPassword(map.get("password"));
+            user.setLatestPasswordUpdateTime(new Date());
             userRepository.save(user);
             return new RestResponse("修改成功！",null);
         }else {
