@@ -43,7 +43,7 @@ public class CheckFinishDeal {
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
-                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
             }
@@ -62,7 +62,7 @@ public class CheckFinishDeal {
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
-                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
             }
