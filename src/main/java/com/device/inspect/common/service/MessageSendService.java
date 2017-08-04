@@ -363,25 +363,28 @@ public class MessageSendService {
             String at_cmgs = "at+cmgs="+(code.length()/2-1);  // 指定后面发送的报文的长度，19=code.length/2-1。
 
             WriteSerialPort.write(at_cmgf, at_cmgs, code);
+            Thread.sleep(3000);
             return true;
         }catch (Exception e){
             e.printStackTrace();
-            LOGGER.info(e.getMessage());
             return false;
         }
     }
 
     public static void sendMessageToInteLabManager (String str){
-        int strCount = 1;
-        if (str.length() > 70){
-            while(str.length()/67 != 0){
-                String subStr = str.substring(0, 67);
-                str = str.substring(67);
-                sendMessageToManager("("+strCount+")"+subStr);
+        if (str.length() <= 70){
+            sendMessageToManager(str);
+        }else {
+            int strCount = 1;
+            int strSum = (str.length()%65 == 0)?str.length()/65 : (str.length()/65+1);
+            while(str.length()/65 != 0){
+                String subStr = str.substring(0, 65);
+                str = str.substring(65);
+                sendMessageToManager("("+strCount+"/"+strSum+")"+subStr);
                 strCount++;
             }
+            sendMessageToManager("("+strCount+"/"+strSum+")"+str);
         }
-        sendMessageToManager("("+strCount+")"+str);
     }
 
     // 将收件人号码按报文要求进行转化

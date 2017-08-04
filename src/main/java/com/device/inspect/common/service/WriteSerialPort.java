@@ -15,8 +15,6 @@ public class WriteSerialPort {
 
     private static final Logger LOGGER = LogManager.getLogger(WriteSerialPort.class);
 
-    private static String ate1 = "ATE1\n";
-    private static String atv1 = "ATV1\n";
     private static CommPortIdentifier portId;
     private static SerialPort serialPort;
     private static OutputStream outputStream;
@@ -35,45 +33,35 @@ public class WriteSerialPort {
             int count = 1;
 
             while(!strb.contains("OK") || count == 1){
-                outputStream.write(ate1.getBytes());
-                outputStream.flush();
-                strb = new String(readFromPort(serialPort));
-                count++;
-            }
-
-            strb = "";
-            count = 1;
-            while(!strb.contains("OK") || count == 1){
-                outputStream.write(atv1.getBytes());
-                outputStream.flush();
-                strb = new String(readFromPort(serialPort));
-                count++;
-            }
-
-            strb = "";
-            count = 1;
-            while(!strb.contains("OK") || count == 1){
                 outputStream.write((at_cmgf+"\n").getBytes());
                 outputStream.flush();
                 strb = new String(readFromPort(serialPort));
                 count++;
+                Thread.sleep(3000);
             }
 
-            outputStream.write((at_cmgs+"\n").getBytes());
-            outputStream.write(code.getBytes());
-            outputStream.write(0x1A);
-            outputStream.flush();
-            strb = new String(readFromPort(serialPort));
+            strb = "";
+            count = 1;
+            while(strb.contains("ERROR") || count == 1) {
+                outputStream.write((at_cmgs + "\n").getBytes());
+                outputStream.write(code.getBytes());
+                outputStream.write(0x1A);
+                outputStream.flush();
+                strb = new String(readFromPort(serialPort));
+                count++;
+                Thread.sleep(3000);
+            }
 
             outputStream.close();
             serialPort.close();
 
             if (strb.contains("ERROR")){
-                LOGGER.info("短信发送失败");
+                LOGGER.warn("Failed to send alert message by SIM800");
+            }else{
+                LOGGER.info("Successfully send alert message by SIM800");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.info("NO Such Port, Please Make sure the port is not invoked or exists");
         }
     }
 

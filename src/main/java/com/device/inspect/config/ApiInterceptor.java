@@ -80,12 +80,9 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         }
 
 
-
-
-
         // 只记录UI api操作， 不记录终端数据的api
         // TODO: investigate why receved another api /error after login failure.
-        if(requestUrl.endsWith("socket/insert/data") || requestUrl.equals("/error")){
+        if(requestUrl.endsWith("socket/insert/data") || requestUrl.endsWith("device/current/data") || requestUrl.equals("/error")){
             return;
         }
 
