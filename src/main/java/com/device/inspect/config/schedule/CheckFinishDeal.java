@@ -1,8 +1,11 @@
 package com.device.inspect.config.schedule;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.ScientistDevice;
 import com.device.inspect.common.model.record.DealRecord;
+import com.device.inspect.common.repository.charater.UserRepository;
+import com.device.inspect.common.repository.device.ScientistDeviceRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.restful.record.BlockChainDealDetail;
 import com.device.inspect.common.restful.record.BlockChainDealRecord;
@@ -14,7 +17,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import static com.device.inspect.common.setting.Defination.*;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +33,12 @@ public class CheckFinishDeal {
     @Autowired
     private DealRecordRepository dealRecordRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ScientistDeviceRepository scientistDeviceRepository;
+
     @Scheduled(cron = "0 */1 * * * ? ")
     public void scheduleTask() {
         LOGGER.info(String.format("Check Execut Deal: begin checking deal record which meets rent start time at %s", new Date()));
@@ -39,6 +47,13 @@ public class CheckFinishDeal {
             try{
                 LOGGER.info(String.format("Check Execute Deal: found deal to execute: %d", record.getId()));
                 record.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING);
+
+                ScientistDevice scientistDevice = new ScientistDevice();
+                User lessee = userRepository.findOne(record.getLessee());
+                scientistDevice.setScientist(lessee);
+                scientistDevice.setDevice(record.getDevice());
+                scientistDeviceRepository.save(scientistDevice);
+
                 BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
@@ -58,6 +73,10 @@ public class CheckFinishDeal {
         for(DealRecord record : records){
             try {
                 record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM);
+
+                ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(record.getLessee(), record.getDevice().getId());
+                scientistDeviceRepository.delete(scientistDevice);
+
                 BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
@@ -70,5 +89,8 @@ public class CheckFinishDeal {
                 LOGGER.error("Check Finish Deal Error: " + e.getMessage());
             }
         }
+
+        LOGGER.info("Device alerting ,and begin checking deal record which meets rent end time");
+        List<DealRecord> alertRecords = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT, new Date());
     }
 }

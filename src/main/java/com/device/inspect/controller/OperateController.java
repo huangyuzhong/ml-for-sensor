@@ -1788,7 +1788,8 @@ public class OperateController {
         LOGGER.info(String.format("make deal: time inteval is legal"));
         // check whether request time interval is not used by others
         int conflictDeal = dealRecordRepository.countByDeviceIdAndBeginTimeBetween(device.getId(), beginTime, endTime) +
-                dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime);
+                dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime) +
+                dealRecordRepository.countByDeviceIdAndBeginTimeBeforeAndEndTimeAfter(device.getId(), beginTime, endTime);
         if(conflictDeal > 0){
             return new RestResponse(("申请的使用时间与其他交易冲突"), 1007, null);
         }

@@ -1,25 +1,27 @@
 package com.device.inspect.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
-import com.device.inspect.common.cache.MemoryDevice;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
-import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
-import com.device.inspect.common.restful.device.RestInspectData;
+import com.device.inspect.common.restful.record.BlockChainDealDetail;
+import com.device.inspect.common.restful.record.BlockChainDealRecord;
 import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
 import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
 import com.device.inspect.common.service.MemoryCacheDevice;
+import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
@@ -29,9 +31,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+
+import static com.device.inspect.common.setting.Defination.DEAL_STATUS_TRANSFER_MAP;
+import static com.device.inspect.common.setting.Defination.ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT;
 
 /**
  * Created by Administrator on 2016/7/25.
@@ -95,6 +99,12 @@ public class SocketMessageApi {
 
     @Autowired
     private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
+    @Autowired
+    private DealRecordRepository dealRecordRepository;
+
+    @Autowired
+    private OnchainService onchainService;
 
 
     String unit = "s";
@@ -220,6 +230,24 @@ public class SocketMessageApi {
             // update device alert time and alert status
             if(alert_type != 0 && onlineData){
                 memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
+            }
+
+            if (device.getDeviceChainKey() != null){
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
+                for (DealRecord dealRecord : dealRecords){
+                    try {
+                        dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                        BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                        BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                        onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                "", JSON.toJSONString(value));
+                        dealRecordRepository.save(dealRecord);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
         }
