@@ -58,7 +58,7 @@ public class CheckFinishDeal {
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
-                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
             }
@@ -81,7 +81,7 @@ public class CheckFinishDeal {
                         record.getLessee(), record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(),
                         record.getDeviceSerialNumber(), record.getAggrement(), record.getStatus());
                 BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(record.getStatus()), data);
-                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()) + String.valueOf(record.getDevice().getId()),
+                onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
             }
@@ -92,5 +92,26 @@ public class CheckFinishDeal {
 
         LOGGER.info("Device alerting ,and begin checking deal record which meets rent end time");
         List<DealRecord> alertRecords = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT, new Date());
+        for (DealRecord alertRecord : alertRecords) {
+            try {
+                alertRecord.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT);
+
+                ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(alertRecord.getLessee(), alertRecord.getDevice().getId());
+                scientistDeviceRepository.delete(scientistDevice);
+
+                BlockChainDealDetail data = new BlockChainDealDetail(alertRecord.getId(), alertRecord.getDevice().getId(), alertRecord.getLessor(),
+                        alertRecord.getLessee(), alertRecord.getPrice(), alertRecord.getBeginTime().getTime(), alertRecord.getEndTime().getTime(),
+                        alertRecord.getDeviceSerialNumber(), alertRecord.getAggrement(), alertRecord.getStatus());
+                BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(alertRecord.getStatus()), data);
+
+                onchainService.sendStateUpdateTx("deal", String.valueOf(alertRecord.getId()),
+                        "", JSON.toJSONString(value));
+
+                dealRecordRepository.save(alertRecord);
+            }
+            catch(Exception e){
+                LOGGER.error("Device alerting ,And Check Finish Deal Error: " + e.getMessage());
+            }
+        }
     }
 }

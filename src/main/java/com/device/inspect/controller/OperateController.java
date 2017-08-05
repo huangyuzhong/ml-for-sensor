@@ -1872,11 +1872,17 @@ public class OperateController {
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH){
             return new RestResponse(("无效操作，交易已结束"), 1007, null);
         }
+        if (record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT){
+            return  new RestResponse(("无效操作，因设备发生故障，交易已结束"), 1007, null);
+        }
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_CANCELLED){
             return new RestResponse(("无效操作，交易已取消"), 1007, null);
         }
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING){
             return new RestResponse(("无效操作，交易正在执行中"), 1007, null);
+        }
+        if (record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT){
+            return new RestResponse(("无效操作，交易正在执行当中，并发生故障"), 1007, null);
         }
 
         Integer original_status = record.getStatus();
@@ -1889,6 +1895,14 @@ public class OperateController {
                 record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
                 finish = true;
             }
+
+            if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT);
+            }
+            else if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT);
+                finish = true;
+            }
         }
 
         if(operatorId.equals(record.getLessee())){
@@ -1897,6 +1911,14 @@ public class OperateController {
             }
             else if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM){
                 record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
+                finish = true;
+            }
+
+            if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM_WITH_ALERT);
+            }
+            else if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT);
                 finish = true;
             }
         }
