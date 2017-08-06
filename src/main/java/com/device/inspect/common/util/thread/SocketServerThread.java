@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class SocketServerThread extends Thread {
     private static final Logger LOGGER = LogManager.getLogger(SocketServerThread.class);
-    private static final String serverHost = "http://localhost:8999/api/rest/socket/insert/data?result=";
+    private static final String serverHost = "http://localhost:8999/api/rest/operate/monitor/getFirstNotActActionAndUpdate?serialNo=";
 
     private Socket sock;
 
