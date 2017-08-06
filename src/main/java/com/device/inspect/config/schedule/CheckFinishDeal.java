@@ -2,11 +2,15 @@ package com.device.inspect.config.schedule;
 
 import com.alibaba.fastjson.JSON;
 import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.model.device.MonitorDevice;
 import com.device.inspect.common.model.device.ScientistDevice;
 import com.device.inspect.common.model.record.DealRecord;
+import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.repository.charater.UserRepository;
+import com.device.inspect.common.repository.device.MonitorDeviceRepository;
 import com.device.inspect.common.repository.device.ScientistDeviceRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
+import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.restful.record.BlockChainDealDetail;
 import com.device.inspect.common.restful.record.BlockChainDealRecord;
 import com.device.inspect.common.service.OnchainService;
@@ -34,12 +38,18 @@ public class CheckFinishDeal {
     private DealRecordRepository dealRecordRepository;
 
     @Autowired
+    private MonitorDeviceRepository monitorDeviceRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
 
-    @Scheduled(cron = "0 */1 * * * ? ")
+    @Autowired
+    private DeviceOrderListRepository deviceOrderListRepository;
+
+    @Scheduled(cron = "30 */1 * * * ? ")
     public void scheduleTask() {
         LOGGER.info(String.format("Check Execut Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date());
@@ -61,6 +71,16 @@ public class CheckFinishDeal {
                 onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
+
+                // add power on order
+                MonitorDevice monitor = monitorDeviceRepository.findByDeviceId(record.getDevice().getId());
+                if(monitor != null && monitor.getNumber() != null && !monitor.getNumber().isEmpty()){
+                    String monitorSerialNo = monitor.getNumber();
+                    String order = "power on";
+                    DeviceOrderList monitorOrder = new DeviceOrderList(new Date(), monitorSerialNo, order, DEVICE_ACTION_NOACT);
+                    deviceOrderListRepository.save(monitorOrder);
+                }
+
             }
             catch(Exception e){
                 LOGGER.error("Check Finish Deal Error: " + e.getMessage());
@@ -84,6 +104,15 @@ public class CheckFinishDeal {
                 onchainService.sendStateUpdateTx("deal", String.valueOf(record.getId()),
                         "", JSON.toJSONString(value));
                 dealRecordRepository.save(record);
+
+                // add power on order
+                MonitorDevice monitor = monitorDeviceRepository.findByDeviceId(record.getDevice().getId());
+                if(monitor != null && monitor.getNumber() != null && !monitor.getNumber().isEmpty()){
+                    String monitorSerialNo = monitor.getNumber();
+                    String order = "power off";
+                    DeviceOrderList monitorOrder = new DeviceOrderList(new Date(), monitorSerialNo, order, DEVICE_ACTION_NOACT);
+                    deviceOrderListRepository.save(monitorOrder);
+                }
             }
             catch(Exception e){
                 LOGGER.error("Check Finish Deal Error: " + e.getMessage());
@@ -108,6 +137,15 @@ public class CheckFinishDeal {
                         "", JSON.toJSONString(value));
 
                 dealRecordRepository.save(alertRecord);
+
+                // add power on order
+                MonitorDevice monitor = monitorDeviceRepository.findByDeviceId(alertRecord.getDevice().getId());
+                if(monitor != null && monitor.getNumber() != null && !monitor.getNumber().isEmpty()){
+                    String monitorSerialNo = monitor.getNumber();
+                    String order = "power off";
+                    DeviceOrderList monitorOrder = new DeviceOrderList(new Date(), monitorSerialNo, order, DEVICE_ACTION_NOACT);
+                    deviceOrderListRepository.save(monitorOrder);
+                }
             }
             catch(Exception e){
                 LOGGER.error("Device alerting ,And Check Finish Deal Error: " + e.getMessage());

@@ -37,7 +37,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @EnableScheduling
 public class Application {
 
-    private static final int SOCKET_PORT = 8193;
+    private static final int SOCKET_PORT = 8195;
     public static final Logger LOGGER = LogManager.getLogger(Application.class);
 
     public static AzureConfig azureConfig;
@@ -74,10 +74,10 @@ public class Application {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
-        //socketServerStart();
-        startMQWorkers();
-
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
+
+        startMQWorkers();
+        socketServerStart();
     }
 
     private static void loadAppConfig() throws Throwable{
@@ -193,7 +193,6 @@ public class Application {
             while (true){
                 //等待请求,此方法会一直阻塞,直到获得请求才往下走
                 socket = s.accept();
-                System.out.println("Connection accept socket:" + socket);
                 LOGGER.info("Connection accept socket:" + socket);
                 SocketServerThread thread = new SocketServerThread(socket);
                 thread.start();

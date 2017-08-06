@@ -14,6 +14,7 @@ import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceDisableTime;
+import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
@@ -25,6 +26,7 @@ import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceDisableTimeRepository;
+import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
@@ -144,6 +146,9 @@ public class OperateController {
 
     @Autowired
     private CameraListRepository cameraListRepository;
+
+    @Autowired
+    private DeviceOrderListRepository deviceOrderListRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1996,4 +2001,24 @@ public class OperateController {
 //        return new RestResponse("修改成功",null);
 //    }
 
+    /**
+     * 获取monitor动作队列中最早的未完成动作，并改变状态
+     */
+    @RequestMapping(value = "/monitor/getFirstNotActActionAndUpdate", method = RequestMethod.GET)
+    public RestResponse getFirstNotActActionAndUpdate(@RequestParam String serialNo) {
+        DeviceOrderList order = deviceOrderListRepository.findTopByMonitorSerialNoAndExecuteStatusOrderByCreateTimeAsc(serialNo, DEVICE_ACTION_NOACT);
+        String orderHexCode = null;
+        do {
+            orderHexCode = DEVICE_ACTION_TRANSFER_MAP.get(order.getOrderDesc());
+            if (orderHexCode == null || orderHexCode.isEmpty()){
+                order.setExecuteStatus(DEVICE_ACTION_ERROR);
+                deviceOrderListRepository.save(order);
+            }
+        }
+        while(orderHexCode != null && orderHexCode.isEmpty());
+
+        order.setExecuteStatus(DEVICE_ACTION_FINISH);
+        deviceOrderListRepository.save(order);
+        return new RestResponse(orderHexCode);
+    }
 }

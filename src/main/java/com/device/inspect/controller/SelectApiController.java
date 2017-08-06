@@ -10,6 +10,7 @@ import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealRecord;
+import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
@@ -23,6 +24,7 @@ import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
+import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
@@ -130,6 +132,9 @@ public class SelectApiController {
 
     @Autowired
     private CameraListRepository cameraListRepository;
+
+    @Autowired
+    private DeviceOrderListRepository deviceOrderListRepository;
 
     private User judgeByPrincipal(Principal principal) {
         if (null == principal || null == principal.getName())
@@ -1455,5 +1460,14 @@ public class SelectApiController {
         else{
             return new RestResponse("获取accessToken失败", 1006, null);
         }
+    }
+
+    /**
+     * 获取某个monitor的动作历史
+     */
+    @RequestMapping(value = "/monitor/actionList", method = RequestMethod.GET)
+    public RestResponse getActionList(Principal principal, @RequestParam String monitorSerialNo){
+        List<DeviceOrderList> orderList = deviceOrderListRepository.findByMonitorSerialNo(monitorSerialNo);
+        return new RestResponse(orderList);
     }
 }

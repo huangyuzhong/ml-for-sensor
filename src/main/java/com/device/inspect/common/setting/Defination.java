@@ -22,9 +22,21 @@ public class Defination {
     public static final Integer ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT = 10;
     public static final Integer ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT = 11;
 
+    public static final Integer DEVICE_ACTION_NOACT = 0;
+    public static final Integer DEVICE_ACTION_FINISH = 1;
+    public static final Integer DEVICE_ACTION_ERROR = 2;
+
+    public static final String ACTION_POWER_OFF = "0000";
+    public static final String ACTION_POWER_ON = "0001";
+
     public static final String ONCHAIN_DEAL_OPERATION_CONFIRM = "confirm";
     public static final Set<String> ONCHAIN_DEAL_OPERATION_SET = new HashSet<String>(){{
         add(ONCHAIN_DEAL_OPERATION_CONFIRM);
+    }};
+
+    public static final Map<String, String> DEVICE_ACTION_TRANSFER_MAP = new HashMap<String, String>(){{
+        put("power on", ACTION_POWER_ON);
+        put("power off", ACTION_POWER_OFF);
     }};
 
     public static final Map<Integer, String> DEAL_STATUS_TRANSFER_MAP = new HashMap<Integer, String>(){{

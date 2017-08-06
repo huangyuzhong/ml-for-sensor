@@ -37,8 +37,7 @@ public class SocketServerThread extends Thread {
     private static final String serverHost = "http://localhost:8999/api/rest/socket/insert/data?result=";
 
     private Socket sock;
-//    PrintWriter out = null;
-//    DataOutputStream dos = null;
+
     DataOutputStream outData = null;
     DataInputStream dins = null;
     public SocketServerThread(Socket s)
@@ -46,42 +45,24 @@ public class SocketServerThread extends Thread {
         this.sock =s;
     }
 
-    /**
-     *
-     */
     public void run(){
         try {
 
             InputStream ins = sock.getInputStream();
             dins = new DataInputStream(ins);
             //服务端解包过程
-            boolean flag = false;
-            while(!flag) {
-//                out = new PrintWriter(sock.getOutputStream());
-                outData = new DataOutputStream(sock.getOutputStream());
-                byte[] data = new byte[50];
-                dins.read(data);
-                String result = ByteAndHex.bytesToHexString(data);
-                LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
-//                String flagString = result.substring(2,4);
-                String response = "";
-                if (!result.startsWith("ef")){
-                    flag = true;
-                }else {
-                    response = get(result);
-                }
-                if (null==response){
-                    flag = true;
-                    break;
-                }
+            outData = new DataOutputStream(sock.getOutputStream());
+            byte[] data = new byte[20];
+            dins.read(data);
+            String result = ByteAndHex.bytesToHexString(data);
+            LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
+            String response = "";
+            response = get(result);
 
-                byte[] bytes = ByteAndHex.hexStringToBytes(response);
-                outData.write(bytes,0,bytes.length);
-                outData.flush();
+            byte[] bytes = ByteAndHex.hexStringToBytes(response);
+            outData.write(bytes,0,bytes.length);
+            outData.flush();
 
-                flag = true;
-                break;
-            }
         }catch (Exception e){
             e.printStackTrace();
         } finally {
