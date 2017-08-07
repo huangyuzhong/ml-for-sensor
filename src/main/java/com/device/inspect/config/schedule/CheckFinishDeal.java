@@ -53,7 +53,7 @@ public class CheckFinishDeal extends QuartzJobBean{
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
 
-    public void setMonitorDeviceRepository(MonitorDeviceRepository){
+    public void setMonitorDeviceRepository(MonitorDeviceRepository monitorDeviceRepository){
         this.monitorDeviceRepository = monitorDeviceRepository;
     }
 
