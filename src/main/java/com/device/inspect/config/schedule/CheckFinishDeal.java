@@ -25,6 +25,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import static com.device.inspect.common.setting.Defination.*;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.util.Date;
 import java.util.List;
@@ -33,7 +36,7 @@ import java.util.List;
  * Created by zyclincoln on 7/17/17.
  */
 @Component("CheckFinishDeal")
-public class CheckFinishDeal {
+public class CheckFinishDeal extends QuartzJobBean{
     private static final Logger LOGGER = LogManager.getLogger(CheckFinishDeal.class);
 
     @Autowired
@@ -60,7 +63,8 @@ public class CheckFinishDeal {
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
 
-    public void scheduleTask() {
+    @Override
+    protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() + 1000*100));
         for(DealRecord record : beginRecords){

@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.util.*;
 
@@ -24,7 +27,7 @@ import java.util.*;
  * Created by zyclincoln on 3/19/17.
  */
 @Component("HourlyUtilityCalculation")
-public class HourlyUtilityCalculation{
+public class HourlyUtilityCalculation extends QuartzJobBean{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
 
     @Autowired
@@ -53,7 +56,8 @@ public class HourlyUtilityCalculation{
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
 
-    public void scheduleTask() {
+    @Override
+    protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
         LOGGER.info("Start scanning utilization data");
 
         Date startScanTime = new Date();

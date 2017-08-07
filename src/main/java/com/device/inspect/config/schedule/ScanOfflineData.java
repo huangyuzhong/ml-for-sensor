@@ -24,12 +24,15 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * Created by zyclincoln on 4/23/17.
  */
 @Component("ScanOfflineData")
-public class ScanOfflineData{
+public class ScanOfflineData extends QuartzJobBean{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 
     @Autowired
@@ -48,8 +51,8 @@ public class ScanOfflineData{
     private AlertCountRepository alertCountRepository;
 
 
-    @Scheduled(cron = "0 */10 * * * ? ")
-    public void scheduleTask() {
+    @Override
+    protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
         if(Application.offlineFTPStorageManager == null){
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
             return;
