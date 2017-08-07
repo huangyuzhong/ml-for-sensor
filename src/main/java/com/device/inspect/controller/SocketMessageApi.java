@@ -282,10 +282,10 @@ public class SocketMessageApi {
                         boolean isRun = false;
                         if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
                             for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
-                                LOGGER.info(String.format("device %d change status to %d at %s", device.getId(), ((Double)deviceRunningStatusHistory.get(1)).intValue(), new Date((long)deviceRunningStatusHistory.get(0))));
+                                LOGGER.info(String.format("device %d change status to %d at %s", device.getId(), ((Double)deviceRunningStatusHistory.get(1)).intValue(), new Date(TimeUtil.fromInfluxDBTimeFormat((String)deviceRunningStatusHistory.get(0)))));
                                 if(((Double)deviceRunningStatusHistory.get(1)).intValue() == 20){
                                 // device has run
-                                    LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date((long)deviceRunningStatusHistory.get(0)), dealRecord.getId()));
+                                    LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date(TimeUtil.fromInfluxDBTimeFormat((String)deviceRunningStatusHistory.get(0))), dealRecord.getId()));
                                     isRun = true;
                                     break;
                                 }
