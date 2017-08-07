@@ -277,6 +277,10 @@ public class SocketMessageApi {
                 if(dealRecords != null) {
                     for (DealRecord dealRecord : dealRecords) {
                         LOGGER.info(String.format("found device in deal %s when power failure problem happened.", dealRecord.getId()));
+                        if(dealRecord.getEndTime().getTime() < inspectMessage.getSamplingTime().getTime()){
+                            // if alert time has exceeded deal end time, pass
+                            continue;
+                        }
 //                        Date currentTime = new Date();
                         List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), dealRecord.getEndTime());
                         boolean isRun = false;
