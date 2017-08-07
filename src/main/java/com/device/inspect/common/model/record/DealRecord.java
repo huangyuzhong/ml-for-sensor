@@ -44,6 +44,9 @@ public class DealRecord {
     @Column(name = "status")
     private Integer status;
 
+    @Column(name = "real_end_time")
+    private Date realEndTime;
+
     public void setId(Integer id){
         this.id = id;
     }
@@ -123,5 +126,13 @@ public class DealRecord {
 
     public void setStatus(Integer status){
         this.status = status;
+    }
+
+    public Date getRealEndTime(){
+        return this.realEndTime;
+    }
+
+    public void setRealEndTime(Date realEndTime){
+        this.realEndTime = realEndTime;
     }
 }
