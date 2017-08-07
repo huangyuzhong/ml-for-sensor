@@ -145,7 +145,7 @@ public class CheckFinishDeal{
                 // added so many hard-code logic and ugly schema, just for a demo. I am quite sure these code shall cause some extremely annoying trouble in the future.
 
                 InspectType currentType = inspectTypeRepository.findByCode("16");
-                DeviceInspect deviceInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(currentType.getId(), record.getId());
+                DeviceInspect deviceInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(currentType.getId(), record.getDevice().getId());
 
                 boolean canFinish = false;
                 if(deviceInspect == null){
