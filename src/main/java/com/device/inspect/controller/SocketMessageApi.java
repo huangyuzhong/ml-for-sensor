@@ -239,13 +239,8 @@ public class SocketMessageApi {
                 }
             }
 
-            // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
-            if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01){
-                inspectStatus = "power failure";
-                alert_type = 3;
-                messageController.sendPowerMsg(device, deviceInspect, inspectMessage.getSamplingTime());
-                alertMsg = String.format("power failure occured at %s.", inspectMessage.getSamplingTime());
-            }
+
+
             // update device alert time and alert status
             if(alert_type != 0 && onlineData){
                 memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
@@ -268,6 +263,49 @@ public class SocketMessageApi {
                             dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
                         } catch (Exception e) {
                             e.printStackTrace();
+                        }
+                    }
+                }
+                else{
+                    LOGGER.info("no transfer is ongoing when alert happened");
+                }
+            }
+            // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
+            if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01 && device.getDeviceChainKey() != null){
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), new Date());
+                        boolean isRun = false;
+                        if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
+                            for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
+                                if(deviceRunningStatusHistory.get(1) == 20){
+                                // device has run
+                                    LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date((long)deviceRunningStatusHistory.get(0)), dealRecord.getId()));
+                                    isRun = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if(isRun) {
+                            inspectStatus = "power failure";
+                            alert_type = 3;
+                            LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                            messageController.sendPowerMsg(device, deviceInspect, inspectMessage.getSamplingTime());
+                            alertMsg = String.format("power failure occured at %s.", inspectMessage.getSamplingTime());
+                            try {
+                                dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                                BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                        dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                        dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                                BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                                onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                        "", JSON.toJSONString(value));
+                                dealRecordRepository.save(dealRecord);
+                                dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
