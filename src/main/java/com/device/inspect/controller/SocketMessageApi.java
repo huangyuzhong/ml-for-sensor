@@ -279,7 +279,7 @@ public class SocketMessageApi {
                         boolean isRun = false;
                         if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
                             for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
-                                if(deviceRunningStatusHistory.get(1) == 20){
+                                if((int)deviceRunningStatusHistory.get(1) == 20){
                                 // device has run
                                     LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date((long)deviceRunningStatusHistory.get(0)), dealRecord.getId()));
                                     isRun = true;
