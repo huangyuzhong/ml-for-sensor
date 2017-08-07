@@ -292,7 +292,7 @@ public class SocketMessageApi {
                             }
                         }
                         else{
-                            LOGGER.info(String.format("no device running status change log during %s, %s.", dealRecord.getBeginTime(), currentTime));
+                            LOGGER.info(String.format("no device running status change log during %s, %s.", dealRecord.getBeginTime(), dealRecord.getEndTime()));
                         }
                         if(isRun) {
                             inspectStatus = "power failure";
