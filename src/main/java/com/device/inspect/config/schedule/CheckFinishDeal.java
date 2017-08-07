@@ -155,22 +155,24 @@ public class CheckFinishDeal{
                 else{
                     List<Object> latestCurrentRecord = Application.influxDBManager.readLatestTelemetry(deviceInspect.getInspectType().getMeasurement(), record.getDevice().getId(), deviceInspect.getId());
                     if(((Double)latestCurrentRecord.get(1)).floatValue() < 0.01){
-                        LOGGER.info(String.format("device %d is using, don't cut off power.", record.getDevice().getId()));
+                        LOGGER.info(String.format("device %d is closed, cut off power.", record.getDevice().getId()));
                         canFinish = true;
                     }
                     else{
-                        LOGGER.info(String.format("device %d is closed, cut off power.", record.getDevice().getId()));
+                        LOGGER.info(String.format("device %d is using, don't cut off power.", record.getDevice().getId()));
                         canFinish = false;
                     }
                 }
 
                 if(canFinish){
+                    LOGGER.info(String.format("finish deal %d, current status %d", record.getId(), record.getStatus()));
                     if(record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING){
                         record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM);
                     }
                     else{
                         record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT);
                     }
+                    LOGGER.info(String.format("deal finished %d, current status %d", record.getId(), record.getStatus()));
                     ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(record.getLessee(), record.getDevice().getId());
                     scientistDeviceRepository.delete(scientistDevice);
 

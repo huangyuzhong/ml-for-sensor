@@ -277,8 +277,8 @@ public class SocketMessageApi {
                 if(dealRecords != null) {
                     for (DealRecord dealRecord : dealRecords) {
                         LOGGER.info(String.format("found device in deal %s when power failure problem happened.", dealRecord.getId()));
-                        Date currentTime = new Date();
-                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), currentTime);
+//                        Date currentTime = new Date();
+                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), dealRecord.getEndTime());
                         boolean isRun = false;
                         if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
                             for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
