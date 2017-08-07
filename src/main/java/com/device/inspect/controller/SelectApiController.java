@@ -1356,7 +1356,7 @@ public class SelectApiController {
 
     @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId) {
-        List<DealRecord> dealRecords = dealRecordRepository.findByLessorOrLessee(userId, userId);
+        List<DealRecord> dealRecords = dealRecordRepository.findTop10ByLessorOrLesseeOrderByEndTimeDesc(userId, userId);
         List<RestDealRecord> restDealRecords = new ArrayList<>();
         for(DealRecord dealRecord: dealRecords){
             RestDealRecord record = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),

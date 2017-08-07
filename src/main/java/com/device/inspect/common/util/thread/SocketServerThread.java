@@ -54,7 +54,7 @@ public class SocketServerThread extends Thread {
             outData = new DataOutputStream(sock.getOutputStream());
             byte[] data = new byte[20];
             dins.read(data);
-	    String result = new String(data);
+	        String result = new String(data);
             LOGGER.info(Thread.currentThread().getName()+"发来的内容是:" + result);
             String response = "";
             response = get(result);

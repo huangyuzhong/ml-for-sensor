@@ -22,7 +22,7 @@ public interface DealRecordRepository extends CrudRepository<DealRecord, Integer
 
     List<DealRecord> findByStatusAndBeginTimeBefore(Integer status, Date beginTime);
 
-    List<DealRecord> findByLessorOrLessee(Integer lessorId, Integer lesseeId);
+    List<DealRecord> findTop10ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId);
 
     List<DealRecord> findByDeviceIdAndStatus(Integer deiceId, Integer status);
 }
