@@ -11,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -55,6 +56,7 @@ public class InspectProcessTool {
         map.put("27", Arrays.asList("phase_current_c", "A"));
         map.put("28", Arrays.asList("three_phase_power", "KW"));
         map.put("29", Arrays.asList("three_phase_energy", "KWH"));
+        map.put("2d", Arrays.asList("harmful_gas", "PPM"));
 
         return map;
     }
@@ -289,7 +291,10 @@ public class InspectProcessTool {
         } else if (inspectMessage.getInspectTypeCode().equals("2a") || inspectMessage.getInspectTypeCode().equals("2b") || inspectMessage.getInspectTypeCode().equals("2c")){
             originalInspectValue = Float.valueOf(inspectMessage.getiData()) / 237680 * (16 * 98);
             correctedInspectValue = originalInspectValue - zero;
-        }else {
+        } else if (inspectMessage.getInspectTypeCode().equals("2d")){
+            originalInspectValue = Float.valueOf(inspectMessage.getiData()) /40;  // 值=DATA*4.096/32768 * 200; 单位：ppm
+            correctedInspectValue = originalInspectValue - zero;
+        } else {
             //添加测量原值
             originalInspectValue = Float.valueOf(inspectMessage.getiData());
             correctedInspectValue = originalInspectValue / 1000 - zero;
