@@ -7,7 +7,7 @@
   <task:scheduler id="notification.scheduler" pool-size="15" />
 
   <task:scheduled-tasks scheduler="notification.scheduler">
-    <task:scheduled ref="checkFinishDeal" method="executeInternal" cron="30 * * * * ?" />
+    <task:scheduled ref="checkFinishDeal" method="executeInternal" cron="55 * * * * ?" />
     <task:scheduled ref="hourlyUtilityCalculation" method="executeInternal" cron="0 10 * * * ? " />
     <task:scheduled ref="myDeviceStatusScheduleImp" method="executeInternal" cron="0 0/5 * * * ?" />
     <task:scheduled ref="scanOfflineData" method="executeInternal" cron="0 */10 * * * ?" />
