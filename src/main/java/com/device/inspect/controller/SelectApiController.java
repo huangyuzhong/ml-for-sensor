@@ -9,6 +9,7 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
@@ -23,6 +24,7 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DealAlertRecordRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
@@ -135,6 +137,9 @@ public class SelectApiController {
 
     @Autowired
     private DeviceOrderListRepository deviceOrderListRepository;
+
+    @Autowired
+    private DealAlertRecordRepository dealAlertRecordRepository;
 
     private User judgeByPrincipal(Principal principal) {
         if (null == principal || null == principal.getName())
@@ -1469,5 +1474,14 @@ public class SelectApiController {
     public RestResponse getActionList(Principal principal, @RequestParam String monitorSerialNo){
         List<DeviceOrderList> orderList = deviceOrderListRepository.findByMonitorSerialNo(monitorSerialNo);
         return new RestResponse(orderList);
+    }
+
+    /**
+     * 获取交易的报警列表
+     */
+    @RequestMapping(value = "/dealRecord/alert", method = RequestMethod.GET)
+    public RestResponse getDealRecordAlert(Principal principal, @RequestParam Integer dealRecordId){
+        List<DealAlertRecord> dealAlertRecords = dealAlertRecordRepository.findByDealIdOrderByHappenedTimeDesc(dealRecordId);
+        return new RestResponse(dealAlertRecords);
     }
 }
