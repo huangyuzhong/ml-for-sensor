@@ -149,6 +149,7 @@ public class CheckFinishDeal{
 
                 boolean canFinish = false;
                 if(deviceInspect == null){
+                    LOGGER.info(String.format("device %d has no currency type %d.", record.getDevice().getId(), currentType.getId()));
                     canFinish = true;
                 }
                 else{
