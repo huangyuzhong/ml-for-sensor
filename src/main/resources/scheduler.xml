@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd">
+
+  <task:scheduler id="notification.scheduler" pool-size="15" />
+
+  <task:scheduled-tasks scheduler="notification.scheduler">
+    <task:scheduled ref="checkFinishDeal" method="executeInternal" cron="30 * * * * ?" />
+    <task:scheduled ref="hourlyUtilityCalculation" method="executeInternal" cron="0 10 * * * ? " />
+    <task:scheduled ref="myDeviceStatusScheduleImp" method="executeInternal" cron="0 0/5 * * * ?" />
+    <task:scheduled ref="scanOfflineData" method="executeInternal" cron="0 */10 * * * ?" />
+  </task:scheduled-tasks>
+</beans>

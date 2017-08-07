@@ -15,6 +15,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +32,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 /**
  * Created by zyclincoln on 4/23/17.
  */
-@Component()
+@Component
 public class ScanOfflineData{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 
@@ -70,7 +71,7 @@ public class ScanOfflineData{
         this.alertCountRepository = alertCountRepository;
     }
 
-    @Scheduled(cron = "0 */10 * * * ?")
+//    @Scheduled(cron = "0 */10 * * * ?")
     public void executeInternal(){
         if(Application.offlineFTPStorageManager == null){
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));

@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.quartz.JobExecutionContext;
@@ -56,7 +57,7 @@ public class HourlyUtilityCalculation{
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
 
-    @Scheduled(cron = "0 10 * * * ? ")
+//    @Scheduled(cron = "0 10 * * * ? ")
     public void executeInternal(){
         LOGGER.info("Start scanning utilization data");
 

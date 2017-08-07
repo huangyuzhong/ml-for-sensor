@@ -19,6 +19,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.quartz.JobExecutionContext;
@@ -77,7 +78,8 @@ public class MyDeviceStatusScheduleImp{
      * 刷新楼的高级报警数量，低级报警数量，在线数量，掉线数量
      * 刷新公司的高级报警数量，低级报警数量，在线数量，掉线谁昂
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+
+//    @Scheduled(cron = "0 0/5 * * * ?")
     public void executeInternal(){
 
         logger.info("Start schedule to summarize device status");
