@@ -4,11 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
+import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DealAlertRecordRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
@@ -106,6 +108,9 @@ public class SocketMessageApi {
     @Autowired
     private OnchainService onchainService;
 
+    @Autowired
+    private DealAlertRecordRepository dealAlertRecordRepository;
+
 
     String unit = "s";
 
@@ -196,7 +201,7 @@ public class SocketMessageApi {
             LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
             return deviceInspect;
         }
-
+        String alertMsg = new String();
         String inspectStatus = "normal";
         int alert_type = 0;
         if(deviceInspect.getInspectPurpose() == 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
@@ -208,12 +213,15 @@ public class SocketMessageApi {
                 alert_type = 2;
 
                 // push notification if necessary
-                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighUp(), inspectMessage.getSamplingTime());
                 } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighDown(), inspectMessage.getSamplingTime());
                 }
-
 
             } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
                 inspectStatus = "low";
@@ -222,17 +230,28 @@ public class SocketMessageApi {
                 // push notification if necessary
                 if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowUp(), inspectMessage.getSamplingTime());
                 } else {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowDown(), inspectMessage.getSamplingTime());
                 }
             }
 
+            // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
+            if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01){
+                inspectStatus = "power failure";
+                alert_type = 3;
+                messageController.sendPowerMsg(device, deviceInspect, inspectMessage.getSamplingTime());
+                alertMsg = String.format("power failure occured at %s.", inspectMessage.getSamplingTime());
+            }
             // update device alert time and alert status
             if(alert_type != 0 && onlineData){
                 memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
             }
 
-            if (device.getDeviceChainKey() != null){
+            if (device.getDeviceChainKey() != null && !inspectStatus.equals("normal")){
                 List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
                 for (DealRecord dealRecord : dealRecords){
                     try {
@@ -244,6 +263,7 @@ public class SocketMessageApi {
                         onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
                                 "", JSON.toJSONString(value));
                         dealRecordRepository.save(dealRecord);
+                        dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
