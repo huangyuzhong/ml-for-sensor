@@ -3,10 +3,7 @@ package com.device.inspect.config.schedule;
 import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.User;
-import com.device.inspect.common.model.device.DeviceInspect;
-import com.device.inspect.common.model.device.InspectType;
-import com.device.inspect.common.model.device.MonitorDevice;
-import com.device.inspect.common.model.device.ScientistDevice;
+import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.repository.charater.UserRepository;
@@ -42,26 +39,58 @@ public class CheckFinishDeal extends QuartzJobBean{
     @Autowired
     private OnchainService onchainService;
 
+    public void setOnchainService(OnchainService onchainService){
+        this.onchainService = onchainService;
+    }
+
     @Autowired
     private DealRecordRepository dealRecordRepository;
+
+    public void setDealRecordRepository(DealRecordRepository dealRecordRepository){
+        this.dealRecordRepository = dealRecordRepository;
+    }
 
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
 
+    public void setMonitorDeviceRepository(MonitorDeviceRepository){
+        this.monitorDeviceRepository = monitorDeviceRepository;
+    }
+
     @Autowired
     private UserRepository userRepository;
+
+    public void setUserRepository(UserRepository userRepository){
+        this.userRepository = userRepository;
+    }
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
 
+    public void setScientistDeviceRepository(ScientistDeviceRepository scientistDeviceRepository){
+        this.scientistDeviceRepository = scientistDeviceRepository;
+    }
+
     @Autowired
     private DeviceOrderListRepository deviceOrderListRepository;
+
+    public void setDeviceOrderListRepository(DeviceOrderListRepository deviceOrderListRepository){
+        this.deviceOrderListRepository = deviceOrderListRepository;
+    }
 
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
 
+    public void setDeviceInspectRepository(DeviceInspectRepository deviceInspectRepository){
+        this.deviceInspectRepository = deviceInspectRepository;
+    }
+
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
+
+    public void setInspectTypeRepository(InspectTypeRepository inspectTypeRepository){
+        this.inspectTypeRepository = inspectTypeRepository;
+    }
 
     @Override
     protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
