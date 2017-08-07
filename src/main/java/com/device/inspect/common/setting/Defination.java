@@ -28,6 +28,7 @@ public class Defination {
 
     public static final String ACTION_POWER_OFF = "0000";
     public static final String ACTION_POWER_ON = "0001";
+    public static final String ACTION_NO_ACTION = "FFFF";
 
     public static final String ONCHAIN_DEAL_OPERATION_CONFIRM = "confirm";
     public static final Set<String> ONCHAIN_DEAL_OPERATION_SET = new HashSet<String>(){{

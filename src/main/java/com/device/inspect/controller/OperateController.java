@@ -2007,6 +2007,9 @@ public class OperateController {
     @RequestMapping(value = "/monitor/getFirstNotActActionAndUpdate", method = RequestMethod.GET)
     public RestResponse getFirstNotActActionAndUpdate(@RequestParam String serialNo) {
         DeviceOrderList order = deviceOrderListRepository.findTopByMonitorSerialNoAndExecuteStatusOrderByCreateTimeAsc(serialNo, DEVICE_ACTION_NOACT);
+        if(order == null){
+            return new RestResponse(ACTION_NO_ACTION);
+        }
         String orderHexCode = null;
         do {
             orderHexCode = DEVICE_ACTION_TRANSFER_MAP.get(order.getOrderDesc());
