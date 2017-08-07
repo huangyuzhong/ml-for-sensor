@@ -134,8 +134,8 @@ public class CheckFinishDeal{
 
         LOGGER.info("Check Finish Deal: begin checking deal record which meets rent end time");
 
-        List<DealRecord> records = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING, new Date());
-        List<DealRecord> records_with_alert = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT, new Date());
+        List<DealRecord> records = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING, new Date(new Date().getTime() + 1000*10));
+        List<DealRecord> records_with_alert = dealRecordRepository.findByStatusAndEndTimeBefore(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT, new Date(new Date().getTime() + 1000*10));
         if(records_with_alert != null && !records_with_alert.isEmpty()){
             records.addAll(records_with_alert);
         }
