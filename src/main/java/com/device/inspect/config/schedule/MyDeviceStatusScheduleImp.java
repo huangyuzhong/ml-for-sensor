@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * Created by Administrator on 2016/10/18.
  */
-
+@Component("MyDeviceStatusScheduleImp")
 public class MyDeviceStatusScheduleImp extends QuartzJobBean{
     private static final Logger logger = LogManager.getLogger(MyDeviceStatusScheduleImp.class);
 

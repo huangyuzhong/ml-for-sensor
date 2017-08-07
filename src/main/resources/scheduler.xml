@@ -9,44 +9,44 @@
   <bean id="ScanOfflineData" class="com.device.inspect.config.schedule.ScanOfflineData" />
 
   <!-- Quartz Job -->
-  <bean name="MyDeviceStatusScheduleImp" class="org.springframework.scheduling.quartz.JobDetailBean">
+  <bean name="MyDeviceStatusScheduleImpScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.MyDeviceStatusScheduleImp" />
   </bean>
 
-  <bean name="CheckFinishDeal" class="org.springframework.scheduling.quartz.JobDetailBean">
+  <bean name="CheckFinishDealScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.CheckFinishDeal" />
   </bean>
 
-  <bean name="HourlyUtilityCalculation" class="org.springframework.scheduling.quartz.JobDetailBean">
+  <bean name="HourlyUtilityCalculationScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.HourlyUtilityCalculation" />
   </bean>
 
-  <bean name="ScanOfflineData" class="org.springframework.scheduling.quartz.JobDetailBean">
+  <bean name="ScanOfflineDataScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.ScanOfflineData" />
   </bean>
 
   <!-- Cron Trigger, run every 5 seconds -->
   <bean id="cronTriggerMyDeviceStatusScheduleImp"
-                class="org.springframework.scheduling.quartz.CronTriggerBean">
-    <property name="jobDetail" ref="MyDeviceStatusScheduleImp" />
+                class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <property name="jobDetail" ref="MyDeviceStatusScheduleImpScheduler" />
     <property name="cronExpression" value="0 0/5 * * * ?" />
   </bean>
 
   <bean id="cronTriggerCheckFinishDeal"
-                class="org.springframework.scheduling.quartz.CronTriggerBean">
-    <property name="jobDetail" ref="CheckFinishDeal" />
+                class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <property name="jobDetail" ref="CheckFinishDealScheduler" />
     <property name="cronExpression" value="30 * * * * ? " />
   </bean>
 
   <bean id="cronTriggerHourlyUtilityCalculation"
-                class="org.springframework.scheduling.quartz.CronTriggerBean">
-    <property name="jobDetail" ref="HourlyUtilityCalculation" />
+                class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <property name="jobDetail" ref="HourlyUtilityCalculationScheduler" />
     <property name="cronExpression" value="0 10 * * * ? " />
   </bean>
 
   <bean id="cronTriggerScanOfflineData"
-                class="org.springframework.scheduling.quartz.CronTriggerBean">
-    <property name="jobDetail" ref="ScanOfflineData" />
+                class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <property name="jobDetail" ref="ScanOfflineDataScheduler" />
     <property name="cronExpression" value="0 */10 * * * ? " />
   </bean>
 

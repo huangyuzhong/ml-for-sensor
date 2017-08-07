@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by zyclincoln on 7/17/17.
  */
-
+@Component("CheckFinishDeal")
 public class CheckFinishDeal extends QuartzJobBean{
     private static final Logger LOGGER = LogManager.getLogger(CheckFinishDeal.class);
 
