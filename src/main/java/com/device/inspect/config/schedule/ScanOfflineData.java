@@ -31,7 +31,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 /**
  * Created by zyclincoln on 4/23/17.
  */
-@Component("ScanOfflineData")
+
 public class ScanOfflineData extends QuartzJobBean{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 

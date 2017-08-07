@@ -26,7 +26,7 @@ import java.util.*;
 /**
  * Created by zyclincoln on 3/19/17.
  */
-@Component("HourlyUtilityCalculation")
+
 public class HourlyUtilityCalculation extends QuartzJobBean{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
 
