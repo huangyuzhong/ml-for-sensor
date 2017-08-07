@@ -1366,7 +1366,7 @@ public class SelectApiController {
         for(DealRecord dealRecord: dealRecords){
             RestDealRecord record = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
-                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime().getTime());
+                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
             restDealRecords.add(record);
         }
         return new RestResponse(restDealRecords);
