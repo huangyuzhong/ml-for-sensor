@@ -19,6 +19,7 @@ import com.device.inspect.common.service.OnchainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import static com.device.inspect.common.setting.Defination.*;
@@ -32,7 +33,8 @@ import java.util.List;
 /**
  * Created by zyclincoln on 7/17/17.
  */
-@Component("CheckFinishDeal")
+@Bean(Id = "")
+@Component()
 public class CheckFinishDeal extends QuartzJobBean{
     private static final Logger LOGGER = LogManager.getLogger(CheckFinishDeal.class);
 
