@@ -272,13 +272,16 @@ public class SocketMessageApi {
             }
             // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
             if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01 && device.getDeviceChainKey() != null){
+                LOGGER.info("found currency down to zero, check whether it's in deal and without alert");
                 List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
                 if(dealRecords != null) {
                     for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found device in deal %s when power failure problem happened.", dealRecord.getId()));
                         List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), new Date());
                         boolean isRun = false;
                         if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
                             for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
+                                LOGGER.info(String.format("device %d change status to %d at %s", device.getId(), (int)deviceRunningStatusHistory.get(1)), new Date((long)deviceRunningStatusHistory.get(0)));
                                 if((int)deviceRunningStatusHistory.get(1) == 20){
                                 // device has run
                                     LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date((long)deviceRunningStatusHistory.get(0)), dealRecord.getId()));
