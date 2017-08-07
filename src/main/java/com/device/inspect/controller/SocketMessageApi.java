@@ -277,7 +277,8 @@ public class SocketMessageApi {
                 if(dealRecords != null) {
                     for (DealRecord dealRecord : dealRecords) {
                         LOGGER.info(String.format("found device in deal %s when power failure problem happened.", dealRecord.getId()));
-                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), new Date());
+                        Date currentTime = new Date();
+                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), currentTime);
                         boolean isRun = false;
                         if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
                             for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
@@ -289,6 +290,9 @@ public class SocketMessageApi {
                                     break;
                                 }
                             }
+                        }
+                        else{
+                            LOGGER.info(String.format("no device running status change log during %s, %s.", dealRecord.getBeginTime(), currentTime));
                         }
                         if(isRun) {
                             inspectStatus = "power failure";
