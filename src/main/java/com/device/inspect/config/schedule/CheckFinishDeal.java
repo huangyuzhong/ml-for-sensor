@@ -62,8 +62,8 @@ public class CheckFinishDeal {
 
     @Scheduled(cron = "30 */1 * * * ? ")
     public void scheduleTask() {
-        LOGGER.info(String.format("Check Execut Deal: begin checking deal record which meets rent start time at %s", new Date()));
-        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date());
+        LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
+        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() - 1000*100));
         for(DealRecord record : beginRecords){
             try{
                 LOGGER.info(String.format("Check Execute Deal: found deal to execute: %d", record.getId()));
