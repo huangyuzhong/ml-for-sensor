@@ -38,7 +38,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @EnableAspectJAutoProxy
 @SpringBootApplication
 @EnableScheduling
-@ImportResource("classpath:/src/main/resources/scheduler.xml")
+@ImportResource("classpath:scheduler.xml")
 public class Application {
 
     private static final int SOCKET_PORT = 8195;
