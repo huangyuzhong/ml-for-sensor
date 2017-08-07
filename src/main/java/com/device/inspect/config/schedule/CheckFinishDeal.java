@@ -60,7 +60,7 @@ public class CheckFinishDeal {
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
 
-    @Scheduled(cron = "30 */1 * * * ? ")
+    @Scheduled(cron = "30 * * * * ? ")
     public void scheduleTask() {
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() - 1000*100));
