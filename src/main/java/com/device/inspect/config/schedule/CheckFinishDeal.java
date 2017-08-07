@@ -120,9 +120,11 @@ public class CheckFinishDeal {
                 else{
                     List<Object> latestCurrentRecord = Application.influxDBManager.readLatestTelemetry(deviceInspect.getInspectType().getMeasurement(), record.getDevice().getId(), deviceInspect.getId());
                     if(((Double)latestCurrentRecord.get(1)).floatValue() < 0.01){
+                        LOGGER.info(String.format("device %d is using, don't cut off power.", record.getDevice().getId()));
                         canFinish = true;
                     }
                     else{
+                        LOGGER.info(String.format("device %d is closed, cut off power.", record.getDevice().getId()));
                         canFinish = false;
                     }
                 }
