@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Created by zyclincoln on 4/23/17.
  */
-@Component
+@Component("ScanOfflineData")
 public class ScanOfflineData{
     private static final Logger logger = LogManager.getLogger(ScanOfflineData.class);
 

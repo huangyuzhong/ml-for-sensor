@@ -1829,7 +1829,7 @@ public class OperateController {
             LOGGER.info(String.format("make deal: money transfer finish"));
             return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
-                    dealRecord.getAggrement(), dealRecord.getStatus()));
+                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime()));
         }
         catch(Exception e){
             LOGGER.error(e.getMessage());
@@ -1968,7 +1968,7 @@ public class OperateController {
 
         return new RestResponse(new RestDealRecord(record.getId(), record.getDevice().getId(), record.getLessor(), record.getLessee(),
                 record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(), record.getDeviceSerialNumber(),
-                record.getAggrement(), record.getStatus()));
+                record.getAggrement(), record.getStatus(), record.getRealEndTime()));
     }
 
 //    /**

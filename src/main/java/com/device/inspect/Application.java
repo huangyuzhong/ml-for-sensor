@@ -18,6 +18,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ServerSocket;
@@ -35,6 +38,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 @EnableAspectJAutoProxy
 @SpringBootApplication
 @EnableScheduling
+@ImportResource("classpath:/src/main/resources/scheduler.xml")
 public class Application {
 
     private static final int SOCKET_PORT = 8195;

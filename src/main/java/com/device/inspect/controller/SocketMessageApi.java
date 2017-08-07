@@ -253,20 +253,26 @@ public class SocketMessageApi {
 
             if (device.getDeviceChainKey() != null && !inspectStatus.equals("normal")){
                 List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
-                for (DealRecord dealRecord : dealRecords){
-                    try {
-                        dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
-                        BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
-                                dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
-                                dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
-                        BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
-                        onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
-                                "", JSON.toJSONString(value));
-                        dealRecordRepository.save(dealRecord);
-                        dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                        try {
+                            dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                            BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                    dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                    dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                            onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                    "", JSON.toJSONString(value));
+                            dealRecordRepository.save(dealRecord);
+                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
+                }
+                else{
+                    LOGGER.info("no transfer is ongoing when alert happened");
                 }
             }
 
@@ -353,6 +359,19 @@ public class SocketMessageApi {
             if(isNewAlert){
                 // new alert count
                 createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
+                if (device.getDeviceChainKey() != null){
+                    List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                    if(dealRecords != null) {
+                        for (DealRecord dealRecord : dealRecords) {
+                            LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                            try {
+                                dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
             }else{
 
                 try {
