@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Created by zyclincoln on 7/17/17.
  */
-@Component
+@Component("CheckFinishDeal")
 public class CheckFinishDeal {
     private static final Logger LOGGER = LogManager.getLogger(CheckFinishDeal.class);
 
@@ -60,10 +60,9 @@ public class CheckFinishDeal {
     @Autowired
     private InspectTypeRepository inspectTypeRepository;
 
-    @Scheduled(cron = "30 * * * * ? ")
     public void scheduleTask() {
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
-        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() - 1000*100));
+        List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() + 1000*100));
         for(DealRecord record : beginRecords){
             try{
                 LOGGER.info(String.format("Check Execute Deal: found deal to execute: %d", record.getId()));

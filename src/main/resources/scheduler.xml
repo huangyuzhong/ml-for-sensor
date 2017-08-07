@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:task="http://www.springframework.org/schema/task"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+                            http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+ 
+ 
+    <context:component-scan base-package="com.device.inspect.config.schedule" />
+ 
+    <task:scheduler id="CheckFinishDealScheduler"/>
+    <task:scheduler id="HourlyUtilityCalculationScheduler"/>
+    <task:scheduler id="MyDeviceStatusScheduleImpScheduler"/>
+    <task:scheduler id="ScanOfflineDataScheduler"/>
+
+    <task:scheduled-tasks scheduler="CheckFinishDealScheduler">
+        <task:scheduled ref="CheckFinishDeal" method="scheduleTask" cron="10 * * * * ?" />
+    </task:scheduled-tasks>
+
+    <task:scheduled-tasks scheduler="HourlyUtilityCalculationScheduler">
+        <task:scheduled ref="HourlyUtilityCalculation" method="scheduleTask" cron="0 10 * * * ?" />
+    </task:scheduled-tasks>
+
+    <task:scheduled-tasks scheduler="MyDeviceStatusScheduleImpScheduler">
+        <task:scheduled ref="MyDeviceStatusScheduleImp" method="scheduleTask" cron="0 0/5 * * * ?" />
+    </task:scheduled-tasks>
+
+    <task:scheduled-tasks scheduler="ScanOfflineDataScheduler">
+        <task:scheduled ref="ScanOfflineData" method="scheduleTask" cron="0 */10 * * * ? " />
+    </task:scheduled-tasks>
+
+
+    
+ 
+</beans>

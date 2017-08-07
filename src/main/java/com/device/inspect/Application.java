@@ -18,6 +18,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ServerSocket;
@@ -72,6 +74,7 @@ public class Application {
     public static void main(String[] args) throws Throwable
     {
 	    LOGGER.info("[NOTICE] backend start");
+        AbstractApplicationContext context = new ClassPathXmlApplicationContext("scheduler.xml");
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());

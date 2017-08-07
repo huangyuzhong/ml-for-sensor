@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * Created by zyclincoln on 3/19/17.
  */
-@Component
+@Component("HourlyUtilityCalculation")
 public class HourlyUtilityCalculation{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
 
@@ -53,7 +53,6 @@ public class HourlyUtilityCalculation{
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
 
-    @Scheduled(cron = "0 10 * * * ? ")
     public void scheduleTask() {
         LOGGER.info("Start scanning utilization data");
 
