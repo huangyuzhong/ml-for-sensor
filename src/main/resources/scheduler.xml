@@ -11,10 +11,24 @@
   <!-- Quartz Job -->
   <bean name="MyDeviceStatusScheduleImpScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.MyDeviceStatusScheduleImp" />
+
   </bean>
 
   <bean name="CheckFinishDealScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
     <property name="jobClass" value="com.device.inspect.config.schedule.CheckFinishDeal" />
+
+    <property name="jobDataAsMap">
+      <map>
+        <entry key="onchainService" value-ref="com.device.inspect.common.service.OnchainService" />
+        <entry key="dealRecordRepository" value-ref="com.device.inspect.common.repository.record.DealRecordRepository" />
+        <entry key="monitorDeviceRepository" value-ref="com.device.inspect.common.repository.record.MonitorDeviceRepository" />
+        <entry key="userRepository" value-ref="com.device.inspect.common.repository.record.UserRepository" />
+        <entry key="scientistDeviceRepository" value-ref="com.device.inspect.common.repository.record.ScientistDeviceRepository" />
+        <entry key="deviceOrderListRepository" value-ref="com.device.inspect.common.repository.record.DeviceOrderListRepository" />
+        <entry key="deviceInspectRepository" value-ref="com.device.inspect.common.repository.record.DeviceInspectRepository" />
+        <entry key="inspectTypeRepository" value-ref="com.device.inspect.common.repository.record.InspectTypeRepository" />
+      </map>
+    </property>
   </bean>
 
   <bean name="HourlyUtilityCalculationScheduler" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
