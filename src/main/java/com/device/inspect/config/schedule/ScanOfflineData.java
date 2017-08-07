@@ -38,18 +38,37 @@ public class ScanOfflineData extends QuartzJobBean{
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
 
+    public void setDeviceInspectRepository(DeviceInspectRepository deviceInspectRepository){
+        this.deviceInspectRepository = deviceInspectRepository;
+    }
+
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
+
+    public void setMonitorDeviceRepository(MonitorDeviceRepository monitorDeviceRepository){
+        this.monitorDeviceRepository = monitorDeviceRepository;
+    }
 
     @Autowired
     private SocketMessageApi socketMessageApi;
 
+    public void setSocketMessageApi(SocketMessageApi socketMessageApi){
+        this.socketMessageApi = socketMessageApi;
+    }
+
     @Autowired
     private OfflineHourQueue requestQueue;
+
+    public void setRequestQueue(OfflineHourQueue requestQueue){
+        this.requestQueue = requestQueue;
+    }
 
     @Autowired
     private AlertCountRepository alertCountRepository;
 
+    public void setAlertCountRepository(AlertCountRepository alertCountRepository){
+        this.alertCountRepository = alertCountRepository;
+    }
 
     @Override
     protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{

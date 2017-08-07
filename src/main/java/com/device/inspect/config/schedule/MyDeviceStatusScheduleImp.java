@@ -37,7 +37,6 @@ public class MyDeviceStatusScheduleImp extends QuartzJobBean{
     @Autowired
     private DeviceRepository deviceRepository;
 
-
     @Autowired
     private RoomRepository roomRepository;
 
