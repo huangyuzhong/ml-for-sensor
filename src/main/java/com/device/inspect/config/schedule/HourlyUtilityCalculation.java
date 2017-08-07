@@ -26,8 +26,8 @@ import java.util.*;
 /**
  * Created by zyclincoln on 3/19/17.
  */
-@Component("HourlyUtilityCalculation")
-public class HourlyUtilityCalculation extends QuartzJobBean{
+@Component
+public class HourlyUtilityCalculation{
     private static final Logger LOGGER = LogManager.getLogger(HourlyUtilityCalculation.class);
 
     @Autowired
@@ -56,8 +56,8 @@ public class HourlyUtilityCalculation extends QuartzJobBean{
     private final static Integer total_retry_times = 10;
     private final static Integer maxTraceBackHours = 10;
 
-    @Override
-    protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
+    @Scheduled(cron = "0 10 * * * ? ")
+    public void executeInternal(){
         LOGGER.info("Start scanning utilization data");
 
         Date startScanTime = new Date();

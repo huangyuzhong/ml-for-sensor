@@ -33,8 +33,8 @@ import java.util.List;
 /**
  * Created by zyclincoln on 7/17/17.
  */
-@Component()
-public class CheckFinishDeal extends QuartzJobBean{
+@Component
+public class CheckFinishDeal{
     private static final Logger LOGGER = LogManager.getLogger(CheckFinishDeal.class);
 
     @Autowired
@@ -93,8 +93,8 @@ public class CheckFinishDeal extends QuartzJobBean{
         this.inspectTypeRepository = inspectTypeRepository;
     }
 
-    @Override
-    protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException{
+    @Scheduled(cron = "30 * * * * ?")
+    public void executeInternal(){
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() + 1000*100));
         for(DealRecord record : beginRecords){
