@@ -257,6 +257,7 @@ public class SocketMessageApi {
                                     dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
                                     dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
                             BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                            LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
                             onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
                                     "", JSON.toJSONString(value));
                             dealRecordRepository.save(dealRecord);
@@ -310,6 +311,7 @@ public class SocketMessageApi {
                                         dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
                                         dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
                                 BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                                LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
                                 onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
                                         "", JSON.toJSONString(value));
                                 dealRecordRepository.save(dealRecord);
