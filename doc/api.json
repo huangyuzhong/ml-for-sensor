@@ -1,5 +1,264 @@
 {
 	"objects":{
+		"RestResponse": {
+			"error": {
+				"type": "integer"
+			},
+			"message": {
+				"type": "string"
+			},
+			"data": {
+				"type": "object"
+			}
+
+		},
+		"RestPermission":{
+			"name": {
+				"type": "string"
+			},
+			"permissionType": {
+				"type": "string"
+			},
+			"description":{
+				"type": "string"
+			}
+		},
+		"RestRole": {
+			"name": {
+				"type": "string"
+			},
+			"roleType": {
+				"type": "string"
+			},
+			"permissions":{
+				"type": "array",
+				"array_type": "Permission"
+			}
+		},
+		"RestUser": {
+			"name": {
+				"type": "string"
+			},
+			"username": {
+				"type": "string"
+			},
+			"mobile": {
+				"type": "string"
+			},
+			"telephone": {
+				"type": "string"
+			},
+			"gender": {
+				"type": "string"
+			},
+			"email": {
+				"type": "string"
+			},
+			"headIcon": {
+				"type": "string"
+			},
+			"department": {
+				"type": "string"
+			},
+			"job": {
+				"type": "string"
+			},
+			"jobNum": {
+				"type": "string"
+			},
+			"companyName": {
+				"type": "string"
+			},
+			"verificationCode": {
+				"type": "string"
+			},
+			"bindMobile": {
+				"type": "string"
+			},
+			"bindEmail": {
+				"type": "string"
+			},
+			"alertNotificationType":{
+				"type": "integer",
+				"for_debug": "use to be removeAlert"
+			},
+			"latestPasswordUpdateTime": {
+				"type": "integer"
+			},
+			"roles": {
+				"type": "array",
+				"array_type": "RestRole"
+			}
+		},
+		"RestDeviceFile": {
+			"url": {
+				"type": "string"
+			},
+			"fileType": {
+				"type": "string"
+			},
+			"name": {
+				"type": "string"
+			},
+			"description": {
+				"type": "string"
+			},
+			"createDate": {
+				"type": "date"
+			}
+		},
+		"RestDeviceIntro":{
+			"for_debug": "简化版设备信息, 用于设备列表中的显示",
+			"name": {
+				"type": "string"
+			},
+
+			"deviceType": {
+				"type": "string"
+			},
+			"photo": {
+				"type": "string"
+			}
+		},
+		"RestDevice": {
+			"name": {
+				"type": "string"
+			},
+			"code": {
+				"type": "string"
+			},
+			"deviceType": {
+				"type": "string"
+			},
+			"purchase": {
+				"type": "Date"
+			},
+			"serialNo": {
+				"type": "string"
+			},
+			"photo": {
+				"type": "string"
+			},
+			"managerId": {
+				"type": "integer"
+			},
+			"maintain": {
+				"type": "integer"
+			},
+			"maintainDate": {
+				"type": "Date"
+			},
+			"modal": {
+				"type": "string"
+			},
+			"x_coordinate": {
+				"type": "integer",
+				"for_debug": "used to be xPoint"
+			},
+			"y_coordinate": {
+				"type": "integer",
+				"for_debug": "used to be yPoint"
+			},
+			"deviceFiles": {
+				"type": "array",
+				"array_type": "RestDeviceFile"
+			},
+			"locationId": {
+				"type": "integer"
+			},
+			"locationBackground": {
+				"type": "string"
+			},
+			"score":{
+				"type": "float"
+			},
+			"days": {
+				"type": "integer"
+			},
+			"yellowAlertCountToday": {
+				"type": "integer"
+			},
+			"redAlertCountToday": {
+				"type": "integer"
+			},
+			"enableSharing": {
+				"type": "integer"
+			},
+			"deviceChainKey": {
+				"type": "string"
+			},
+			"rentClause": {
+				"type": "string"
+			},
+			"rentPrice": {
+				"type": "float"
+			},
+			"latestRunningStatus": {
+				"type": "integer"
+			}
+		},
+		"RestLocation": {
+			"name": {
+				"type": "string"
+			},
+			"companyId":{
+				"type": "integer"
+			},
+
+			"parent_id": {
+				"type": "integer"
+			},
+			"isLeaf": {
+				"type": "integer",
+				"doc_string": "是否是叶子节点, 叶子节点直接拥有devices, 例如room"
+			},
+			"locationType": {
+				"type": "string"
+			},
+			"description": {
+				"type": "string"
+			},
+			"address":{
+				"type": "string"
+			},
+			"x_coordinate": {
+				"type": "float"
+
+			},
+			"y_coordinate": {
+				"type": "float"
+
+			},
+			"deviceNum": {
+				"type": "integer"
+			},
+			"score": {
+				"type": "float"
+			},
+			"yellowAlertCount": {
+				"type": "integer",
+				"for_debug": "used to be lowAlert"
+			},
+			"redAlertCount": {
+				"type": "integer",
+				"for_debug": "used to be highAlert"
+			},
+			"onlineCount":{
+				"type": "integer",
+				"for_debug": "used to be online"
+			},
+			"offlineCount":{
+				"type": "integer",
+				"for_debug": "used to be offline"
+			},
+			"days": {
+				"type": "integer"
+			},
+			"background": {
+				"type": "string"
+
+			}
+		},
 		"RestTelemetryTSData": {
 			"name": {
 				"type": "string"
@@ -60,6 +319,7 @@
 				"required": ["deviceId"]
 			},
 			"reply_schema": {
+				"type": "object",
 				"properties":{
 					"running_status": {
 						"type": "integer"
@@ -69,6 +329,76 @@
 
 					}
 				}
+			}
+		},
+
+		"/socket/insert/data": {
+			"method": "POST",
+			"docstring": "添加监控报文",
+			"request_schema": {
+				"properties": {
+					"data": {
+						"type": "string"
+					}
+				},
+				"required": ["data"]
+			},
+			"reply_schema": {
+				"type": "string"
+			}
+		},
+		"/person/info/{userId}": {
+			"method": "GET",
+			"docstring": "get user info given id",
+			"request_schema": {
+
+			},
+			"reply_schema": {
+				"type": "RestUser"
+
+			}
+		},
+
+		"/person/mine/info": {
+			"method": "GET",
+			"docstring": "get user info of current login user",
+			"request_schema": {
+
+			},
+			"reply_schema": {
+				"type": "RestUser"
+
+			}
+		},
+		"/locations": {
+			"method": "GET",
+			"docstring": "get child locations given parent location id, if parent location id is null, use login user's company id to get all top leve locations",
+			"request_schema": {
+				"properties": {
+					"parent_id": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "array",
+				"array_type": "RestLocation"
+			}
+		},
+		"/location/devices": {
+			"method": "GET",
+			"docstring": "used to be /devices , get devices of a leaf location given location id",
+			"request_schema": {
+				"properties": {
+					"location_id": {
+						"type": "integer"
+					}
+				},
+				"required": ["location_id"]
+			},
+			"reply_schema": {
+				"type": "array",
+				"array_type": "RestLocation"
 			}
 		}
 	}
