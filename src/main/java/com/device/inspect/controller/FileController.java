@@ -524,7 +524,20 @@ public class FileController {
                 restResponse = new RestResponse( "File upload failed", RestResponse.ERROR_STORAGE, null);
 
             }else{
-
+                if(param.get("serialNo") == null){
+                    device.setSerialNo("ilabservice");
+                }
+                else{
+                    device.setSerialNo(param.get("serialNo"));
+                }
+                device.setModel(param.get("model"));
+                if(param.get("purchaseDate") != null){
+                    device.setPurchase(new Date(Long.parseLong(param.get("purchaseDate"))));
+                }
+                if(param.get("maintainDate") != null){
+                    device.setMaintainDate(new Date(Long.parseLong(param.get("maintainDate"))));
+                }
+                device.setMaintain(param.get("maintain"));
                 device.setxPoint(null == param.get("xPoint") ? 0 : Float.valueOf(param.get("xPoint")));
                 device.setyPoint(null == param.get("yPoint") ? 0 : Float.valueOf(param.get("yPoint")));
                 device.setName(param.get("name"));
@@ -532,7 +545,6 @@ public class FileController {
                 device.setPushInterval(null == param.get("pushInterval")?30:Integer.valueOf(param.get("pushInterval")));
                 device.setEnable(1);
                 device.setEnableSharing(Integer.parseInt(param.get("enableSharing")));
-                device.setSerialNo("ilabservice");
                 Room room1=device.getRoom();
                 room1.setTotal(room1.getTotal()+1);
                 room1.setOffline(room1.getOffline()+1);

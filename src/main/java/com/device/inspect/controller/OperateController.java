@@ -14,6 +14,7 @@ import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceDisableTime;
+import com.device.inspect.common.model.record.DeviceOrderList;
 import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
@@ -25,6 +26,7 @@ import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceDisableTimeRepository;
+import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
@@ -144,6 +146,9 @@ public class OperateController {
 
     @Autowired
     private CameraListRepository cameraListRepository;
+
+    @Autowired
+    private DeviceOrderListRepository deviceOrderListRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -759,9 +764,8 @@ public class OperateController {
         if(param.get("url") == null){
             return new RestResponse("视频播放地址不能为空", 1006, null);
         }
-
-        CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), param.get("url"), param.get("description"));
         try{
+            CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), java.net.URLDecoder.decode(param.get("url"), "UTF-8"), param.get("description"));
             cameraListRepository.save(camera);
         }
         catch(Exception e){
@@ -1788,7 +1792,8 @@ public class OperateController {
         LOGGER.info(String.format("make deal: time inteval is legal"));
         // check whether request time interval is not used by others
         int conflictDeal = dealRecordRepository.countByDeviceIdAndBeginTimeBetween(device.getId(), beginTime, endTime) +
-                dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime);
+                dealRecordRepository.countByDeviceIdAndEndTimeBetween(device.getId(), beginTime, endTime) +
+                dealRecordRepository.countByDeviceIdAndBeginTimeBeforeAndEndTimeAfter(device.getId(), beginTime, endTime);
         if(conflictDeal > 0){
             return new RestResponse(("申请的使用时间与其他交易冲突"), 1007, null);
         }
@@ -1823,7 +1828,7 @@ public class OperateController {
             LOGGER.info(String.format("make deal: money transfer finish"));
             return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
-                    dealRecord.getAggrement(), dealRecord.getStatus()));
+                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime()));
         }
         catch(Exception e){
             LOGGER.error(e.getMessage());
@@ -1871,11 +1876,17 @@ public class OperateController {
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH){
             return new RestResponse(("无效操作，交易已结束"), 1007, null);
         }
+        if (record.getStatus() == ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT){
+            return  new RestResponse(("无效操作，因设备发生故障，交易已结束"), 1007, null);
+        }
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_CANCELLED){
             return new RestResponse(("无效操作，交易已取消"), 1007, null);
         }
         if(record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING){
             return new RestResponse(("无效操作，交易正在执行中"), 1007, null);
+        }
+        if (record.getStatus() == ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT){
+            return new RestResponse(("无效操作，交易正在执行当中，并发生故障"), 1007, null);
         }
 
         Integer original_status = record.getStatus();
@@ -1888,6 +1899,14 @@ public class OperateController {
                 record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
                 finish = true;
             }
+
+            if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT);
+            }
+            else if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT);
+                finish = true;
+            }
         }
 
         if(operatorId.equals(record.getLessee())){
@@ -1896,6 +1915,14 @@ public class OperateController {
             }
             else if(record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM){
                 record.setStatus(ONCHAIN_DEAL_STATUS_FINISH);
+                finish = true;
+            }
+
+            if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_LESSOR_CONFIRM_WITH_ALERT);
+            }
+            else if (record.getStatus() == ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT){
+                record.setStatus(ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT);
                 finish = true;
             }
         }
@@ -1940,7 +1967,7 @@ public class OperateController {
 
         return new RestResponse(new RestDealRecord(record.getId(), record.getDevice().getId(), record.getLessor(), record.getLessee(),
                 record.getPrice(), record.getBeginTime().getTime(), record.getEndTime().getTime(), record.getDeviceSerialNumber(),
-                record.getAggrement(), record.getStatus()));
+                record.getAggrement(), record.getStatus(), record.getRealEndTime()));
     }
 
 //    /**
@@ -1973,4 +2000,27 @@ public class OperateController {
 //        return new RestResponse("修改成功",null);
 //    }
 
+    /**
+     * 获取monitor动作队列中最早的未完成动作，并改变状态
+     */
+    @RequestMapping(value = "/monitor/getFirstNotActActionAndUpdate", method = RequestMethod.GET)
+    public RestResponse getFirstNotActActionAndUpdate(@RequestParam String serialNo) {
+        DeviceOrderList order = deviceOrderListRepository.findTopByMonitorSerialNoAndExecuteStatusOrderByCreateTimeAsc(serialNo, DEVICE_ACTION_NOACT);
+        if(order == null){
+            return new RestResponse(ACTION_NO_ACTION);
+        }
+        String orderHexCode = null;
+        do {
+            orderHexCode = DEVICE_ACTION_TRANSFER_MAP.get(order.getOrderDesc());
+            if (orderHexCode == null || orderHexCode.isEmpty()){
+                order.setExecuteStatus(DEVICE_ACTION_ERROR);
+                deviceOrderListRepository.save(order);
+            }
+        }
+        while(orderHexCode != null && orderHexCode.isEmpty());
+
+        order.setExecuteStatus(DEVICE_ACTION_FINISH);
+        deviceOrderListRepository.save(order);
+        return new RestResponse(orderHexCode);
+    }
 }

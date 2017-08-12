@@ -15,6 +15,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,9 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * Created by zyclincoln on 4/23/17.
@@ -35,21 +39,40 @@ public class ScanOfflineData{
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
 
+    public void setDeviceInspectRepository(DeviceInspectRepository deviceInspectRepository){
+        this.deviceInspectRepository = deviceInspectRepository;
+    }
+
     @Autowired
     private MonitorDeviceRepository monitorDeviceRepository;
+
+    public void setMonitorDeviceRepository(MonitorDeviceRepository monitorDeviceRepository){
+        this.monitorDeviceRepository = monitorDeviceRepository;
+    }
 
     @Autowired
     private SocketMessageApi socketMessageApi;
 
+    public void setSocketMessageApi(SocketMessageApi socketMessageApi){
+        this.socketMessageApi = socketMessageApi;
+    }
+
     @Autowired
     private OfflineHourQueue requestQueue;
+
+    public void setRequestQueue(OfflineHourQueue requestQueue){
+        this.requestQueue = requestQueue;
+    }
 
     @Autowired
     private AlertCountRepository alertCountRepository;
 
+    public void setAlertCountRepository(AlertCountRepository alertCountRepository){
+        this.alertCountRepository = alertCountRepository;
+    }
 
-    @Scheduled(cron = "0 */10 * * * ? ")
-    public void scheduleTask() {
+//    @Scheduled(cron = "0 */10 * * * ?")
+    public void executeInternal(){
         if(Application.offlineFTPStorageManager == null){
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
             return;

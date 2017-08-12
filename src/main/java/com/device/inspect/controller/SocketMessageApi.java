@@ -1,25 +1,29 @@
 package com.device.inspect.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
-import com.device.inspect.common.cache.MemoryDevice;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
-import com.device.inspect.common.model.firm.Room;
+import com.device.inspect.common.model.record.DealAlertRecord;
+import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
+import com.device.inspect.common.repository.record.DealAlertRecordRepository;
+import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.restful.RestResponse;
-import com.device.inspect.common.restful.device.RestInspectData;
+import com.device.inspect.common.restful.record.BlockChainDealDetail;
+import com.device.inspect.common.restful.record.BlockChainDealRecord;
 import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
 import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
 import com.device.inspect.common.service.MemoryCacheDevice;
+import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.common.util.transefer.StringDate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
@@ -29,9 +33,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
+
+import static com.device.inspect.common.setting.Defination.DEAL_STATUS_TRANSFER_MAP;
+import static com.device.inspect.common.setting.Defination.ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT;
 
 /**
  * Created by Administrator on 2016/7/25.
@@ -95,6 +101,15 @@ public class SocketMessageApi {
 
     @Autowired
     private DeviceRunningStatusHistoryRepository deviceRunningStatusHistoryRepository;
+
+    @Autowired
+    private DealRecordRepository dealRecordRepository;
+
+    @Autowired
+    private OnchainService onchainService;
+
+    @Autowired
+    private DealAlertRecordRepository dealAlertRecordRepository;
 
 
     String unit = "s";
@@ -186,7 +201,7 @@ public class SocketMessageApi {
             LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
             return deviceInspect;
         }
-
+        String alertMsg = new String();
         String inspectStatus = "normal";
         int alert_type = 0;
         if(deviceInspect.getInspectPurpose() == 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
@@ -198,12 +213,15 @@ public class SocketMessageApi {
                 alert_type = 2;
 
                 // push notification if necessary
-                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighUp(), inspectMessage.getSamplingTime());
                 } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighDown(), inspectMessage.getSamplingTime());
                 }
-
 
             } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
                 inspectStatus = "low";
@@ -212,14 +230,101 @@ public class SocketMessageApi {
                 // push notification if necessary
                 if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowUp(), inspectMessage.getSamplingTime());
                 } else {
                     messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowDown(), inspectMessage.getSamplingTime());
                 }
             }
+
+
 
             // update device alert time and alert status
             if(alert_type != 0 && onlineData){
                 memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
+            }
+
+            if (device.getDeviceChainKey() != null && !inspectStatus.equals("normal")){
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                        try {
+                            dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                            BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                    dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                    dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                            LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
+                            onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                    "", JSON.toJSONString(value));
+                            dealRecordRepository.save(dealRecord);
+                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                else{
+                    LOGGER.info("no transfer is ongoing when alert happened");
+                }
+            }
+            // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
+            if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01 && device.getDeviceChainKey() != null){
+                LOGGER.info("found currency down to zero, check whether it's in deal and without alert");
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found device in deal %s when power failure problem happened.", dealRecord.getId()));
+                        if(dealRecord.getEndTime().getTime() < inspectMessage.getSamplingTime().getTime()){
+                            // if alert time has exceeded deal end time, pass
+                            continue;
+                        }
+//                        Date currentTime = new Date();
+                        List<List<Object>> deviceRunningStatusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(device.getId(), dealRecord.getBeginTime(), dealRecord.getEndTime());
+                        boolean isRun = false;
+                        if(deviceRunningStatusHistories != null && deviceRunningStatusHistories.size() > 0){
+                            for(List<Object> deviceRunningStatusHistory : deviceRunningStatusHistories){
+                                LOGGER.info(String.format("device %d change status to %d at %s", device.getId(), ((Double)deviceRunningStatusHistory.get(1)).intValue(), new Date(TimeUtil.fromInfluxDBTimeFormat((String)deviceRunningStatusHistory.get(0)))));
+                                if(((Double)deviceRunningStatusHistory.get(1)).intValue() == 20){
+                                // device has run
+                                    LOGGER.info(String.format("detect power failure problem, device has run at %s between deal id %d.", new Date(TimeUtil.fromInfluxDBTimeFormat((String)deviceRunningStatusHistory.get(0))), dealRecord.getId()));
+                                    isRun = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            LOGGER.info(String.format("no device running status change log during %s, %s.", dealRecord.getBeginTime(), dealRecord.getEndTime()));
+                        }
+                        if(isRun) {
+                            inspectStatus = "power failure";
+                            alert_type = 3;
+                            LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                            messageController.sendPowerMsg(device, deviceInspect, inspectMessage.getSamplingTime());
+                            alertMsg = String.format("power failure occured at %s.", inspectMessage.getSamplingTime());
+                            try {
+                                dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                                BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                        dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                        dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                                BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                                LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
+                                onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                        "", JSON.toJSONString(value));
+                                dealRecordRepository.save(dealRecord);
+                                dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+                else{
+                    LOGGER.info("no transfer is ongoing when alert happened");
+                }
             }
 
         }
@@ -305,6 +410,19 @@ public class SocketMessageApi {
             if(isNewAlert){
                 // new alert count
                 createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
+                if (device.getDeviceChainKey() != null){
+                    List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                    if(dealRecords != null) {
+                        for (DealRecord dealRecord : dealRecords) {
+                            LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                            try {
+                                dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
             }else{
 
                 try {

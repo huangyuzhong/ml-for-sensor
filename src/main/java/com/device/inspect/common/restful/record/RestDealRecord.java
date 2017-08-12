@@ -1,5 +1,7 @@
 package com.device.inspect.common.restful.record;
 
+import java.util.Date;
+
 /**
  * Created by zyclincoln on 7/19/17.
  */
@@ -14,13 +16,14 @@ public class RestDealRecord {
     private String deviceSerialNumber;
     private String aggrement;
     private Integer status;
+    private Long realEndTime;
 
     public RestDealRecord(){
 
     }
 
     public RestDealRecord(Integer id, Integer device, Integer lessor, Integer lessee, Double price, Long beginTime,
-                          Long endTime, String deviceSerialNumber, String aggrement, Integer status){
+                          Long endTime, String deviceSerialNumber, String aggrement, Integer status, Date realEndTime){
         this.id = id;
         this.device = device;
         this.lessor = lessor;
@@ -31,6 +34,9 @@ public class RestDealRecord {
         this.deviceSerialNumber = deviceSerialNumber;
         this.aggrement = aggrement;
         this.status = status;
+        if(realEndTime != null){
+            this.realEndTime = realEndTime.getTime();
+        }
     }
 
     public void setId(Integer id){
@@ -112,5 +118,13 @@ public class RestDealRecord {
 
     public void setStatus(Integer status){
         this.status = status;
+    }
+
+    public void setRealEndTime(Long realEndTime){
+        this.realEndTime = realEndTime;
+    }
+
+    public Long getRealEndTime(){
+        return this.realEndTime;
     }
 }
