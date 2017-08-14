@@ -37,7 +37,7 @@ public class WriteSerialPort {
                 outputStream.flush();
                 strb = new String(readFromPort(serialPort));
                 count++;
-                Thread.sleep(3000);
+                Thread.sleep(2000);
             }
 
             strb = "";
@@ -49,7 +49,7 @@ public class WriteSerialPort {
                 outputStream.flush();
                 strb = new String(readFromPort(serialPort));
                 count++;
-                Thread.sleep(3000);
+                Thread.sleep(2000);
             }
 
             outputStream.close();

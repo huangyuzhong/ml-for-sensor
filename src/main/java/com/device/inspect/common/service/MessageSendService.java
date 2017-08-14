@@ -332,16 +332,12 @@ public class MessageSendService {
         }
     }
 
-
-    // 收件人的手机号码
-    private static final String receiverNum = "18317958912";
-
     /**
      * 推送短信
      * @param content  短信内容
      * @return
      */
-    public static boolean sendMessageToManager(String content){
+    public static boolean sendMessageToManager(String content, String receiverNum){
         try {
             String at_cmgf = "at+cmgf=0";  // 指定机器用中文发送短信
 
@@ -363,7 +359,6 @@ public class MessageSendService {
             String at_cmgs = "at+cmgs="+(code.length()/2-1);  // 指定后面发送的报文的长度，19=code.length/2-1。
 
             WriteSerialPort.write(at_cmgf, at_cmgs, code);
-            Thread.sleep(3000);
             return true;
         }catch (Exception e){
             e.printStackTrace();
@@ -371,19 +366,19 @@ public class MessageSendService {
         }
     }
 
-    public static void sendMessageToInteLabManager (String str){
+    public static void sendMessageToInteLabManager (String str, String receiverNum){
         if (str.length() <= 70){
-            sendMessageToManager(str);
+            sendMessageToManager(str, receiverNum);
         }else {
             int strCount = 1;
             int strSum = (str.length()%65 == 0)?str.length()/65 : (str.length()/65+1);
             while(str.length()/65 != 0){
                 String subStr = str.substring(0, 65);
                 str = str.substring(65);
-                sendMessageToManager("("+strCount+"/"+strSum+")"+subStr);
+                sendMessageToManager("("+strCount+"/"+strSum+")"+subStr, receiverNum);
                 strCount++;
             }
-            sendMessageToManager("("+strCount+"/"+strSum+")"+str);
+            sendMessageToManager("("+strCount+"/"+strSum+")"+str, receiverNum);
         }
     }
 
