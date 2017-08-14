@@ -26,8 +26,8 @@ import java.util.Map;
 public class GetCameraAccessToken {
 
     private static final Logger LOGGER = LogManager.getLogger(GetCameraAccessToken.class);
-    private static String appKey = "2401b7d87e9144639ba74c6bdfb2e5b9";
-    private static String appSecret = "a600efe5b1b18e91a298c3533cb68f9b";
+    private static String appKey = "7ab88c2ec9c74f40adb0578579283562";
+    private static String appSecret = "9f1ace65bb9deb512a333cb23132016a";
 
     public static String getAccessToken(){
         HttpClient httpClient = HttpClientBuilder.create().build();

@@ -764,9 +764,8 @@ public class OperateController {
         if(param.get("url") == null){
             return new RestResponse("视频播放地址不能为空", 1006, null);
         }
-
-        CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), param.get("url"), param.get("description"));
         try{
+            CameraList camera = new CameraList(param.get("name"), Integer.parseInt(param.get("deviceId")), param.get("serialNo"), java.net.URLDecoder.decode(param.get("url"), "UTF-8"), param.get("description"));
             cameraListRepository.save(camera);
         }
         catch(Exception e){
