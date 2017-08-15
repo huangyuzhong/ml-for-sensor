@@ -56,6 +56,9 @@ public class InspectProcessTool {
         map.put("27", Arrays.asList("phase_current_c", "A"));
         map.put("28", Arrays.asList("three_phase_power", "KW"));
         map.put("29", Arrays.asList("three_phase_energy", "KWH"));
+        map.put("2a", Arrays.asList("acceleration_x", "m/s2"));
+        map.put("2b", Arrays.asList("acceleration_y", "m/s2"));
+        map.put("2c", Arrays.asList("acceleration_z", "m/s2"));
         map.put("2d", Arrays.asList("harmful_gas", "PPM"));
 
         return map;
