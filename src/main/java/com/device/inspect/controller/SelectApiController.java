@@ -178,6 +178,9 @@ public class SelectApiController {
         User user = judgeByPrincipal(principal);
         if (user == null)
             return new RestResponse("用户未登录", 1005, null);
+
+        user = userRepository.findOne(user.getId());
+
         return new RestResponse(new RestUser(user));
     }
 
