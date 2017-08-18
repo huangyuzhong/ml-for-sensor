@@ -1031,7 +1031,7 @@ public class InfluxDBManager {
         }
 
         String queryString =
-                String.format("DELETE FROM utilizations.utilization_rate WHERE device_id='%d' AND time >= %d AND time < %d ORDER BY time",
+                String.format("DELETE FROM utilizations.utilization_rate WHERE device_id='%d' AND time >= %d AND time < %d",
                         deviceId, startNano, endNano);
 
         Query query = new Query(queryString, dbName);
