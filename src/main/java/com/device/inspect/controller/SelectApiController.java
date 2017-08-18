@@ -1440,6 +1440,8 @@ public class SelectApiController {
 
     @RequestMapping(value = "/device/cameraList", method = RequestMethod.GET)
     public RestResponse getDeviceCameraList(Principal principal, @RequestParam Map<String, String> param){
+        LOGGER.info("Program input cameraList");
+
         if(param.get("deviceId") == null){
             return new RestResponse("设备id不能为空", 1006, null);
         }
