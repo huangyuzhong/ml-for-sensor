@@ -1447,6 +1447,8 @@ public class SelectApiController {
         List<CameraList> cameraLists = cameraListRepository.findByDeviceId(Integer.parseInt(param.get("deviceId")));
         Map<String, Object> result = new HashMap<>();
         result.put("cameraList", cameraLists);
+
+        LOGGER.info("Input url of cameraLists: ", cameraLists.get(0).getUrl());
         return new RestResponse(result);
     }
 
