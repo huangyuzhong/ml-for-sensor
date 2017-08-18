@@ -120,6 +120,27 @@
 				"type": "string"
 			}
 		},
+		"RestMonitorTargetIntro":{
+			"docstring": "简化版监控对象信息, 用于列表显示, 和dashboard的图中显示",
+			"name": {
+				"type": "string"
+			},
+
+			"deviceType": {
+				"type": "string"
+			},
+			"photo": {
+				"type": "string"
+			},
+			"x_coordinate": {
+				"type": "integer",
+				"for_debug": "used to be xPoint"
+			},
+			"y_coordinate": {
+				"type": "integer",
+				"for_debug": "used to be yPoint"
+			}
+		},
 		"RestDevice": {
 			"name": {
 				"type": "string"
@@ -210,7 +231,7 @@
 			},
 			"isLeaf": {
 				"type": "integer",
-				"doc_string": "是否是叶子节点, 叶子节点直接拥有devices, 例如room"
+				"doc_string": "是否是叶子节点, 叶子节点直接拥有devices, 例如room. 新需求, 一个location下可能既有device也有子location, 如果是这样, isLeaf就不需要, 或者为false"
 			},
 			"locationType": {
 				"type": "string"
@@ -257,6 +278,14 @@
 			"background": {
 				"type": "string"
 
+			},
+			"childLocations": {
+				"type": "array",
+				"array_type": "RestLocation"
+			},
+			"monitorTargets": {
+				"type": "array",
+				"array_type": "RestMonitorTargetIntro"
 			}
 		},
 		"RestTelemetryTSData": {
@@ -370,24 +399,19 @@
 
 			}
 		},
-		"/locations": {
+		"/location/{locationId}": {
 			"method": "GET",
-			"docstring": "get child locations given parent location id, if parent location id is null, use login user's company id to get all top leve locations",
+			"docstring": "get child locations given parent location id, if parent location id is null, use login user's company id to get all top level locations",
 			"request_schema": {
-				"properties": {
-					"parent_id": {
-						"type": "integer"
-					}
-				}
+
 			},
 			"reply_schema": {
-				"type": "array",
-				"array_type": "RestLocation"
+				"type": "RestLocation"
 			}
 		},
 		"/location/devices": {
 			"method": "GET",
-			"docstring": "used to be /devices , get devices of a leaf location given location id",
+			"docstring": "used to be /devices , get devices of a leaf location given location id, obsolete!!!",
 			"request_schema": {
 				"properties": {
 					"location_id": {
@@ -399,6 +423,34 @@
 			"reply_schema": {
 				"type": "array",
 				"array_type": "RestLocation"
+			}
+		},
+		"/device": {
+			"method": "GET",
+			"docstring": "get device by id",
+			"request_schema": {
+				"properties": {
+					"deviceId": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "RestDevice"
+			}
+		},
+		"/device/type": {
+			"method": "GET",
+			"docstring": "get device types",
+			"request_schema": {
+				"properties": {
+					"deviceId": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "RestDevice"
 			}
 		}
 	}

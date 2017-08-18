@@ -220,34 +220,29 @@ public class InfluxDBManager {
         String dbName = "intelab";
 
 
-        BatchPoints batchPoints;
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("url", url)
+                .tag("method", httpMethod)
+                .tag("response", responseCode.toString())
+                .tag("username", userName)
+                .retentionPolicy("operations")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
 
+
+        Point point;
         if(parameters == null || parameters=="") {
-            batchPoints = BatchPoints.database(dbName)
-                    .tag("url", url)
-                    .tag("method", httpMethod)
-                    .tag("response", responseCode.toString())
-                    .tag("username", userName)
-                    .retentionPolicy("operations")
-                    .consistency(InfluxDB.ConsistencyLevel.ALL)
+            point = Point.measurement("operation")
+                    .time(startTime, TimeUnit.MILLISECONDS)
+                    .addField("duration", duration)
                     .build();
         }else{
-            batchPoints = BatchPoints.database(dbName)
-                    .tag("url", url)
-                    .tag("method", httpMethod)
-                    .tag("parameters", parameters)
-                    .tag("response", responseCode.toString())
-                    .tag("username", userName)
-                    .retentionPolicy("operations")
-                    .consistency(InfluxDB.ConsistencyLevel.ALL)
+            point = Point.measurement("operation")
+                    .time(startTime, TimeUnit.MILLISECONDS)
+                    .addField("duration", duration)
+                    .addField("api_parameters", parameters)
                     .build();
         }
-
-
-        Point point = Point.measurement("operation")
-                .time(startTime, TimeUnit.MILLISECONDS)
-                .addField("duration", duration)
-                .build();
 
         batchPoints.point(point);
         try {

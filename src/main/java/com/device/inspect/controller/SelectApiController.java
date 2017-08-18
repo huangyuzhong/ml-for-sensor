@@ -1402,6 +1402,7 @@ public class SelectApiController {
             endTime.setTime(Long.parseLong(requestParam.get("endTime")));
         }
 
+        LOGGER.info(String.format("Getting running status history of device %s, from %s to %s", deviceId, beginTime, endTime));
         statusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(deviceId, beginTime, endTime);
         if(statusHistories == null || statusHistories.size() == 0){
             final List<Object> statusHistory = Application.influxDBManager.readLatestDeviceOperatingStatus(deviceId, beginTime);
@@ -1417,6 +1418,8 @@ public class SelectApiController {
         Map<String, Object> result = new HashMap<>();
         result.put("deviceId", deviceId);
         result.put("operatingStatusList", statusHistories);
+
+        LOGGER.info(String.format("Successfully got running status history of device %s", deviceId));
 
         return new RestResponse(result);
     }

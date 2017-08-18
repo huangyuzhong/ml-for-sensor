@@ -12,7 +12,9 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,6 +62,21 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         }
 
         String requestUrl = request.getRequestURI().toString();
+
+        // 过滤掉循环调用的api, 不记录到数据库
+        // TODO 目前暂时hardcode, 之后会以可拓展的方式从数据库或者配置文件读出
+
+        List<String> repeatApis = new ArrayList<String>();
+
+        repeatApis.add("/api/rest/firm/buildings/");
+        repeatApis.add("/api/rest/firm/device/runningStatusHistory");
+        repeatApis.add("/api/rest/firm/dealHistory");
+        repeatApis.add("/api/rest/device/current/data");
+
+        if (repeatApis.contains(requestUrl)){
+            logger.debug("ignore repeat api " + requestUrl);
+            return;
+        }
 
 
         String jsonRequestParam =  "";
