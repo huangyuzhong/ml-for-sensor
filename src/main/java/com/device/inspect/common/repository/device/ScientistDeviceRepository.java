@@ -9,6 +9,6 @@ import java.util.List;
  * Created by Administrator on 2016/10/28.
  */
 public interface ScientistDeviceRepository extends CrudRepository<ScientistDevice,Integer> {
-    public ScientistDevice findByScientistIdAndDeviceId(Integer ScientistId,Integer DeviceId);
+    public ScientistDevice findTopByScientistIdAndDeviceId(Integer ScientistId,Integer DeviceId);
     public List<ScientistDevice> findByScientistId(Integer ScientistId);
 }

@@ -175,7 +175,7 @@ public class OperateController {
         Device device = deviceRepository.findOne(deviceId);
         if (null == device||null==map.get("type"))
             return new RestResponse("设备信息出错！",1005,null);
-        ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(user.getId(),deviceId);
+        ScientistDevice scientistDevice = scientistDeviceRepository.findTopByScientistIdAndDeviceId(user.getId(),deviceId);
         if (null == scientistDevice)
             return new RestResponse("您的权限不足！",1005,null);
         DeviceFloor deviceFloor = new DeviceFloor();
@@ -455,7 +455,7 @@ public class OperateController {
                     User keeper = userRepository.findOne(Integer.valueOf(id));
                     if (null==keeper)
                         continue;
-                    scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
+                    scientistDevice = scientistDeviceRepository.findTopByScientistIdAndDeviceId(keeper.getId(),device.getId());
                     if (null!=scientistDevice)
                         continue;
                     scientistDevice = new ScientistDevice();
@@ -1266,7 +1266,7 @@ public class OperateController {
                 List<ScientistDevice> scientistDeviceList = scientistDeviceRepository.findByScientistId(old.getId());
                 if (null!=scientistDeviceList)
                     for (ScientistDevice scientistDevice:scientistDeviceList){
-                        ScientistDevice over = scientistDeviceRepository.findByScientistIdAndDeviceId(takeId,scientistDevice.getDevice().getId());
+                        ScientistDevice over = scientistDeviceRepository.findTopByScientistIdAndDeviceId(takeId,scientistDevice.getDevice().getId());
                         if (null==over){
                             scientistDevice.setScientist(take);
                             scientistDeviceRepository.save(over);
@@ -1701,7 +1701,7 @@ public class OperateController {
             if (!UserRoleDifferent.userScientistConfirm(user))
                 continue;
             //如果是科学家根据科学家的id和设备id找到ScientistDevice
-            ScientistDevice scientistDevice=scientistDeviceRepository.findByScientistIdAndDeviceId(user.getId(),Integer.valueOf(deviceId));
+            ScientistDevice scientistDevice=scientistDeviceRepository.findTopByScientistIdAndDeviceId(user.getId(),Integer.valueOf(deviceId));
             //如果ScientistDevice为空说明这个科学家没有绑定这个设备
             if (scientistDevice==null)
                 deviceScientist.add(new RestUser(user));

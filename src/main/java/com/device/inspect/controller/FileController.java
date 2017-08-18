@@ -587,7 +587,7 @@ public class FileController {
                             User keeper = userRepository.findOne(Integer.valueOf(id));
                             if (null==keeper)
                                 continue;
-                            scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(keeper.getId(),device.getId());
+                            scientistDevice = scientistDeviceRepository.findTopByScientistIdAndDeviceId(keeper.getId(),device.getId());
                             if (null!=scientistDevice)
                                 continue;
                             scientistDevice = new ScientistDevice();

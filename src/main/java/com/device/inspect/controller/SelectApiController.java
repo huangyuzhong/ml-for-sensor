@@ -1381,6 +1381,8 @@ public class SelectApiController {
      * curl "http://fm.test.ilabservice.cloud/api/rest/firm/device/runningStatusHistory?deviceId=339&startTime=1501122059000&endTime=1501123059000"
      **/
 
+    private static List<List<Object>> statusHistories = new ArrayList<>();
+
     @RequestMapping(value = "/device/runningStatusHistory", method = RequestMethod.GET)
     public RestResponse getDeviceRunningStatusHistory(Principal principal, @RequestParam Map<String, String> requestParam) {
 //        User user = judgeByPrincipal(principal);
@@ -1400,7 +1402,7 @@ public class SelectApiController {
             endTime.setTime(Long.parseLong(requestParam.get("endTime")));
         }
 
-        List<List<Object>> statusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(deviceId, beginTime, endTime);
+        statusHistories = Application.influxDBManager.readDeviceOperatingStatusInTimeRange(deviceId, beginTime, endTime);
         if(statusHistories == null || statusHistories.size() == 0){
             final List<Object> statusHistory = Application.influxDBManager.readLatestDeviceOperatingStatus(deviceId, beginTime);
             if(statusHistory == null || statusHistory.size() == 0){

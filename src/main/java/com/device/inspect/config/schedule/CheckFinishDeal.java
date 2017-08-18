@@ -173,7 +173,7 @@ public class CheckFinishDeal{
                         record.setStatus(ONCHAIN_DEAL_STATUS_WAITING_MUTUAL_CONFIRM_WITH_ALERT);
                     }
                     LOGGER.info(String.format("deal finished %d, current status %d", record.getId(), record.getStatus()));
-                    ScientistDevice scientistDevice = scientistDeviceRepository.findByScientistIdAndDeviceId(record.getLessee(), record.getDevice().getId());
+                    ScientistDevice scientistDevice = scientistDeviceRepository.findTopByScientistIdAndDeviceId(record.getLessee(), record.getDevice().getId());
                     scientistDeviceRepository.delete(scientistDevice);
 
                     BlockChainDealDetail data = new BlockChainDealDetail(record.getId(), record.getDevice().getId(), record.getLessor(),

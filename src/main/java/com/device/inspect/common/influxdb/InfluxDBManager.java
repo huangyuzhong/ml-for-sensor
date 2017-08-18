@@ -428,8 +428,8 @@ public class InfluxDBManager {
 
         Date startTime = new Date();
 
-        String queryString = String.format("SELECT value,inspect_status FROM %s WHERE device_id='%d' and inspect_id='%d' ORDER BY time DESC LIMIT 1",
-                inspectType, deviceId, deviceInspectId);
+        String queryString = String.format("SELECT value,inspect_status FROM %s WHERE device_id='%d' and inspect_id='%d' and time<%d ORDER BY time DESC LIMIT 1",
+                inspectType, deviceId, deviceInspectId, (new Date().getTime()+60000)*1000000);
 
         Query query = new Query(queryString, dbName);
 
