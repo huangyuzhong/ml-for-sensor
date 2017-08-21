@@ -60,6 +60,7 @@ public class InspectProcessTool {
         map.put("2b", Arrays.asList("acceleration_y", "m/s2"));
         map.put("2c", Arrays.asList("acceleration_z", "m/s2"));
         map.put("2d", Arrays.asList("harmful_gas", "PPM"));
+        map.put("2e", Arrays.asList("decibel", "db"));
 
         return map;
     }
@@ -296,6 +297,9 @@ public class InspectProcessTool {
             correctedInspectValue = originalInspectValue - zero;
         } else if (inspectMessage.getInspectTypeCode().equals("2d")){
             originalInspectValue = Float.valueOf(inspectMessage.getiData()) /40;  // 值=DATA*4.096/32768 * 200; 单位：ppm
+            correctedInspectValue = originalInspectValue - zero;
+        } else if (inspectMessage.getInspectTypeCode().equals("2e")){
+            originalInspectValue = Float.valueOf(inspectMessage.getiData())*6144/1359872;  // 值=DATA*2.048/32768 *(120/1.66); 单位：db
             correctedInspectValue = originalInspectValue - zero;
         } else {
             //添加测量原值
