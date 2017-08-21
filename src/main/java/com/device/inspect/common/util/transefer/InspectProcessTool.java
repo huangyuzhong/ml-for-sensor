@@ -299,7 +299,7 @@ public class InspectProcessTool {
             originalInspectValue = Float.valueOf(inspectMessage.getiData()) /40;  // 值=DATA*4.096/32768 * 200; 单位：ppm
             correctedInspectValue = originalInspectValue - zero;
         } else if (inspectMessage.getInspectTypeCode().equals("2e")){
-            originalInspectValue = Float.valueOf(inspectMessage.getiData())/440;  // 值=DATA*2.048/32768 *(120/3.3); 单位：db
+            originalInspectValue = Float.valueOf(inspectMessage.getiData())/224;  // 值=DATA*2.048/32768 *(120/1.68); 单位：db
             correctedInspectValue = originalInspectValue - zero;
         } else {
             //添加测量原值
