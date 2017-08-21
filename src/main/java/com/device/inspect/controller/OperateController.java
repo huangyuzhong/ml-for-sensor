@@ -1757,7 +1757,7 @@ public class OperateController {
             return  new RestResponse(("你预约的时间无效，存在过去时间段。请校准你电脑的时间或者重新预约。"), 1006, null);
         }
 
-        if (new Date().getTime() - requestParam.getBeginTime() < 15000){
+        if (requestParam.getBeginTime() - new Date().getTime() < 15000){
             return  new RestResponse(("你预约的时间无效，请重新预约。"), 1006, null);
         }
 
