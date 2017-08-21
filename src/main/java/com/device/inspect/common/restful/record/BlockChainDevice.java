@@ -39,7 +39,7 @@ public class BlockChainDevice {
         this.rentPrice = device.getRentPrice();
         this.rentClause = device.getRentClause();
 
-        if (deviceDisableTime != null){
+        if (deviceDisableTime.getContent() != null && !("".equals(deviceDisableTime.getContent()))){
             String content = deviceDisableTime.getContent();
             String[] contents = content.split(";");
 
