@@ -1,5 +1,83 @@
 {
 	"objects":{
+		"RestDealRecord": {
+			"id": {
+				"type": "integer"
+			},
+			"device": {
+				"type": "integer"
+			},
+			"lessor": {
+				"type": "integer"
+			},
+			"lessee": {
+				"type": "integer"
+			},
+			"price": {
+				"type": "double"
+			},
+			"device": {
+				"type": "integer"
+			},
+			"beginTime": {
+				"type": "integer"
+			},
+			"endTime": {
+				"type": "integer"
+			},
+			"realEndTime": {
+				"type": "integer"
+			},
+			"deviceSerialNumber": {
+				"type": "string"
+			},
+			"agreement": {
+				"type": "string"
+			},
+			"status": {
+				"type": "integer"
+			}
+
+		},
+		"RestStatusSummary": {
+			"propertyType": {
+				"type": "string"
+			},
+			"propertyName":{
+				"type": "string"
+			},
+			"online": {
+				"type": "integer"
+			},
+			"offline": {
+				"type": "integer"
+			},
+			"lowAlert": {
+				"type": "integer"
+			},
+			"highAlert": {
+				"type": "integer"
+			},
+			"score": {
+				"type": "float"
+			}
+		},
+		"RestCompanyLogin":{
+			"id": {
+				"type": "integer"
+			},
+			"name": {
+				"type": "string"
+			},
+			"logo": {
+				"type": "string"
+			}
+		},
+		"RestFile": {
+			"link":{
+				"type": "string"
+			}
+		},
 		"RestResponse": {
 			"error": {
 				"type": "integer"
@@ -332,6 +410,117 @@
 
 	"base_path": "/api/rest",
 	"apis": {
+		"/firm/query/login/company": {
+			"methond": "GET",
+			"docstring": "get basic company information to display in the login page, using the company domain name",
+			"request_schema": {
+				"properties": {
+					"companyDomainName": {
+						"type": "string"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "RestCompanyLogin"
+
+			}
+		},
+		"/operate/is/login": {
+			"method": "GET",
+			"docstring": "check if the session save in browser cookie is expired. if yes, http code 401, otherwise 200",
+			"request_schema":{},
+			"reply_schema": {}
+		},
+		"/login": {
+			"method": "POST",
+			"docstring": "login a user. if succeed, http 200, otherwise 401",
+			"request_schema": {
+				"properties": {
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"companyName": {
+						"type": "string"
+					}
+				}
+			},
+			"reply_schema":{
+
+			}
+		},
+		"/firm/person/mine/info": {
+			"method": "GET",
+			"docstring": "get logged in user information",
+			"request_schema":{},
+			"reply_schema": {
+				"type": "RestUser"
+			}
+		},
+		"/file/change/avatar/{userId}": {
+			"method": "POST",
+			"docstring": "change user avatar",
+			"request_schema": {},
+			"reply_schema":{
+				"type": "RestFile"
+			}
+		},
+		"/file/logo/company": {
+			"method": "POST",
+			"docstring": "change company logo picture",
+			"request_schema": {},
+			"reply_schema": {
+				"type": "RestFile"
+			}
+
+		},
+		"/firm/locations/top": {
+			"method": "GET",
+			"docstring": "replacing /firm/buildings,  get top level locations of a company",
+			"request_schema": {
+
+			},
+			"reply_schema": {
+				"type": "array",
+				"array_type": "RestLocation"
+			}
+		},
+		"/firm/device/status": {
+			"method": "GET",
+			"docstring": "get online status and alert status of devices in a company or location",
+			"request_schema":{
+				"properties": {
+					"companyDomain": {
+						"type": "string"
+					},
+					"locationID": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "RestStatusSummary"
+			}
+		},
+
+		"/firm/dealHistory": {
+			"methond": "GET",
+			"doctring": "get latest 10 device rent record related to specified user",
+			"request_schema": {
+				"properties" :{
+					"userId": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"type": "array",
+				"array_type": "RestDealRecord"
+			}
+
+		},
 
 		"/device/current/data": {
 			"method": "GET",
