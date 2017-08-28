@@ -12,10 +12,7 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
-import com.device.inspect.common.model.record.DealRecord;
-import com.device.inspect.common.model.record.DeviceDisableTime;
-import com.device.inspect.common.model.record.DeviceOrderList;
-import com.device.inspect.common.model.record.MessageSend;
+import com.device.inspect.common.model.record.*;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
@@ -24,10 +21,7 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
-import com.device.inspect.common.repository.record.DealRecordRepository;
-import com.device.inspect.common.repository.record.DeviceDisableTimeRepository;
-import com.device.inspect.common.repository.record.DeviceOrderListRepository;
-import com.device.inspect.common.repository.record.MessageSendRepository;
+import com.device.inspect.common.repository.record.*;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.*;
@@ -149,6 +143,9 @@ public class OperateController {
 
     @Autowired
     private DeviceOrderListRepository deviceOrderListRepository;
+
+    @Autowired
+    private ModelsRepository modelsRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -521,6 +518,20 @@ public class OperateController {
         deviceTypeRequest.setName(device.getDeviceType().getName());
         deviceTypeRequest.setList(list);
         return new RestResponse(deviceTypeRequest);
+    }
+
+    /**
+     * 获取模型信息
+     * @param principal
+     * @return
+     */
+    @RequestMapping(value = "/findAll/modelData", method=RequestMethod.GET)
+    public RestResponse getModelData(Principal principal){
+        User user=judgeByPrincipal(principal);
+        if (user==null)
+            return new RestResponse("用户未登录",1005,null);
+        List<Models> modelsList = modelsRepository.findAll();
+        return new RestResponse(modelsList);
     }
 
     /**
