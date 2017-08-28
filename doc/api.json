@@ -1,5 +1,23 @@
 {
 	"objects":{
+		"RestResponse": {
+			"docstring": "all restful service has a RestResponse, which contains error, message, data. Later in this document in reply_schema, type means the data type",
+			"error": {
+				"type": "integer",
+				"docstring": "application level error code"
+
+			},
+			"message": {
+				"type": "string",
+				"docstring": "verbose information passed to caller for more details of the api execution result"
+
+			},
+			"data": {
+				"type": "object",
+				"docstring": "return data"
+
+			}
+		},
 		"RestDealRecord": {
 			"id": {
 				"type": "integer"
@@ -77,18 +95,6 @@
 			"link":{
 				"type": "string"
 			}
-		},
-		"RestResponse": {
-			"error": {
-				"type": "integer"
-			},
-			"message": {
-				"type": "string"
-			},
-			"data": {
-				"type": "object"
-			}
-
 		},
 		"RestPermission":{
 			"name": {
@@ -297,6 +303,9 @@
 			}
 		},
 		"RestLocation": {
+			"id": {
+				"type": "integer"
+			},
 			"name": {
 				"type": "string"
 			},
@@ -476,17 +485,6 @@
 			}
 
 		},
-		"/firm/locations/top": {
-			"method": "GET",
-			"docstring": "replacing /firm/buildings,  get top level locations of a company",
-			"request_schema": {
-
-			},
-			"reply_schema": {
-				"type": "array",
-				"array_type": "RestLocation"
-			}
-		},
 		"/firm/device/status": {
 			"method": "GET",
 			"docstring": "get online status and alert status of devices in a company or location",
@@ -518,6 +516,43 @@
 			"reply_schema": {
 				"type": "array",
 				"array_type": "RestDealRecord"
+			}
+
+		},
+
+		"/operate/modify/password": {
+			"methond": "PUT",
+			"doctring": "change user password",
+			"request_schema": {
+				"properties" :{
+					"oldPwd": {
+						"type": "string"
+					},
+					"newPwd": {
+						"type": "string"
+					}
+				}
+			},
+			"reply_schema": {
+			}
+
+		},
+
+		"/operate/forget/find/password/{userId}": {
+			"methond": "POST",
+			"doctring": "find password, no return data if succeeds, use message to pass feedback to caller",
+			"request_schema": {
+				"properties" :{
+					"number": {
+						"type": "string"
+					},
+					"companyId": {
+						"type": "integer"
+					}
+				}
+			},
+			"reply_schema": {
+				"message": "string"
 			}
 
 		},
