@@ -9,7 +9,11 @@ import org.python.util.PythonInterpreter;
 
 public class run_python
 {
-    public static void main(String args[])
+//    public static void main(String args[]){
+//        demoTest();
+//    }
+
+    public static void demoTest()
     {
         //parameter:
         String kmeans_url="https://asiasoutheast.services.azureml.net/workspaces/222a1ed3b642406b801b76a4a586169c/services/09b92ba52ecc4134b308d9b722fd253a/execute?api-version=2.0&details=true";
@@ -59,5 +63,5 @@ public class run_python
 
         //System.out.println("anwser = " + retList.toString());
 
-    }//main
+    }
 }
