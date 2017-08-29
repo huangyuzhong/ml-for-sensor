@@ -1,5 +1,7 @@
 package com.device.inspect.common.model.device;
 
+import com.device.inspect.common.model.record.Models;
+
 import javax.persistence.*;
 
 /**
@@ -23,6 +25,7 @@ public class DeviceInspect {
     private Float originalValue;
     private Float correctionValue;
     private Integer inspectPurpose;
+    private Models models;
 
     @Id
     @GeneratedValue()
@@ -152,4 +155,13 @@ public class DeviceInspect {
         this.inspectPurpose = inspectPurpose;
     }
 
+    @OneToOne()
+    @JoinColumn(name = "models_id")
+    public Models getModels() {
+        return models;
+    }
+
+    public void setModels(Models models) {
+        this.models = models;
+    }
 }

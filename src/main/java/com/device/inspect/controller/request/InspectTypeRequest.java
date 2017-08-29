@@ -3,6 +3,7 @@ package com.device.inspect.controller.request;
 import com.device.inspect.common.model.device.DeviceType;
 import com.device.inspect.common.model.device.DeviceTypeInspectRunningStatus;
 import com.device.inspect.common.model.device.InspectType;
+import com.device.inspect.common.model.record.Models;
 import com.device.inspect.common.restful.device.RestDeviceTypeInspectRunningStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -26,6 +27,7 @@ public class InspectTypeRequest {
     private boolean chosed;
     private List<DeviceTypeInspectRunningStatusRequest> runningStatus;
     private Integer inspectPurpose;
+    private Models models;
 
     public Integer getId() {
         return id;
@@ -119,4 +121,11 @@ public class InspectTypeRequest {
         this.inspectPurpose = inspectPurpose;
     }
 
+    public Models getModels() {
+        return models;
+    }
+
+    public void setModels(Models models) {
+        this.models = models;
+    }
 }

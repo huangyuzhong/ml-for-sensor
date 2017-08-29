@@ -497,6 +497,7 @@ public class OperateController {
             deviceInspectParameters.setDeviceInspectId(deviceInspect.getId());
             deviceInspectParameters.setName(deviceInspect.getInspectType().getName());
             deviceInspectParameters.setInspectPurpose(deviceInspect.getInspectPurpose());
+            deviceInspectParameters.setModels(deviceInspect.getModels());
 
             List<DeviceTypeInspectRunningStatusRequest> runningStatusesRequest= new ArrayList<>();
             List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
@@ -584,6 +585,8 @@ public class OperateController {
                     deviceInspect.setLowDown(Float.valueOf(inspectTypeRequest.getLowDown()));
                 if(null!=inspectTypeRequest.getInspectPurpose())
                     deviceInspect.setInspectPurpose(Integer.valueOf(inspectTypeRequest.getInspectPurpose()));
+                if (null != inspectTypeRequest.getModels())
+                    deviceInspect.setModels(inspectTypeRequest.getModels());
                 deviceInspectRepository.save(deviceInspect);
 
                 List<DeviceInspectRunningStatus> runningStatuses = new ArrayList<>();
