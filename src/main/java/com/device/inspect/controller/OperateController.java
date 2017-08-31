@@ -533,7 +533,12 @@ public class OperateController {
         if (user==null)
             return new RestResponse("用户未登录",1005,null);
         List<Models> modelsList = modelsRepository.findAll();
-        return new RestResponse(modelsList);
+        List<RestModels> restModelsList = new ArrayList<>();
+        for (Models models:modelsList){
+            RestModels restModels = new RestModels(models);
+            restModelsList.add(restModels);
+        }
+        return new RestResponse(restModelsList);
     }
 
     /**

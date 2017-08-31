@@ -11,5 +11,6 @@ import java.util.List;
 public interface DeviceInspectRunningStatusRepository extends CrudRepository<DeviceInspectRunningStatus,Integer> {
     public DeviceInspectRunningStatus findById(Integer id);
     public List<DeviceInspectRunningStatus> findByDeviceInspectId(Integer DeviceInspectId);
+    public List<DeviceInspectRunningStatus> findByDeviceInspectIdOrderByThresholdAsc(Integer DeviceInspectId);
     public DeviceInspectRunningStatus save(DeviceInspectRunningStatus status);
 }

@@ -3,6 +3,7 @@ package com.device.inspect.common.model.device;
 import com.device.inspect.common.model.record.Models;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -26,6 +27,8 @@ public class DeviceInspect {
     private Float correctionValue;
     private Integer inspectPurpose;
     private Models models;
+    private Date useModelTime;
+    private OpeModelsLevel level;
 
     @Id
     @GeneratedValue()
@@ -163,5 +166,24 @@ public class DeviceInspect {
 
     public void setModels(Models models) {
         this.models = models;
+    }
+
+    @Column(name = "use_model_time")
+    public Date getUseModelTime() {
+        return useModelTime;
+    }
+
+    public void setUseModelTime(Date useModelTime) {
+        this.useModelTime = useModelTime;
+    }
+
+    @OneToOne()
+    @JoinColumn(name = "level_id")
+    public OpeModelsLevel getLevel() {
+        return level;
+    }
+
+    public void setLevel(OpeModelsLevel level) {
+        this.level = level;
     }
 }

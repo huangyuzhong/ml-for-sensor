@@ -13,6 +13,8 @@ public class Models {
     private String name;
     private String url;
     private String api;
+    private String useUrl;
+    private String useApi;
     private String description;
 
     @Id
@@ -50,6 +52,24 @@ public class Models {
 
     public void setApi(String api) {
         this.api = api;
+    }
+
+    @Column(name = "use_url")
+    public String getUseUrl() {
+        return useUrl;
+    }
+
+    public void setUseUrl(String useUrl) {
+        this.useUrl = useUrl;
+    }
+
+    @Column(name = "use_api")
+    public String getUseApi() {
+        return useApi;
+    }
+
+    public void setUseApi(String useApi) {
+        this.useApi = useApi;
     }
 
     @Column(name = "description")

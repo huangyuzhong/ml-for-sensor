@@ -7,13 +7,11 @@ import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
+import com.device.inspect.common.model.record.Models;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
 import com.device.inspect.common.repository.firm.RoomRepository;
-import com.device.inspect.common.repository.record.DealAlertRecordRepository;
-import com.device.inspect.common.repository.record.DealRecordRepository;
-import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
-import com.device.inspect.common.repository.record.MessageSendRepository;
+import com.device.inspect.common.repository.record.*;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.record.BlockChainDealDetail;
 import com.device.inspect.common.restful.record.BlockChainDealRecord;
@@ -24,6 +22,8 @@ import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
+import com.device.inspect.config.python.EmulateAML;
+import com.device.inspect.config.python.UseAML;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.Principal;
+import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.device.inspect.common.setting.Defination.DEAL_STATUS_TRANSFER_MAP;
@@ -111,6 +112,8 @@ public class SocketMessageApi {
     @Autowired
     private DealAlertRecordRepository dealAlertRecordRepository;
 
+    @Autowired
+    private OpeModelsLevelRepository opeModelsLevelRepository;
 
     String unit = "s";
 
@@ -488,41 +491,78 @@ public class SocketMessageApi {
             }
         }
 
+        int runningStatus = 0;
+
         // step-6: 如果是状态数据，查看设备状态是否发生变化
         if(deviceInspect.getInspectPurpose() == 1){
             LOGGER.info("check data against status");
-            Integer runningStatus = 0;
-            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
+            runningStatus = 0;
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
             if(runningStatuses != null && runningStatuses.size() > 0) {
                 for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
                     if(inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()){
                         runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
                     }
                 }
+            }
+        }
 
-                if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
-                    device.setLatestRunningStatus(runningStatus);
-                    DeviceRunningStatusHistory history = new DeviceRunningStatusHistory();
-                    history.setDevice(device);
-                    history.setChangeTime(inspectMessage.getSamplingTime());
-                    history.setChangeToStatus(runningStatus);
+        // step-7: 通过机器学习模型来判断当前状态
+        if (deviceInspect.getInspectPurpose() == 2){
+            LOGGER.info("check running status when inspectPurpose is 2");
+            if (deviceInspect.getModels() != null){
+                Models models = deviceInspect.getModels();
+                // 检验UseAML模型里面的数据是否需要更新
+                if (deviceInspect.getUseModelTime() == null || ((new Date().getTime()-deviceInspect.getUseModelTime().getTime())/(60*60*1000) >= deviceInspect.getLevel().getInterval())){ // 代表之前没用使用过模型去学习数据，判断设备运行状态。
+                    // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
+                    // step 1:
+                    deviceInspect.setUseModelTime(new Date());
 
-                    LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
-                    try {
-                        deviceRepository.save(device);
-                        boolean isWriteSuccessfully = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
-                            device.getName(), device.getDeviceType().getName(), runningStatus);
+                    // step 2:
+                    Double result = EmulateAML.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
 
-                        if(!isWriteSuccessfully){
-                            LOGGER.error(String.format("Writing device running status history of device %d failed at %s", device.getId(), new Date().toString()));
+                    // step 3:
+                    DecimalFormat df = new DecimalFormat("######0");
+                    int resultInt = Integer.parseInt(df.format(result*100));
+                    List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAllByOrderByIdAsc();
+                    for (OpeModelsLevel opeModelsLevel:opeModelsLevels){
+                        if (resultInt >= opeModelsLevel.getLevel()){
+                            deviceInspect.setLevel(opeModelsLevel);
                         }
                     }
-                    catch (Exception e){
-                        LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
-                                new Date().toString(),
-                                e.toString()));
-                    }
+                    deviceInspectRepository.save(deviceInspect);
                 }
+
+                // 实施数据与UseAML模型比对，生成最新状态。
+                int result = UseAML.doTask(models.getUseUrl(), models.getUseApi(), deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                if (result == 0)
+                    runningStatus = 10;
+                else
+                    runningStatus = 20;
+            }
+        }
+
+        if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
+            device.setLatestRunningStatus(runningStatus);
+            DeviceRunningStatusHistory history = new DeviceRunningStatusHistory();
+            history.setDevice(device);
+            history.setChangeTime(inspectMessage.getSamplingTime());
+            history.setChangeToStatus(runningStatus);
+
+            LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
+            try {
+                deviceRepository.save(device);
+                boolean isWriteSuccessfully = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
+                        device.getName(), device.getDeviceType().getName(), runningStatus);
+
+                if(!isWriteSuccessfully){
+                    LOGGER.error(String.format("Writing device running status history of device %d failed at %s", device.getId(), new Date().toString()));
+                }
+            }
+            catch (Exception e){
+                LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
+                        new Date().toString(),
+                        e.toString()));
             }
         }
 
