@@ -10,6 +10,6 @@ import java.util.List;
  */
 public interface OpeModelsLevelRepository extends CrudRepository<OpeModelsLevel, Integer> {
 
-    public List<OpeModelsLevel> findAllByOrderByIdAsc();
+    public List<OpeModelsLevel> findAll();
 
 }

@@ -515,6 +515,7 @@ public class SocketMessageApi {
                 if (deviceInspect.getModels() != null){
                     Models models = deviceInspect.getModels();
                     // 检验UseAML模型里面的数据是否需要更新
+                    long beginTimeTest = new Date().getTime();
                     if (deviceInspect.getUseModelTime() == null || ((new Date().getTime()-deviceInspect.getUseModelTime().getTime())/(60*60*1000) >= deviceInspect.getLevel().getInterval())){ // 代表之前没用使用过模型去学习数据，判断设备运行状态。
                         // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
                         // step 1:
@@ -526,7 +527,7 @@ public class SocketMessageApi {
                         // step 3:
                         DecimalFormat df = new DecimalFormat("######0");
                         int resultInt = Integer.parseInt(df.format(result*100));
-                        List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAllByOrderByIdAsc();
+                        List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAll();
                         for (OpeModelsLevel opeModelsLevel:opeModelsLevels){
                             if (resultInt >= opeModelsLevel.getLevel()){
                                 deviceInspect.setLevel(opeModelsLevel);
@@ -536,7 +537,9 @@ public class SocketMessageApi {
                     }
 
                     // 实施数据与UseAML模型比对，生成最新状态。
-                    int result = UseAML.doTask(models.getUseUrl(), models.getUseApi(), deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                    int result = UseAML.doTask(deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                    long endTimeTest = new Date().getTime();
+                    System.out.println("************运行模型耗费的时间，单位秒**********：" + (endTimeTest-beginTimeTest)/1000);
                     if (result == 0)
                         runningStatus = 10;
                     else
