@@ -491,78 +491,76 @@ public class SocketMessageApi {
             }
         }
 
-        int runningStatus = 0;
+        if (deviceInspect.getInspectPurpose() == 1 || deviceInspect.getInspectPurpose() == 2){
 
-        // step-6: 如果是状态数据，查看设备状态是否发生变化
-        if(deviceInspect.getInspectPurpose() == 1){
-            LOGGER.info("check data against status");
-            runningStatus = 0;
-            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
-            if(runningStatuses != null && runningStatuses.size() > 0) {
-                for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
-                    if(inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()){
-                        runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
-                    }
-                }
-            }
-        }
+            int runningStatus = 0;
 
-        // step-7: 通过机器学习模型来判断当前状态
-        if (deviceInspect.getInspectPurpose() == 2){
-            LOGGER.info("check running status when inspectPurpose is 2");
-            if (deviceInspect.getModels() != null){
-                Models models = deviceInspect.getModels();
-                // 检验UseAML模型里面的数据是否需要更新
-                if (deviceInspect.getUseModelTime() == null || ((new Date().getTime()-deviceInspect.getUseModelTime().getTime())/(60*60*1000) >= deviceInspect.getLevel().getInterval())){ // 代表之前没用使用过模型去学习数据，判断设备运行状态。
-                    // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
-                    // step 1:
-                    deviceInspect.setUseModelTime(new Date());
-
-                    // step 2:
-                    Double result = EmulateAML.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
-
-                    // step 3:
-                    DecimalFormat df = new DecimalFormat("######0");
-                    int resultInt = Integer.parseInt(df.format(result*100));
-                    List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAllByOrderByIdAsc();
-                    for (OpeModelsLevel opeModelsLevel:opeModelsLevels){
-                        if (resultInt >= opeModelsLevel.getLevel()){
-                            deviceInspect.setLevel(opeModelsLevel);
+            // step-6: 如果是状态数据，查看设备状态是否发生变化
+            if(deviceInspect.getInspectPurpose() == 1){
+                LOGGER.info("check data against status");
+                runningStatus = 0;
+                List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
+                if(runningStatuses != null && runningStatuses.size() > 0) {
+                    for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
+                        if(inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()){
+                            runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
                         }
                     }
-                    deviceInspectRepository.save(deviceInspect);
-                }
-
-                // 实施数据与UseAML模型比对，生成最新状态。
-                int result = UseAML.doTask(models.getUseUrl(), models.getUseApi(), deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
-                if (result == 0)
-                    runningStatus = 10;
-                else
-                    runningStatus = 20;
-            }
-        }
-
-        if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
-            device.setLatestRunningStatus(runningStatus);
-            DeviceRunningStatusHistory history = new DeviceRunningStatusHistory();
-            history.setDevice(device);
-            history.setChangeTime(inspectMessage.getSamplingTime());
-            history.setChangeToStatus(runningStatus);
-
-            LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
-            try {
-                deviceRepository.save(device);
-                boolean isWriteSuccessfully = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
-                        device.getName(), device.getDeviceType().getName(), runningStatus);
-
-                if(!isWriteSuccessfully){
-                    LOGGER.error(String.format("Writing device running status history of device %d failed at %s", device.getId(), new Date().toString()));
                 }
             }
-            catch (Exception e){
-                LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
-                        new Date().toString(),
-                        e.toString()));
+
+            // step-7: 通过机器学习模型来判断当前状态
+            if (deviceInspect.getInspectPurpose() == 2){
+                LOGGER.info("check running status when inspectPurpose is 2");
+                if (deviceInspect.getModels() != null){
+                    Models models = deviceInspect.getModels();
+                    // 检验UseAML模型里面的数据是否需要更新
+                    if (deviceInspect.getUseModelTime() == null || ((new Date().getTime()-deviceInspect.getUseModelTime().getTime())/(60*60*1000) >= deviceInspect.getLevel().getInterval())){ // 代表之前没用使用过模型去学习数据，判断设备运行状态。
+                        // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
+                        // step 1:
+                        deviceInspect.setUseModelTime(new Date());
+
+                        // step 2:
+                        Double result = EmulateAML.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
+
+                        // step 3:
+                        DecimalFormat df = new DecimalFormat("######0");
+                        int resultInt = Integer.parseInt(df.format(result*100));
+                        List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAllByOrderByIdAsc();
+                        for (OpeModelsLevel opeModelsLevel:opeModelsLevels){
+                            if (resultInt >= opeModelsLevel.getLevel()){
+                                deviceInspect.setLevel(opeModelsLevel);
+                            }
+                        }
+                        deviceInspectRepository.save(deviceInspect);
+                    }
+
+                    // 实施数据与UseAML模型比对，生成最新状态。
+                    int result = UseAML.doTask(models.getUseUrl(), models.getUseApi(), deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                    if (result == 0)
+                        runningStatus = 10;
+                    else
+                        runningStatus = 20;
+                }
+            }
+
+            if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
+                device.setLatestRunningStatus(runningStatus);
+                LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
+                try {
+                    deviceRepository.save(device);
+                    boolean isWriteSuccessfully = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
+                            device.getName(), device.getDeviceType().getName(), runningStatus);
+
+                    if(!isWriteSuccessfully){
+                        LOGGER.error(String.format("Writing device running status history of device %d failed at %s", device.getId(), new Date().toString()));
+                    }
+                }
+                catch (Exception e){
+                    LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
+                            new Date().toString(),
+                            e.toString()));
+                }
             }
         }
 
