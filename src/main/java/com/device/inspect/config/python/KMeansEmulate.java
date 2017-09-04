@@ -8,21 +8,16 @@ import org.python.util.PythonInterpreter;
 /**
  * Created by FGZ on 17/8/25.
  */
-public class EmulateAML
+public class KMeansEmulate
 {
     public static Double doTask(String kmeans_url, String kmeans_api, String table_influx, String device_id)
     {
-        //parameter:
-//        String kmeans_url="https://asiasoutheast.services.azureml.net/workspaces/222a1ed3b642406b801b76a4a586169c/services/09b92ba52ecc4134b308d9b722fd253a/execute?api-version=2.0&details=true";
-//        String kmeans_api="riWU/LpQfyBNvcH2HJTXEEBDycUO0NCv80BdjCBcL0Tck64uYQei28x4l5vxsWTWUqUabFvaY2IQlO06B499OA==";
 
         String host_influx_test ="139.219.198.192";
         String user_influx_test="admin";
         String pwd_influx_test="XEmpLb7YrBRanIW2";
         String dbName_influx="intelab";
-//        String table_influx="power";
         String selcol_influx="value";
-//        String device_inspect_id="477";
         String device_inspect_id=device_id;
         String filter_influx=" and time>\'2017-08-22 05:30:00\' and time<\'2017-08-22 09:30:00\'";
         String n_clustering="7";
@@ -60,4 +55,13 @@ public class EmulateAML
         System.out.print(sim);
         return sim;
     }
+
+//    public static void main(String[] args){
+//        //parameter:
+//        String kmeans_url="https://asiasoutheast.services.azureml.net/workspaces/222a1ed3b642406b801b76a4a586169c/services/09b92ba52ecc4134b308d9b722fd253a/execute?api-version=2.0&details=true";
+//        String kmeans_api="riWU/LpQfyBNvcH2HJTXEEBDycUO0NCv80BdjCBcL0Tck64uYQei28x4l5vxsWTWUqUabFvaY2IQlO06B499OA==";
+//        String table_influx="power";
+//        String device_id="477";
+//        doTask(kmeans_url, kmeans_api, table_influx, device_id);
+//    }
 }

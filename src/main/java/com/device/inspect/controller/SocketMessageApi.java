@@ -6,7 +6,6 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
-import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.model.record.Models;
 import com.device.inspect.common.repository.charater.UserRepository;
 import com.device.inspect.common.repository.device.*;
@@ -22,8 +21,8 @@ import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.config.python.EmulateAML;
-import com.device.inspect.config.python.UseAML;
+import com.device.inspect.config.python.KMeansEmulate;
+import com.device.inspect.config.python.KMeansUse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
@@ -114,6 +113,9 @@ public class SocketMessageApi {
 
     @Autowired
     private OpeModelsLevelRepository opeModelsLevelRepository;
+
+    @Autowired
+    private KMeansUse kMeansUse;
 
     String unit = "s";
 
@@ -522,7 +524,7 @@ public class SocketMessageApi {
                         deviceInspect.setUseModelTime(new Date());
 
                         // step 2:
-                        Double result = EmulateAML.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
+                        Double result = KMeansEmulate.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
 
                         // step 3:
                         DecimalFormat df = new DecimalFormat("######0");
@@ -537,7 +539,7 @@ public class SocketMessageApi {
                     }
 
                     // 实施数据与UseAML模型比对，生成最新状态。
-                    int result = UseAML.doTask(deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                    int result = kMeansUse.doTask(deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
                     long endTimeTest = new Date().getTime();
                     System.out.println("************运行模型耗费的时间，单位秒**********：" + (endTimeTest-beginTimeTest)/1000);
                     if (result == 0)
