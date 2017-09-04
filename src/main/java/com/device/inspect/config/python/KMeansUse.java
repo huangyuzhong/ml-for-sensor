@@ -38,13 +38,14 @@ public class KMeansUse {
             double[] temp = new double[rules.length];
             for (int i=0; i<rules.length; i++){
                 temp[i] = Math.abs(valDou - rules[i][0]);
-                if (valDou > (rules[i][0]-rules[i][1]) && valDou < (rules[i][0]+rules[i][1])){
+                if (valDou >= (rules[i][0]-rules[i][1]) && valDou <= (rules[i][0]+rules[i][1])){
                     index = i;
                     break;
                 }
             }
             if (index == -1){
                 double min = temp[0];
+                index = 0;
                 for (int i=1; i<temp.length; i++){
                     if (temp[i]<min){
                         min = temp[i];

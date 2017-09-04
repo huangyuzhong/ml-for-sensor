@@ -543,7 +543,7 @@ public class SocketMessageApi {
                     long endTimeTest = new Date().getTime();
                     System.out.println("************运行模型耗费的时间，单位秒**********：" + (endTimeTest-beginTimeTest)/1000);
                     if (result == 0)
-                        runningStatus = 10;
+                        runningStatus = 0;
                     else
                         runningStatus = 20;
                 }
