@@ -5,13 +5,24 @@ import org.python.core.PyString;
 import org.python.core.PyList;
 import org.python.util.PythonInterpreter;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by FGZ on 17/8/25.
  */
 public class KMeansEmulate
 {
-    public static Double doTask(String kmeans_url, String kmeans_api, String table_influx, String device_id)
+    public static Double doTask(String kmeans_url, String kmeans_api, String table_influx, String device_id, Long startStamp, Long endStamp)
     {
+
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startTimeStr = "2017-08-22 05:30:00";
+        String endTimeStr = "2017-08-22 09:30:00";
+        if (startStamp != null)
+            startTimeStr = sdf.format(new Date(startStamp));
+        if (endStamp != null)
+            endTimeStr = sdf.format(new Date(endStamp));
 
         String host_influx_test ="139.219.198.192";
         String user_influx_test="admin";
@@ -19,12 +30,11 @@ public class KMeansEmulate
         String dbName_influx="intelab";
         String selcol_influx="value";
         String device_inspect_id=device_id;
-        String filter_influx=" and time>\'2017-08-22 05:30:00\' and time<\'2017-08-22 09:30:00\'";
+        String filter_influx=" and time>\'"+startTimeStr+"\' and time<\'"+endTimeStr+"\'";
         String n_clustering="7";
 
         PythonInterpreter interpreter = new PythonInterpreter();
         interpreter.exec("import sys");
-        interpreter.exec("print sys.path");
         interpreter.exec("sys.path.append(\"src/main/java/com/device/inspect/config/python\")");
         interpreter.exec("print sys.path");
 
@@ -62,6 +72,6 @@ public class KMeansEmulate
 //        String kmeans_api="riWU/LpQfyBNvcH2HJTXEEBDycUO0NCv80BdjCBcL0Tck64uYQei28x4l5vxsWTWUqUabFvaY2IQlO06B499OA==";
 //        String table_influx="power";
 //        String device_id="477";
-//        doTask(kmeans_url, kmeans_api, table_influx, device_id);
+//        doTask(kmeans_url, kmeans_api, table_influx, device_id, null, null);
 //    }
 }

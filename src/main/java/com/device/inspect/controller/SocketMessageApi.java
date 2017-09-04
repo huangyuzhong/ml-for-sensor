@@ -524,7 +524,7 @@ public class SocketMessageApi {
                         deviceInspect.setUseModelTime(new Date());
 
                         // step 2:
-                        Double result = KMeansEmulate.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString());
+                        Double result = KMeansEmulate.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString(), null, new Date().getTime());
 
                         // step 3:
                         DecimalFormat df = new DecimalFormat("######0");
