@@ -747,7 +747,7 @@ public class SocketMessageApi {
             for (DeviceInspect deviceInspect : deviceInspectList){
                 boolean isStatusInspect = false;
                 boolean isNotRequiredData = false;
-                if(deviceInspect.getInspectPurpose() == 1){
+                if(deviceInspect.getInspectPurpose() == 1 || deviceInspect.getInspectPurpose() == 2){
                     // when device has status inspect, lowest running level is 0 (shut down)
                     isStatusInspect = true;
                     if(runningLevel == -1){
