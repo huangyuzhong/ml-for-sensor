@@ -2007,10 +2007,12 @@ public class OperateController {
                 onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lesseeAddress);
 
                 // 交易完成后，要对不可租赁时间段进行修改，删除已经过去的时间段
-                DeviceDisableTime deviceDisableTime = deviceDisableTimeRepository.findByDeviceId(record.getDevice().getId()).get(0);
-                String contentModify = OpeDeviceDisableTime.modifyOnDeviceDisableTime(deviceDisableTime.getContent());
-                deviceDisableTime.setContent(contentModify);
-                deviceDisableTimeRepository.save(deviceDisableTime);
+                List<DeviceDisableTime> deviceDisableTimes = deviceDisableTimeRepository.findByDeviceId(record.getDevice().getId());
+                for (DeviceDisableTime deviceDisableTime : deviceDisableTimes){
+                    String contentModify = OpeDeviceDisableTime.modifyOnDeviceDisableTime(deviceDisableTime.getContent());
+                    deviceDisableTime.setContent(contentModify);
+                    deviceDisableTimeRepository.save(deviceDisableTime);
+                }
             }
             catch(Exception e){
                 LOGGER.error(e.getMessage());
