@@ -4,6 +4,7 @@ import com.device.inspect.common.model.record.DeviceDisableTime;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.validation.constraints.NotNull;
+import java.util.Date;
 
 /**
  * Created by fgz on 2017/7/17.
@@ -13,10 +14,9 @@ public class RestDeviceDisableTime {
     private Integer id;
     private Integer deviceId;
     private String strategyType;
-    private Integer[][] disablePeriod;
-    private Integer[][] ablePeriod = new Integer[50][2];
+    private Long[][] disablePeriod;
+    private Long[][] ablePeriod = new Long[50][2];
     private Integer ablePeriodLength;
-    private Integer duration;
 
     public RestDeviceDisableTime() {
     }
@@ -30,27 +30,28 @@ public class RestDeviceDisableTime {
             String content = deviceDisableTime.getContent();
             String[] contents = content.split(";");
 
-            disablePeriod = new Integer[contents.length][2];
+            disablePeriod = new Long[contents.length][2];
             for (int i=0; i<contents.length; i++){
                 String[] startToEnd = contents[i].split(",");
-                disablePeriod[i][0] = Integer.parseInt(startToEnd[0]);
-                disablePeriod[i][1] = Integer.parseInt(startToEnd[1]);
+                disablePeriod[i][0] = Long.parseLong(startToEnd[0]);
+                disablePeriod[i][1] = Long.parseLong(startToEnd[1]);
             }
-            ablePeriod[0][0] = 0;
-            ablePeriod[0][1] = 24;
+            ablePeriod[0][0] = new Date().getTime();
+            long yearMill = 31104000000L; // 360天的毫秒值
+            ablePeriod[0][1] = ablePeriod[0][0].longValue()+yearMill;
             int count = 1;
             for (int i=0; i<contents.length; i++){
                 int countTemp = count;
                 for (int j=0; j<count; j++){
                     if (ablePeriod[j][0] < disablePeriod[i][0] && ablePeriod[j][1] > disablePeriod[i][1]){
-                        int temp = ablePeriod[j][1];
+                        Long temp = ablePeriod[j][1];
                         ablePeriod[j][1] = disablePeriod[i][0];
                         ablePeriod[count][0] = disablePeriod[i][1];
                         ablePeriod[count][1] = temp;
                         countTemp++;
                     } else if (ablePeriod[j][0] < disablePeriod[i][0] && ablePeriod[j][1] == disablePeriod[i][1]){
                         ablePeriod[j][1] = disablePeriod[i][0];
-                    } else if (ablePeriod[j][0] == disablePeriod[i][0] && ablePeriod[j][1] > disablePeriod[i][1]){
+                    } else if (ablePeriod[j][0] >= disablePeriod[i][0] && ablePeriod[j][1] > disablePeriod[i][1]){
                         ablePeriod[j][0] = disablePeriod[i][1];
                     } else if (ablePeriod[j][0] == disablePeriod[i][0] && ablePeriod[j][1] == disablePeriod[i][1]){
                         ablePeriod[j][1] = disablePeriod[i][0];
@@ -71,15 +72,11 @@ public class RestDeviceDisableTime {
 
             this.ablePeriodLength = count;
 
-            this.duration=0;
-            for (int i=0; i<count; i++){
-                this.duration += (ablePeriod[i][1] - ablePeriod[i][0]);
-            }
         }else{
-            this.ablePeriod[0][0]=0;
-            this.ablePeriod[0][1]=24;
+            this.ablePeriod[0][0]=new Date().getTime();
+            long yearMill = 31104000000L; // 360天的毫秒值
+            this.ablePeriod[0][1] = ablePeriod[0][0].longValue()+yearMill;
             this.ablePeriodLength=1;
-            this.duration=24;
         }
     }
 
@@ -107,19 +104,19 @@ public class RestDeviceDisableTime {
         this.strategyType = strategyType;
     }
 
-    public Integer[][] getDisablePeriod() {
+    public Long[][] getDisablePeriod() {
         return disablePeriod;
     }
 
-    public void setDisablePeriod(Integer[][] disablePeriod) {
+    public void setDisablePeriod(Long[][] disablePeriod) {
         this.disablePeriod = disablePeriod;
     }
 
-    public Integer[][] getAblePeriod() {
+    public Long[][] getAblePeriod() {
         return ablePeriod;
     }
 
-    public void setAblePeriod(Integer[][] ablePeriod) {
+    public void setAblePeriod(Long[][] ablePeriod) {
         this.ablePeriod = ablePeriod;
     }
 
@@ -129,13 +126,5 @@ public class RestDeviceDisableTime {
 
     public void setAblePeriodLength(Integer ablePeriodLength) {
         this.ablePeriodLength = ablePeriodLength;
-    }
-
-    public Integer getDuration() {
-        return duration;
-    }
-
-    public void setDuration(Integer duration) {
-        this.duration = duration;
     }
 }

@@ -31,6 +31,7 @@ import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.service.TemporalStrategyChecker;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
+import com.device.inspect.config.OpeDeviceDisableTime;
 import com.device.inspect.controller.request.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -277,7 +278,10 @@ public class OperateController {
                 deviceDisableTime.setStrategyType(map.get("strategyType"));
             }
             if (null != map.get("content")){
-                deviceDisableTime.setContent(map.get("content"));
+                String contentSort = OpeDeviceDisableTime.SortAndJudgeOnDeviceDisableTime(map.get("content"));
+                if (contentSort == null)
+                    return new RestResponse("不可租赁时间段存在交叉，请重新设置", 1007, null);
+                deviceDisableTime.setContent(contentSort);
             }
 
             Device device = null;
@@ -308,7 +312,11 @@ public class OperateController {
                 deviceDisableTime.setStrategyType(map.get("strategyType"));
             }
             if (null != map.get("content")){
-                deviceDisableTime.setContent(map.get("content"));
+                String contentSort = OpeDeviceDisableTime.SortAndJudgeOnDeviceDisableTime(map.get("content"));
+                if (contentSort == null) {
+                    return new RestResponse("不可租赁时间段存在交叉，请重新设置", 1007, null);
+                }
+                deviceDisableTime.setContent(contentSort);
             }
 
             BlockChainDevice data = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
@@ -1854,6 +1862,18 @@ public class OperateController {
             onchainService.SyncBlock();
             onchainService.transfer(OnchainService.AssetId, getRecord.getPrice().intValue(), "锁定租金,交易id:"+getRecord.getId(), companyAccountAddress, InitWallet.agencyAddr);
             LOGGER.info(String.format("make deal: money transfer finish"));
+
+            // 交易已经上链存证，则不可租赁时间段要进行修改
+            for (DeviceDisableTime deviceDisableTime:deviceDisableTimes) {
+                String contentSort = "";
+                if (deviceDisableTime.getContent() == null)
+                    contentSort = OpeDeviceDisableTime.SortAndJudgeOnDeviceDisableTime(dealRecord.getBeginTime().getTime() + "," + dealRecord.getEndTime().getTime());
+                else
+                    contentSort = OpeDeviceDisableTime.SortAndJudgeOnDeviceDisableTime(deviceDisableTime.getContent() + ";" + dealRecord.getBeginTime().getTime() + "," + dealRecord.getEndTime().getTime());
+                deviceDisableTime.setContent(contentSort);
+                deviceDisableTimeRepository.save(deviceDisableTime);
+            }
+
             return new RestResponse(new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
                     dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
                     dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime()));
@@ -1986,6 +2006,11 @@ public class OperateController {
                 onchainService.SyncBlock();
                 onchainService.transfer(OnchainService.RewordAssetId, rewardPoint, "支付积分,交易id:" + record.getId(), InitWallet.rewardSenderAddr, lesseeAddress);
 
+                // 交易完成后，要对不可租赁时间段进行修改，删除已经过去的时间段
+                DeviceDisableTime deviceDisableTime = deviceDisableTimeRepository.findByDeviceId(record.getDevice().getId()).get(0);
+                String contentModify = OpeDeviceDisableTime.modifyOnDeviceDisableTime(deviceDisableTime.getContent());
+                deviceDisableTime.setContent(contentModify);
+                deviceDisableTimeRepository.save(deviceDisableTime);
             }
             catch(Exception e){
                 LOGGER.error(e.getMessage());

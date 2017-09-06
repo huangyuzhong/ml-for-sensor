@@ -20,7 +20,7 @@ public class BlockChainDevice {
     private Date maintainDate;
     private Integer managerId;
     private Double rentPrice;
-    private Integer[][] disablePeriod;
+    private Long[][] disablePeriod;
     private String rentClause;
     private Long timeStamp;
 
@@ -43,11 +43,11 @@ public class BlockChainDevice {
             String content = deviceDisableTime.getContent();
             String[] contents = content.split(";");
 
-            disablePeriod = new Integer[contents.length][2];
+            disablePeriod = new Long[contents.length][2];
             for (int i=0; i<contents.length; i++){
                 String[] startToEnd = contents[i].split(",");
-                disablePeriod[i][0] = Integer.parseInt(startToEnd[0]);
-                disablePeriod[i][1] = Integer.parseInt(startToEnd[1]);
+                disablePeriod[i][0] = Long.parseLong(startToEnd[0]);
+                disablePeriod[i][1] = Long.parseLong(startToEnd[1]);
             }
         }
     }
@@ -124,11 +124,11 @@ public class BlockChainDevice {
         this.rentPrice = rentPrice;
     }
 
-    public Integer[][] getDisablePeriod() {
+    public Long[][] getDisablePeriod() {
         return disablePeriod;
     }
 
-    public void setDisablePeriod(Integer[][] disablePeriod) {
+    public void setDisablePeriod(Long[][] disablePeriod) {
         this.disablePeriod = disablePeriod;
     }
 
