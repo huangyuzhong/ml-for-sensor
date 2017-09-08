@@ -87,7 +87,7 @@ public class RestUser {
         }
         this.removeAlert=user.getRemoveAlert();
         this.accountAddress=user.getAccountAddress();
-        this.latestPasswordUpdateTime = user.getLatestPasswordUpdateTime().getTime();
+        this.latestPasswordUpdateTime = user.getLatestPasswordUpdateTime()==null?null : user.getLatestPasswordUpdateTime().getTime();
 //        OnchainService onchainService = new OnchainService();
 //        if (this.accountAddress != null && !this.accountAddress.isEmpty()){
 //            this.assetId=onchainService.getAssetId(accountAddress);

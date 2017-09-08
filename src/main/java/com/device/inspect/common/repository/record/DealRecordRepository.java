@@ -1,6 +1,7 @@
 package com.device.inspect.common.repository.record;
 
 import com.device.inspect.common.model.record.DealRecord;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +25,11 @@ public interface DealRecordRepository extends CrudRepository<DealRecord, Integer
 
     List<DealRecord> findByStatusAndBeginTimeBefore(Integer status, Date beginTime);
 
-    List<DealRecord> findTop10ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId);
+    @Query("select u from DealRecord u where (u.lessor = ?1 or u.lessee = ?2) and u.device.id = ?3 and u.endTime < ?4 order by u.beginTime desc ")
+    List<DealRecord> findTop10ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
+
+    @Query("select u from DealRecord u where (u.lessor = ?1 or u.lessee = ?2) and u.device.id = ?3 and u.beginTime >= ?4 order by u.beginTime asc ")
+    List<DealRecord> findTop10ByLessorOrLesseeAndEndTimeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
 
     List<DealRecord> findByDeviceIdAndStatus(Integer deiceId, Integer status);
 }

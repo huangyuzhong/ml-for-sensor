@@ -1844,6 +1844,9 @@ public class OperateController {
         dealRecord.setLessee(lessee.getId());
         dealRecord.setLessor(lessor.getId());
         double price = (new Double(device.getRentPrice() * (requestParam.getEndTime() - requestParam.getBeginTime()) / 1000 / 3600)).intValue();
+        if (price <= 0.0) {
+            return  new RestResponse(("本次申请交易的价格为0元，设备单价设置有误，请联系设备所有者修改！"), 1007, null);
+        }
         dealRecord.setPrice(price);
         try{
             dealRecordRepository.save(dealRecord);

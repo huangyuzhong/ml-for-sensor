@@ -1117,6 +1117,17 @@ public class FileController {
                     UserWalletManager wallet = InitWallet.getWallet();
                     String address = wallet.createAccount();
                     company.setAccountAddress(address);
+
+                    // 将所属该公司的user全部上链
+                    List<User> users = userRepository.findByCompanyId(company.getId());
+                    for (User userOfCompany : users) {
+                        // 先判断user本身是否已经上链
+                        if (userOfCompany.getAccountAddress() == null) {
+                            String userAddress = wallet.createAccount();
+                            userOfCompany.setAccountAddress(userAddress);
+                            userRepository.save(userOfCompany);
+                        }
+                    }
                 }
 
                 company=companyRepository.save(company);
