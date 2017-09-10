@@ -25,11 +25,11 @@ public interface DealRecordRepository extends CrudRepository<DealRecord, Integer
 
     List<DealRecord> findByStatusAndBeginTimeBefore(Integer status, Date beginTime);
 
-    @Query("select u from DealRecord u where (u.lessor = ?1 or u.lessee = ?2) and u.device.id = ?3 and u.endTime < ?4 order by u.beginTime desc ")
-    List<DealRecord> findTop10ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
+    @Query(value = "select * from deal_record u where (u.lessor_id = ?1 or u.lessee_id = ?2) and u.device_id = ?3 and u.end_time < ?4 order by u.begin_time desc limit 9", nativeQuery=true)
+    List<DealRecord> findTop9ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
 
-    @Query("select u from DealRecord u where (u.lessor = ?1 or u.lessee = ?2) and u.device.id = ?3 and u.beginTime >= ?4 order by u.beginTime asc ")
-    List<DealRecord> findTop10ByLessorOrLesseeAndEndTimeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
+    @Query(value = "select * from deal_record u where (u.lessor_id = ?1 or u.lessee_id = ?2) and u.device_id = ?3 and u.end_time >= ?4 order by u.begin_time asc limit 1", nativeQuery=true)
+    List<DealRecord> findTop1ByLessorOrLesseeOrderByEndTimeDesc(Integer lessorId, Integer lesseeId, Integer deviceId, Date currentDate);
 
     List<DealRecord> findByDeviceIdAndStatus(Integer deiceId, Integer status);
 }

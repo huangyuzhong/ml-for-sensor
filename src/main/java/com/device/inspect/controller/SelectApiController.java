@@ -1365,19 +1365,21 @@ public class SelectApiController {
     @RequestMapping(value = "/dealHistory", method = RequestMethod.GET)
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId, @RequestParam Integer deviceId) {
         Date currentDate = new Date();
-        List<DealRecord> dealRecordsHistory = dealRecordRepository.findTop10ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
-        DealRecord dealRecordsFuture = dealRecordRepository.findTop10ByLessorOrLesseeAndEndTimeOrderByEndTimeDesc(userId, userId, deviceId, currentDate).get(0);
+        List<DealRecord> dealRecordsHistory = dealRecordRepository.findTop9ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
+        List<DealRecord> dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
         List<RestDealRecord> restDealRecords = new ArrayList<>();
-        RestDealRecord recordFuture = new RestDealRecord(dealRecordsFuture.getId(), dealRecordsFuture.getDevice().getId(), dealRecordsFuture.getLessor(), dealRecordsFuture.getLessee(),
-                dealRecordsFuture.getPrice(), dealRecordsFuture.getBeginTime().getTime(), dealRecordsFuture.getEndTime().getTime(), dealRecordsFuture.getDeviceSerialNumber(),
-                dealRecordsFuture.getAggrement(), dealRecordsFuture.getStatus(), dealRecordsFuture.getRealEndTime());
-        restDealRecords.add(recordFuture);
+        for (DealRecord dealRecord : dealRecordsFutureList) {
+            RestDealRecord recordFuture = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
+            restDealRecords.add(recordFuture);
+        }
 
-        for (int i=0; i<9; i++){
-            RestDealRecord record = new RestDealRecord(dealRecordsHistory.get(i).getId(), dealRecordsHistory.get(i).getDevice().getId(), dealRecordsHistory.get(i).getLessor(), dealRecordsHistory.get(i).getLessee(),
-                    dealRecordsHistory.get(i).getPrice(), dealRecordsHistory.get(i).getBeginTime().getTime(), dealRecordsHistory.get(i).getEndTime().getTime(), dealRecordsHistory.get(i).getDeviceSerialNumber(),
-                    dealRecordsHistory.get(i).getAggrement(), dealRecordsHistory.get(i).getStatus(), dealRecordsHistory.get(i).getRealEndTime());
-            restDealRecords.add(record);
+        for (DealRecord dealRecord : dealRecordsHistory) {
+            RestDealRecord recordHistory = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
+            restDealRecords.add(recordHistory);
         }
         return new RestResponse(restDealRecords);
     }
