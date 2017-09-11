@@ -1368,18 +1368,22 @@ public class SelectApiController {
         List<DealRecord> dealRecordsHistory = dealRecordRepository.findTop9ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
         List<DealRecord> dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
         List<RestDealRecord> restDealRecords = new ArrayList<>();
-        for (DealRecord dealRecord : dealRecordsFutureList) {
-            RestDealRecord recordFuture = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
-                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
-                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
-            restDealRecords.add(recordFuture);
+        if (dealRecordsFutureList != null && dealRecordsFutureList.size() != 0){
+            for (DealRecord dealRecord : dealRecordsFutureList) {
+                RestDealRecord recordFuture = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                        dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                        dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
+                restDealRecords.add(recordFuture);
+            }
         }
 
-        for (DealRecord dealRecord : dealRecordsHistory) {
-            RestDealRecord recordHistory = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
-                    dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
-                    dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
-            restDealRecords.add(recordHistory);
+        if (dealRecordsHistory != null && dealRecordsHistory.size() != 0) {
+            for (DealRecord dealRecord : dealRecordsHistory) {
+                RestDealRecord recordHistory = new RestDealRecord(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(), dealRecord.getLessee(),
+                        dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(), dealRecord.getDeviceSerialNumber(),
+                        dealRecord.getAggrement(), dealRecord.getStatus(), dealRecord.getRealEndTime());
+                restDealRecords.add(recordHistory);
+            }
         }
         return new RestResponse(restDealRecords);
     }
