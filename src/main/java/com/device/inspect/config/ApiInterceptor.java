@@ -73,6 +73,7 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         repeatApis.add("/api/rest/firm/dealHistory");
         repeatApis.add("/api/rest/device/current/data");
         repeatApis.add("/api/rest/operate/monitor/getFirstNotActActionAndUpdate");
+        repeatApis.add("/api/rest/firm/dealRecord/alert");
 
         if (repeatApis.contains(requestUrl)){
             logger.debug("ignore repeat api " + requestUrl);
