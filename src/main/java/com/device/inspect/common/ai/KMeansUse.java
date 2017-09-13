@@ -1,4 +1,4 @@
-package com.device.inspect.config.python;
+package com.device.inspect.common.ai;
 
 import com.device.inspect.common.model.record.MLResults;
 import com.device.inspect.common.repository.record.MLResultsRepository;

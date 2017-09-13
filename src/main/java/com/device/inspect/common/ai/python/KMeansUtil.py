@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*
-import web_service_test as ws
+import ModelWebServiceRequest as ws
 
 def ws_(url,api,paraList):
 

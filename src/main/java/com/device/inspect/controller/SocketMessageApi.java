@@ -2,6 +2,8 @@ package com.device.inspect.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
+import com.device.inspect.common.ai.KMeansEmulate;
+import com.device.inspect.common.ai.KMeansUse;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.DealAlertRecord;
@@ -21,8 +23,6 @@ import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.config.python.KMeansEmulate;
-import com.device.inspect.config.python.KMeansUse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;

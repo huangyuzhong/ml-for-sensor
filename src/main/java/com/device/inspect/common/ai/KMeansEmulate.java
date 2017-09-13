@@ -1,4 +1,4 @@
-package com.device.inspect.config.python;
+package com.device.inspect.common.ai;
 
 import org.python.core.PyFunction;
 import org.python.core.PyString;
@@ -7,6 +7,7 @@ import org.python.util.PythonInterpreter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Properties;
 
 /**
  * Created by FGZ on 17/8/25.
@@ -33,12 +34,20 @@ public class KMeansEmulate
         String filter_influx=" and time>\'"+startTimeStr+"\' and time<\'"+endTimeStr+"\'";
         String n_clustering="7";
 
+        Properties props = new Properties();
+        props.put("python.home","src/main/resources/lib/jython-standalone-2.7.0.jar!/");
+        props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
+        props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
+        props.put("python.import.site","false");
+        Properties preprops = System.getProperties();
+        PythonInterpreter.initialize(preprops, props, new String[0]);
+
         PythonInterpreter interpreter = new PythonInterpreter();
         interpreter.exec("import sys");
-        interpreter.exec("sys.path.append(\"src/main/java/com/device/inspect/config/python\")");
+        interpreter.exec("sys.path.append(\"src/main/java/com/device/inspect/common/ai/python\")");
         interpreter.exec("print sys.path");
 
-        interpreter.execfile("src/main/java/com/device/inspect/config/python/ModelDemo.py");
+        interpreter.execfile("src/main/java/com/device/inspect/common/ai/python/KMeansUtil.py");
         PyFunction func = (PyFunction)interpreter.get("ws_",PyFunction.class);
         PyList list_host=new PyList();          list_host.add(new PyString(host_influx_test));
         PyList list_user=new PyList();          list_user.add(new PyString(user_influx_test));
