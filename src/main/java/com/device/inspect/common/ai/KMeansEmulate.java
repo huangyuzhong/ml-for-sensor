@@ -35,7 +35,7 @@ public class KMeansEmulate
         String n_clustering="7";
 
         Properties props = new Properties();
-        props.put("python.home","src/main/resources/lib/jython-standalone-2.7.0.jar!/");
+        props.put("python.home","src/main/resources/lib/jython-standalone-2.7.0.jar/");
         props.put("python.console.encoding", "UTF-8"); // Used to prevent: console: Failed to install '': java.nio.charset.UnsupportedCharsetException: cp0.
         props.put("python.security.respectJavaAccessibility", "false"); //don't respect java accessibility, so that we can access protected members on subclasses
         props.put("python.import.site","false");
