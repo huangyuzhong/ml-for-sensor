@@ -75,12 +75,12 @@ public class KMeansEmulate
         return sim;
     }
 
-    public static void main(String[] args){
-        //parameter:
-        String kmeans_url="https://asiasoutheast.services.azureml.net/workspaces/222a1ed3b642406b801b76a4a586169c/services/09b92ba52ecc4134b308d9b722fd253a/execute?api-version=2.0&details=true";
-        String kmeans_api="riWU/LpQfyBNvcH2HJTXEEBDycUO0NCv80BdjCBcL0Tck64uYQei28x4l5vxsWTWUqUabFvaY2IQlO06B499OA==";
-        String table_influx="power";
-        String device_id="477";
-        doTask(kmeans_url, kmeans_api, table_influx, device_id, null, null);
-    }
+//    public static void main(String[] args){
+//        //parameter:
+//        String kmeans_url="https://asiasoutheast.services.azureml.net/workspaces/222a1ed3b642406b801b76a4a586169c/services/09b92ba52ecc4134b308d9b722fd253a/execute?api-version=2.0&details=true";
+//        String kmeans_api="riWU/LpQfyBNvcH2HJTXEEBDycUO0NCv80BdjCBcL0Tck64uYQei28x4l5vxsWTWUqUabFvaY2IQlO06B499OA==";
+//        String table_influx="power";
+//        String device_id="477";
+//        doTask(kmeans_url, kmeans_api, table_influx, device_id, null, null);
+//    }
 }
