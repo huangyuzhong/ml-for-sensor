@@ -112,6 +112,11 @@ public class UrlParse {
         myMap.put("/api/rest/firm/monitor/actionList","query_monitor_actionList");  // 获取某个monitor的动作历史
         myMap.put("/api/rest/firm/dealRecord/alert","query_dealRecord_alert");  // 获取交易的报警列表
 
+        myMap.put("/api/rest/operate/create/user","create_user");  // 创建新用户
+        myMap.put("/api/rest/operate/update/user","update_user");  // 修改用户信息
+        myMap.put("/api/rest/operate/delete/user","delete_user");  // 删除企业级用户
+        myMap.put("/api/rest/firm/employees","query_company_user");  // 查询公司用户
+
         return myMap;
     }
 
