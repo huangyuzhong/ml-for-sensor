@@ -1,6 +1,7 @@
 package com.device.inspect.config.security.stateless;
 
 import com.device.inspect.Application;
+import com.device.inspect.common.util.transefer.UrlParse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -39,7 +40,7 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler im
         }
 
 
-        if(Application.influxDBManager.writeAPIOperation(System.currentTimeMillis(), userName, request.getRequestURI().toString(), request.getMethod(),"", response.getStatus(), 0)){
+        if(Application.influxDBManager.writeAPIOperation(System.currentTimeMillis(), userName, request.getRequestURI().toString(), request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", response.getStatus(), 0)){
             logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURI().toString(), userName, 0, response.getStatus()));
         }
         else{

@@ -1,6 +1,7 @@
 package com.device.inspect.config.security.stateless;
 
 import com.device.inspect.Application;
+import com.device.inspect.common.util.transefer.UrlParse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -73,7 +74,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 			long authCost = endTime - startTime;
 
 
-			if(Application.influxDBManager.writeAPIOperation(startTime, authenticatedUser.getUsername(), loginRequestUri, request.getMethod(), "", 200, authCost)){
+			if(Application.influxDBManager.writeAPIOperation(startTime, authenticatedUser.getUsername(), loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 200, authCost)){
 				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, authenticatedUser.getUsername(), authCost, 200));
 			}
 			else{
@@ -85,7 +86,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 			long endTime = System.currentTimeMillis();
 
 			long authCost = endTime - startTime;
-        	if(Application.influxDBManager.writeAPIOperation(startTime, name, loginRequestUri, request.getMethod(),"", 401, authCost)){
+        	if(Application.influxDBManager.writeAPIOperation(startTime, name, loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 401, authCost)){
 				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, name, authCost, 401));
 			}
 			else{

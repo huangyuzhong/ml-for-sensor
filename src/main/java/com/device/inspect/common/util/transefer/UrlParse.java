@@ -8,6 +8,30 @@ import java.util.Map;
  */
 public class UrlParse {
 
+    public static final String API_TYPE_WEB_QUERY = "web_query";
+    public static final String API_TYPE_USER_OPERATION = "user_op";
+
+    // for all url related to a user's operation, map it to operation name.
+    public static final Map<String, String> urlUserOperationMap = createUrlUserOperationMap();
+    private static Map<String, String> createUrlUserOperationMap()
+    {
+        Map<String,String> myMap = new HashMap<String,String>();
+        myMap.put("/api/rest/login", "login");
+        myMap.put("/api/rest/logout", "logout");
+        myMap.put("/api/rest/file/change/avatar", "update_user_avatar");
+        myMap.put("/api/rest/file/logo/company", "update_company_logo");
+        myMap.put("/api/rest/operate/modify/password", "update_password");
+        myMap.put("/api/rest/file/upload/deviceType/icon", "update_device_type_icon");
+
+        // TODO: we should separate this to two apis for create and update
+        myMap.put("/api/rest/operate/deviceType", "create_or_update_device_type");
+        myMap.put("/api/rest/operate/manager/device/type", "delete_device_type");
+
+        myMap.put("/api/rest/firm/devices", "query_device");
+
+        return myMap;
+    }
+
     public static Map<String, String> parseAzureUrl(String url) {
         if(url == null || !url.startsWith("http")){
 	       return null;

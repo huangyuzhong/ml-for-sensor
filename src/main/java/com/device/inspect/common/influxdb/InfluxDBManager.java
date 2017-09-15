@@ -4,6 +4,8 @@ package com.device.inspect.common.influxdb;
  * Created by gxu on 5/29/17.
  */
 
+import jnr.ffi.annotations.In;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.InfluxDB;
@@ -208,21 +210,25 @@ public class InfluxDBManager {
     }
 
     /**
-     * 写入调用API的TS数据, 包括用户, 链接, 返回值, 消耗时间
+     * 写入调用API的TS数据, 包括用户, 链接, http method, api类型, api参数, 返回值, 消耗时间
      * @param startTime
      * @param userName
      * @param url
+     * @param httpMethod
+     * @param apiType
+     * @param parameters
      * @param responseCode
      * @param duration
      * @return
      */
-    public boolean writeAPIOperation(Long startTime, String userName, String url, String httpMethod, String parameters, Integer responseCode, long duration){
+    public boolean writeAPIOperation(Long startTime, String userName, String url, String httpMethod, String apiType, String parameters, Integer responseCode, long duration){
         String dbName = "intelab";
 
 
         BatchPoints batchPoints = BatchPoints.database(dbName)
                 .tag("url", url)
                 .tag("method", httpMethod)
+                .tag("api_type", apiType)
                 .tag("response", responseCode.toString())
                 .tag("username", userName)
                 .retentionPolicy("operations")
@@ -365,7 +371,18 @@ public class InfluxDBManager {
         }
     }
 
-    public List<List<Object>> readAPIByMethodUsernameInTimeRange(String method, String userName, Date startTime, Date endTime){
+    /**
+     * 获取指定时间内某用户发出的某类http请求
+     * @param apiType
+     * @param method
+     * @param userName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeMethodUsernameTimeRange(String apiType, String method, String userName, Date startTime, Date endTime, Integer limit, Integer offset){
         String dbName = "intelab";
 
         // timestamp in influxdb is in nano seconds
@@ -378,17 +395,132 @@ public class InfluxDBManager {
         }
 
         String queryString =
-                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE username='%s' AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT 1000",
-                        userName, method, startNano, endNano);
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                        apiType, userName, method, startNano, endNano, limit, offset);
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+    }
+
+    /**
+     * 获取指定时间内某用户的某类http请求
+     * @param apiType
+     * @param isQuery  query = GET,  update = all other method
+     * @param userName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeMethodTypeUsernameTimeRange(String apiType, Boolean isQuery, String userName, Date startTime, Date endTime, Integer limit, Integer offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString = null;
+
+        if(isQuery) {
+            queryString = String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                    apiType, userName, startNano, endNano, limit, offset);
+        }else{
+            queryString = String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method!=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                    apiType, userName, startNano, endNano, limit, offset);
+        }
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+
+    }
+
+    /**
+     * 获取指定时间内某公司的某类http请求
+     * @param apiType
+     * @param isQuery  query = GET,  update = all other method
+     * @param companyName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeMethodTypeCompanyTimeRange(String apiType, Boolean isQuery, String companyName, Date startTime, Date endTime, Integer limit, Integer offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString = null;
+
+        if(isQuery) {
+            queryString = String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                    apiType, companyName, startNano, endNano, limit, offset);
+        }else{
+            queryString = String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method!=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                    apiType, companyName, startNano, endNano, limit, offset);
+        }
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+    }
+
+    /**
+     * 获取指定时间内某公司的某具体method的http请求
+     * @param apiType
+     * @param method
+     * @param companyName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeMethondCompanyTimeRange(String apiType, String method, String companyName, Date startTime, Date endTime, Integer limit, Integer offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                        apiType, companyName, method, startNano, endNano, limit, offset);
 
 
         List<List<Object>> result =  executeQuery(queryString, dbName);
         return result;
 
-
     }
 
-    public List<List<Object>> readAPIByMethondCompanyInTimeRange(String method, String companyName, Date startTime, Date endTime){
+    /**
+     * 获取指定时间内某公司的全部http 请求
+     * @param apiType
+     * @param companyName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeCompanyTimeRange(String apiType, String companyName, Date startTime, Date endTime, Integer limit, Integer offset){
         String dbName = "intelab";
 
         // timestamp in influxdb is in nano seconds
@@ -401,8 +533,40 @@ public class InfluxDBManager {
         }
 
         String queryString =
-                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE username =~ /@%s$/ AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT 1000",
-                        companyName, method, startNano, endNano);
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                        apiType, companyName, startNano, endNano, limit, offset);
+
+
+        List<List<Object>> result =  executeQuery(queryString, dbName);
+        return result;
+
+    }
+
+    /**
+     * 获取指定时间内某用户的全部http 请求
+     * @param apiType
+     * @param userName
+     * @param startTime
+     * @param endTime
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<List<Object>> readAPIByTypeUsernameTimeRange(String apiType, String userName, Date startTime, Date endTime, Integer limit, Integer offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        String queryString =
+                String.format("SELECT url, method, parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username = %s AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                        apiType, userName, startNano, endNano, limit, offset);
 
 
         List<List<Object>> result =  executeQuery(queryString, dbName);

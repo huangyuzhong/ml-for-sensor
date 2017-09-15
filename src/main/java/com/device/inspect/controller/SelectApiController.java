@@ -12,7 +12,6 @@ import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceOrderList;
-import com.device.inspect.common.model.record.DeviceRunningStatusHistory;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
@@ -29,39 +28,31 @@ import com.device.inspect.common.repository.record.DealRecordRepository;
 import com.device.inspect.common.repository.record.DeviceOrderListRepository;
 import com.device.inspect.common.repository.record.DeviceRunningStatusHistoryRepository;
 import com.device.inspect.common.restful.RestResponse;
+import com.device.inspect.common.restful.api.RestUserOperation;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.data.*;
 import com.device.inspect.common.restful.device.*;
 import com.device.inspect.Application;
-import com.device.inspect.common.restful.device.RestInspectData;
 import com.device.inspect.common.restful.firm.RestCompany;
 import com.device.inspect.common.restful.page.*;
-import com.device.inspect.common.restful.record.DeviceRunningStatusHistoryRecord;
 import com.device.inspect.common.restful.record.RestDealRecord;
 import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.service.GetCameraAccessToken;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
 import com.device.inspect.common.util.time.MyCalendar;
-import com.device.inspect.common.util.transefer.ByteAndHex;
-import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.common.util.transefer.StringDate;
+import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.Version;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
@@ -1052,6 +1043,149 @@ public class SelectApiController {
 
         return new RestResponse(new RestHourlyUtilizationList(device.getId(), restHourlyUtilizations));
     }
+
+    /**
+     * 获取用户操作记录
+     * @param principal
+     * @param requestParam http GET 参数
+     *         startTime: 起始时间  optional
+     *         endTime: 结束时间    optional
+     *         username: 用户名     optional
+     *         operationtype: 操作类型  optional, 可选值: query (对应HTTP GET), update (对应HTTP POST, PUT, DELETE)
+     *         limit: 获取操作条目上限 optional 默认为100
+     *         offset: 获取操作条目偏移量 optional  默认为0
+     * @return
+     */
+    @RequestMapping(value = "/user/operations", method = RequestMethod.GET)
+    public RestResponse getUserOperations(Principal principal, @RequestParam Map<String, String> requestParam){
+
+
+        User user = judgeByPrincipal(principal);
+        String companyId = user.getCompany().getCompanyId();
+
+        Date beginTime, endTime;
+        if (requestParam.containsKey("startTime")) {
+            beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
+
+        }else{
+            // if startTime is not in parameter, use 3 day before
+            Calendar endCalendar = Calendar.getInstance();
+            Calendar beginCalendar = Calendar.getInstance();
+            beginCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) - 2);
+            beginCalendar.set(Calendar.HOUR, 0);
+            beginCalendar.set(Calendar.MINUTE, 0);
+            beginCalendar.set(Calendar.SECOND, 0);
+            beginCalendar.set(Calendar.MILLISECOND, 0);
+            beginTime = beginCalendar.getTime();
+        }
+        if (requestParam.containsKey("endTime")) {
+            endTime = new Date(Long.parseLong(requestParam.get("endTime")));
+        } else {
+            // if endTime is not in parameter, use current time
+            endTime = new Date();
+        }
+
+        final int HARD_LIMIT = 100;
+
+        int limit = HARD_LIMIT;
+        if(requestParam.containsKey("limit")){
+            limit = Integer.parseInt(requestParam.get("limit"));
+            if (limit > HARD_LIMIT){
+                limit = HARD_LIMIT;
+            }
+        }
+
+        int offset = 0;
+        if(requestParam.containsKey("offset")){
+            offset = Integer.parseInt(requestParam.get("offset"));
+            if (offset < 0){
+                offset = 0;
+            }
+        }
+
+        String userName = null;
+        String operationType = null;
+        String userCompany = null; // the username saved in table is in format username@companyId, e.g., John@BAX
+
+        if (requestParam.containsKey("username")){
+            userName = requestParam.get("username");
+            if(!userName.contains("@")){
+                userCompany = String.format("%s@%s", userName, companyId);
+            }else{
+                userCompany = userName;
+            }
+        }
+
+        if(requestParam.containsKey("operationtype")){
+            operationType = requestParam.get("operationtype");
+        }
+
+        List<List<Object>> userOps = null;
+        if (userName != null && operationType != null){
+            userOps = Application.influxDBManager.readAPIByTypeMethodTypeUsernameTimeRange(
+                    UrlParse.API_TYPE_USER_OPERATION,
+                    operationType=="query",
+                    userCompany,
+                    beginTime,
+                    endTime,
+                    limit,
+                    offset);
+        }
+        else if(userName != null){
+            userOps = Application.influxDBManager.readAPIByTypeUsernameTimeRange(
+                    UrlParse.API_TYPE_USER_OPERATION,
+                    userCompany,
+                    beginTime,
+                    endTime,
+                    limit,
+                    offset);
+        }
+        else if(operationType != null){
+            userOps = Application.influxDBManager.readAPIByTypeMethodTypeCompanyTimeRange(
+                    UrlParse.API_TYPE_USER_OPERATION,
+                    operationType=="query",
+                    companyId,
+                    beginTime,
+                    endTime,
+                    limit,
+                    offset);
+        }
+        else{
+            userOps = Application.influxDBManager.readAPIByTypeCompanyTimeRange(
+                    UrlParse.API_TYPE_USER_OPERATION,
+                    companyId,
+                    beginTime,
+                    endTime,
+                    limit,
+                    offset);
+
+        }
+
+
+        List<RestUserOperation> operationList = new ArrayList<>();
+        for(List<Object> op : userOps){
+            RestUserOperation ruop = new RestUserOperation();
+            ruop.setTimeStamp(new Date(TimeUtil.fromInfluxDBTimeFormat((String)op.get(0))));
+            ruop.setUrl((String)op.get(1));
+            ruop.setContent((String)op.get(3));
+            String username = (String)op.get(4);
+            ruop.setUsername(username);
+            User op_user = userRepository.findByName(username);
+            if(op_user == null){
+                LOGGER.warn(String.format("Cannot find user by name %s, may be deleted", username));
+                ruop.setUserDisplayName("deleted");
+
+            }else{
+                ruop.setUserDisplayName(op_user.getUserName());
+            }
+
+            operationList.add(ruop);
+        }
+
+
+        return new RestResponse(operationList);
+    }
+
 
     /**
      * 获取昨日设备利用率情况
