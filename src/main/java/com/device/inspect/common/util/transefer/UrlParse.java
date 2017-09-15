@@ -29,6 +29,11 @@ public class UrlParse {
 
         myMap.put("/api/rest/firm/devices", "query_device");
 
+        myMap.put("/api/rest/operate/create/user","create_user");  // 创建新用户
+        myMap.put("/api/rest/operate/update/user","update_user");  // 修改用户信息
+        myMap.put("/api/rest/operate/delete/user","delete_user");  // 删除企业级用户
+        myMap.put("/api/rest/firm/employees","query_company_user");  // 查询公司用户
+
         return myMap;
     }
 
