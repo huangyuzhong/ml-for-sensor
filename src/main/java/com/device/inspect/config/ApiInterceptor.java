@@ -108,12 +108,28 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         String jsonRequestParam =  "";
 
         if ("POST".equalsIgnoreCase(request.getMethod())){
-            try {
-                Scanner s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
-                jsonRequestParam = s.hasNext() ? s.next() : "";
+            // 因为一些api使用不规范, 导致一些post的方法错误的把 body放到的api的参数部分.
+            // 所以在此处, 先查看是否有api 参数, 如果没有才获取api的body
+            // TODO:之后的工作规范的api之后, 这里的逻辑会修改
+            Map<String, String[]> paramMap = request.getParameterMap();
+            if (paramMap != null && !paramMap.isEmpty()){
+                try{
+                    if(paramId != null) {
+                        paramMap.put("parameter_id", new String[]{paramId});
+                    }
+                    jsonRequestParam = new ObjectMapper().writeValueAsString(request.getParameterMap());
+                }catch (Exception ex){
+                    logger.warn("Failed to parse http request parameters to json string. Err: " + ex.toString());
+                }
+            }
+            else {
+                try {
+                    Scanner s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
+                    jsonRequestParam = s.hasNext() ? s.next() : "";
 
-            }catch (IOException ex){
-                logger.warn("Failed parse http POST request body. Err: " + ex.toString());
+                } catch (IOException ex) {
+                    logger.warn("Failed parse http POST request body. Err: " + ex.toString());
+                }
             }
         }else{
             try{
