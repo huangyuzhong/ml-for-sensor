@@ -334,7 +334,7 @@ public class OperateController {
     }
 
     /**
-     * 修改设备详细概况
+     * 起用停止设备租赁
      * @param deviceId
      * @param map
      * @return

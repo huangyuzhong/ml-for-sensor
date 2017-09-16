@@ -19,7 +19,9 @@ public class UrlParse {
         myMap.put("/api/rest/login", "login");
         myMap.put("/api/rest/logout", "logout");
 
-        // TODO: we should separate this to two apis for create and update
+        // TODO: 很多添加/新增的操作同用一个api, 这样前端获取操作列表的时候很难判断到底是哪个操作, 应该把两个操作分离开.
+
+        // 下面注释掉的内容属于页面加载的时候进行的查询, 暂时不归入用户主动查询范畴
 
         // TODO:ExportController
         myMap.put("/api/rest/download/file", "download_file");   // 文件下载
@@ -37,14 +39,14 @@ public class UrlParse {
         myMap.put("/api/rest/file/logo/company","update_company_logo");  // 更换公司logo
         myMap.put("/api/rest/file/create/device/version","create_device_version");  // 硬件版本更新
         // TODO:OperateController
-        myMap.put("/api/rest/operate/device/floor","operate_device_floor");  // 操作设备层
-        myMap.put("/api/rest/operate/delete/device/floor","delete_device_floor");  // 删除设备层
+        myMap.put("/api/rest/operate/device/floor","operate_device_floor");  // 添加/修改设备样品层
+        myMap.put("/api/rest/operate/delete/device/floor","delete_device_floor");  // 删除设备样品层
         myMap.put("/api/rest/operate/find/deviceDisableTimeByDeviceId","find_device_disableTime");  // 查看共享设备信息
         myMap.put("/api/rest/operate/add/deviceDisableTime","add_device_disableTime");  // 操作设备不可租赁时间段
-        myMap.put("/api/rest/operate/deviceSharing","update_device_sharing");  // 修改设备租赁详情
+        myMap.put("/api/rest/operate/deviceSharing","update_device_sharing");  // 起用停止设备租赁
         myMap.put("/api/rest/operate/device","update_device");  // 修改设备概况
-        myMap.put("/api/rest/operate/get/device/parameter","get_device_parameter");  // 获取设备报警参数
-        myMap.put("/api/rest/operate/findAll/modelData","find_model_data");  // 获取模型信息
+        //myMap.put("/api/rest/operate/get/device/parameter","get_device_parameter");  // 获取设备报警参数
+        //myMap.put("/api/rest/operate/findAll/modelData","find_model_data");  // 获取模型信息
         myMap.put("/api/rest/operate/device/parameter","update_device_parameter");  // 修改单个设备参数
         myMap.put("/api/rest/operate/create/user","create_user");  // 创建新用户
         myMap.put("/api/rest/operate/update/user","update_user");  // 修改用户信息
@@ -64,53 +66,52 @@ public class UrlParse {
         myMap.put("/api/rest/operate/modify/password","update_password");  // 修改密码
         myMap.put("/api/rest/operate/forget/find/password","forget_find_password");  // 找回密码
         myMap.put("/api/rest/operate/device/code","update_device_code");  // 修改终端编号
-        myMap.put("/api/rest/operate/select/device/version","select_device_version");  // 选择版本接口
+        //myMap.put("/api/rest/operate/select/device/version","select_device_version");  // 获取所有版本
         myMap.put("/api/rest/operate/update/multi/device/version","update_multi_device_version");  // 多选更新版本接口
-        myMap.put("/api/rest/operate/device/version/explain","explain_device_version");  // 硬件版本说明接口
+        //myMap.put("/api/rest/operate/device/version/explain","explain_device_version");  // 硬件版本说明接口
         myMap.put("/api/rest/operate/set/zero","set_zero");  // 零票设置
         myMap.put("/api/rest/operate/modify/zero","modify_zero");  // 修改零票值
-        myMap.put("/api/rest/operate/is/login","is_login"); // 判断是否登录
-        myMap.put("/api/rest/operate/is/device/sicentist","query_device_unbound_scientist");  // 查询设备未绑定的科学家
+        //myMap.put("/api/rest/operate/is/login","is_login"); // 判断是否登录
+        //myMap.put("/api/rest/operate/is/device/sicentist","query_device_unbound_scientist");  // 获取设备未绑定的科学家
         myMap.put("/api/rest/operate/device/upChain","device_upChain");  // 设备上链
-        myMap.put("/api/rest/operate/device/updateChainDeviceInfo","device_updateChainDeviceInfo");  // 更新上链设备的上链相关信息
-        myMap.put("/api/rest/operate/device/makeChainDeal","device_makeChainDeal");  // 申请链上交易
-        myMap.put("/api/rest/operate/device/finishChainDeal","device_finishChainDeal");  // 确认交易完成
-        myMap.put("/api/rest/operate/monitor/getFirstNotActActionAndUpdate","monitor_getFirstNotActActionAndUpdate");  // 获取monitor动作队列中最早的未完成动作，并改变状态
+        myMap.put("/api/rest/operate/device/updateChainDeviceInfo","update_device_chain_info");  // 更新上链设备的上链相关信息
+        myMap.put("/api/rest/operate/device/makeChainDeal","apply_device_chain_deal");  // 申请链上交易
+        myMap.put("/api/rest/operate/device/finishChainDeal","finish_device_chain_deal");  // 确认交易完成
+        myMap.put("/api/rest/operate/monitor/getFirstNotActActionAndUpdate","update_monitor_first_unfinished_action");  // 获取monitor动作队列中最早的未完成动作，并改变状态
         // TODO:SelectApiController
-        myMap.put("/api/rest/firm/person/info","query_person");  // 查询个人信息
-        myMap.put("/api/rest/firm/person/mine/info","query_person_mine");  // 查询用户个人信息
-        myMap.put("/api/rest/firm/buildings","query_buildings");  // 查询当前所有楼
-        myMap.put("/api/rest/firm/floors","query_floors");  // 查询当前所有层
-        myMap.put("/api/rest/firm/rooms","query_rooms");  // 查询当前所有室
-        myMap.put("/api/rest/firm/devices","query_device");  // 查询当前所有设备
-        myMap.put("/api/rest/firm/device/types","query_device_types");  // 查询所有设备种类
-        myMap.put("/api/rest/firm/device/type/request","query_device_type_request");  // 查询设备类型参数
-        myMap.put("/api/rest/firm/manager/devices","query_manager_devices");  // 查询用户设备列表信息
-        myMap.put("/api/rest/firm/manager/devices","query_manager_devices");  // 查询用户设备列表信息
-        myMap.put("/api/rest/firm/enableSharing/devices","query_enableSharing_devices");  // 查询分享设备列表信息
-        myMap.put("/api/rest/firm/service/device","query_service_devices");  // 平台用户查询设备列表
+        //myMap.put("/api/rest/firm/person/info","query_person");  // 查询个人信息
+        //myMap.put("/api/rest/firm/person/mine/info","query_person_mine");  // 查询用户个人信息
+        //myMap.put("/api/rest/firm/buildings","query_buildings");  // 查询当前园区内所有楼
+        //myMap.put("/api/rest/firm/floors","query_floors");  // 查询当前楼里所有层
+        //myMap.put("/api/rest/firm/rooms","query_rooms");  // 查询当前层里所有室
+        //myMap.put("/api/rest/firm/devices","query_device");  // 查询当前室里所有设备
+        //myMap.put("/api/rest/firm/device/types","query_device_types");  // 查询所有设备种类
+        myMap.put("/api/rest/firm/device/type/request","query_device_type");  // 查询设备类型
+        myMap.put("/api/rest/firm/manager/devices","query_devices");  // 查询设备列表信息(使用各种筛选条件)
+        myMap.put("/api/rest/firm/enableSharing/devices","query_sharing_devices");  // 查询分享设备列表信息
+        myMap.put("/api/rest/firm/service/device","management_query_devices");  // 管理平台用户查询设备列表
         myMap.put("/api/rest/firm/employees","query_employees");  // 查询当前公司的所有员工
-        myMap.put("/api/rest/firm/query/all/company","query_all_company");  // 查询所有业务企业
-        myMap.put("/api/rest/firm/query/login/company","query_login_company");  // 登陆页面根据公司URL获取公司信息
-        myMap.put("/api/rest/firm/query/mine/company","query_mine_company");  // 根据登录人获取所属公司信息
-        myMap.put("/api/rest/firm/colleges/manager","query_colleges_manager");  // 获取当前企业所有员工(仅包含企业管理员和设备管理员)
-        myMap.put("/api/rest/firm/query/inspect/type","query_inspect_type");  // 获取设备的检测参数
-        myMap.put("/api/rest/firm/colleges/scientist","query_colleges_scientist");  // 获取用户所在企业所有的科学家
+        myMap.put("/api/rest/firm/query/all/company","management_query_all_company");  // 管理平台查询所有业务企业
+        //myMap.put("/api/rest/firm/query/login/company","query_login_company");  // 登陆页面根据公司URL获取公司信息
+        //myMap.put("/api/rest/firm/query/mine/company","query_mine_company");  // 根据登录人获取所属公司信息
+        //myMap.put("/api/rest/firm/colleges/manager","query_colleges_manager");  // 获取当前企业所有员工(仅包含企业管理员和设备管理员)
+        //myMap.put("/api/rest/firm/query/inspect/type","query_inspect_type");  // 获取所有的监控参数
+        //myMap.put("/api/rest/firm/colleges/scientist","query_colleges_scientist");  // 获取用户所在企业所有的科学家
         myMap.put("/api/rest/firm/take/over/colleges","delete_colleges");  // 删除公司人员
-        myMap.put("/api/rest/firm/service/get/versions","query_service_versions");  // 查询所有版本号接口
-        myMap.put("/api/rest/firm/device/running_status","query_device_running_status");  // 获取所有运行状态
-        myMap.put("/api/rest/firm/device/type/status","query_device_type_status");  // 获取设备种类监控参数对应状态
-        myMap.put("/api/rest/firm/device/inspect/status","query_device_inspect_status");  // 获取设备监控参数对应状态
-        myMap.put("/api/rest/firm/device/utilization","query_device_utilization");  // 获取最近一周的某设备的hourly设备利用率
-        myMap.put("/api/rest/firm/user/operations","query_user_operations");  // 获取用户操作记录
+        //myMap.put("/api/rest/firm/service/get/versions","query_service_versions");  // 查询所有版本号接口
+        //myMap.put("/api/rest/firm/device/running_status","query_device_running_status");  // 获取所有运行状态
+        //myMap.put("/api/rest/firm/device/type/status","query_device_type_status");  // 获取设备种类监控参数对应状态
+        //myMap.put("/api/rest/firm/device/inspect/status","query_device_inspect_status");  // 获取设备监控参数对应状态
+        myMap.put("/api/rest/firm/device/utilization","query_device_weekly_utilization");  // 获取最近一周的某设备的hourly设备利用率
+        //myMap.put("/api/rest/firm/user/operations","query_user_operations");  // 获取用户操作记录
         myMap.put("/api/rest/firm/device/daily/utilization","query_device_daily_utilization");  // 获取昨日设备利用率情况
-        myMap.put("/api/rest/firm/device/monitorData","query_device_monitorData");  // 获取设备监控数据
-        myMap.put("/api/rest/firm/dealHistory","query_dealHistory");  // 获取交易记录
-        myMap.put("/api/rest/firm/device/runningStatusHistory","query_device_runningStatusHistory");  // 获取设备运行记录
-        myMap.put("/api/rest/firm/device/cameraList","query_device_cameraList");  // 获取设备cameraList
-        myMap.put("/api/rest/firm/device/cameraToken","query_device_cameraToken");  // 获取设备cameraToken
-        myMap.put("/api/rest/firm/monitor/actionList","query_monitor_actionList");  // 获取某个monitor的动作历史
-        myMap.put("/api/rest/firm/dealRecord/alert","query_dealRecord_alert");  // 获取交易的报警列表
+        myMap.put("/api/rest/firm/device/monitorData","query_device_monitoring_data");  // 查询设备监控数据
+        //myMap.put("/api/rest/firm/dealHistory","query_dealHistory");  // 获取交易记录
+        //myMap.put("/api/rest/firm/device/runningStatusHistory","query_device_runningStatusHistory");  // 获取设备运行记录
+        //myMap.put("/api/rest/firm/device/cameraList","query_device_cameraList");  // 获取设备cameraList
+        //myMap.put("/api/rest/firm/device/cameraToken","query_device_cameraToken");  // 获取设备cameraToken
+        //myMap.put("/api/rest/firm/monitor/actionList","query_monitor_actionList");  // 获取某个monitor的动作历史
+        //myMap.put("/api/rest/firm/dealRecord/alert","query_dealRecord_alert");  // 获取交易的报警列表
 
         return myMap;
     }
