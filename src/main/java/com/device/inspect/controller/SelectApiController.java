@@ -1187,7 +1187,7 @@ public class SelectApiController {
             }
 
             ruop.setOperationName(operationName);
-            if((op.get(2) == "GET")){
+            if(op.get(2).equals("GET")){
                 ruop.setOperationType("query");
 
             }else{
