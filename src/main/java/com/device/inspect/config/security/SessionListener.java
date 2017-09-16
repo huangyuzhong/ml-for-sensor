@@ -33,7 +33,7 @@ public class SessionListener implements HttpSessionListener{
         System.out.println(df.format(dateobj));
         System.out.println(String.format("session %s created, total session %d", session.getId(), totalActiveSessions));
         logger.info(String.format("session %s created, total session %d", session.getId(), totalActiveSessions));
-        session.setMaxInactiveInterval(60*60*24*365);
+        session.setMaxInactiveInterval(60*60*1); //1小时内无操作, session将expire
     }
 
     @Override
