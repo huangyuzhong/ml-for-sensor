@@ -1164,9 +1164,11 @@ public class SelectApiController {
 
         List<RestUserOperation> operationList = new ArrayList<>();
         for(List<Object> op : userOps){
+            //List<Object> is an operation item got our from influxdb query: time, url, method, api_parameter, username
             RestUserOperation ruop = new RestUserOperation();
             ruop.setTimeStamp(new Date(TimeUtil.fromInfluxDBTimeFormat((String)op.get(0))));
-            ruop.setUrl((String)op.get(1));
+            String apiUrl = (String)op.get(1);
+            ruop.setUrl(apiUrl);
             ruop.setContent((String)op.get(3));
             String username = (String)op.get(4);
             ruop.setUsername(username);
@@ -1177,6 +1179,19 @@ public class SelectApiController {
 
             }else{
                 ruop.setUserDisplayName(op_user.getUserName());
+            }
+            String operationName = UrlParse.urlUserOperationMap.get(apiUrl);
+            if(operationName == null){
+                LOGGER.error(String.format("Cannot find operation name for url %s, please check UrlParse.urlUserOperationMap to make sure the url is contained", apiUrl));
+                continue;
+            }
+
+            ruop.setOperationName(operationName);
+            if((op.get(2) == "GET")){
+                ruop.setOperationType("query");
+
+            }else{
+                ruop.setOperationType("update");
             }
 
             operationList.add(ruop);
