@@ -39,17 +39,24 @@ public class BlockChainDevice {
         this.rentPrice = device.getRentPrice();
         this.rentClause = device.getRentClause();
 
-        if (deviceDisableTime.getContent() != null && !("".equals(deviceDisableTime.getContent()))){
-            String content = deviceDisableTime.getContent();
-            String[] contents = content.split(";");
+        if (deviceDisableTime == null) {
+            this.disablePeriod = null;
+        } else{
+            if (deviceDisableTime.getContent() != null && !("".equals(deviceDisableTime.getContent()))){
+                String content = deviceDisableTime.getContent();
+                String[] contents = content.split(";");
 
-            disablePeriod = new Long[contents.length][2];
-            for (int i=0; i<contents.length; i++){
-                String[] startToEnd = contents[i].split(",");
-                disablePeriod[i][0] = Long.parseLong(startToEnd[0]);
-                disablePeriod[i][1] = Long.parseLong(startToEnd[1]);
+                disablePeriod = new Long[contents.length][2];
+                for (int i=0; i<contents.length; i++){
+                    String[] startToEnd = contents[i].split(",");
+                    disablePeriod[i][0] = Long.parseLong(startToEnd[0]);
+                    disablePeriod[i][1] = Long.parseLong(startToEnd[1]);
+                }
+            }else{
+                this.disablePeriod = null;
             }
         }
+
     }
 
     public Integer getId() {
