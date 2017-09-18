@@ -1130,7 +1130,7 @@ public class SelectApiController {
         if (userName != null && operationType != null){
             userOps = Application.influxDBManager.readAPIByTypeMethodTypeUsernameTimeRange(
                     UrlParse.API_TYPE_USER_OPERATION,
-                    operationType=="query",
+                    operationType.equals("query"),
                     userCompany,
                     beginTime,
                     endTime,
@@ -1149,7 +1149,7 @@ public class SelectApiController {
         else if(operationType != null){
             userOps = Application.influxDBManager.readAPIByTypeMethodTypeCompanyTimeRange(
                     UrlParse.API_TYPE_USER_OPERATION,
-                    operationType=="query",
+                    operationType.equals("query"),
                     companyId,
                     beginTime,
                     endTime,

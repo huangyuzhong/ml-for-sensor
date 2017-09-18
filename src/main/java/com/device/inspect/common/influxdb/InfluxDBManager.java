@@ -565,7 +565,7 @@ public class InfluxDBManager {
         }
 
         String queryString =
-                String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username = %s AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+                String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username = '%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                         apiType, userName, startNano, endNano, limit, offset);
 
 
