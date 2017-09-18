@@ -1109,7 +1109,10 @@ public class SelectApiController {
 
         if (requestParam.containsKey("username")){
             userName = requestParam.get("username");
-            if(!userName.contains("@")){
+            if(userName.isEmpty()){
+                userName = null;
+            }
+            else if(!userName.contains("@")){
                 userCompany = String.format("%s@%s", userName, companyId);
             }else{
                 userCompany = userName;
@@ -1118,6 +1121,9 @@ public class SelectApiController {
 
         if(requestParam.containsKey("operationtype")){
             operationType = requestParam.get("operationtype");
+            if(operationType.isEmpty()){
+                operationType = null;
+            }
         }
 
         List<List<Object>> userOps = null;
@@ -1163,38 +1169,40 @@ public class SelectApiController {
 
 
         List<RestUserOperation> operationList = new ArrayList<>();
-        for(List<Object> op : userOps){
-            //List<Object> is an operation item got our from influxdb query: time, url, method, api_parameter, username
-            RestUserOperation ruop = new RestUserOperation();
-            ruop.setTimeStamp(new Date(TimeUtil.fromInfluxDBTimeFormat((String)op.get(0))));
-            String apiUrl = (String)op.get(1);
-            ruop.setUrl(apiUrl);
-            ruop.setContent((String)op.get(3));
-            String username = (String)op.get(4);
-            ruop.setUsername(username);
-            User op_user = userRepository.findByName(username);
-            if(op_user == null){
-                LOGGER.warn(String.format("Cannot find user by name %s, may be deleted", username));
-                ruop.setUserDisplayName("deleted");
+        if (userOps != null) {
+            for (List<Object> op : userOps) {
+                //List<Object> is an operation item got our from influxdb query: time, url, method, api_parameter, username
+                RestUserOperation ruop = new RestUserOperation();
+                ruop.setTimeStamp(new Date(TimeUtil.fromInfluxDBTimeFormat((String) op.get(0))));
+                String apiUrl = (String) op.get(1);
+                ruop.setUrl(apiUrl);
+                ruop.setContent((String) op.get(3));
+                String username = (String) op.get(4);
+                ruop.setUsername(username);
+                User op_user = userRepository.findByName(username);
+                if (op_user == null) {
+                    LOGGER.warn(String.format("Cannot find user by name %s, may be deleted", username));
+                    ruop.setUserDisplayName("deleted");
 
-            }else{
-                ruop.setUserDisplayName(op_user.getUserName());
+                } else {
+                    ruop.setUserDisplayName(op_user.getUserName());
+                }
+                String operationName = UrlParse.urlUserOperationMap.get(apiUrl);
+                if (operationName == null) {
+                    LOGGER.error(String.format("Cannot find operation name for url %s, please check UrlParse.urlUserOperationMap to make sure the url is contained", apiUrl));
+                    continue;
+                }
+
+                ruop.setOperationName(operationName);
+                if (op.get(2).equals("GET")) {
+                    ruop.setOperationType("query");
+
+                } else {
+                    ruop.setOperationType("update");
+                }
+
+                operationList.add(ruop);
             }
-            String operationName = UrlParse.urlUserOperationMap.get(apiUrl);
-            if(operationName == null){
-                LOGGER.error(String.format("Cannot find operation name for url %s, please check UrlParse.urlUserOperationMap to make sure the url is contained", apiUrl));
-                continue;
-            }
-
-            ruop.setOperationName(operationName);
-            if(op.get(2).equals("GET")){
-                ruop.setOperationType("query");
-
-            }else{
-                ruop.setOperationType("update");
-            }
-
-            operationList.add(ruop);
         }
 
 
