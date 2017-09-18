@@ -428,10 +428,10 @@ public class InfluxDBManager {
         String queryString = null;
 
         if(isQuery) {
-            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method='GET' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                     apiType, userName, startNano, endNano, limit, offset);
         }else{
-            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method!=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method!='GET' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                     apiType, userName, startNano, endNano, limit, offset);
         }
 
@@ -466,10 +466,10 @@ public class InfluxDBManager {
         String queryString = null;
 
         if(isQuery) {
-            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method='GET' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                     apiType, companyName, startNano, endNano, limit, offset);
         }else{
-            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method!=GET AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
+            queryString = String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username =~ /@%s$/ AND method!='GET' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                     apiType, companyName, startNano, endNano, limit, offset);
         }
 
