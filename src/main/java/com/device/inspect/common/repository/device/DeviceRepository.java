@@ -1,6 +1,8 @@
 package com.device.inspect.common.repository.device;
 
 import com.device.inspect.common.model.device.Device;
+import com.device.inspect.common.restful.device.RestDeviceIdAndName;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
@@ -26,5 +28,11 @@ public interface DeviceRepository extends CrudRepository<Device,Integer> {
     public Integer countByRoomIdAndEnable(Integer RoomId, Integer Enable);
     public Device findById(Integer Id);
     public Device save(Device device);
+
+    @Query(value="select d.model from device d where d.type_id=?1 and d.model<>'' and d.model is not NULL",nativeQuery=true)
+    public List<String> findModelByDeviceTypeId(Integer deviceTypeId);
+
+    @Query(value="select d.id, d.name from device d where d.model=?1",nativeQuery=true)
+    public List<RestDeviceIdAndName> findByModel(String model);
 
 }

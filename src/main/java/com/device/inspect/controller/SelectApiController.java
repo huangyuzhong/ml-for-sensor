@@ -404,6 +404,26 @@ public class SelectApiController {
     }
 
     /**
+     * 根据设备种类Id获取设备品牌
+     */
+    @RequestMapping(value = "/device/model/{deviceTypeId}")
+    public RestResponse getDeviceModelList(Principal principal, @PathVariable String deviceTypeId) {
+
+        List<String> deviceModels = deviceRepository.findModelByDeviceTypeId(Integer.parseInt(deviceTypeId));
+        return new RestResponse(deviceModels);
+
+    }
+
+    /**
+     * 根据设备品牌获取设备
+     */
+    @RequestMapping(value = "/query/deviceByModel/{model}")
+    public RestResponse getDeviceListByModel(Principal principal, @PathVariable String model) {
+        List<RestDeviceIdAndName> restDeviceIdAndNames = deviceRepository.findByModel(model);
+        return new RestResponse(restDeviceIdAndNames);
+    }
+
+    /**
      * 查询用户设备列表信息
      *
      * @param principal
