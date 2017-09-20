@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * Created by Administrator on 2016/7/8.
@@ -29,10 +30,13 @@ public interface DeviceRepository extends CrudRepository<Device,Integer> {
     public Device findById(Integer Id);
     public Device save(Device device);
 
-    @Query(value="select d.model from device d where d.type_id=?1 and d.model<>'' and d.model is not NULL",nativeQuery=true)
-    public List<String> findModelByDeviceTypeId(Integer deviceTypeId);
+    @Query(value="select d.model from device d where d.type_id=?1 and d.manager_user_id=?2 and d.model<>'' and d.model is not NULL", nativeQuery=true)
+    public Set<String> findModelByDeviceTypeId(Integer deviceTypeId, Integer ManagerId);
 
-    @Query(value="select d.id, d.name from device d where d.model=?1",nativeQuery=true)
-    public List<RestDeviceIdAndName> findByModel(String model);
+    @Query(value="select d.id, d.name from device d where d.model=?1 and d.manager_user_id=?2", nativeQuery=true)
+    public List<RestDeviceIdAndName> findByModelAndManagerId(String model, Integer ManagerId);
+
+    @Query(value="select d.id, d.name from device d where d.manager_user_id=?1", nativeQuery=true)
+    public List<RestDeviceIdAndName> findByUserId(Integer UserId);
 
 }

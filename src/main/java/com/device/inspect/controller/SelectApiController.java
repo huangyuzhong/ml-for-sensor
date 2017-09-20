@@ -406,10 +406,25 @@ public class SelectApiController {
     /**
      * 根据设备种类Id获取设备品牌
      */
-    @RequestMapping(value = "/device/model/{deviceTypeId}")
-    public RestResponse getDeviceModelList(Principal principal, @PathVariable String deviceTypeId) {
+    @RequestMapping(value = "/device/model/deviceTypeId")
+    public RestResponse getDeviceModelList(Principal principal, @RequestParam String deviceTypeId) {
+        User user = judgeByPrincipal(principal);
+        if (user == null) {
+            return new RestResponse("用户未登录",1005,null);
+        }
 
-        List<String> deviceModels = deviceRepository.findModelByDeviceTypeId(Integer.parseInt(deviceTypeId));
+        Set<String> deviceModels = new HashSet<>();
+        if (deviceTypeId == null || deviceTypeId.equals("")){
+            List<Device> devices = deviceRepository.findByManagerId(user.getId());
+            for (Device device : devices) {
+                String model = device.getModel();
+                if (model != null && !model.equals("")) {
+                    deviceModels.add(model);
+                }
+            }
+        } else {
+            deviceModels = deviceRepository.findModelByDeviceTypeId(Integer.parseInt(deviceTypeId),user.getId());
+        }
         return new RestResponse(deviceModels);
 
     }
@@ -417,9 +432,18 @@ public class SelectApiController {
     /**
      * 根据设备品牌获取设备
      */
-    @RequestMapping(value = "/query/deviceByModel/{model}")
-    public RestResponse getDeviceListByModel(Principal principal, @PathVariable String model) {
-        List<RestDeviceIdAndName> restDeviceIdAndNames = deviceRepository.findByModel(model);
+    @RequestMapping(value = "/query/deviceByModel/model")
+    public RestResponse getDeviceListByModel(Principal principal, @RequestParam String model) {
+        User user = judgeByPrincipal(principal);
+        if (user == null) {
+            return new RestResponse("用户未登录",1005,null);
+        }
+        List<RestDeviceIdAndName> restDeviceIdAndNames;
+        if (model == null || model.equals("")) {
+            restDeviceIdAndNames = deviceRepository.findByUserId(user.getId());
+        } else {
+            restDeviceIdAndNames = deviceRepository.findByModelAndManagerId(model,user.getId());
+        }
         return new RestResponse(restDeviceIdAndNames);
     }
 
