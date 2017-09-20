@@ -440,19 +440,20 @@ public class SelectApiController {
     }
 
     /**
-     * 根据设备品牌获取设备
+     * 根据设备品牌和设备种类id获取设备id和name
      */
     @RequestMapping(value = "/query/deviceByModel")
-    public RestResponse getDeviceListByModel(Principal principal, @RequestParam(required = false) String model) {
+    public RestResponse getDeviceListByModel(Principal principal, @RequestParam(required = false) String model,
+                                             @RequestParam Integer deviceTypeId) {
         User user = judgeByPrincipal(principal);
         if (user == null) {
             return new RestResponse("用户未登录",1005,null);
         }
         List<Device> deviceList;
         if (model == null || model.equals("")) {
-            deviceList = deviceRepository.findByManagerId(user.getId());
+            deviceList = deviceRepository.findByManagerIdAndDeviceTypeId(user.getId(), deviceTypeId);
         } else {
-            deviceList = deviceRepository.findByModelAndManagerId(model,user.getId());
+            deviceList = deviceRepository.findByModelAndManagerIdAndDeviceTypeId(model,user.getId(), deviceTypeId);
         }
         System.out.println(deviceList.size());
         List<DeviceIdAndName> deviceIdAndNames = new ArrayList<>();

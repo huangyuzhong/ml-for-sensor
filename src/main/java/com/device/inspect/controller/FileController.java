@@ -530,7 +530,11 @@ public class FileController {
                 else{
                     device.setSerialNo(param.get("serialNo"));
                 }
-                device.setModel(param.get("model"));
+                if (param.get("model") == null || param.get("model").equals("")) {
+                    device.setModel("iLabService");
+                } else {
+                    device.setModel(param.get("model"));
+                }
                 if(param.get("purchaseDate") != null){
                     device.setPurchase(new Date(Long.parseLong(param.get("purchaseDate"))));
                 }
