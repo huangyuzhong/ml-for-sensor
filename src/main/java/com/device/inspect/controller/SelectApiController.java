@@ -407,7 +407,7 @@ public class SelectApiController {
      * 根据设备种类Id获取设备品牌
      */
     @RequestMapping(value = "/device/model/deviceTypeId")
-    public RestResponse getDeviceModelList(Principal principal, @RequestParam String deviceTypeId) {
+    public RestResponse getDeviceModelList(Principal principal, @RequestParam(required = false) String deviceTypeId) {
         User user = judgeByPrincipal(principal);
         if (user == null) {
             return new RestResponse("用户未登录",1005,null);
@@ -433,7 +433,7 @@ public class SelectApiController {
      * 根据设备品牌获取设备
      */
     @RequestMapping(value = "/query/deviceByModel/model")
-    public RestResponse getDeviceListByModel(Principal principal, @RequestParam String model) {
+    public RestResponse getDeviceListByModel(Principal principal, @RequestParam(required = false) String model) {
         User user = judgeByPrincipal(principal);
         if (user == null) {
             return new RestResponse("用户未登录",1005,null);
