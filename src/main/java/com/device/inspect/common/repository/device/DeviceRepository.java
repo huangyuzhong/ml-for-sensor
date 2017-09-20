@@ -33,10 +33,6 @@ public interface DeviceRepository extends CrudRepository<Device,Integer> {
     @Query(value="select d.model from device d where d.type_id=?1 and d.manager_user_id=?2 and d.model<>'' and d.model is not NULL", nativeQuery=true)
     public Set<String> findModelByDeviceTypeId(Integer deviceTypeId, Integer ManagerId);
 
-    @Query(value="select d.id, d.name from device d where d.model=?1 and d.manager_user_id=?2", nativeQuery=true)
-    public List<RestDeviceIdAndName> findByModelAndManagerId(String model, Integer ManagerId);
-
-    @Query(value="select d.id, d.name from device d where d.manager_user_id=?1", nativeQuery=true)
-    public List<RestDeviceIdAndName> findByUserId(Integer UserId);
+    public List<Device> findByModelAndManagerId(String model, Integer ManagerId);
 
 }

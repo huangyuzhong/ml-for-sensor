@@ -425,7 +425,17 @@ public class SelectApiController {
         } else {
             deviceModels = deviceRepository.findModelByDeviceTypeId(Integer.parseInt(deviceTypeId),user.getId());
         }
-        return new RestResponse(deviceModels);
+
+        List<DeviceModel> deviceModelList = new ArrayList<>();
+        int i = 0;
+        for (String deviceModel : deviceModels) {
+            DeviceModel model = new DeviceModel();
+            model.setId(i);
+            model.setModel(deviceModel);
+            deviceModelList.add(model);
+            i++;
+        }
+        return new RestResponse(deviceModelList);
 
     }
 
@@ -438,13 +448,21 @@ public class SelectApiController {
         if (user == null) {
             return new RestResponse("用户未登录",1005,null);
         }
-        List<RestDeviceIdAndName> restDeviceIdAndNames;
+        List<Device> deviceList;
         if (model == null || model.equals("")) {
-            restDeviceIdAndNames = deviceRepository.findByUserId(user.getId());
+            deviceList = deviceRepository.findByManagerId(user.getId());
         } else {
-            restDeviceIdAndNames = deviceRepository.findByModelAndManagerId(model,user.getId());
+            deviceList = deviceRepository.findByModelAndManagerId(model,user.getId());
         }
-        return new RestResponse(restDeviceIdAndNames);
+        System.out.println(deviceList.size());
+        List<DeviceIdAndName> deviceIdAndNames = new ArrayList<>();
+        for (Device device : deviceList) {
+            DeviceIdAndName deviceIdAndName = new DeviceIdAndName();
+            deviceIdAndName.setId(device.getId());
+            deviceIdAndName.setName(device.getName());
+            deviceIdAndNames.add(deviceIdAndName);
+        }
+        return new RestResponse(deviceIdAndNames);
     }
 
     /**
