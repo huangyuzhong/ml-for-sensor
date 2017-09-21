@@ -824,7 +824,7 @@ public class SocketMessageApi {
             }
         }
         map.put("runningStatus", runningLevel);
-
+        map.put("batteryStatus", device.getMonitorDevice().getBattery());
         map.put("tsdata", restDeviceMonitoringTSData);
         return new RestResponse(map);
 
