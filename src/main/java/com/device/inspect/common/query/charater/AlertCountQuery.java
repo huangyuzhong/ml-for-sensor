@@ -15,6 +15,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,13 @@ public class AlertCountQuery extends Querier<AlertCount>{
             }
         });
 
+        queryFilterMap.put("deviceTypeId", new AlertCountQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<AlertCount> rootObject) {
+                return cb.equal(rootObject.get("device").get("deviceType").get("id"), object);
+            }
+        });
+
         queryFilterMap.put("inspectTypeId", new AlertCountQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<AlertCount> rootObject) {
@@ -43,7 +51,21 @@ public class AlertCountQuery extends Querier<AlertCount>{
         queryFilterMap.put("alertType", new AlertCountQueryFilter() {
             @Override
             public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<AlertCount> rootObject) {
-                return cb.equal(rootObject.get("alertType"), object);
+                return cb.equal(rootObject.get("type"), object);
+            }
+        });
+
+        queryFilterMap.put("startTime", new AlertCountQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<AlertCount> rootObject) {
+                return cb.and(cb.greaterThanOrEqualTo(rootObject.<Date>get("createDate"), new Date(Long.parseLong(object))));
+            }
+        });
+
+        queryFilterMap.put("endTime", new AlertCountQueryFilter() {
+            @Override
+            public Predicate filterQuery(CriteriaBuilder cb, CriteriaQuery cq, String object, Root<AlertCount> rootObject) {
+                return cb.and(cb.lessThanOrEqualTo(rootObject.<Date>get("createDate"), new Date(Long.parseLong(object))));
             }
         });
     }

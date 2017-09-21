@@ -45,6 +45,7 @@ import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
+import jdk.management.resource.internal.inst.FileOutputStreamRMHooks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
@@ -788,8 +789,12 @@ public class SelectApiController {
         Map map = new HashMap();
         map.put("total", String.valueOf(alertCountPage.getTotalElements()));
         map.put("thisNum", String.valueOf(alertCountPage.getNumberOfElements()));
-//        List<>
-        return null;
+        List<RestAlertCount> list = new ArrayList<>();
+        for (AlertCount alertCount:alertCountPage.getContent()){
+            list.add(new RestAlertCount(alertCount));
+        }
+        map.put("alertCountList", list);
+        return map;
     }
 
     private Map assembleUsers(User userRoot, Page<User> userPage) {
@@ -1749,8 +1754,12 @@ public class SelectApiController {
     @RequestMapping(value = "/query/alert", method = RequestMethod.POST)
     public RestResponse getAllAlert(Principal principal, @RequestParam Map<String, String> param){
         User user = judgeByPrincipal(principal);
-        if(user == null)
-            return new RestResponse("用户未登陆",1005,null);
+        if(user == null){
+            return new RestResponse("用户未登陆", 1005, null);
+        }
+
+        Integer limit = new Integer(10);
+        Integer offset = new Integer(0);
 
         if (!param.containsKey("deviceId")){
             return new RestResponse("请传入deviceId参数", 1006, null);
@@ -1770,60 +1779,17 @@ public class SelectApiController {
         if (!param.containsKey("endTime")){
             return new RestResponse("请传入endTime参数", 1006, null);
         }
-        if (!param.containsKey("limit")){
-            return new RestResponse("请传入limit参数", 1006, null);
-        }
-        if (!param.containsKey("offset")){
-            return new RestResponse("请传入offset参数", 1006, null);
-        }
-
-        Integer deviceId = null;
-        if (!"".equals(param.get("deviceId"))){
-            deviceId = Integer.parseInt(param.get("deviceId"));
-        }
-
-        List<Integer> inspectTypeIds = new ArrayList<>();
-        Integer deviceTypeId = null;
-        if (param.get("deviceTypeId")!=null && !"".equals(param.get("deviceTypeId"))){
-            deviceTypeId = Integer.parseInt(param.get("deviceTypeId"));
-            List<DeviceTypeInspect> deviceTypeInspects = deviceTypeInspectRepository.findByDeviceTypeId(deviceTypeId);
-            for (DeviceTypeInspect deviceTypeInspect:deviceTypeInspects){
-                inspectTypeIds.add(deviceTypeInspect.getInspectType().getId());
-            }
-        }
-
-        Integer inspectTypeId = null;
-        if (!"".equals(param.get("inspectTypeId"))){
-            inspectTypeId = Integer.parseInt(param.get("inspectTypeId"));
-            inspectTypeIds.add(inspectTypeId);
-        }
-
-        Integer alertType = null;
-        if (!"".equals(param.get("alertType"))){
-            alertType = Integer.parseInt(param.get("alertType"));
-        }
-
-        Date startTime = null;
-        if (!"".equals(param.get("startTime"))){
-            startTime = new Date(Long.parseLong(param.get("startTime")));
-        }
-
-        Date endTime = null;
-        if (!"".equals(param.get("endTime"))){
-            endTime = new Date(Long.parseLong(param.get("endTime")));
-        }
-
-        Integer limit = new Integer(10);
-        Integer offset = new Integer(1);
-        if (""!=param.get("limit")){
+        if (param.containsKey("limit")){
             limit = Integer.parseInt(param.get("limit"));
+            param.remove("limit");
         }
-        if (""!=param.get("offset")) {
+        if (param.containsKey("offset")){
             offset = Integer.parseInt(param.get("offset"));
+            param.remove("offset");
         }
 
-        Page<AlertCount> alertCountPage = new AlertCountQuery(entityManager).query(param, Integer.parseInt(param.get("offset")), Integer.parseInt(param.get("limit")), new Sort(Sort.Direction.DESC, "createDate"));
+        Page<AlertCount> alertCountPage = new AlertCountQuery(entityManager).query(param, offset, limit, new Sort(Sort.Direction.DESC, "createDate"));
 
-        return null;
+        return new RestResponse(assembleAlertCount(alertCountPage));
     }
 }
