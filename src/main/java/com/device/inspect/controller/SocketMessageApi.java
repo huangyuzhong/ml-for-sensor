@@ -147,7 +147,6 @@ public class SocketMessageApi {
 
         DeviceInspect deviceInspect = null;
 
-
         try{
             monitorDevice = monitorDeviceRepository.findByNumber(inspectMessage.getMonitorSN());
             if (null == monitorDevice)
@@ -168,13 +167,25 @@ public class SocketMessageApi {
             deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
 
-            if(deviceInspect == null){
+            if(deviceInspect == null && !inspectMessage.getInspectTypeCode().equals("03")){
                 LOGGER.warn(String.format("Failed to get device inspect by type %s, device %d", inspectType.getName(), device.getId()));
                 return null;
             }
 
             if (inspectMessage.getInspectTypeCode().equals("03")) {
                 monitorDevice.setBattery(String.valueOf(Float.valueOf(inspectMessage.getiData()) / 10));
+                // add abstract device inspect for all battery message, used in following alert parse
+                deviceInspect = new DeviceInspect();
+                deviceInspect.setZero(0F);
+                deviceInspect.setId(-1);
+                deviceInspect.setStandard(100F);
+                deviceInspect.setHighDown(0.2F);
+                deviceInspect.setLowDown(0.2F);
+                deviceInspect.setHighUp(110F);
+                deviceInspect.setLowUp(110F);
+                deviceInspect.setInspectPurpose(0);
+                deviceInspect.setName("Remain Battery Percentage");
+                deviceInspect.setInspectType(inspectType);
                 monitorDeviceRepository.save(monitorDevice);
             }
         }catch (Exception e){
