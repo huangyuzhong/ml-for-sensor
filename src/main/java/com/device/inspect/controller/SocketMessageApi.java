@@ -174,6 +174,7 @@ public class SocketMessageApi {
 
             if (inspectMessage.getInspectTypeCode().equals("03")) {
                 monitorDevice.setBattery(String.valueOf(Float.valueOf(inspectMessage.getiData()) / 10));
+                // add abstract device inspect for all battery message, used in following alert parse
                 deviceInspect = new DeviceInspect();
                 deviceInspect.setZero(0F);
                 deviceInspect.setId(-1);
