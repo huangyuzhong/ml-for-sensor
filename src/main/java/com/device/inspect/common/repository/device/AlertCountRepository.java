@@ -1,6 +1,8 @@
 package com.device.inspect.common.repository.device;
 
 import com.device.inspect.common.model.device.AlertCount;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -33,5 +35,12 @@ public interface AlertCountRepository  extends CrudRepository<AlertCount,Integer
                                                                                                             Integer inspectTypeId,
                                                                                                             Date finishTime,
                                                                                                             Date createDate);
+
+    public Page<AlertCount> findByDeviceIdAndInspectTypeIdInAndTypeAndCreateDateGreaterThanEqualAndCreateDateLessThanEqualOrderByFinishAsc(Integer deviceId,
+                                                                                                                           List<Integer> inspectTypeIds,
+                                                                                                                           Integer alertType,
+                                                                                                                           Date startTime,
+                                                                                                                           Date endTime,
+                                                                                                                           Pageable pageable);
 
 }

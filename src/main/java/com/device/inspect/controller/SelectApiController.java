@@ -12,6 +12,7 @@ import com.device.inspect.common.model.firm.Storey;
 import com.device.inspect.common.model.record.DealAlertRecord;
 import com.device.inspect.common.model.record.DealRecord;
 import com.device.inspect.common.model.record.DeviceOrderList;
+import com.device.inspect.common.query.charater.AlertCountQuery;
 import com.device.inspect.common.query.charater.CompanyQuery;
 import com.device.inspect.common.query.charater.DeviceQuery;
 import com.device.inspect.common.query.charater.UserQuery;
@@ -49,6 +50,7 @@ import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -115,9 +117,6 @@ public class SelectApiController {
     private DeviceInspectRepository deviceInspectRepository;
 
     @Autowired
-    private AlertCountRepository alertCountRepository;
-
-    @Autowired
     private DealRecordRepository dealRecordRepository;
 
     @Autowired
@@ -131,6 +130,12 @@ public class SelectApiController {
 
     @Autowired
     private DealAlertRecordRepository dealAlertRecordRepository;
+
+    @Autowired
+    private AlertCountRepository alertCountRepository;
+
+    @Autowired
+    private DeviceTypeInspectRepository deviceTypeInspectRepository;
 
     private User judgeByPrincipal(Principal principal) {
         if (null == principal || null == principal.getName())
@@ -776,6 +781,14 @@ public class SelectApiController {
         }
         map.put("devices", list);
         return map;
+    }
+
+    private Map assembleAlertCount(Page<AlertCount> alertCountPage) {
+        Map map = new HashMap();
+        map.put("total", String.valueOf(alertCountPage.getTotalElements()));
+        map.put("thisNum", String.valueOf(alertCountPage.getNumberOfElements()));
+//        List<>
+        return null;
     }
 
     private Map assembleUsers(User userRoot, Page<User> userPage) {
@@ -1724,8 +1737,92 @@ public class SelectApiController {
      * 获取交易的报警列表
      */
     @RequestMapping(value = "/dealRecord/alert", method = RequestMethod.GET)
-    public RestResponse getDealRecordAlert(Principal principal, @RequestParam Integer dealRecordId){
+    public RestResponse getDealRecordAlert(Principal principal, @RequestParam(required = false) Integer dealRecordId){
         List<DealAlertRecord> dealAlertRecords = dealAlertRecordRepository.findByDealIdOrderByHappenedTimeDesc(dealRecordId);
         return new RestResponse(dealAlertRecords);
+    }
+
+    /**
+     * 获取所有报警信息
+     */
+    @RequestMapping(value = "/query/alert", method = RequestMethod.POST)
+    public RestResponse getAllAlert(Principal principal, @RequestParam Map<String, String> param){
+        User user = judgeByPrincipal(principal);
+        if(user == null)
+            return new RestResponse("用户未登陆",1005,null);
+
+        if (!param.containsKey("deviceId")){
+            return new RestResponse("请传入deviceId参数", 1006, null);
+        }
+        if (!param.containsKey("deviceTypeId")){
+            return new RestResponse("请传入deviceTypeId参数", 1006, null);
+        }
+        if (!param.containsKey("inspectTypeId")){
+            return new RestResponse("请传入inspectTypeId参数", 1006, null);
+        }
+        if (!param.containsKey("alertType")){
+            return new RestResponse("请传入alertType参数", 1006, null);
+        }
+        if (!param.containsKey("startTime")){
+            return new RestResponse("请传入startTime参数", 1006, null);
+        }
+        if (!param.containsKey("endTime")){
+            return new RestResponse("请传入endTime参数", 1006, null);
+        }
+        if (!param.containsKey("limit")){
+            return new RestResponse("请传入limit参数", 1006, null);
+        }
+        if (!param.containsKey("offset")){
+            return new RestResponse("请传入offset参数", 1006, null);
+        }
+
+        Integer deviceId = null;
+        if (!"".equals(param.get("deviceId"))){
+            deviceId = Integer.parseInt(param.get("deviceId"));
+        }
+
+        List<Integer> inspectTypeIds = new ArrayList<>();
+        Integer deviceTypeId = null;
+        if (param.get("deviceTypeId")!=null && !"".equals(param.get("deviceTypeId"))){
+            deviceTypeId = Integer.parseInt(param.get("deviceTypeId"));
+            List<DeviceTypeInspect> deviceTypeInspects = deviceTypeInspectRepository.findByDeviceTypeId(deviceTypeId);
+            for (DeviceTypeInspect deviceTypeInspect:deviceTypeInspects){
+                inspectTypeIds.add(deviceTypeInspect.getInspectType().getId());
+            }
+        }
+
+        Integer inspectTypeId = null;
+        if (!"".equals(param.get("inspectTypeId"))){
+            inspectTypeId = Integer.parseInt(param.get("inspectTypeId"));
+            inspectTypeIds.add(inspectTypeId);
+        }
+
+        Integer alertType = null;
+        if (!"".equals(param.get("alertType"))){
+            alertType = Integer.parseInt(param.get("alertType"));
+        }
+
+        Date startTime = null;
+        if (!"".equals(param.get("startTime"))){
+            startTime = new Date(Long.parseLong(param.get("startTime")));
+        }
+
+        Date endTime = null;
+        if (!"".equals(param.get("endTime"))){
+            endTime = new Date(Long.parseLong(param.get("endTime")));
+        }
+
+        Integer limit = new Integer(10);
+        Integer offset = new Integer(1);
+        if (""!=param.get("limit")){
+            limit = Integer.parseInt(param.get("limit"));
+        }
+        if (""!=param.get("offset")) {
+            offset = Integer.parseInt(param.get("offset"));
+        }
+
+        Page<AlertCount> alertCountPage = new AlertCountQuery(entityManager).query(param, Integer.parseInt(param.get("offset")), Integer.parseInt(param.get("limit")), new Sort(Sort.Direction.DESC, "createDate"));
+
+        return null;
     }
 }
