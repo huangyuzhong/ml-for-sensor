@@ -145,13 +145,13 @@ public class DeviceQuery extends Querier<Device> {
     }
 
     @Override
-    public Page<Device> query(Map<String, String> queryParamenter, int start, int limit, Sort sort) {
+    public Page<Device> query(Map<String, String> queryParameter, int start, int limit, Sort sort) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Device> query = cb.createQuery(Device.class);
-        Root<Device> objectRoot = setQueryWhere(query, cb, queryParamenter);
+        Root<Device> objectRoot = setQueryWhere(query, cb, queryParameter);
         query = setOrderBy(query, sort, cb, objectRoot);
         query.select(objectRoot);
-        objectRoot = setFetch(queryParamenter, objectRoot);
+        objectRoot = setFetch(queryParameter, objectRoot);
         query.groupBy(objectRoot.get("id"));
         TypedQuery<Device> q = entityManager.createQuery(query);
         long total = q.getResultList().size();

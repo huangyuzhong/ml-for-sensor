@@ -1749,7 +1749,7 @@ public class SelectApiController {
     /**
      * 获取所有报警信息
      */
-    @RequestMapping(value = "/query/alert", method = RequestMethod.POST)
+    @RequestMapping(value = "/query/alert", method = RequestMethod.GET)
     public RestResponse getAllAlert(Principal principal, @RequestParam Map<String, String> param){
         User user = judgeByPrincipal(principal);
         if(user == null){
@@ -1758,6 +1758,8 @@ public class SelectApiController {
 
         Integer limit = new Integer(10);
         Integer offset = new Integer(0);
+
+        param.put("userId", user.getId().toString());
 
         if (!param.containsKey("deviceId")){
             return new RestResponse("请传入deviceId参数", 1006, null);
