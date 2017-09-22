@@ -1767,9 +1767,6 @@ public class SelectApiController {
         if (!param.containsKey("deviceTypeId")){
             return new RestResponse("请传入deviceTypeId参数", 1006, null);
         }
-        if (!param.containsKey("inspectTypeId")){
-            return new RestResponse("请传入inspectTypeId参数", 1006, null);
-        }
         if (!param.containsKey("alertType")){
             return new RestResponse("请传入alertType参数", 1006, null);
         }

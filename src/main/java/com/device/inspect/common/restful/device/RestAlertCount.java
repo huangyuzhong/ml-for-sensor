@@ -17,7 +17,9 @@ public class RestAlertCount {
     private String deviceTypeName;
     private Integer deviceTypeId;
     private String inspectMeasurement;
+    private String inspectTypeName;
     private Integer alertType;
+    private String monitorNum;
 
     public RestAlertCount(@NotNull AlertCount alertCount){
         this.startTime = alertCount.getCreateDate()==null?null:alertCount.getCreateDate().getTime();
@@ -27,7 +29,9 @@ public class RestAlertCount {
         this.deviceTypeName = alertCount.getDevice()==null?null:alertCount.getDevice().getDeviceType().getName();
         this.deviceTypeId = alertCount.getDevice()==null?null:alertCount.getDevice().getDeviceType().getId();
         this.inspectMeasurement = alertCount.getInspectType()==null?null:alertCount.getInspectType().getMeasurement();
+        this.inspectTypeName = alertCount.getInspectType() == null ? null : alertCount.getInspectType().getName();
         this.alertType = alertCount.getType();
+        this.monitorNum = alertCount.getDevice() == null ? null : alertCount.getDevice().getMonitorDevice().getNumber();
     }
 
     public Long getStartTime() {
@@ -86,11 +90,27 @@ public class RestAlertCount {
         this.inspectMeasurement = inspectMeasurement;
     }
 
+    public String getInspectTypeName() {
+        return inspectTypeName;
+    }
+
+    public void setInspectTypeName(String inspectTypeName) {
+        this.inspectTypeName = inspectTypeName;
+    }
+
     public Integer getAlertType() {
         return alertType;
     }
 
     public void setAlertType(Integer alertType) {
         this.alertType = alertType;
+    }
+
+    public String getMonitorNum() {
+        return monitorNum;
+    }
+
+    public void setMonitorNum(String monitorNum) {
+        this.monitorNum = monitorNum;
     }
 }
