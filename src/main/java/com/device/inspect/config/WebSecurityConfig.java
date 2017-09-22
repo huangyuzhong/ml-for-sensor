@@ -53,7 +53,7 @@ public class WebSecurityConfig {
             roles.add("SERVICE_MANAGER");
             roles.add("SERVICE_BUSINESS");
             roles.add("FIRM_MANAGER");
-            roles.add("FIRM_WORKER");
+            roles.add("DEVICE_MANAGER");
             roles.add("FIRM_SCIENTIST");
 
             http.csrf().disable().headers().cacheControl().and()

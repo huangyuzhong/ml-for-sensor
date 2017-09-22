@@ -73,7 +73,7 @@ public class LoginUserService {
             throw new UsernameNotFoundException(String.format("user's password isn't correct! %d", user.getPasswordErrorRetryTimes()));
         }
         else{
-            if(user.getPasswordErrorRetryTimes() != 0){
+            if(user.getPasswordErrorRetryTimes() == null || user.getPasswordErrorRetryTimes() != 0 ){
                 user.setPasswordErrorRetryTimes(0);
                 userRepository.save(user);
             }
