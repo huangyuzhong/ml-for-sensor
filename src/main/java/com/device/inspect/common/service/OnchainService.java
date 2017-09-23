@@ -8,6 +8,8 @@ import DNA.sdk.info.account.Asset;
 import DNA.sdk.wallet.UserWalletManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,9 +20,13 @@ import static com.device.inspect.common.service.InitWallet.url;
  * Created by fgz on 2017/7/13.
  */
 @Component("OnchainService")
+@PropertySource("classpath:application.properties")
 public class OnchainService {
 
     private static final Logger LOGGER = LogManager.getLogger(OnchainService.class);
+
+    @Value("#{BlockChain.enable}")
+    private String isEnable;
 
     private UserWalletManager wallet;
 
@@ -31,59 +37,90 @@ public class OnchainService {
     public static String RewordAssetId = "c87bc5063c7d8fc0366c1410895cd810ab6d37250640fd8882473add55202a6d";
 
     public OnchainService() {
-        wallet = InitWallet.getWallet();
-        wallet.startSyncBlock();
+        if(isEnable.equals("True")){
+            wallet = InitWallet.getWallet();
+            wallet.startSyncBlock();
+        }
+        else{
+            wallet = null;
+        }
+
     }
 
     public void SyncBlock() throws Exception {
-        while (!wallet.hasFinishedSyncBlock()) {
-            System.out.println("blockHeight:" + wallet.blockHeight());
-            Thread.sleep(100);
+        if(isEnable.equals("True")) {
+            while (!wallet.hasFinishedSyncBlock()) {
+                LOGGER.info(String.format("blockHeight:" + wallet.blockHeight()));
+                Thread.sleep(100);
+            }
+        }
+        else{
+            LOGGER.warn(String.format("[BlockChain] block chain is disabled"));
         }
     }
+
     public String getAssetId(String accountAddress){
-        if (accountAddress != null){
-            AccountAsset accountAsset = wallet.getAccountAsset(accountAddress);
-            List<Asset> assetList = accountAsset.canUseAssets;
-            return assetList.get(0).assetid;
-        }else{
+        if(isEnable.equals("True")) {
+            if (accountAddress != null) {
+                AccountAsset accountAsset = wallet.getAccountAsset(accountAddress);
+                List<Asset> assetList = accountAsset.canUseAssets;
+                return assetList.get(0).assetid;
+            } else {
+                return null;
+            }
+        }
+        else{
+            LOGGER.warn(String.format("[BlockChain] block chain is disabled"));
             return null;
         }
     }
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
-        Transaction tx;
-        String txHex;
-        boolean success = false;
-        //转移
-        tx = wallet.createTrfTx(formAddr, assetid, amount, toAddr, desc);
-        txHex = wallet.signTx(tx);
-        try {
-            success = wallet.sendTx(txHex);
-            Thread.sleep(7000);
-            LOGGER.info("转移tx:" + success + ",txid:" + tx.hash().toString());
-            RestNode restNode = new RestNode(url);
 
-            Transaction newtx = restNode.getRawTransaction(tx.hash().toString());
-            if (newtx instanceof TransferTransaction) {
-                return true;
+        if(isEnable.equals("True")) {
+            Transaction tx;
+            String txHex;
+            boolean success = false;
+            //转移
+            tx = wallet.createTrfTx(formAddr, assetid, amount, toAddr, desc);
+            txHex = wallet.signTx(tx);
+            try {
+                success = wallet.sendTx(txHex);
+                Thread.sleep(7000);
+                LOGGER.info("转移tx:" + success + ",txid:" + tx.hash().toString());
+                RestNode restNode = new RestNode(url);
+
+                Transaction newtx = restNode.getRawTransaction(tx.hash().toString());
+                if (newtx instanceof TransferTransaction) {
+                    return true;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return false;
         }
-        return false;
+        else{
+            LOGGER.warn(String.format("[BlockChain] block chain is disabled"));
+            return false;
+        }
     }
 
     public void sendStateUpdateTx(String namespace, String key, String addr, String jsonStr) throws Exception {
-        addr = InitWallet.updaterAddr;
 
-        //状态更新
-        UserWalletManager wallet = InitWallet.getWallet();
-        Transaction tx;
-        String txHex;
-        boolean success = false;
-        tx = wallet.createStateUpdateTx(namespace, key, jsonStr, addr);
-        txHex = wallet.signTx(tx);
-        wallet.sendTx(txHex);
+        if(isEnable.equals("True")) {
+            addr = InitWallet.updaterAddr;
+
+            //状态更新
+            UserWalletManager wallet = InitWallet.getWallet();
+            Transaction tx;
+            String txHex;
+            boolean success = false;
+            tx = wallet.createStateUpdateTx(namespace, key, jsonStr, addr);
+            txHex = wallet.signTx(tx);
+            wallet.sendTx(txHex);
+        }
+        else{
+            LOGGER.warn(String.format("[BlockChain] block chain is disabled"));
+        }
     }
 }
