@@ -8,6 +8,7 @@ import DNA.sdk.info.account.Asset;
 import DNA.sdk.wallet.UserWalletManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,7 @@ public class OnchainService {
     public static String AssetId = "c2b15086a51ee3abb28a6cdb6debf42b97cd409625b55c4033b912a575726b7c";
     public static String RewordAssetId = "c87bc5063c7d8fc0366c1410895cd810ab6d37250640fd8882473add55202a6d";
 
+    @Autowired
     public OnchainService(@Value("${BlockChain.enable}") String enable) {
         isEnable = enable;
         if(isEnable.equals("True")){
