@@ -25,7 +25,7 @@ public class OnchainService {
 
     private static final Logger LOGGER = LogManager.getLogger(OnchainService.class);
 
-    @Value("#{BlockChain.enable}")
+    @Value("${BlockChain.enable}")
     private String isEnable;
 
     private UserWalletManager wallet;
