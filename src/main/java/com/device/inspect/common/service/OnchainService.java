@@ -19,13 +19,13 @@ import static com.device.inspect.common.service.InitWallet.url;
 /**
  * Created by fgz on 2017/7/13.
  */
-@Component("OnchainService")
+@Component()
 @PropertySource("classpath:application.properties")
 public class OnchainService {
 
     private static final Logger LOGGER = LogManager.getLogger(OnchainService.class);
 
-    @Value("${BlockChain.enable}")
+    @Value("${blockchain.enable}")
     private String isEnable;
 
     private UserWalletManager wallet;
