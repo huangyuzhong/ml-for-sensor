@@ -11,6 +11,7 @@ import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Company;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.DeviceDisableTime;
 import com.device.inspect.common.repository.charater.RoleAuthorityRepository;
 import com.device.inspect.common.repository.charater.RoleRepository;
 import com.device.inspect.common.repository.charater.UserRepository;
@@ -19,6 +20,7 @@ import com.device.inspect.common.repository.firm.BuildingRepository;
 import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
+import com.device.inspect.common.repository.record.DeviceDisableTimeRepository;
 import com.device.inspect.common.restful.RestResponse;
 import com.device.inspect.common.restful.charater.RestUser;
 import com.device.inspect.common.restful.device.RestDevice;
@@ -63,6 +65,8 @@ import java.util.*;
 public class FileController {
 
     private static final String SERVICE_PATH = "http://ilabservice.chinaeast.cloudapp.chinacloudapi.cn";
+
+    private static final Logger LOGGER1 = LogManager.getLogger(OperateController.class);
 
     protected static Logger logger = LogManager.getLogger();
 
@@ -113,6 +117,9 @@ public class FileController {
 
     @Autowired
     private DeviceVersionRepository deviceVersionRepository;
+
+    @Autowired
+    private  DeviceDisableTimeRepository deviceDisableTimeRepository;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -535,8 +542,8 @@ public class FileController {
                 } else {
                     device.setModel(param.get("model"));
                 }
-                if(param.get("purchaseDate") != null){
-                    device.setPurchase(new Date(Long.parseLong(param.get("purchaseDate"))));
+                if(param.get("purchase") != null){
+                    device.setPurchase(new Date(Long.parseLong(param.get("purchase"))));
                 }
                 if(param.get("maintainDate") != null){
                     device.setMaintainDate(new Date(Long.parseLong(param.get("maintainDate"))));
@@ -637,6 +644,27 @@ public class FileController {
 
                 deviceRepository.save(device);
 
+                if (null!=param.get("enableSharing")) {
+                    Integer enableSharing = Integer.parseInt(param.get("enableSharing"));
+                    if (enableSharing == 1) {
+                        DeviceDisableTime deviceDisableTime = new DeviceDisableTime();
+                        deviceDisableTime.setDevice(device);
+                        deviceDisableTime.setStrategyType("yearly");
+                        deviceDisableTime.setContent("");
+
+                        BlockChainDevice data1 = new BlockChainDevice(deviceDisableTime.getDevice(), deviceDisableTime);
+                        data1.setTimeStamp(new Date().getTime());
+                        BlockChainDeviceRecord value1 = new BlockChainDeviceRecord("Update Device Rent Time", data1);
+                        try {
+                            onchainService.sendStateUpdateTx("device", String.valueOf(deviceDisableTime.getDevice()
+                                    .getId()), "", JSON.toJSONString(value1));
+                        }catch(Exception e){
+                            LOGGER1.error(e.getMessage());
+                        }
+
+                        deviceDisableTimeRepository.save(deviceDisableTime);
+                    }
+                }
                 device.getRoom().setDeviceNum(device.getRoom().getDeviceNum()+1);
                 roomRepository.save(device.getRoom());
                 device.getRoom().getFloor().setDeviceNum(device.getRoom().getFloor().getDeviceNum()+1);
