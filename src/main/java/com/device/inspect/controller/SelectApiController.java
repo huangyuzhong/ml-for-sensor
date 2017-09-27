@@ -1602,7 +1602,12 @@ public class SelectApiController {
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId, @RequestParam Integer deviceId) {
         Date currentDate = new Date();
         List<DealRecord> dealRecordsHistory = dealRecordRepository.findTop9ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
-        List<DealRecord> dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
+        List<DealRecord> dealRecordsFutureList;
+        if (deviceId == null) {
+            dealRecordsFutureList = dealRecordRepository.findByLessorOrLesseeOrderByEndTimeDesc(userId, userId);
+        } else {
+            dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeAndDeviceIdOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
+        }
         List<RestDealRecord> restDealRecords = new ArrayList<>();
         if (dealRecordsFutureList != null && dealRecordsFutureList.size() != 0){
             for (DealRecord dealRecord : dealRecordsFutureList) {
