@@ -1554,7 +1554,7 @@ public class InfluxDBManager {
                     inspectTypeId, startStr, endStr, limit, offset);
         }
         else {
-            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE time >= %d AND time < %d GROUP BY alert_type, time(24h) limit %d offset %d",
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
                     startStr, endStr, limit, offset);
         }
 

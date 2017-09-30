@@ -45,6 +45,7 @@ import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1186,22 +1187,22 @@ public class SelectApiController {
 
         int deviceTypeId = -1;
 
-        if(requestParam.containsKey("deviceTypeId")){
+        if(requestParam.containsKey("deviceTypeId")  && StringUtils.isNotEmpty(requestParam.get("deviceTypeId"))){
             deviceTypeId = Integer.parseInt(requestParam.get("deviceTypeId"));
         }
 
         int inspectTypeId = -1;
-        if(requestParam.containsKey("inspectTypeId")){
+        if(requestParam.containsKey("inspectTypeId")  && StringUtils.isNotEmpty(requestParam.get("inspectTypeId"))){
             inspectTypeId = Integer.parseInt(requestParam.get("inspectTypeId"));
         }
 
         int deviceId = -1;
-        if(requestParam.containsKey("deviceId")){
+        if(requestParam.containsKey("deviceId")  && StringUtils.isNotEmpty(requestParam.get("deviceId"))){
             deviceId = Integer.parseInt(requestParam.get("deviceId"));
         }
 
         String deviceModel = null;
-        if(requestParam.containsKey("deviceModel")){
+        if(requestParam.containsKey("deviceModel")  && StringUtils.isNotEmpty(requestParam.get("deviceModel"))){
             deviceModel = requestParam.get("deviceModel");
         }
 
@@ -1354,24 +1355,24 @@ public class SelectApiController {
 
         int deviceTypeId = -1;
 
-        if(requestParam.containsKey("deviceTypeId")){
+        if(requestParam.containsKey("deviceTypeId") && StringUtils.isNotEmpty(requestParam.get("deviceTypeId"))){
             deviceTypeId = Integer.parseInt(requestParam.get("deviceTypeId"));
         }
 
         int inspectTypeId = -1;
-        if(requestParam.containsKey("inspectTypeId")){
+        if(requestParam.containsKey("inspectTypeId")  && StringUtils.isNotEmpty(requestParam.get("inspectTypeId"))){
             inspectTypeId = Integer.parseInt(requestParam.get("inspectTypeId"));
         }else{
             return new RestResponse("Parameter inspectTypeId is missing", 1013, null);
         }
 
         int deviceId = -1;
-        if(requestParam.containsKey("deviceId")){
+        if(requestParam.containsKey("deviceId")  && StringUtils.isNotEmpty(requestParam.get("deviceId"))){
             deviceId = Integer.parseInt(requestParam.get("deviceId"));
         }
 
         String deviceModel = null;
-        if(requestParam.containsKey("deviceModel")){
+        if(requestParam.containsKey("deviceModel")  && StringUtils.isNotEmpty(requestParam.get("deviceModel"))){
             deviceModel = requestParam.get("deviceModel");
         }
 
