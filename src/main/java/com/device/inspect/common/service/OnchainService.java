@@ -50,6 +50,15 @@ public class OnchainService {
 
     }
 
+    public boolean isValid(){
+        if(isEnable.equals("True") && wallet != null){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
     public void SyncBlock() throws Exception {
         if(isEnable.equals("True")) {
             while (!wallet.hasFinishedSyncBlock()) {
