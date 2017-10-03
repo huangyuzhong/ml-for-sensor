@@ -38,7 +38,7 @@ public class OnchainService {
     @Autowired
     public OnchainService(@Value("${BlockChain.enable}") String enable) {
         isEnable = enable;
-        if(isEnable.equals("True")){
+        if(isEnable.equals("true")){
             LOGGER.info("[BlockChain] enable block chain service");
             wallet = InitWallet.getWallet();
             wallet.startSyncBlock();
@@ -51,7 +51,7 @@ public class OnchainService {
     }
 
     public boolean isValid(){
-        if(isEnable.equals("True") && wallet != null){
+        if(isEnable.equals("true") && wallet != null){
             return true;
         }
         else{
@@ -60,7 +60,7 @@ public class OnchainService {
     }
 
     public void SyncBlock() throws Exception {
-        if(isEnable.equals("True")) {
+        if(isEnable.equals("true")) {
             while (!wallet.hasFinishedSyncBlock()) {
                 LOGGER.info(String.format("blockHeight:" + wallet.blockHeight()));
                 Thread.sleep(100);
@@ -72,7 +72,7 @@ public class OnchainService {
     }
 
     public String getAssetId(String accountAddress){
-        if(isEnable.equals("True")) {
+        if(isEnable.equals("true")) {
             if (accountAddress != null) {
                 AccountAsset accountAsset = wallet.getAccountAsset(accountAddress);
                 List<Asset> assetList = accountAsset.canUseAssets;
@@ -89,7 +89,7 @@ public class OnchainService {
 
     public boolean transfer(String assetid, long amount, String desc, String formAddr, String toAddr) {
 
-        if(isEnable.equals("True")) {
+        if(isEnable.equals("true")) {
             Transaction tx;
             String txHex;
             boolean success = false;
@@ -119,7 +119,7 @@ public class OnchainService {
 
     public void sendStateUpdateTx(String namespace, String key, String addr, String jsonStr) throws Exception {
 
-        if(isEnable.equals("True")) {
+        if(isEnable.equals("true")) {
             addr = InitWallet.updaterAddr;
 
             //状态更新
