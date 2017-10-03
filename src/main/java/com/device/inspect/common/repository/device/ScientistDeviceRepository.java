@@ -11,4 +11,5 @@ import java.util.List;
 public interface ScientistDeviceRepository extends CrudRepository<ScientistDevice,Integer> {
     public ScientistDevice findTopByScientistIdAndDeviceId(Integer ScientistId,Integer DeviceId);
     public List<ScientistDevice> findByScientistId(Integer ScientistId);
+    public List<ScientistDevice> findByDeviceId(Integer deviceId);
 }

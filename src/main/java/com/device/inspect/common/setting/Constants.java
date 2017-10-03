@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * Created by zyclincoln on 7/17/17.
  */
-public class Defination {
+public class Constants {
     public static final Integer ONCHAIN_DEAL_STATUS_DEAL = 0;
     public static final Integer ONCHAIN_DEAL_STATUS_CANCELLED = 1;
     public static final Integer ONCHAIN_DEAL_STATUS_EXECUTING = 2;
@@ -22,9 +22,37 @@ public class Defination {
     public static final Integer ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT = 10;
     public static final Integer ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT = 11;
 
+    public static final String DEVICE_INSPECT_STATUS_NORMAL = "normal";
+    public static final String DEVICE_INSPECT_STATUS_YELLOW = "low";
+    public static final String DEVICE_INSPECT_STATUS_RED = "high";
+    public static final String UNDEFINED = "undefined";
+
+    public static final Integer ALERT_CODE_NO_ALERT = 0;
+    public static final Integer ALERT_CODE_YELLOW = 1;
+    public static final Integer ALERT_CODE_RED = 2;
+
+    public static final Map<Integer, String> ALERT_CODE_STATUS_MAP = new HashMap<Integer, String>(){{
+        put(ALERT_CODE_NO_ALERT, DEVICE_INSPECT_STATUS_NORMAL);
+        put(ALERT_CODE_YELLOW, DEVICE_INSPECT_STATUS_YELLOW);
+        put(ALERT_CODE_RED, DEVICE_INSPECT_STATUS_RED);
+    }
+
+    };
+
+    public static final Integer INSPECT_PURPOSE_ALERT = 0;
+    public static final Integer INSPECT_PURPOSE_OPERATING_STATUS_BY_THRESHOLDS = 1;
+    public static final Integer INSPECT_PURPOSE_OPERATING_STATUS_BY_LEARNING_MODEL = 2;
+
     public static final Integer DEVICE_ACTION_NOACT = 0;
     public static final Integer DEVICE_ACTION_FINISH = 1;
     public static final Integer DEVICE_ACTION_ERROR = 2;
+
+    public static final Integer REPLY_MESSAGE_TYPE_UNKNOWN = -1;
+    public static final Integer REPLY_MESSAGE_TYPE_CANCEL_PUSH = 1;
+
+    public static final Integer DEVICE_OPERATING_STATUS_STOPPED = 0;
+    public static final Integer DEVICE_OPERATING_STATUS_IDLE = 10;
+    public static final Integer DEVICE_OPERATING_STATUS_RUNNING = 20;
 
     public static final String ACTION_POWER_OFF = "0000";
     public static final String ACTION_POWER_ON = "0001";

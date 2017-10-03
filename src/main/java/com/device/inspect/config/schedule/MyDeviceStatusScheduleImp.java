@@ -13,18 +13,12 @@ import com.device.inspect.common.repository.firm.CompanyRepository;
 import com.device.inspect.common.repository.firm.RoomRepository;
 import com.device.inspect.common.repository.firm.StoreyRepository;
 import com.device.inspect.common.service.MemoryCacheDevice;
-import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.controller.MessageController;
+import com.device.inspect.common.managers.MessageController;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.util.*;
 
@@ -63,6 +57,9 @@ public class MyDeviceStatusScheduleImp{
     private DeviceInspectRepository deviceInspectRepository;
 
     @Autowired
+    private InspectTypeRepository inspectTypeRepository;
+
+    @Autowired
     private MessageController messageController;
 
     @Autowired
@@ -81,6 +78,8 @@ public class MyDeviceStatusScheduleImp{
 
 //    @Scheduled(cron = "0 0/5 * * * ?")
     public void executeInternal(){
+
+        final int CONTINUOUS_OFFLINE_THRESHOLD = 5; // 判断是否为持续性offline的阈值 (分钟)
 
         logger.info("Start schedule to summarize device status");
         Date scheduleStartTime = new Date();
@@ -233,7 +232,26 @@ public class MyDeviceStatusScheduleImp{
                                                 deviceOffline.setOfflineDate(scheduleStartTime);
                                                 deviceOfflineRepository.save(deviceOffline);
 
-                                                messageController.sendOfflineMsg(device, null, scheduleStartTime);
+                                                InspectType onlineInspect = inspectTypeRepository.findByCode("-1");
+                                                AlertCount latestAlert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(device.getId(), onlineInspect.getId());
+
+                                                boolean isNewAlert = false;
+                                                if(latestAlert == null){
+                                                    isNewAlert = true;
+                                                }
+
+                                                if(scheduleStartTime.getTime() - latestAlert.getFinish().getTime() > CONTINUOUS_OFFLINE_THRESHOLD*60*1000){
+                                                    isNewAlert = true;
+                                                }
+
+                                                if(isNewAlert){
+                                                    latestAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, onlineInspect, 1, "s", scheduleStartTime);
+                                                }else{
+                                                    latestAlert.setFinish(scheduleStartTime);
+                                                    alertCountRepository.save(latestAlert);
+                                                }
+
+                                                messageController.sendOfflineMsg(device, latestAlert, scheduleStartTime);
 
                                             }else {
                                                 // 5分钟内有数据， 则认为在线
@@ -283,7 +301,8 @@ public class MyDeviceStatusScheduleImp{
                                                         }
                                                         if (batteryIsDesc) {
                                                             // send power message
-                                                            messageController.sendPowerMsg(device, batteryInspect, scheduleStartTime);
+                                                            AlertCount alert = AlertCount.createNewAlertAndSave(alertCountRepository, device, batteryInspect.getInspectType(), 1, "s", scheduleStartTime);
+                                                            messageController.sendPowerMsg(device, alert, scheduleStartTime);
                                                         }
                                                     }
 

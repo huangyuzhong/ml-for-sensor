@@ -1713,6 +1713,154 @@ public class InfluxDBManager {
         }
     }
 
+    public boolean writeMessage(Date samplingTime, Integer userId, Integer inspectId, Integer deviceId, String msgType, String msgMedia, String action, String result, String content, String description, Double timeCost){
+        String dbName = "intelab";
+
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("user_id", userId.toString())
+                .tag("monitor_id", inspectId.toString())
+                .tag("device_id", deviceId.toString())
+                .tag("msg_type", msgType)
+                .tag("msg_media", msgMedia)
+                .tag("action", action)
+                .tag("result", result)
+                .retentionPolicy("two_years")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+        Point point = Point.measurement("message")
+                .time(samplingTime.getTime(), TimeUnit.MILLISECONDS)
+                .addField("description", description)
+                .addField("time_cost", timeCost)
+                .addField("content", content)
+                .build();
+
+        batchPoints.point(point);
+        try {
+            influxDB.write(batchPoints);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+
+            logger.error(String.format("Failed to write alert or other message to influxdb. Error: %s", e.toString()));
+            return false;
+        }
+
+    }
+
+    public boolean writeAlertPushStatus(Date samplingTime, Integer alertId, Integer userId, Integer deviceId, String status, int change){
+        String dbName = "intelab";
+
+        BatchPoints batchPoints = BatchPoints.database(dbName)
+                .tag("alert_id", alertId.toString())
+                .tag("user_id", userId.toString())
+                .tag("device_id", deviceId.toString())
+                .tag("status", status)
+                .retentionPolicy("ten_weeks")
+                .consistency(InfluxDB.ConsistencyLevel.ALL)
+                .build();
+
+        Point point = Point.measurement("alert_push_status")
+                .time(samplingTime.getTime(), TimeUnit.MILLISECONDS)
+                .addField("change", change)
+                .build();
+
+        batchPoints.point(point);
+        try {
+            influxDB.write(batchPoints);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+
+            logger.error(String.format("Failed to write alert push status to influxdb. Error: %s", e.toString()));
+            return false;
+        }
+
+    }
+
+    public List<Object> readLatestMessageByUserIdInspectIdAction(Integer userId, Integer inspectId, String action){
+        String dbName = "intelab";
+
+
+        String queryString = String.format("SELECT user_id, monitor_id, description FROM two_years.message WHERE user_id = '%s' AND monitor_id = '%s' AND action = '%s' AND result = 'OK' order by time DESC limit 1",
+                userId, inspectId, action);
+
+        List<List<Object>> messages = executeQuery(queryString, dbName);
+
+        if(messages != null && !messages.isEmpty()){
+            return messages.get(0);
+        }else{
+            return null;
+        }
+
+
+    }
+
+    public List<Integer> readAlertIdFromPushStatusByUserIdDeviceIdStatusTimeRange(Date startTime, Integer userId, Integer deviceId, String status){
+        String dbName = "intelab";
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+
+        String queryString = String.format("SELECT alert_id, change From ten_weeks.alert_push_status WHERE device_id='%d' AND user_id = '%d' AND status = '%s' AND time >= '%s' GROUP BY alert_id",
+                deviceId, userId, status, startStr);
+
+        try {
+            List<QueryResult.Series> alertPushSeries =  readDateFromQueryByGroup(queryString, dbName);
+
+            List<Integer> alertIds = new ArrayList<>();
+
+            if(alertPushSeries != null) {
+                for (QueryResult.Series series : alertPushSeries) {
+                    Map<String, String> alertIdMap = series.getTags();
+                    if (alertIdMap == null || alertIdMap.isEmpty() || !alertIdMap.containsKey("alert_id")) {
+                        continue;
+                    } else {
+                        try {
+                            alertIds.add(Integer.parseInt(alertIdMap.get("alert_id")));
+                        } catch (Exception ex) {
+                            logger.error(String.format("Illegal alert_id %s in alert_push_status", alertIdMap.get("alert_id")));
+                            continue;
+                        }
+                    }
+                }
+            }
+            return alertIds;
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily alert report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    public boolean checkAlertPushStatusExistInLatestUpdates(Integer alertId, Integer userId, String status, int windowSize){
+        String dbName = "intelab";
+        String queryString = String.format("SELECT alert_id, status, change From ten_weeks.alert_push_status WHERE alert_id='%d' AND user_id='%d' limit %d",
+                alertId, userId, windowSize);
+
+
+        List<List<Object>> latestUpdates = executeQuery(queryString, dbName);
+
+        if (latestUpdates == null || latestUpdates.isEmpty()){
+            return false;
+        }
+
+        for(List<Object> pushUpdate: latestUpdates){
+            if(pushUpdate.size() < 3) {
+                continue;
+            }
+            String statusInUpdate = (String)pushUpdate.get(2);
+
+            if (statusInUpdate.equals(status)){
+                return true;
+            }
+        }
+
+        return false;
+
+    }
 
 }
 

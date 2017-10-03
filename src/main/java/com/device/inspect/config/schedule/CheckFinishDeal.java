@@ -19,14 +19,8 @@ import com.device.inspect.common.service.OnchainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import static com.device.inspect.common.setting.Defination.*;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.scheduling.quartz.QuartzJobBean;
+import static com.device.inspect.common.setting.Constants.*;
 
 import java.util.Date;
 import java.util.List;

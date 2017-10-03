@@ -17,4 +17,6 @@ public interface UserRepository extends CrudRepository<User,Integer> {
     public List<User> findAll();
 
     public User findById(Integer id);
+
+    public User findByMobile(String mobile);
 }
