@@ -4,8 +4,6 @@ package com.device.inspect.common.influxdb;
  * Created by gxu on 5/29/17.
  */
 
-import jnr.ffi.annotations.In;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.InfluxDB;
@@ -330,7 +328,7 @@ public class InfluxDBManager {
         return new Date(TimeUtil.fromInfluxDBTimeFormat((String)timeEntry.get(0)));
     }
 
-    private List<List<Object>> executeQuery(String queryString, String dbName){
+    private List<List<Object>> executeListQuery(String queryString, String dbName){
         Query query = new Query(queryString, dbName);
 
 
@@ -348,9 +346,7 @@ public class InfluxDBManager {
                 if(series != null && series.size() > 0){
                     List<String> columes = series.get(0).getColumns();
 
-                    // columes should be ['time', value]
-
-                    if( !columes.contains("time") || !columes.contains("url")){
+                    if( !columes.contains("time")){
                         logger.error("The series in query result is incorrect, no time or url");
                         return null;
                     }
@@ -399,7 +395,7 @@ public class InfluxDBManager {
                 String.format("SELECT url, method, api_parameters, username, \"duration\" FROM operations.operation WHERE api_type='%s' AND username='%s' AND method='%s' AND time >= %d AND time < %d ORDER BY time DESC LIMIT %d OFFSET %d",
                         apiType, userName, method, startNano, endNano, limit, offset);
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
     }
 
@@ -436,7 +432,7 @@ public class InfluxDBManager {
                     apiType, userName, startNano, endNano, limit, offset);
         }
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
 
     }
@@ -474,7 +470,7 @@ public class InfluxDBManager {
                     apiType, companyName, startNano, endNano, limit, offset);
         }
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
     }
 
@@ -506,7 +502,7 @@ public class InfluxDBManager {
                         apiType, companyName, method, startNano, endNano, limit, offset);
 
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
 
     }
@@ -538,7 +534,7 @@ public class InfluxDBManager {
                         apiType, companyName, startNano, endNano, limit, offset);
 
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
 
     }
@@ -570,7 +566,7 @@ public class InfluxDBManager {
                         apiType, userName, startNano, endNano, limit, offset);
 
 
-        List<List<Object>> result =  executeQuery(queryString, dbName);
+        List<List<Object>> result =  executeListQuery(queryString, dbName);
         return result;
 
     }
@@ -1756,7 +1752,7 @@ public class InfluxDBManager {
                 .tag("user_id", userId.toString())
                 .tag("device_id", deviceId.toString())
                 .tag("status", status)
-                .retentionPolicy("ten_weeks")
+                .retentionPolicy("four_weeks")
                 .consistency(InfluxDB.ConsistencyLevel.ALL)
                 .build();
 
@@ -1768,6 +1764,7 @@ public class InfluxDBManager {
         batchPoints.point(point);
         try {
             influxDB.write(batchPoints);
+            logger.info(String.format("Successfully write push alert status %s for user %d alert %d", status, userId, alertId));
             return true;
         }catch (Exception e){
             e.printStackTrace();
@@ -1785,7 +1782,7 @@ public class InfluxDBManager {
         String queryString = String.format("SELECT user_id, monitor_id, description FROM two_years.message WHERE user_id = '%s' AND monitor_id = '%s' AND action = '%s' AND result = 'OK' order by time DESC limit 1",
                 userId, inspectId, action);
 
-        List<List<Object>> messages = executeQuery(queryString, dbName);
+        List<List<Object>> messages = executeListQuery(queryString, dbName);
 
         if(messages != null && !messages.isEmpty()){
             return messages.get(0);
@@ -1802,7 +1799,7 @@ public class InfluxDBManager {
         SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String startStr = simFormat.format(startTime);
 
-        String queryString = String.format("SELECT alert_id, change From ten_weeks.alert_push_status WHERE device_id='%d' AND user_id = '%d' AND status = '%s' AND time >= '%s' GROUP BY alert_id",
+        String queryString = String.format("SELECT alert_id, change From four_weeks.alert_push_status WHERE device_id='%d' AND user_id = '%d' AND status = '%s' AND time >= '%s' GROUP BY alert_id",
                 deviceId, userId, status, startStr);
 
         try {
@@ -1837,11 +1834,11 @@ public class InfluxDBManager {
 
     public boolean checkAlertPushStatusExistInLatestUpdates(Integer alertId, Integer userId, String status, int windowSize){
         String dbName = "intelab";
-        String queryString = String.format("SELECT alert_id, status, change From ten_weeks.alert_push_status WHERE alert_id='%d' AND user_id='%d' limit %d",
+        String queryString = String.format("SELECT alert_id, status, change From four_weeks.alert_push_status WHERE alert_id='%d' AND user_id='%d' ORDER BY time DESC limit %d",
                 alertId, userId, windowSize);
 
 
-        List<List<Object>> latestUpdates = executeQuery(queryString, dbName);
+        List<List<Object>> latestUpdates = executeListQuery(queryString, dbName);
 
         if (latestUpdates == null || latestUpdates.isEmpty()){
             return false;

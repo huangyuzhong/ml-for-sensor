@@ -90,6 +90,9 @@ public class CheckFinishDeal{
 
 //    @Scheduled(cron = "30 * * * * ?")
     public void executeInternal(){
+        if(Application.isTesting){
+            return;
+        }
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() + 1000*10));
         for(DealRecord record : beginRecords){

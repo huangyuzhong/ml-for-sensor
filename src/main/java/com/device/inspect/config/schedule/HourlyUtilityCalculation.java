@@ -59,6 +59,9 @@ public class HourlyUtilityCalculation{
 
 //    @Scheduled(cron = "0 10 * * * ? ")
     public void executeInternal(){
+        if(Application.isTesting){
+            return;
+        }
         LOGGER.info("Start scanning utilization data");
 
         Date startScanTime = new Date();

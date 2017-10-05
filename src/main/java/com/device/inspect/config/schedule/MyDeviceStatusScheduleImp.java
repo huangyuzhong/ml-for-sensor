@@ -81,6 +81,9 @@ public class MyDeviceStatusScheduleImp{
 
         final int CONTINUOUS_OFFLINE_THRESHOLD = 5; // 判断是否为持续性offline的阈值 (分钟)
 
+        if (Application.isTesting){
+            return;
+        }
         logger.info("Start schedule to summarize device status");
         Date scheduleStartTime = new Date();
         Date time5minBefore = DateUtils.addMinutes(scheduleStartTime, -5);
@@ -240,7 +243,7 @@ public class MyDeviceStatusScheduleImp{
                                                     isNewAlert = true;
                                                 }
 
-                                                if(scheduleStartTime.getTime() - latestAlert.getFinish().getTime() > CONTINUOUS_OFFLINE_THRESHOLD*60*1000){
+                                                else if(scheduleStartTime.getTime() - latestAlert.getFinish().getTime() > CONTINUOUS_OFFLINE_THRESHOLD*60*1000){
                                                     isNewAlert = true;
                                                 }
 

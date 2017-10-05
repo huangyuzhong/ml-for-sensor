@@ -68,6 +68,9 @@ public class ScanOfflineData{
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
             return;
         }
+        if(Application.isTesting){
+            return;
+        }
         int fileNum = 0;
         int availableFileNum = 0;
         int illegalFileNum = 0;
