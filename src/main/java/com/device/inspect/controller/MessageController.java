@@ -5,19 +5,16 @@ import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.Device;
 import com.device.inspect.common.model.device.DeviceFloor;
 import com.device.inspect.common.model.device.DeviceInspect;
-import com.device.inspect.common.model.device.InspectData;
 import com.device.inspect.common.model.firm.Building;
 import com.device.inspect.common.model.firm.Room;
 import com.device.inspect.common.model.firm.Storey;
+import com.device.inspect.common.model.record.MessageReceive;
 import com.device.inspect.common.model.record.MessageSend;
 import com.device.inspect.common.repository.device.DeviceFloorRepository;
 import com.device.inspect.common.repository.device.DeviceInspectRepository;
-import com.device.inspect.common.repository.device.InspectDataRepository;
+import com.device.inspect.common.repository.record.MessageReceiveRepository;
 import com.device.inspect.common.repository.record.MessageSendRepository;
 import com.device.inspect.common.service.MessageSendService;
-import com.device.inspect.common.util.transefer.InspectProcessTool;
-import com.device.inspect.common.util.transefer.StringDate;
-import org.apache.commons.httpclient.util.DateUtil;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -43,6 +40,9 @@ public class MessageController {
 
     @Autowired
     private MessageSendRepository messageSendRepository;
+
+    @Autowired
+    private MessageReceiveRepository messageReceiveRepository;
 
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
@@ -165,48 +165,60 @@ public class MessageController {
             messageSend =  messageSendRepository.
                     findTopByUserIdAndDeviceIdAndEnableAndDeviceInspectIdOrderByCreateDesc(device.getManager().getId(), device.getId(), 1, deviceInspect.getId());
         }
-
-        // if there exists a notification sent in 5 minutes, skip
-        if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
-            LOGGER.info(String.format("Device %d, alert has sent message to manager at %s within 5 minutes skip this time.",
-                    device.getId(),
-                    messageSend.getCreate()));
-            return;
-        }
-        else{
-            LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
-                    device.getId(),
-                    device.getManager().getTelephone()));
-
-            // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
-            if(MessageSendService.sendEmailToIntelabTest(message)){
-                LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
-
-            }else{
-                LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
+        List<MessageReceive> messageReceives= messageReceiveRepository
+                .findTopByUserIdAndContentAndStatusOrderByCreateDateDesc(device.getManager().getId(),
+                        String.valueOf(device.getId()), 1);
+        if (messageReceives != null && messageReceives.size() != 0) {
+            // 先判断是否有停止报警的短信回复
+            for (MessageReceive messageReceive : messageReceives) {
+                messageReceive.setStatus(0);
             }
+            LOGGER.info("device alert: " + device.getId() + "'s alert has bean stopped by " +
+                            device.getManager().getUserName() + "at " +
+                    messageReceives.get(0).getCreateDate());
+        } else {
+            // if there exists a notification sent in 5 minutes, skip
+            if(messageSend != null && (sampleTime.getTime() - messageSend.getCreate().getTime()) < 5*60*1000){
+                LOGGER.info(String.format("Device %d, alert has sent message to manager at %s within 5 minutes skip this time.",
+                        device.getId(),
+                        messageSend.getCreate()));
+                return;
+            }
+            else{
+                LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
+                        device.getId(),
+                        device.getManager().getTelephone()));
 
-            // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
+                // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
+                if(MessageSendService.sendEmailToIntelabTest(message)){
+                    LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
+
+                }else{
+                    LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
+                }
+
+                // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
 //            if (device.getManager().getMobile() != null) {
 //                MessageSendService.sendMessageToInteLabManager(message, device.getManager().getMobile());  //因为虚拟机上不存在端口，会抛出相应的异常，所以暂时先将它屏蔽掉。
 //            }else{
 //                LOGGER.warn("The mobile of device owner is null, please complete the information as soon as possible.");
 //            }
 
-            try {
-                MessageSend newMessageSend = new MessageSend();
-                newMessageSend.setCreate(sampleTime);
-                newMessageSend.setDevice(device);
-                newMessageSend.setUser(device.getManager());
-                newMessageSend.setDeviceInspect(deviceInspect);
-                newMessageSend.setError(device.getId() + "报警,发送给设备管理员" + device.getManager().getUserName());
-                sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
-            }catch (Exception e){
-                LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
-                        device.getId(),
-                        device.getManager().getTelephone(),
-                        e.toString()));
-                e.printStackTrace();
+                try {
+                    MessageSend newMessageSend = new MessageSend();
+                    newMessageSend.setCreate(sampleTime);
+                    newMessageSend.setDevice(device);
+                    newMessageSend.setUser(device.getManager());
+                    newMessageSend.setDeviceInspect(deviceInspect);
+                    newMessageSend.setError(device.getId() + "报警,发送给设备管理员" + device.getManager().getUserName());
+                    sendAlertMsgToUsr(device.getManager(), message, newMessageSend);
+                }catch (Exception e){
+                    LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
+                            device.getId(),
+                            device.getManager().getTelephone(),
+                            e.toString()));
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -216,17 +228,30 @@ public class MessageController {
                 if (null!=deviceFloor.getScientist()){
                     MessageSend messageSendScientist = messageSendRepository.
                             findTopByUserIdAndDeviceIdAndEnableOrderByCreateDesc(deviceFloor.getScientist().getId(),device.getId(),1) ;
-                    if (null!=messageSendScientist && (sampleTime.getTime()-messageSendScientist.getCreate().getTime()) < 5*60*1000){
-                        LOGGER.info("device alert: " + device.getId() + ", has sent message to scientist at " + messageSend.getCreate() + ", passed this time.");
-                    }
-                    else {
-                        MessageSend newMessageSend = new MessageSend();
-                        newMessageSend.setDevice(device);
-                        newMessageSend.setCreate(sampleTime);
-                        newMessageSend.setUser(deviceFloor.getScientist());
-                        newMessageSend.setDeviceInspect(deviceInspect);
-                        newMessageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
-                        sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
+                    List<MessageReceive> messageReceiveScientists = messageReceiveRepository
+                            .findTopByUserIdAndContentAndStatusOrderByCreateDateDesc(deviceFloor.getScientist().getId(),
+                                    String.valueOf(device.getId()), 1);
+                    if (messageReceiveScientists != null && messageReceiveScientists.size() != 0) {
+                        // 先判断是否有停止报警的短信回复
+                        for (MessageReceive messageReceive : messageReceiveScientists) {
+                            messageReceive.setStatus(0);
+                        }
+                        LOGGER.info("device alert: " + device.getId() + "'s alert has bean stopped by " + deviceFloor
+                                .getScientist().getUserName() + "at " +
+                                messageReceiveScientists.get(0).getCreateDate());
+                    } else {
+                        if (null!=messageSendScientist && (sampleTime.getTime()-messageSendScientist.getCreate().getTime()) < 5*60*1000){
+                            LOGGER.info("device alert: " + device.getId() + ", has sent message to scientist at " + messageSend.getCreate() + ", passed this time.");
+                        }
+                        else {
+                            MessageSend newMessageSend = new MessageSend();
+                            newMessageSend.setDevice(device);
+                            newMessageSend.setCreate(sampleTime);
+                            newMessageSend.setUser(deviceFloor.getScientist());
+                            newMessageSend.setDeviceInspect(deviceInspect);
+                            newMessageSend.setError(device.getId()+"报警,发送给实验品管理员"+deviceFloor.getScientist().getUserName());
+                            sendAlertMsgToUsr(deviceFloor.getScientist(), message, newMessageSend);
+                        }
                     }
                 }
             }

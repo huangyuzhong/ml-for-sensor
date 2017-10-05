@@ -825,8 +825,14 @@ public class OperateController {
             user.setJobNum(param.get("jobNum"));
         if (null!=param.get("job"))
             user.setJob(param.get("job"));
-        if (null!=param.get("mobile"))
-            user.setMobile(param.get("mobile"));
+        if (null!=param.get("mobile")) {
+            List<User> userList = userRepository.findByMobile(param.get("mobile"));
+            if (userList.size() != 0) {
+                return new RestResponse("该手机号码已被其他设备管理员使用！",1005,null);
+            } else {
+                user.setMobile(param.get("mobile"));
+            }
+        }
         if (null!=param.get("telephone"))
             user.setTelephone(param.get("telephone"));
         if (null!=param.get("email"))
@@ -1407,9 +1413,14 @@ public class OperateController {
         if (!user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindMobile(1);
-        user.setMobile(mobile);
-        userRepository.save(user);
-        return new RestResponse("更换手机号成功", new RestUser(user));
+        List<User> userList = userRepository.findByMobile(mobile);
+        if (userList.size() != 0) {
+            return new RestResponse("该手机号码已被其他设备管理者使用！", 1005, null);
+        } else {
+            user.setMobile(mobile);
+            userRepository.save(user);
+            return new RestResponse("更换手机号成功", new RestUser(user));
+        }
     }
 
     /**
@@ -2019,7 +2030,7 @@ public class OperateController {
             }
             catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("转帐失败"), 1007, null);
+                return new RestResponse(("转账失败"), 1007, null);
             }
         }
 
