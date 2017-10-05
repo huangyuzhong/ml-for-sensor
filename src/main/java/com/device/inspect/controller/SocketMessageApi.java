@@ -773,6 +773,26 @@ public class SocketMessageApi {
 
 
     /**
+     * This is just used for testing the reply sms to cancel alert push
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "/socket/cancel/push", method = RequestMethod.GET)
+    public RestResponse cancelAlertPush(@RequestParam Map<String, String> params){
+        if(!Application.isTesting){
+            return null;
+        }
+
+        String deviceId = params.get("deviceId");
+        String mobile = params.get("mobile");
+
+        messageController.processReceivedReplyMessage(mobile, deviceId);
+
+        return new RestResponse();
+    }
+
+
+    /**
      * 更新数据
      * @param result
      * @return

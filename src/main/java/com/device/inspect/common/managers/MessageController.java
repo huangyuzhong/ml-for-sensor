@@ -183,8 +183,9 @@ public class MessageController {
 
             if(latestMessage != null && !latestMessage.isEmpty()){
                 if(sampleTime.getTime() - TimeUtil.fromInfluxDBTimeFormat((String)latestMessage.get(0)) < 5*60*1000){
-                    LOGGER.info(String.format("Device %d, alert message has been sent to manager at %s within 5 minutes skip this time.",
+                    LOGGER.info(String.format("Device %d, alert message about %s has been sent to manager at %s within 5 minutes skip this time.",
                             device.getId(),
+                            alert.getInspectType().getName(),
                             latestMessage.get(0)));
                     continue;
                 }
@@ -196,6 +197,7 @@ public class MessageController {
                     device.getManager().getTelephone()));
 
             // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
+
             if(MessageSendService.sendEmailToIntelabTest(message)){
                 LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
 
@@ -225,6 +227,9 @@ public class MessageController {
                             e.toString()));
                     e.printStackTrace();
                 }
+            }
+            else{
+                LOGGER.info(String.format("This alert %d push notification has been cancelled by user %d, ignore", alert.getId(), user.getId()));
             }
         }
 

@@ -59,6 +59,7 @@ public class Application {
 
     private static  DefaultAlicomMessagePuller puller;
 
+    public static boolean isTesting = false;
 
     public static void Stop(){
         for(IoTMessageWorker worker: ioTMessageWorkers){
@@ -83,6 +84,12 @@ public class Application {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
+
+        if(args.length > 2 && args[1].equals("--test")){
+            Application.isTesting = true;
+
+        }
+
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
         startMessagePuller();
