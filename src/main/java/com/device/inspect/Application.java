@@ -1,9 +1,12 @@
 package com.device.inspect;
 
+import com.alicom.mns.tools.DefaultAlicomMessagePuller;
+import com.aliyuncs.exceptions.ClientException;
 import com.device.inspect.common.ftp.FTPConfig;
 import com.device.inspect.common.ftp.FTPStorageManager;
 import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.service.FileUploadService;
+import com.device.inspect.common.service.MessageReceiveService;
 import com.device.inspect.common.setting.GeneralConfig;
 import com.device.inspect.common.util.thread.AppShutdownHook;
 import com.device.inspect.common.util.thread.IoTMessageWorker;
@@ -19,14 +22,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.File;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,8 @@ public class Application {
     private static List<IoTMessageWorker> ioTMessageWorkers = null;
     private static final int IoTWorkerNumber = 4;
 
+    private static  DefaultAlicomMessagePuller puller;
+
 
     public static void Stop(){
         for(IoTMessageWorker worker: ioTMessageWorkers){
@@ -69,8 +72,9 @@ public class Application {
                     LOGGER.warn(String.format("IoT message worker %s is still alive", worker.getName()));
                 }
             }
+            puller.stop();
         }catch (Exception ex){
-            LOGGER.error("Exceptiion in stopping intelab-wbe. Err:" + ex.getMessage());
+            LOGGER.error("Exception in stopping intelab-wbe. Err:" + ex.getMessage());
         }
     }
 
@@ -81,6 +85,7 @@ public class Application {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
+        startMessagePuller();
         startMQWorkers();
         socketServerStart();
     }
@@ -226,6 +231,36 @@ public class Application {
             worker.start();
         }
 
+    }
+
+    /**
+     * 开启接收短信回复线程池
+     */
+    private static void startMessagePuller() {
+        puller = new DefaultAlicomMessagePuller();
+
+        //设置异步线程池大小及任务队列的大小，还有无数据线程休眠时间
+        puller.setConsumeMinThreadSize(6);
+        puller.setConsumeMaxThreadSize(16);
+        puller.setThreadQueueSize(200);
+        puller.setPullMsgThreadSize(1);
+        //和服务端联调问题时开启,平时无需开启，消耗性能
+        puller.openDebugLog(false);
+
+        String accessKeyId="LTAIMmQjearxrjm0";
+        String accessKeySecret="OgLonz3aVJSaerzJRjSTHPO5ufUxqY";
+
+        String messageType="SmsUp";//此处应该替换成相应产品的消息类型
+        String queueName="Alicom-Queue-1856701573729509-SmsUp";//在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName,
+        // 格式类似Alicom-Queue-xxxxxx-SmsReport
+        try {
+            puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
+            System.out.println("异步线程池已开启");
+        } catch (ClientException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
 }

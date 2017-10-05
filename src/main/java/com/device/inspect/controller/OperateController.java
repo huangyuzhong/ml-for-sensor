@@ -823,8 +823,14 @@ public class OperateController {
             user.setJobNum(param.get("jobNum"));
         if (null!=param.get("job"))
             user.setJob(param.get("job"));
-        if (null!=param.get("mobile"))
-            user.setMobile(param.get("mobile"));
+        if (null!=param.get("mobile")) {
+            List<User> userList = userRepository.findByMobile(param.get("mobile"));
+            if (userList.size() != 0) {
+                return new RestResponse("该手机号码已被其他设备管理员使用！",1005,null);
+            } else {
+                user.setMobile(param.get("mobile"));
+            }
+        }
         if (null!=param.get("telephone"))
             user.setTelephone(param.get("telephone"));
         if (null!=param.get("email"))
@@ -1331,7 +1337,7 @@ public class OperateController {
         if (mobile.length()!=11)
             return new RestResponse("手机号格式不正确",1005,null);
         //短信发送验证码
-        boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
+        boolean b=MessageSendService.sendSms(user,mobile,String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else{
@@ -1405,9 +1411,14 @@ public class OperateController {
         if (!user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindMobile(1);
-        user.setMobile(mobile);
-        userRepository.save(user);
-        return new RestResponse("更换手机号成功", new RestUser(user));
+        List<User> userList = userRepository.findByMobile(mobile);
+        if (userList.size() != 0) {
+            return new RestResponse("该手机号码已被其他设备管理者使用！", 1005, null);
+        } else {
+            user.setMobile(mobile);
+            userRepository.save(user);
+            return new RestResponse("更换手机号成功", new RestUser(user));
+        }
     }
 
     /**
@@ -1525,7 +1536,7 @@ public class OperateController {
         String number = map.get("number");
         if (number.equals(user.getMobile())&&user.getBindMobile()==1){
             //用户输入手机号，发送短信密码
-            boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
+            boolean b=MessageSendService.sendSms(user,number,user.getPassword(),2);
             if (b){
                 return new RestResponse("密码已经发送到你的手机上！",0,null);
             }else {
@@ -2017,7 +2028,7 @@ public class OperateController {
             }
             catch(Exception e){
                 LOGGER.error(e.getMessage());
-                return new RestResponse(("转帐失败"), 1007, null);
+                return new RestResponse(("转账失败"), 1007, null);
             }
         }
 

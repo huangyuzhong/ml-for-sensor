@@ -369,8 +369,8 @@ public class MessageController {
 
     public void processReceivedReplyMessage(String senderMobile, String messageContent){
         // 判断短信发送手机号是否合法
-        User user = userRepository.findByMobile(senderMobile);
-        if(user == null){
+        List<User> users = userRepository.findByMobile(senderMobile);
+        if(users == null || users.size() == 0){
             LOGGER.info(String.format("Reply message's mobile number %s is not registered, ignore", senderMobile));
             return;
         }
@@ -388,12 +388,14 @@ public class MessageController {
                 return;
             }
 
-            Date twentyMinutesBefore = DateUtils.addMinutes(new Date(), -20);
-            List<Integer> alertIdList = Application.influxDBManager.readAlertIdFromPushStatusByUserIdDeviceIdStatusTimeRange(
-                    twentyMinutesBefore, user.getId(), deviceId, PUSH_MESSAGE_ACTIVE);
+            for (User user : users) {
+                Date twentyMinutesBefore = DateUtils.addMinutes(new Date(), -20);
+                List<Integer> alertIdList = Application.influxDBManager.readAlertIdFromPushStatusByUserIdDeviceIdStatusTimeRange(
+                        twentyMinutesBefore, user.getId(), deviceId, PUSH_MESSAGE_ACTIVE);
 
-            for(Integer alertId: alertIdList){
-                Application.influxDBManager.writeAlertPushStatus(new Date(), alertId, user.getId(), deviceId, PUSH_MESSAGE_CANCEL, 1);
+                for(Integer alertId: alertIdList){
+                    Application.influxDBManager.writeAlertPushStatus(new Date(), alertId, user.getId(), deviceId, PUSH_MESSAGE_CANCEL, 1);
+                }
             }
         }
     }

@@ -1,5 +1,12 @@
 package com.device.inspect.common.service;
 
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsRequest;
+import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
 import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.User;
 import com.taobao.api.DefaultTaobaoClient;
@@ -9,9 +16,13 @@ import com.taobao.api.response.AlibabaAliqinFcSmsNumSendResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
-import javax.mail.*;
-import javax.mail.internet.*;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by Administrator on 2016/10/29.
@@ -23,58 +34,206 @@ public class MessageSendService {
     /**
      * 推送报警信息
      * model短信模板ID/邮箱标题, message警报内容
+     *
      * @param user
      * @param verify
      * @param message
      * @return
      */
-    public static String pushAlertMessge(User user,String verify,String message){
-        if (MessageSendService.sendMessage(user,verify,message,1)){
+    public static String pushAlertMessge(User user, String verify, String message) {
+        if (MessageSendService.sendSms(user, verify, message, 1)) {
             return "短信推送成功";
-        }else if (MessageSendService.sendEmaiToUser(user,verify,message,1)){
+        } else if (MessageSendService.sendEmaiToUser(user, verify, message, 1)) {
             return "邮箱推送成功";
-        }else {
+        } else {
             return "推送失败";
         }
     }
 
-    public static boolean pushAlertMsg(User usr, String message){
-        if(MessageSendService.sendMessage(usr, "", message, 1)){
+    public static boolean pushAlertMsg(User usr, String message) {
+        if (MessageSendService.sendSms(usr, "", message, 1)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
 
-    public static boolean pushAlertMail(User usr, String message){
-        if(MessageSendService.sendEmaiToUser(usr,"", message ,1)){
+    public static boolean pushAlertMail(User usr, String message) {
+        if (MessageSendService.sendEmaiToUser(usr, "", message, 1)) {
             return true;
-        }
-        else{
+        } else {
             return false;
         }
     }
 
 
     //阿里短信推送的appkey
-    public static final String appKey="23524999";
+    public static final String appKey = "23524999";
     //阿里短信推送的App Secret
-    public static final String appSecret="f37a86b1b0d2cef9670bf1c4ce1e23f2";
+    public static final String appSecret = "f37a86b1b0d2cef9670bf1c4ce1e23f2";
     //url
-    public static final String url="http://gw.api.taobao.com/router/rest";
+    public static final String url = "http://gw.api.taobao.com/router/rest";
     //验证码短信签名绑定手机号
-    public static final String MessageName0="绑定手机号";
+    public static final String MessageName0 = "绑定手机号";
     //设备警报短信签名设备警报
-    public static final String MessageName1="设备报警";
+    public static final String MessageName1 = "设备报警";
     //找回密码短信签名找回密码
-    public static final String MessageName2="找回密码";
+    public static final String MessageName2 = "找回密码";
     //设备警报模板ID
-    public static final String alertModelID="SMS_25635204";
+    public static final String alertModelID = "SMS_25635204";
     //绑定手机号验证码模板ID
-    public static final String verifyModelID="SMS_25665210";
+    public static final String verifyModelID = "SMS_25665210";
     //找回密码模板ID
-    public static final String PasswordID="SMS_25610360";
+    public static final String PasswordID = "SMS_25610360";
+
+    //产品名称:云通信短信API产品,开发者无需替换
+    static final String product = "Dysmsapi";
+    //产品域名,开发者无需替换
+    static final String domain = "dysmsapi.aliyuncs.com";
+
+    // TODO 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
+    static final String accessKeyId = "LTAIMmQjearxrjm0";
+    static final String accessKeySecret = "OgLonz3aVJSaerzJRjSTHPO5ufUxqY";
+
+    /**
+     * 发送短信
+     *
+     * @param user        用户
+     * @param verfyMobile 接收验证码的手机
+     * @param message     信息内容
+     * @param type        0是验证码  1是报警信息 2是发送密码
+     * @return
+     * @throws ClientException
+     */
+    public static boolean sendSms(User user, String verfyMobile, String message, Integer type) {
+
+        //可自助调整超时时间
+        System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
+        System.setProperty("sun.net.client.defaultReadTimeout", "10000");
+
+        if (type.equals(1)) {
+            // 短信发送报警信息
+            if (user.getBindMobile() != null && user.getBindMobile() == 1) {
+                try {
+                    //初始化acsClient,暂不支持region化
+                    IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+                    DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+                    IAcsClient acsClient = new DefaultAcsClient(profile);
+
+                    //组装请求对象-具体描述见控制台-文档部分内容
+                    SendSmsRequest request = new SendSmsRequest();
+                    //必填:待发送手机号
+                    request.setPhoneNumbers(user.getMobile());
+                    //必填:短信签名-可在短信控制台中找到
+                    request.setSignName(MessageName1);
+                    //必填:短信模板-可在短信控制台中找到
+                    request.setTemplateCode("SMS_101150037");
+                    //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
+                    request.setTemplateParam("{\"code\":\"" + message + "\"}");
+
+                    SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+                    if (sendSmsResponse.getCode() != null && sendSmsResponse.getCode().equals("OK")) {
+                        //请求成功
+                        LOGGER.info(String.format("Successfully send SMS to %s. %s",
+                                user.getTelephone(),
+                                message));
+                        return true;
+                    } else {
+                        LOGGER.warn(String.format("Failed to send SMS to %s. errCode %s, %s",
+                                user.getTelephone(),
+                                sendSmsResponse.getCode(),
+                                sendSmsResponse.getMessage()));
+                        return false;
+                    }
+                } catch (Exception e) {
+                    LOGGER.error(String.format("Exception happened in sending SMS to cellphone of user %s. Err: %s",
+                            user.getId(),
+                            e.toString()));
+                    return false;
+                }
+            } else {
+                LOGGER.warn(String.format("User %s have not bind mobile, skip sending SMS", user.getId()));
+                return false;
+            }
+        } else if (type.equals(0)) {
+            // 短信发送验证码
+            try {
+                //初始化acsClient,暂不支持region化
+                IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+                DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+                IAcsClient acsClient = new DefaultAcsClient(profile);
+
+                //组装请求对象-具体描述见控制台-文档部分内容
+                SendSmsRequest request = new SendSmsRequest();
+                //必填:待发送手机号
+                request.setPhoneNumbers(verfyMobile);
+                //必填:短信签名-可在短信控制台中找到
+                request.setSignName(MessageName0);
+                //必填:短信模板-可在短信控制台中找到
+                request.setTemplateCode("SMS_101230023");
+                //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
+                request.setTemplateParam("{\"code\":\"" + message + "\"}");
+
+                //请求失败这里会抛ClientException异常
+                SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+                if (sendSmsResponse.getCode() != null && sendSmsResponse.getCode().equals("OK")) {
+                    //请求成功
+                    LOGGER.info(String.format("Successfully send SMS to %s. %s",
+                            verfyMobile,
+                            message));
+                    return true;
+                } else {
+                    LOGGER.warn(String.format("Failed to send SMS to %s. errCode %s, %s",
+                            verfyMobile,
+                            sendSmsResponse.getCode(),
+                            sendSmsResponse.getMessage()));
+                    return false;
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        } else if (type.equals(2)) {
+            // 短信找回密码
+            try {
+                //初始化acsClient,暂不支持region化
+                IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+                DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+                IAcsClient acsClient = new DefaultAcsClient(profile);
+
+                //组装请求对象-具体描述见控制台-文档部分内容
+                SendSmsRequest request = new SendSmsRequest();
+                //必填:待发送手机号
+                request.setPhoneNumbers(verfyMobile);
+                //必填:短信签名-可在短信控制台中找到
+                request.setSignName(MessageName2);
+                //必填:短信模板-可在短信控制台中找到
+                request.setTemplateCode("SMS_101215025");
+                //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
+                request.setTemplateParam("{\"code\":\"" + message + "\"}");
+
+                //请求失败这里会抛ClientException异常
+                SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+                if (sendSmsResponse.getCode() != null && sendSmsResponse.getCode().equals("OK")) {
+                    //请求成功
+                    LOGGER.info(String.format("Successfully send SMS to %s. %s",
+                            verfyMobile,
+                            message));
+                    return true;
+                } else {
+                    LOGGER.warn(String.format("Failed to send SMS to %s. errCode %s, %s",
+                            verfyMobile,
+                            sendSmsResponse.getCode(),
+                            sendSmsResponse.getMessage()));
+                    return false;
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 
     /**
      * 发送短信

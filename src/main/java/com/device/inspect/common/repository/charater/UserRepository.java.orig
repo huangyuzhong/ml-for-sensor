@@ -18,5 +18,9 @@ public interface UserRepository extends CrudRepository<User,Integer> {
 
     public User findById(Integer id);
 
+<<<<<<< HEAD
+    public User findByMobile(String mobile);
+=======
     List<User> findByMobile(String mobile);
+>>>>>>> test
 }
