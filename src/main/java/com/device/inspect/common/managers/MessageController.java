@@ -43,16 +43,8 @@ public class MessageController {
     public static final String MESSAGE_ACTION_SEND = "send";
     public static final String MESSAGE_ACTION_RECV = "receive";
 
-
-
-    @Autowired
-    private MessageSendRepository messageSendRepository;
-
     @Autowired
     private DeviceInspectRepository deviceInspectRepository;
-
-    @Autowired
-    private DeviceFloorRepository deviceFloorRepository;
 
     @Autowired
     private ScientistDeviceRepository scientistDeviceRepository;
