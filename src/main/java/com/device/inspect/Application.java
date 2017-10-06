@@ -263,10 +263,9 @@ public class Application {
         try {
             puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
             System.out.println("异步线程池已开启");
-        } catch (ClientException e) {
+        } catch (ClientException | ParseException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+            LOGGER.error(String.format("Failed to load SMSClient, %s", e.toString()));
         }
     }
 

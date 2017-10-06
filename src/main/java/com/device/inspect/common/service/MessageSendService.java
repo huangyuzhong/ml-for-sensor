@@ -94,6 +94,12 @@ public class MessageSendService {
     // TODO 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
     static final String accessKeyId = "LTAIMmQjearxrjm0";
     static final String accessKeySecret = "OgLonz3aVJSaerzJRjSTHPO5ufUxqY";
+    //验证码短信签名绑定手机号
+    public static final String MessageSign1 = "INTELAB绑定手机";
+    //设备警报短信签名设备警报
+    public static final String MessageSign2 = "INTELAB设备报警";
+    //找回密码短信签名找回密码
+    public static final String MessageSign3 = "INTELAB找回密码";
 
     /**
      * 发送短信
@@ -125,7 +131,7 @@ public class MessageSendService {
                     //必填:待发送手机号
                     request.setPhoneNumbers(user.getMobile());
                     //必填:短信签名-可在短信控制台中找到
-                    request.setSignName(MessageName1);
+                    request.setSignName(MessageSign2);
                     //必填:短信模板-可在短信控制台中找到
                     request.setTemplateCode("SMS_101150037");
                     //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
@@ -168,7 +174,7 @@ public class MessageSendService {
                 //必填:待发送手机号
                 request.setPhoneNumbers(verfyMobile);
                 //必填:短信签名-可在短信控制台中找到
-                request.setSignName(MessageName0);
+                request.setSignName(MessageSign1);
                 //必填:短信模板-可在短信控制台中找到
                 request.setTemplateCode("SMS_101230023");
                 //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
@@ -205,7 +211,7 @@ public class MessageSendService {
                 //必填:待发送手机号
                 request.setPhoneNumbers(verfyMobile);
                 //必填:短信签名-可在短信控制台中找到
-                request.setSignName(MessageName2);
+                request.setSignName(MessageSign3);
                 //必填:短信模板-可在短信控制台中找到
                 request.setTemplateCode("SMS_101215025");
                 //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
