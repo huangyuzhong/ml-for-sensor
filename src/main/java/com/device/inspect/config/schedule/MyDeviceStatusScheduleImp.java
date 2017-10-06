@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -79,7 +80,7 @@ public class MyDeviceStatusScheduleImp{
 //    @Scheduled(cron = "0 0/5 * * * ?")
     public void executeInternal(){
 
-        final int CONTINUOUS_OFFLINE_THRESHOLD = 5; // 判断是否为持续性offline的阈值 (分钟)
+        final int CONTINUOUS_OFFLINE_THRESHOLD = 10; // 判断是否为持续性offline的阈值 (分钟)
 
         if (Application.isTesting){
             return;
@@ -88,6 +89,8 @@ public class MyDeviceStatusScheduleImp{
         Date scheduleStartTime = new Date();
         Date time5minBefore = DateUtils.addMinutes(scheduleStartTime, -5);
         Date time10minBefore = DateUtils.addMinutes(scheduleStartTime, -10);
+
+        InspectType onlineInspect = inspectTypeRepository.findByCode("-1");
 
         Iterable<Company> companies = companyRepository.findAll();
         if (null!=companies)
@@ -154,7 +157,7 @@ public class MyDeviceStatusScheduleImp{
                                             Date latestAlertTime = null;
                                             MemoryDevice memoryDevice = memoryCacheDevice.get(device.getId());
                                             if(memoryDevice != null){
-                                                logger.info(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
+                                                logger.debug(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
                                                 if(memoryDevice.getLastAlertTime() != null && memoryDevice.getLastAlertTime().getTime() - time5minBefore.getTime() > 0){
                                                     if(memoryDevice.getLastAlertType() == 1){
                                                         alert_type = 1;
@@ -173,7 +176,7 @@ public class MyDeviceStatusScheduleImp{
                                                 }
                                             }
                                             else{
-                                                logger.warn(String.format("Device scan: device %d is not found in cache, use influxdb data, device alert time may be not precise.", device.getId()));
+                                                logger.debug(String.format("Device scan: device %d is not found in cache, use influxdb data, device alert time may be not precise.", device.getId()));
                                                 // use data in influxdb
                                                 if(Application.influxDBManager.countDeviceTotalAlertByTime(inspectTypes, device.getId(), "high", time5minBefore, scheduleStartTime) > 0){
                                                     alert_type = 2;
@@ -205,14 +208,14 @@ public class MyDeviceStatusScheduleImp{
 
                                             boolean deviceOnline = false;
                                             if(memoryDevice != null && memoryDevice.getLastActivityTime() != null){
-                                                logger.info(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
+                                                logger.debug(String.format("Device scan: device %d is found in cache, use cached data", device.getId()));
                                                 if(memoryDevice.getLastActivityTime().getTime() - time5minBefore.getTime() > 0){
                                                     deviceOnline = true;
                                                 }
                                                 device.setLastActivityTime(memoryDevice.getLastActivityTime());
                                             }
                                             else{
-                                                logger.info(String.format("Device scan: device %d is not found in cache, use influxdb data", device.getId()));
+                                                logger.debug(String.format("Device scan: device %d is not found in cache, use influxdb data", device.getId()));
                                                 Integer countMonitorDataIn5min = Application.influxDBManager.countDeviceTotalTelemetryByTime(inspectTypes, device.getId(), time5minBefore, scheduleStartTime);
                                                 if(countMonitorDataIn5min > 0){
                                                     deviceOnline = true;
@@ -235,7 +238,9 @@ public class MyDeviceStatusScheduleImp{
                                                 deviceOffline.setOfflineDate(scheduleStartTime);
                                                 deviceOfflineRepository.save(deviceOffline);
 
-                                                InspectType onlineInspect = inspectTypeRepository.findByCode("-1");
+                                                if(device.getId() == 515){
+                                                    logger.info("this is device " + device.getName());
+                                                }
                                                 AlertCount latestAlert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdOrderByCreateDateDesc(device.getId(), onlineInspect.getId());
 
                                                 boolean isNewAlert = false;
@@ -249,6 +254,7 @@ public class MyDeviceStatusScheduleImp{
 
                                                 if(isNewAlert){
                                                     latestAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, onlineInspect, 1, "s", scheduleStartTime);
+                                                    logger.info(String.format("New offline alert %d created for device %d", latestAlert.getId(), device.getId()));
                                                 }else{
                                                     latestAlert.setFinish(scheduleStartTime);
                                                     alertCountRepository.save(latestAlert);
@@ -270,7 +276,7 @@ public class MyDeviceStatusScheduleImp{
                                                         findByInspectTypeIdAndDeviceId(bettaryInspectId, device.getId());
                                                 if(batteryInspect == null){
                                                     // bettary inspect is not found, error
-                                                    logger.info(String.format("Online Schedule: device %s-%d has no bettary inspect", device.getName(), device.getId()));
+                                                    logger.debug(String.format("Online Schedule: device %s-%d has no battery inspect", device.getName(), device.getId()));
                                                 }
                                                 else{
                                                     List<List<Object>> recentBatteryData = Application.influxDBManager.readTelemetryInTimeRange(
@@ -283,7 +289,7 @@ public class MyDeviceStatusScheduleImp{
                                                             );
 
                                                     if(recentBatteryData == null || recentBatteryData.size()==0){
-                                                        logger.info(String.format("Online Schedule: device %s-%d has no bettary message", device.getName(), device.getId()));
+                                                        logger.info(String.format("Online Schedule: device %s-%d has no battery message", device.getName(), device.getId()));
 
                                                     }
                                                     else{
@@ -305,6 +311,7 @@ public class MyDeviceStatusScheduleImp{
                                                         if (batteryIsDesc) {
                                                             // send power message
                                                             AlertCount alert = AlertCount.createNewAlertAndSave(alertCountRepository, device, batteryInspect.getInspectType(), 1, "s", scheduleStartTime);
+                                                            logger.info(String.format("New battery alert %d created for device %d", alert.getId(), device.getId()));
                                                             messageController.sendPowerMsg(device, alert, scheduleStartTime);
                                                         }
                                                     }
@@ -321,29 +328,39 @@ public class MyDeviceStatusScheduleImp{
                                             Float alertScore = (float) 50.0;
                                             Calendar calendar = Calendar.getInstance();
                                             calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-1);
-                                            Date dayOff = calendar.getTime();
+                                            Date oneDayBefore = calendar.getTime();
                                             calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-7);
-                                            Date weekOff = calendar.getTime();
+                                            Date oneWeekBefore = calendar.getTime();
                                             calendar.set(Calendar.DATE,calendar.get(Calendar.DATE)-30);
-                                            Date monthOff = calendar.getTime();
-                                            Long oneOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),dayOff,new Date());
-                                            Long sevenOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),weekOff,dayOff);
-                                            Long thirtyOff = deviceOfflineRepository.countByDeviceIdAndOfflineDateBetween(device.getId(),monthOff,weekOff);
-                                            offSocre =(float) (offSocre-oneOff-sevenOff*0.5-thirtyOff*0.1);
+                                            Date oneMonthBefore = calendar.getTime();
+
+                                            // get offline minutes
+
+                                            List<BigDecimal> offlineMinutesOneDay = alertCountRepository.findAlertSumDurationByCreateDateBetweenAndInspectTypeIdAndDeviceId(oneDayBefore, new Date(), onlineInspect.getId(), device.getId());
+                                            List<BigDecimal> offlineMinutesOneWeek = alertCountRepository.findAlertSumDurationByCreateDateBetweenAndInspectTypeIdAndDeviceId(oneWeekBefore, oneDayBefore, onlineInspect.getId(), device.getId());
+                                            List<BigDecimal> offlineMinutesOneMonth = alertCountRepository.findAlertSumDurationByCreateDateBetweenAndInspectTypeIdAndDeviceId(oneMonthBefore, oneWeekBefore, onlineInspect.getId(), device.getId());
+
+                                            Long oneDayOffline = offlineMinutesOneDay != null && offlineMinutesOneDay.size() > 0 && offlineMinutesOneDay.get(0) != null ? offlineMinutesOneDay.get(0).longValue() : 0;
+                                            Long oneWeekOffline = offlineMinutesOneWeek != null && offlineMinutesOneWeek.size() > 0 && offlineMinutesOneWeek.get(0) != null ? offlineMinutesOneWeek.get(0).longValue() : 0;
+                                            Long oneMonthOffline = offlineMinutesOneMonth != null && offlineMinutesOneMonth.size() > 0 && offlineMinutesOneMonth.get(0) != null ? offlineMinutesOneMonth.get(0).longValue() : 0;
+
+                                            // every 3 offline minutes considered as one offline unit
+
+                                            offSocre =(float) (offSocre-oneDayOffline/3-oneWeekOffline/3*0.5-oneMonthOffline/3*0.1);
                                             offSocre = offSocre>0?offSocre:0;
 
                                             Long oneHighAlert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    2,dayOff,new Date());
+                                                    2,oneDayBefore,new Date());
                                             Long oneLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    1,dayOff,new Date());
+                                                    1,oneDayBefore,new Date());
                                             Long sevenHighALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    2,weekOff,dayOff);
+                                                    2,oneWeekBefore,oneDayBefore);
                                             Long sevenLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    1,weekOff,dayOff);
+                                                    1,oneWeekBefore,oneDayBefore);
                                             Long thirtyHighALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    2,monthOff,weekOff);
+                                                    2,oneMonthBefore,oneWeekBefore);
                                             Long thirtyLowALert = alertCountRepository.countByDeviceIdAndTypeAndCreateDateBetween(device.getId(),
-                                                    1,monthOff,weekOff);
+                                                    1,oneMonthBefore,oneWeekBefore);
                                             alertScore = (float)(alertScore-oneHighAlert-sevenHighALert*0.5-thirtyHighALert*0.25-
                                                     oneLowALert*0.5-sevenLowALert*0.25-thirtyLowALert*0.1);
                                             alertScore = alertScore>0?alertScore:0;
@@ -363,15 +380,15 @@ public class MyDeviceStatusScheduleImp{
 
                                             long timeCost = scanDeviceEndTime.getTime() - scanDeviceStartTime.getTime();
 
-                                            logger.info(String.format("Scan device %d taks %d on get inspect, %d on alert, %d on online, %d on score, %d ms total", device.getId(), timeCostGetInfo, timeCostAlert, timeCostOnline, timeCostScore, timeCost));
+                                            logger.debug(String.format("Scan device %d taks %d on get inspect, %d on alert, %d on online, %d on score, %d ms total", device.getId(), timeCostGetInfo, timeCostAlert, timeCostOnline, timeCostScore, timeCost));
                                         }
 
-                                        logger.info(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), roomLowAlert));
-                                        logger.info(String.format("Room %d has %d device reports Red alert in 5 minutes", room.getId(), roomHighAlert));
+                                        logger.debug(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), roomLowAlert));
+                                        logger.debug(String.format("Room %d has %d device reports Red alert in 5 minutes", room.getId(), roomHighAlert));
 
-                                        logger.info(String.format("Room %d has %d online device", room.getId(), roomOnline));
+                                        logger.debug(String.format("Room %d has %d online device", room.getId(), roomOnline));
 
-                                        logger.info(String.format("Room %d has %d offline device", room.getId(), roomOffline));
+                                        logger.debug(String.format("Room %d has %d offline device", room.getId(), roomOffline));
 
                                         room.setHighAlert(roomHighAlert);
                                         room.setLowAlert(roomLowAlert);

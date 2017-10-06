@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -42,5 +43,9 @@ public interface AlertCountRepository  extends CrudRepository<AlertCount,Integer
                                                                                                                            Date startTime,
                                                                                                                            Date endTime,
                                                                                                                            Pageable pageable);
+
+    @Query(value = "SELECT SUM(timestampdiff(minute, create_date, finish_date)) FROM alert_count WHERE create_date > ?1 AND create_date < ?2 AND inspect_type_id = ?3 AND device_id=?4", nativeQuery = true)
+    List<BigDecimal> findAlertSumDurationByCreateDateBetweenAndInspectTypeIdAndDeviceId(Date startTime, Date endTime, Integer inspectTypeId, Integer deviceId);
+
 
 }

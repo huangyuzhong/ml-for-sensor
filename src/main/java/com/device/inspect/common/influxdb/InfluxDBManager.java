@@ -790,7 +790,7 @@ public class InfluxDBManager {
             Date endTime = new Date();
 
             long timeCost = endTime.getTime() - startTime.getTime();
-            logger.info(String.format("Count Query [%s] takes %d ms", queryString, timeCost));
+            logger.debug(String.format("Count Query [%s] takes %d ms", queryString, timeCost));
 
             if(resultList != null && resultList.size() > 0) {
                 QueryResult.Result tsData = resultList.get(0);
@@ -1781,6 +1781,24 @@ public class InfluxDBManager {
 
         String queryString = String.format("SELECT user_id, monitor_id, description FROM two_years.message WHERE user_id = '%s' AND monitor_id = '%s' AND action = '%s' AND result = 'OK' order by time DESC limit 1",
                 userId, inspectId, action);
+
+        List<List<Object>> messages = executeListQuery(queryString, dbName);
+
+        if(messages != null && !messages.isEmpty()){
+            return messages.get(0);
+        }else{
+            return null;
+        }
+
+
+    }
+
+    public List<Object> readLatestMessageByUserIdInspectIdDeviceIdActionResult(Integer userId, Integer inspectId, Integer deviceId, String action, String result){
+        String dbName = "intelab";
+
+
+        String queryString = String.format("SELECT user_id, monitor_id, description FROM two_years.message WHERE user_id = '%s' AND monitor_id = '%s' AND device_id = '%d' AND action = '%s' AND result = '%s' order by time DESC limit 1",
+                userId, inspectId, deviceId, action, result);
 
         List<List<Object>> messages = executeListQuery(queryString, dbName);
 

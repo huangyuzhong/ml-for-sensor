@@ -179,11 +179,13 @@ public class MessageController {
         // for each receiver, check if it is necessary to send message
 
         for(User user : userList){
-            List<Object> latestMessage = Application.influxDBManager.readLatestMessageByUserIdInspectIdAction(user.getId(), alert.getInspectType().getId(), MESSAGE_ACTION_SEND);
+            // get latest successfully sent alert message of this device, this inspect type
+            List<Object> latestMessage = Application.influxDBManager.readLatestMessageByUserIdInspectIdDeviceIdActionResult(user.getId(), alert.getInspectType().getId(), device.getId(), MESSAGE_ACTION_SEND, "OK");
 
             if(latestMessage != null && !latestMessage.isEmpty()){
+                // if last sent message is in 5 min, skip
                 if(sampleTime.getTime() - TimeUtil.fromInfluxDBTimeFormat((String)latestMessage.get(0)) < 5*60*1000){
-                    LOGGER.info(String.format("Device %d, alert message about %s has been sent to manager at %s within 5 minutes skip this time.",
+                    LOGGER.debug(String.format("Device %d, alert message about %s has been sent to manager at %s within 5 minutes skip this time.",
                             device.getId(),
                             alert.getInspectType().getName(),
                             latestMessage.get(0)));
@@ -192,11 +194,12 @@ public class MessageController {
             }
 
 
-            LOGGER.info(String.format("Device %d, last alert is more than 5 minutes away, sending alert to manager %s",
+            LOGGER.debug(String.format("Device %d, last alert is sent more than 5 minutes away, sending alert to manager %s",
                     device.getId(),
-                    device.getManager().getTelephone()));
+                    device.getManager().getName()));
 
             // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
+
 
             if(MessageSendService.sendEmailToIntelabTest(message)){
                 LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
@@ -244,14 +247,14 @@ public class MessageController {
                 user.getRemoveAlert().equals("0")){
             msgAvailable = true;
             mailAvailable = true;
-            LOGGER.info(String.format("User %s does not void alert, send both message and email",
+            LOGGER.debug(String.format("User %s does not void alert, send both message and email",
                     user.getName()));
         }
-        if(user.getRemoveAlert()!=null&&
+        else if(user.getRemoveAlert()!=null&&
                 !"".equals(user.getRemoveAlert())&&
                 user.getRemoveAlert().equals("1")){
             mailAvailable = true;
-            LOGGER.info(String.format("User %s set void message, send only email",
+            LOGGER.debug(String.format("User %s set void message, send only email",
                     user.getName()));
         }
         String description = new String();
@@ -263,7 +266,7 @@ public class MessageController {
             Date startMsgSendTime = new Date();
             String result;
 
-            if (user.getMobile() == null) {
+            if (user.getMobile() == null || user.getBindMobile() == null || user.getBindMobile() != 1) {
                 LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送短信给用户 %d, 用户没有绑定手机",
                         alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
 
@@ -304,7 +307,7 @@ public class MessageController {
         // 发送邮件
         boolean mailSuccess = false;
         if(mailAvailable){
-            if (user.getEmail()==null||"".equals(user.getEmail())){
+            if (user.getEmail()==null||"".equals(user.getEmail()) || user.getBindEmail() == null || user.getBindEmail() != 1){
                 LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送邮件给用户 %d, 用户没有绑定邮箱",
                         alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
             }
@@ -345,7 +348,7 @@ public class MessageController {
 
         if(!mailAvailable && !msgAvailable){
 
-            LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 推送给用户 %s, 用户关闭了所有推送",
+            LOGGER.warn( String.format("无法为报警 %d , 设备 %d, 参数 %s 推送给用户 %s, 用户关闭了所有推送",
                     alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getName()));
         }
 
