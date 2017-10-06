@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import sun.plugin2.message.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -186,12 +187,22 @@ public class MessageController {
                 LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
             }
 
-            // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
-//            if (device.getManager().getMobile() != null) {
-//                MessageSendService.sendMessageToInteLabManager(message, device.getManager().getMobile());  //因为虚拟机上不存在端口，会抛出相应的异常，所以暂时先将它屏蔽掉。
-//            }else{
-//                LOGGER.warn("The mobile of device owner is null, please complete the information as soon as possible.");
-//            }
+            // 在没有网的情况下，通过SIM800将报警信息发送给指定的用户
+            try {
+                MessageSend newMessageSend = new MessageSend();
+                newMessageSend.setCreate(sampleTime);
+                newMessageSend.setDevice(device);
+                newMessageSend.setUser(device.getManager());
+                newMessageSend.setDeviceInspect(deviceInspect);
+                newMessageSend.setError(device.getId() + "报警,发送给设备管理员" + device.getManager().getUserName());
+                sendAlertMsgToUsrBySIM800(device.getManager(), message, newMessageSend);
+            }catch (Exception e){
+                LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
+                        device.getId(),
+                        device.getManager().getTelephone(),
+                        e.toString()));
+                e.printStackTrace();
+            }
 
             try {
                 MessageSend newMessageSend = new MessageSend();
@@ -231,6 +242,64 @@ public class MessageController {
                 }
             }
         }
+    }
+
+    /**
+     * 通过SIM800发送报警信息给特定用户
+     */
+    public void sendAlertMsgToUsrBySIM800(User user, String message, MessageSend messageSend){
+        boolean mailAvailable = false;
+        boolean msgAvailable = false;
+        // check if user set void alert
+        if (user.getRemoveAlert()!=null&&
+                !"".equals(user.getRemoveAlert())&&
+                user.getRemoveAlert().equals("0")){
+            mailAvailable = true;
+            msgAvailable = true;
+            LOGGER.info(String.format("User %s does not void alert, send both message and email", user.getName()));
+        }
+        else if (user.getRemoveAlert()!=null&&
+                !"".equals(user.getRemoveAlert())&&
+                user.getRemoveAlert().equals("1")){
+            mailAvailable = true;
+            LOGGER.info(String.format("User %s set void message, send only email", user.getName()));
+        }
+
+        String type = new String();
+        String reason = "alert";
+        messageSend.setEnable(0);
+
+        if (msgAvailable){
+            if (MessageSendService.sendMessageToInteLabManager(message, user.getMobile())){
+                type += "短信发送成功";
+                LOGGER.info("device alert: send message " + message);
+                messageSend.setEnable(1);
+            }
+            else{
+                type += "短信发送失败";
+            }
+        }
+
+        if (mailAvailable){
+            if (user.getEmail()==null||"".equals(user.getEmail())){
+                reason = "没有绑定邮箱";
+            }
+            else if(MessageSendService.sendEmailToUserBySIM800(message, user.getEmail())){
+                LOGGER.info("device alert: send email " + message);
+                type += "邮件发送成功";
+                messageSend.setEnable(1);
+            }
+            else{
+                type += "邮件发送失败";
+            }
+        }
+
+        if(!mailAvailable && !msgAvailable){
+            reason = "停用通知";
+        }
+        messageSend.setType(type);
+        messageSend.setReason(reason);
+        messageSendRepository.save(messageSend);
     }
 
     /**
