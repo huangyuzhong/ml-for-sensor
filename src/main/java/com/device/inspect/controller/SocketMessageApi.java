@@ -218,14 +218,15 @@ public class SocketMessageApi {
             if(dealRecords != null) {
                 String alertMsg = getAlertMsg(deviceInspect, inspectMessage, alertType);
                 for (DealRecord dealRecord : dealRecords) {
-                    LOGGER.info(String.format("found alert [%s] during deal %d.", alertMsg, dealRecord.getId()));
+                    LOGGER.debug(String.format("found alert [%s] during deal %d.", alertMsg, dealRecord.getId()));
                     try {
                         dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
                         BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
                                 dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
                                 dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
                         BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
-                        LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
+                        LOGGER.info(String.format("Alert happens in device lease. Change transfer status to alert. lease record %d, alert time %s, alert -- %s",
+                                dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
                         onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
                                 "", JSON.toJSONString(value));
                         dealRecordRepository.save(dealRecord);
@@ -236,7 +237,7 @@ public class SocketMessageApi {
                 }
             }
             else{
-                LOGGER.info("no transfer is ongoing when alert happened");
+                LOGGER.debug("no transfer is ongoing when alert happened");
             }
         }
 
@@ -330,7 +331,7 @@ public class SocketMessageApi {
                         retry ++;
                     }
                     else{
-                        LOGGER.info(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
+                        LOGGER.debug(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
                                 device.getId(),
                                 //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
                                 deviceInspect.getInspectType().getMeasurement(),
@@ -432,7 +433,7 @@ public class SocketMessageApi {
 
                 if (liveAlert == null) {
                     // if hit this code, there must be something wrong
-                    LOGGER.warn(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
+                    LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
                             device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
 
                     AlertCount newerCount = null;
@@ -463,12 +464,13 @@ public class SocketMessageApi {
                     if (liveAlert.getType() != alertType) {
                         // alert type is not equal, create a new alert
                         liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+                        LOGGER.info(String.format("new %s alert %d of %s created for device %d", getInspectStatusFromAlertType(alertType), liveAlert.getId(), deviceInspect.getInspectType().getName(), device.getId()));
                     } else {
                         // extend live alert
                         liveAlert.setNum(liveAlert.getNum() + 1);
                         liveAlert.setFinish(inspectMessage.getSamplingTime());
                         alertCountRepository.save(liveAlert);
-                        LOGGER.info("datagram alert type set and updating to db");
+                        LOGGER.info(String.format("this is existing %s alert %d, updating finish time to db", getInspectStatusFromAlertType(alertType), liveAlert.getId()));
                     }
                 }
 
@@ -560,7 +562,7 @@ public class SocketMessageApi {
 
         // 通过阈值查看设备当前运行状态
         if (deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_THRESHOLDS) {
-            LOGGER.debug("check data against status");
+            LOGGER.debug("check operating status against threshold");
             List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
             if (runningStatuses != null && runningStatuses.size() > 0) {
                 for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
@@ -573,7 +575,7 @@ public class SocketMessageApi {
 
         // 通过机器学习模型来判断当前运行状态
         else if (deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_LEARNING_MODEL) {
-            LOGGER.debug("check running status when inspectPurpose is 2");
+            LOGGER.debug("check operating status against model");
             if (deviceInspect.getModels() != null) {
                 Models models = deviceInspect.getModels();
                 // 检验UseAML模型里面的数据是否需要更新
@@ -755,7 +757,7 @@ public class SocketMessageApi {
                     Thread.sleep(200);
                     retry++;
                 } else {
-                    LOGGER.info(String.format("Successfully write Device [%d] running status %s to influxdb",
+                    LOGGER.debug(String.format("Successfully write Device [%d] running status %s to influxdb",
                             device.getId(), runningStatus));
 
                     break;
@@ -799,13 +801,12 @@ public class SocketMessageApi {
     */
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result) {
-        LOGGER.info(result);
         DeviceInspect deviceInspect = parseAndProcessInspectMessage(result, true);
         if(deviceInspect == null) {
             return new RestResponse(null);
         }
 
-        LOGGER.info("add response datagram head");
+        LOGGER.debug("add response datagram head");
         String response = null;
         List<Byte> responseByte = new ArrayList<Byte>();
         responseByte.add((byte)0xEF);

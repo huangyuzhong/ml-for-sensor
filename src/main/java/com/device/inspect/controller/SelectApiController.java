@@ -197,7 +197,7 @@ public class SelectApiController {
             return new RestResponse("user's information incorrect!", 1005, null);
         }
 
-        Application.LOGGER.info(String.format("Find buildings of company %s, %s", user.getCompany().getName(), user.getCompany().getId()));
+        Application.LOGGER.debug(String.format("Find buildings of company %s, %s", user.getCompany().getName(), user.getCompany().getId()));
         List<Building> list = new ArrayList<Building>();
         if (null != map.get("enable") && (map.get("enable").equals("0") || map.get("enable").equals("1")))
             list = buildingRepository.findByCompanyIdAndEnable(user.getCompany().getId(), Integer.valueOf(map.get("enable")));
@@ -1769,9 +1769,7 @@ public class SelectApiController {
         Date beginTime = new Date(Long.parseLong(requestParam.getBeginTime()));
         Date endTime = new Date(Long.parseLong(requestParam.getEndTime()));
         long interval = 60 * 1000 / Integer.parseInt(requestParam.getSampleRate());
-        long beginMillisecond = beginTime.getTime();
-        long endMillisecond = endTime.getTime();
-        LOGGER.info(String.format("Get Device Monitor: Begin Time %s, End Time %s, interval: %s.", beginTime.toString(), endTime.toString(), String.valueOf(interval)));
+        LOGGER.debug(String.format("Get Device Monitor: Begin Time %s, End Time %s, interval: %s.", beginTime.toString(), endTime.toString(), String.valueOf(interval)));
         if (requestParam.getMonitorId() == null) {
             return new RestResponse("监控参数ID未设置", 1006, null);
         }
@@ -1782,10 +1780,10 @@ public class SelectApiController {
         for (String deviceInspectId : deviceInspectIds) {
             DeviceInspect deviceInspect = deviceInspectRepository.findById(Integer.parseInt(deviceInspectId));
             if (deviceInspect != null) {
-                LOGGER.info(String.format("Get Device Monitor: monitor %d is found.", deviceInspect.getId()));
+                LOGGER.debug(String.format("Get Device Monitor: monitor %d is found.", deviceInspect.getId()));
                 deviceInspects.add(deviceInspect);
             } else {
-                LOGGER.info(String.format("Get Device Monitor: Device Inspect Id %s is not found.", deviceInspectId));
+                LOGGER.debug(String.format("Get Device Monitor: Device Inspect Id %s is not found.", deviceInspectId));
             }
         }
 
@@ -1901,10 +1899,10 @@ public class SelectApiController {
             if (requestParam.getMktId() != null && !requestParam.getMktId().isEmpty() && Integer.parseInt(requestParam.getMktId()) == deviceInspect.getId()) {
 
                 if (inspectDatas != null) {
-                    LOGGER.info("MKT calculation: device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
+                    LOGGER.debug("MKT calculation: device inspect id " + deviceInspect.getId() + " has size " + inspectDatas.size());
                     MKT = MKTCalculator.calculateMKTValue(inspectDatas);
                 } else {
-                    LOGGER.info("MKT Monitor Inspect's data is null");
+                    LOGGER.debug("MKT Monitor Inspect's data is null");
                 }
 
             }
@@ -2018,7 +2016,7 @@ public class SelectApiController {
         result.put("deviceId", deviceId);
         result.put("operatingStatusList", statusHistories);
 
-        LOGGER.info(String.format("Successfully got running status history of device %s", deviceId));
+        LOGGER.debug(String.format("Successfully got running status history of device %s", deviceId));
 
         return new RestResponse(result);
     }
