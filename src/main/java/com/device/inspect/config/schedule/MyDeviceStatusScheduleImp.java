@@ -120,7 +120,7 @@ public class MyDeviceStatusScheduleImp{
                                     for (Room room:roomList){
 
                                         Integer roomLowAlert = 0;
-                                        Integer roomHighALert = 0;
+                                        Integer roomHighAlert = 0;
                                         Integer roomOnline = 0;
                                         Integer roomOffline = 0;
                                         Float roomScore = (float)0;
@@ -191,7 +191,7 @@ public class MyDeviceStatusScheduleImp{
                                                 device.setLastYellowAlertTime(latestAlertTime);
                                             }
                                             else if(alert_type == 2){
-                                                roomHighALert ++;
+                                                roomHighAlert ++;
                                                 device.setLastRedAlertTime(latestAlertTime);
                                             }
                                             device.setStatus(alert_type);
@@ -345,13 +345,13 @@ public class MyDeviceStatusScheduleImp{
                                         }
 
                                         logger.info(String.format("Room %d has %d device reports Yellow alert in 5 minutes", room.getId(), roomLowAlert));
-                                        logger.info(String.format("Room %d has %d device reports Red alert in 5 minutes", room.getId(), roomHighALert));
+                                        logger.info(String.format("Room %d has %d device reports Red alert in 5 minutes", room.getId(), roomHighAlert));
 
                                         logger.info(String.format("Room %d has %d online device", room.getId(), roomOnline));
 
                                         logger.info(String.format("Room %d has %d offline device", room.getId(), roomOffline));
 
-                                        room.setHighAlert(roomHighALert);
+                                        room.setHighAlert(roomHighAlert);
                                         room.setLowAlert(roomLowAlert);
                                         room.setOnline(roomOnline);
                                         room.setOffline(roomOffline);
@@ -360,7 +360,7 @@ public class MyDeviceStatusScheduleImp{
                                         roomScore = roomDeviceList.size()>0?roomScore/roomDeviceList.size():(float)0;
                                         room.setScore(roomScore);
                                         roomRepository.save(room);
-                                        floorHighAlert += roomHighALert;
+                                        floorHighAlert += roomHighAlert;
                                         floorLowAlert+=roomLowAlert;
                                         floorOnline+=roomOnline;
                                         floorOffline+=roomOffline;

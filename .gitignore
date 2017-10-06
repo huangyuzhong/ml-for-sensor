@@ -24,6 +24,7 @@ target/
 
 # log
 *.log
+*.out
 
 # cutomer
 src/main/java/com/inmycars/service/web/config/MvcConfig.java
@@ -33,3 +34,4 @@ src/main/resources/log4j2.xml
 
 # wallet file
 *.dat
+*.dat-journal

@@ -17,6 +17,7 @@ import org.influxdb.dto.QueryResult;
 import org.influxdb.impl.TimeUtil;
 import org.apache.commons.lang3.time.DateUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -827,8 +828,6 @@ public class InfluxDBManager {
 
             return 0;
 
-
-
         }catch (Exception e){
             e.printStackTrace();
             logger.error(String.format("Failed to query from influxDB. query -- %s, Err: %s", queryString, e.toString()));
@@ -1213,4 +1212,507 @@ public class InfluxDBManager {
             return false;
         }
     }
+
+    private List<QueryResult.Series> readDateFromQueryByGroup(String queryString, String dbName){
+
+        Query query = new Query(queryString, dbName);
+
+        QueryResult result = influxDB.query(query);
+
+        //since a query can contain multiple sub queries, the return value is a list
+        List<QueryResult.Result> resultList = result.getResults();
+
+        if(resultList != null && resultList.size() > 0){
+            QueryResult.Result tsData = resultList.get(0);
+
+            return tsData.getSeries();
+
+
+        }
+        else{
+            return null;
+        }
+
+    }
+
+
+    /**
+     * 读取查询结果, 只有1组数据
+     * @param queryString
+     * @param dbName
+     * @return
+     */
+    private List<Object> readSingleEntryFromQuery(String queryString, String dbName){
+        Query query = new Query(queryString, dbName);
+
+        QueryResult result = influxDB.query(query);
+
+        List<QueryResult.Result> resultList = result.getResults();
+
+        if(resultList != null && resultList.size() > 0){
+            QueryResult.Result tsData = resultList.get(0);
+            List<QueryResult.Series> series = tsData.getSeries();
+
+            if(series != null && series.size() > 0){
+
+                List<List<Object>> values = series.get(0).getValues();
+
+                if(values != null && values.size() > 0){
+                    return values.get(0);
+                }
+            }
+
+            else{
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取指定设备种类,设备品牌,和监控参数的日均监控统计
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param deviceModel
+     * @param inspectTypeId
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyMonitoringDataByDeviceTypeDeviceModelInspectTypeTimeRange(Date startTime, Date endTime,
+                                                                                                        int deviceTypeId, String deviceModel,
+                                                                                                        int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT MEAN(average_value) FROM report.daily_monitoring WHERE time >= '%s' AND time < '%s' AND device_type_id = '%d' AND device_model ='%s' AND monitor_type_id = '%d' GROUP BY time(24h) limit %d offset %d",
+                        startStr, endStr, deviceTypeId, deviceModel, inspectTypeId, limit, offset);
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备种类, 品牌, 参数在时间段内的最大值, 最小值, 平均值.
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param deviceModel
+     * @param inspectTypeId
+     * @return
+     */
+    public List<Object> readDailyAggregateMonitoringMByDeviceTypeDeviceModelInspectTypeTimeRange(Date startTime, Date endTime,
+                                                                                                       int deviceTypeId, String deviceModel,
+                                                                                                       int inspectTypeId){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT Max(average_value), Min(average_value), Mean(average_value) FROM report.daily_monitoring WHERE time >= '%s' AND time < '%s' AND device_type_id = '%d' AND device_model ='%s' AND monitor_type_id = '%d'",
+                        startStr, endStr, deviceTypeId, deviceModel, inspectTypeId);
+
+        try {
+            return readSingleEntryFromQuery(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备, 监控参数的日均监控统计
+     * @param startTime
+     * @param endTime
+     * @param deviceId
+     * @param inspectTypeId
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyMonitoringDataByDeviceIdInspectTypeTimeRange(Date startTime, Date endTime, int deviceId, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT MEAN(average_value) FROM report.daily_monitoring WHERE device_id = '%d' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY time(24h) limit %d offset %d",
+                        deviceId, inspectTypeId, startStr, endStr, limit, offset);
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+
+    /**
+     * 获取指定设备, 监控参数的监控统计 最大最小
+     * @param startTime
+     * @param endTime
+     * @param deviceId
+     * @param inspectTypeId
+     * @return
+     */
+    public List<Object> readDailyAggregateMonitoringDataByDeviceIdInspectTypeTimeRange(Date startTime, Date endTime, int deviceId, int inspectTypeId){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT MAX(average_value), MIN(average_value), MEAN(average_value) FROM report.daily_monitoring WHERE device_id = '%d' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s'",
+                        deviceId, inspectTypeId, startStr, endStr);
+
+        try {
+            return readSingleEntryFromQuery(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备种类和监控参数的日均监控统计
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param inspectTypeId
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyMonitoringDataByDeviceTypeInspectTypeTimeRange(Date startTime, Date endTime, int deviceTypeId, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT MEAN(average_value) FROM report.daily_monitoring WHERE device_type_id = '%d' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY time(24h) limit %d offset %d",
+                        deviceTypeId, inspectTypeId, startStr, endStr, limit, offset);
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备种类和监控参数的日均监控统计
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param inspectTypeId
+     * @return
+     */
+    public List<Object> readDailyAggregateMonitoringDataByDeviceTypeInspectTypeTimeRange(Date startTime, Date endTime, int deviceTypeId, int inspectTypeId){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString =
+                String.format("SELECT MAX(average_value), MIN(average_value), MEAN(average_value) FROM report.daily_monitoring WHERE device_type_id = '%d' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s'",
+                        deviceTypeId, inspectTypeId, startStr, endStr);
+
+        try {
+            return readSingleEntryFromQuery(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily aggregated monitoring report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取所有设备种类的日报警统计
+     * @param startTime
+     * @param endTime
+     * @param inspectTypeId -1 means 所有参数
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyAlertByTimeRange(Date startTime, Date endTime, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString;
+        if (inspectTypeId >= 0){
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                    inspectTypeId, startStr, endStr, limit, offset);
+        }
+        else {
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                    startStr, endStr, limit, offset);
+        }
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily alert report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备种类, 设备品牌的日均报警统计
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param deviceModel
+     * @param inspectTypeId
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyAlertByDeviceTypeDeviceModelTimeRange(Date startTime, Date endTime, int deviceTypeId, String deviceModel, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString;
+        if(inspectTypeId >= 0){
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_type_id = '%d' AND device_model = '%s' AND monitor_type_id = '%d' AND time >= %d AND time < %d GROUP BY alert_type, time(24h) limit %d offset %d",
+                    deviceTypeId, deviceModel, inspectTypeId, startStr, endStr, limit, offset);
+        }else{
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_type_id = '%d' AND device_model = '%s' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                    deviceTypeId, deviceModel, startStr, endStr, limit, offset);
+        }
+
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily alert report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备种类的日报警统计
+     * @param startTime
+     * @param endTime
+     * @param deviceTypeId
+     * @param inspectTypeId -1 means 所有参数
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyAlertByDeviceTypeTimeRange(Date startTime, Date endTime, int deviceTypeId, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+        String queryString;
+        if(inspectTypeId >= 0) {
+            queryString =
+                    String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_type_id = '%d' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                            deviceTypeId, inspectTypeId, startStr, endStr, limit, offset);
+        }
+        else{
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                    deviceTypeId, startStr, endStr, limit, offset);
+        }
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily alert report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+    /**
+     * 获取指定设备日均报警统计
+     * @param startTime
+     * @param endTime
+     * @param deviceId
+     * @param inspectTypeId  -1 means 所有参数
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<QueryResult.Series> readDailyAlertByDeviceIdTimeRange(Date startTime, Date endTime, int deviceId, int inspectTypeId, int limit, int offset){
+        String dbName = "intelab";
+
+        // timestamp in influxdb is in nano seconds
+        long startNano = startTime.getTime() * 1000000;
+        long endNano = endTime.getTime() * 1000000;
+
+        if(startNano > endNano){
+            logger.error(String.format("time range illegal, start %d > end %d", startNano, endNano));
+            return null;
+        }
+
+        SimpleDateFormat simFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String startStr = simFormat.format(startTime);
+        String endStr = simFormat.format(endTime);
+
+
+        String queryString;
+        if(inspectTypeId >= 0){
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_id = '%d' AND monitor_type_id = '%d' AND time >= %d AND time < %d GROUP BY alert_type, time(24h) limit %d offset %d",
+                    deviceId, inspectTypeId, startStr, endStr, limit, offset);
+        }else{
+            queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit %d offset %d",
+                    deviceId, startStr, endStr, limit, offset);
+        }
+
+
+        try {
+            return readDateFromQueryByGroup(queryString, dbName);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            logger.error(String.format("Failed to query daily alert report from influxDB. query -- %s, Err: %s", queryString, e.toString()));
+
+            return null;
+        }
+    }
+
+
 }
+

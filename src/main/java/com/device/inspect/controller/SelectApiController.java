@@ -45,8 +45,11 @@ import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.controller.request.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.influxdb.dto.QueryResult;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -54,6 +57,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 
@@ -1067,9 +1071,9 @@ public class SelectApiController {
      */
     @RequestMapping(value = "/device/utilization", method = RequestMethod.GET)
     public RestResponse getWeekUtilization(Principal principal, @RequestParam Map<String, String> requestParam) {
-//        User user = judgeByPrincipal(principal);
-//        if(user == null)
-//            return new RestResponse("用户未登陆",1005,null);
+        User user = judgeByPrincipal(principal);
+        if(user == null)
+            return new RestResponse("用户未登陆",1005,null);
         if (!requestParam.containsKey("deviceId")) {
             return new RestResponse("设备id为空", 1006, null);
         }
@@ -1122,6 +1126,347 @@ public class SelectApiController {
 
         return new RestResponse(new RestHourlyUtilizationList(device.getId(), restHourlyUtilizations));
     }
+
+    /**
+     * 获取日报警统计
+     * @param principal
+     * @param requestParam
+     * @return
+     * curl -H "SESSIONID:FD9AE35D84C593958ADF4EA36AE7EC2E" http://localhost:8999/api/rest/firm/report/daily/alert?deviceId=233\&startTime=1493078400000\&endTime=1493251200000 | json_pp
+     */
+    @RequestMapping(value = "/report/daily/alert", method = RequestMethod.GET)
+    public RestResponse getReportDailyAlert(Principal principal, @RequestParam Map<String, String> requestParam){
+
+        //判断用户是否登录
+        User user = judgeByPrincipal(principal);
+        if(user == null)
+            return new RestResponse("用户未登陆",1005,null);
+
+        //获取参数
+        Date beginTime, endTime;
+        if (requestParam.containsKey("startTime")) {
+            beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
+
+
+        }else{
+            // if startTime is not in parameter, use 30 days before
+            Calendar endCalendar = Calendar.getInstance();
+            Calendar beginCalendar = Calendar.getInstance();
+            beginCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) - 30);
+            beginCalendar.set(Calendar.HOUR, 0);
+            beginCalendar.set(Calendar.MINUTE, 0);
+            beginCalendar.set(Calendar.SECOND, 0);
+            beginCalendar.set(Calendar.MILLISECOND, 0);
+            beginTime = beginCalendar.getTime();
+        }
+        if (requestParam.containsKey("endTime")) {
+            endTime = new Date(Long.parseLong(requestParam.get("endTime")));
+
+        } else {
+            // if endTime is not in parameter, use current time
+            endTime = new Date();
+        }
+
+        final int HARD_LIMIT = 100;
+
+        int limit = HARD_LIMIT;
+        if(requestParam.containsKey("limit")){
+            limit = Integer.parseInt(requestParam.get("limit"));
+            if (limit > HARD_LIMIT){
+                limit = HARD_LIMIT;
+            }
+        }
+
+        int offset = 0;
+        if(requestParam.containsKey("offset")){
+            offset = Integer.parseInt(requestParam.get("offset"));
+            if (offset < 0){
+                offset = 0;
+            }
+        }
+
+        int deviceTypeId = -1;
+
+        if(requestParam.containsKey("deviceTypeId")  && StringUtils.isNotEmpty(requestParam.get("deviceTypeId"))){
+            deviceTypeId = Integer.parseInt(requestParam.get("deviceTypeId"));
+        }
+
+        int inspectTypeId = -1;
+        if(requestParam.containsKey("inspectTypeId")  && StringUtils.isNotEmpty(requestParam.get("inspectTypeId"))){
+            inspectTypeId = Integer.parseInt(requestParam.get("inspectTypeId"));
+        }
+
+        int deviceId = -1;
+        if(requestParam.containsKey("deviceId")  && StringUtils.isNotEmpty(requestParam.get("deviceId"))){
+            deviceId = Integer.parseInt(requestParam.get("deviceId"));
+        }
+
+        String deviceModel = null;
+        if(requestParam.containsKey("deviceModel")  && StringUtils.isNotEmpty(requestParam.get("deviceModel"))){
+            deviceModel = requestParam.get("deviceModel");
+        }
+
+        DailyAlertTS alertTS = new DailyAlertTS();
+
+        List<QueryResult.Series> influxdbSeries;
+        if (deviceId >= 0){
+            influxdbSeries = Application.influxDBManager.readDailyAlertByDeviceIdTimeRange(beginTime, endTime,
+                    deviceId, inspectTypeId, limit, offset);
+        }
+        else if(deviceTypeId >= 0 ) {
+            if (deviceModel != null) {
+                influxdbSeries = Application.influxDBManager.readDailyAlertByDeviceTypeDeviceModelTimeRange(beginTime, endTime,
+                        deviceTypeId, deviceModel, inspectTypeId, limit, offset);
+            } else {
+                influxdbSeries = Application.influxDBManager.readDailyAlertByDeviceTypeTimeRange(beginTime, endTime,
+                        deviceTypeId, inspectTypeId, limit, offset);
+            }
+        }
+        else {
+            influxdbSeries = Application.influxDBManager.readDailyAlertByTimeRange(beginTime, endTime,
+                    inspectTypeId, limit, offset);
+        }
+
+        alertTS.setDeviceTypeId(deviceTypeId);
+        alertTS.setInspectTypeId(inspectTypeId);
+        alertTS.setDeviceId(deviceId);
+        alertTS.setDeviceModel(deviceModel);
+        if(deviceTypeId >= 0){
+            try {
+                alertTS.setDeviceType(deviceTypeRepository.findOne(deviceTypeId).getName());
+
+            }catch (Exception ex){
+                LOGGER.info(String.format("API parameter deviceTypeId %d not exist in DB. Err: %s", deviceTypeId, ex.getMessage()));
+                return new RestResponse("Device type nod found", 1011, null);
+            }
+        }
+
+        if(inspectTypeId >= 0){
+            try {
+                alertTS.setInspectType(inspectTypeRepository.findOne(inspectTypeId).getName());
+                alertTS.setMeasurement(inspectTypeRepository.findOne(inspectTypeId).getMeasurement());
+            }catch (Exception ex){
+                LOGGER.info(String.format("API parameter inspectTypeId %d not exist in DB. Err: %s", inspectTypeId, ex.getMessage()));
+                return new RestResponse("Inspect type nod found", 1011, null);
+            }
+        }
+        List<List<Object>> yellowAlertCount = null;
+        List<List<Object>> redAlertCount = null;
+        if(influxdbSeries != null) {
+            for (QueryResult.Series series : influxdbSeries) {
+                Map<String, String> tags = series.getTags();
+                if (tags.containsKey("alert_type")) {
+                    List<List<Object>> alertList = series.getValues();
+
+                    if (tags.get("alert_type").equals("1")) {
+                        yellowAlertCount = alertList;
+                    } else {
+                        redAlertCount = alertList;
+                    }
+                    for (List<Object> alertItem : alertList) {
+
+                        try {
+                            long timeStamp = DateUtils.parseDate((String)alertItem.get(0), "yyyy-MM-dd'T'HH:mm:ss'Z'").getTime();
+
+                            alertItem.set(0, timeStamp);
+                        }catch(Exception ex){
+                            LOGGER.warn("Daily report alert series contains illegal time " + alertItem.get(0).toString());
+                            continue;
+                        }
+
+
+                        if (alertItem.get(1) != null) {
+                            Double avgCount = new BigDecimal((Double) alertItem.get(1)).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+                            alertItem.set(1, avgCount);
+                        } else {
+                            alertItem.set(1, 0.0);
+                        }
+                    }
+
+                }
+            }
+        }
+
+        alertTS.setRedAlertCount(redAlertCount);
+        alertTS.setYellowAlertCount(yellowAlertCount);
+
+        return new RestResponse(alertTS);
+    }
+
+
+    /**
+     * 获取日均监控统计数据
+     * @param principal
+     * @param requestParam
+     * @return
+     * curl -H "SESSIONID:FD9AE35D84C593958ADF4EA36AE7EC2E" http://localhost:8999/api/rest/firm/report/daily/monitoring?deviceId=233\&inspectTypeId=12\&startTime=1497657600000\&endTime=1497830400000 | json_pp
+     */
+    @RequestMapping(value = "/report/daily/monitoring", method = RequestMethod.GET)
+    public RestResponse getReportDailyMonitoring(Principal principal, @RequestParam Map<String, String> requestParam){
+
+        //判断用户是否登录
+        User user = judgeByPrincipal(principal);
+        if(user == null)
+            return new RestResponse("用户未登陆",1005,null);
+
+        //获取参数
+        Date beginTime, endTime;
+        if (requestParam.containsKey("startTime")) {
+            beginTime = new Date(Long.parseLong(requestParam.get("startTime")));
+
+
+        }else{
+            // if startTime is not in parameter, use 30 days before
+            Calendar endCalendar = Calendar.getInstance();
+            Calendar beginCalendar = Calendar.getInstance();
+            beginCalendar.set(Calendar.DATE, endCalendar.get(Calendar.DATE) - 30);
+            beginCalendar.set(Calendar.HOUR, 0);
+            beginCalendar.set(Calendar.MINUTE, 0);
+            beginCalendar.set(Calendar.SECOND, 0);
+            beginCalendar.set(Calendar.MILLISECOND, 0);
+            beginTime = beginCalendar.getTime();
+        }
+        if (requestParam.containsKey("endTime")) {
+            endTime = new Date(Long.parseLong(requestParam.get("endTime")));
+
+        } else {
+            // if endTime is not in parameter, use current time
+            endTime = new Date();
+        }
+
+        final int HARD_LIMIT = 100;
+
+        int limit = HARD_LIMIT;
+        if(requestParam.containsKey("limit")){
+            limit = Integer.parseInt(requestParam.get("limit"));
+            if (limit > HARD_LIMIT){
+                limit = HARD_LIMIT;
+            }
+        }
+
+        int offset = 0;
+        if(requestParam.containsKey("offset")){
+            offset = Integer.parseInt(requestParam.get("offset"));
+            if (offset < 0){
+                offset = 0;
+            }
+        }
+
+        int deviceTypeId = -1;
+
+        if(requestParam.containsKey("deviceTypeId") && StringUtils.isNotEmpty(requestParam.get("deviceTypeId"))){
+            deviceTypeId = Integer.parseInt(requestParam.get("deviceTypeId"));
+        }
+
+        int inspectTypeId = -1;
+        if(requestParam.containsKey("inspectTypeId")  && StringUtils.isNotEmpty(requestParam.get("inspectTypeId"))){
+            inspectTypeId = Integer.parseInt(requestParam.get("inspectTypeId"));
+        }else{
+            return new RestResponse("Parameter inspectTypeId is missing", 1013, null);
+        }
+
+        int deviceId = -1;
+        if(requestParam.containsKey("deviceId")  && StringUtils.isNotEmpty(requestParam.get("deviceId"))){
+            deviceId = Integer.parseInt(requestParam.get("deviceId"));
+        }
+
+        String deviceModel = null;
+        if(requestParam.containsKey("deviceModel")  && StringUtils.isNotEmpty(requestParam.get("deviceModel"))){
+            deviceModel = requestParam.get("deviceModel");
+        }
+
+        DailyMonitoringTS monitoringTS = new DailyMonitoringTS();
+
+        List<QueryResult.Series> influxdbSeries;
+        List<Object> aggregateData;
+        if (deviceId >= 0){
+            influxdbSeries = Application.influxDBManager.readDailyMonitoringDataByDeviceIdInspectTypeTimeRange(beginTime, endTime,
+                    deviceId, inspectTypeId, limit, offset);
+            aggregateData = Application.influxDBManager.readDailyAggregateMonitoringDataByDeviceIdInspectTypeTimeRange(beginTime, endTime, deviceId, inspectTypeId);
+        }
+        else if(deviceTypeId >= 0 ) {
+            if (deviceModel != null) {
+                influxdbSeries = Application.influxDBManager.readDailyMonitoringDataByDeviceTypeDeviceModelInspectTypeTimeRange(beginTime, endTime,
+                        deviceTypeId, deviceModel, inspectTypeId, limit, offset);
+
+                aggregateData = Application.influxDBManager.readDailyAggregateMonitoringMByDeviceTypeDeviceModelInspectTypeTimeRange(beginTime, endTime, deviceTypeId, deviceModel, inspectTypeId);
+            } else {
+                influxdbSeries = Application.influxDBManager.readDailyMonitoringDataByDeviceTypeInspectTypeTimeRange(beginTime, endTime,
+                        deviceTypeId, inspectTypeId, limit, offset);
+
+                aggregateData = Application.influxDBManager.readDailyAggregateMonitoringDataByDeviceTypeInspectTypeTimeRange(beginTime, endTime, deviceTypeId, inspectTypeId);
+            }
+        }
+        else {
+            return new RestResponse("Must select a device type", 1015, null);
+        }
+
+        monitoringTS.setDeviceTypeId(deviceTypeId);
+        monitoringTS.setInspectTypeId(inspectTypeId);
+        monitoringTS.setDeviceId(deviceId);
+        monitoringTS.setDeviceModel(deviceModel);
+        if(deviceTypeId >= 0){
+            try {
+                monitoringTS.setDeviceType(deviceTypeRepository.findOne(deviceTypeId).getName());
+
+            }catch (Exception ex){
+                LOGGER.info(String.format("API parameter deviceTypeId %d not exist in DB. Err: %s", deviceTypeId, ex.getMessage()));
+                return new RestResponse("Device type nod found", 1011, null);
+            }
+        }
+
+        if(inspectTypeId >= 0){
+            try {
+                monitoringTS.setInspectType(inspectTypeRepository.findOne(inspectTypeId).getName());
+                monitoringTS.setMeasurement(inspectTypeRepository.findOne(inspectTypeId).getMeasurement());
+                monitoringTS.setUnit(inspectTypeRepository.findOne(inspectTypeId).getUnit());
+            }catch (Exception ex){
+                LOGGER.info(String.format("API parameter inspectTypeId %d not exist in DB. Err: %s", inspectTypeId, ex.getMessage()));
+                return new RestResponse("Inspect type nod found", 1011, null);
+            }
+        }
+        List<List<Object>> averageTelemetry = null;
+        if(influxdbSeries != null) {
+            for (QueryResult.Series series : influxdbSeries) {
+                List<List<Object>> avgTelemetryList = series.getValues();
+
+                averageTelemetry = avgTelemetryList;
+                for (List<Object> alertItem : avgTelemetryList) {
+
+                    try {
+                        long timeStamp = DateUtils.parseDate((String)alertItem.get(0), "yyyy-MM-dd'T'HH:mm:ss'Z'").getTime();
+
+                        alertItem.set(0, timeStamp);
+                    }catch(Exception ex){
+                        LOGGER.warn("Daily report monitoring series contains illegal time " + alertItem.get(0).toString());
+                        continue;
+                    }
+
+
+                    if (alertItem.get(1) != null) {
+                        Double avgCount = new BigDecimal((Double) alertItem.get(1)).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+                        alertItem.set(1, avgCount);
+                    }
+                }
+                // there is only 1 type of telemetry, so only one series
+                break;
+            }
+
+        }
+
+        monitoringTS.setDailyAverage(averageTelemetry);
+
+        if(aggregateData != null && aggregateData.size() > 3){
+            monitoringTS.setOveralMax((Double)aggregateData.get(1));
+            monitoringTS.setOveralMin((Double)aggregateData.get(2));
+            monitoringTS.setOveralAverage((Double)aggregateData.get(3));
+        }
+
+        return new RestResponse(monitoringTS);
+    }
+
 
     /**
      * 获取用户操作记录
@@ -1602,7 +1947,12 @@ public class SelectApiController {
     public RestResponse getDealHistory(Principal principal, @RequestParam Integer userId, @RequestParam Integer deviceId) {
         Date currentDate = new Date();
         List<DealRecord> dealRecordsHistory = dealRecordRepository.findTop9ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
-        List<DealRecord> dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
+        List<DealRecord> dealRecordsFutureList;
+        if (deviceId == null) {
+            dealRecordsFutureList = dealRecordRepository.findByLessorOrLesseeOrderByEndTimeDesc(userId, userId);
+        } else {
+            dealRecordsFutureList = dealRecordRepository.findTop1ByLessorOrLesseeAndDeviceIdOrderByEndTimeDesc(userId, userId, deviceId, currentDate);
+        }
         List<RestDealRecord> restDealRecords = new ArrayList<>();
         if (dealRecordsFutureList != null && dealRecordsFutureList.size() != 0){
             for (DealRecord dealRecord : dealRecordsFutureList) {
