@@ -23,6 +23,11 @@ import javax.mail.internet.MimeMessage;
 import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.*;
+import javax.mail.*;
+import javax.mail.internet.*;
 
 /**
  * Created by Administrator on 2016/10/29.
@@ -496,49 +501,54 @@ public class MessageSendService {
      * @param content  短信内容
      * @return
      */
-    public static boolean sendMessageToManager(String content, String receiverNum){
-        try {
-            String at_cmgf = "at+cmgf=0";  // 指定机器用中文发送短信
+    public static boolean sendMessageToManager(String content, String receiverNum) {
+        String at_cmgf = "at+cmgf=0";  // 指定机器用中文发送短信
 
-            // 以下是把发送内容转化为报文code BEGIN
-            String code = "0011000d91";  // 报文的前缀
-            code+=NumTrans(receiverNum);
-            code+="0008a0";  // "0008"表示PDU编码表，"ao"表示短信在服务器存放时间
-            String contentUni = string2Unicode(content);
-            int length = contentUni.length();
-            int charNum = length/2;
+        // 以下是把发送内容转化为报文code BEGIN
+        String code = "0011000d91";  // 报文的前缀
+        code+=NumTrans(receiverNum);
+        code+="0008a0";  // "0008"表示PDU编码表，"ao"表示短信在服务器存放时间
+        String contentUni = string2Unicode(content);
+        int length = contentUni.length();
+        int charNum = length/2;
 
-            String str_m = Integer.toHexString(charNum);
-            String str ="00";
-            str_m=str.substring(0, 2-str_m.length())+str_m;
+        String str_m = Integer.toHexString(charNum);
+        String str ="00";
+        str_m=str.substring(0, 2-str_m.length())+str_m;
 
-            code+=str_m+contentUni;
-            // END
+        code+=str_m+contentUni;
+        // END
 
-            String at_cmgs = "at+cmgs="+(code.length()/2-1);  // 指定后面发送的报文的长度，19=code.length/2-1。
+        String at_cmgs = "at+cmgs="+(code.length()/2-1);  // 指定后面发送的报文的长度，19=code.length/2-1。
 
-            WriteSerialPort.write(at_cmgf, at_cmgs, code);
+        if (WriteSerialPort.write(at_cmgf, at_cmgs, code)) {
             return true;
-        }catch (Exception e){
-            e.printStackTrace();
+        } else {
             return false;
         }
     }
 
-    public static void sendMessageToInteLabManager (String str, String receiverNum){
+    public static boolean sendMessageToInteLabManager (String str, String receiverNum){
         if (str.length() <= 70){
-            sendMessageToManager(str, receiverNum);
+            if (!sendMessageToManager(str, receiverNum)){
+                return false;
+            }
         }else {
             int strCount = 1;
             int strSum = (str.length()%65 == 0)?str.length()/65 : (str.length()/65+1);
             while(str.length()/65 != 0){
                 String subStr = str.substring(0, 65);
                 str = str.substring(65);
-                sendMessageToManager("("+strCount+"/"+strSum+")"+subStr, receiverNum);
+                if (!sendMessageToManager("("+strCount+"/"+strSum+")"+subStr, receiverNum)){
+                    return false;
+                }
                 strCount++;
             }
-            sendMessageToManager("("+strCount+"/"+strSum+")"+str, receiverNum);
+            if (!sendMessageToManager("("+strCount+"/"+strSum+")"+str, receiverNum)){
+                return false;
+            }
         }
+        return true;
     }
 
     // 将收件人号码按报文要求进行转化
@@ -566,6 +576,55 @@ public class MessageSendService {
             unicode.append(str_m);
         }
         return unicode.toString();
+    }
+
+    public static String readMessOnSIM800(Integer index){
+        String content = WriteSerialPort.readOnSIM800(index);
+        if ("error".equals(content) || "".equals(content.trim())){
+            return "error";
+        }
+        StringBuffer sb = new StringBuffer();
+        int length = Integer.valueOf(content.substring(0, 2), 16);
+        for (int i=0; i<length/2; i++){
+            String temp = content.substring(2+4*i, 2+4*(i+1));
+            char letter = (char) Integer.parseInt(temp, 16);  // 16进制parse整形字符串。
+            sb.append(new Character(letter).toString());
+        }
+        return sb.toString();
+    }
+
+    // Send email to user by SIM800
+    public static boolean sendEmailToUserBySIM800(String content, String rcptEmailNum){
+        String contentUtf_8Code = getUTF8XMLString(content);
+        if (WriteSerialPort.sendEmailCommand(myEmailSMTPHost, myEmailAccount, myEmailPassword, rcptEmailNum, contentUtf_8Code)){
+            return true;
+        } else{
+            return false;
+        }
+    }
+
+//    public static void main(String[] args){
+////        sendEmailToUserBySIM800("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "1987356692@qq.com");
+//        sendMessageToInteLabManager("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "17621702332");
+////        readMessOnSIM800(4);
+//    }
+
+    /**
+     * Get XML String of utf-8
+     */
+    public static String getUTF8XMLString(String str) {
+        StringBuffer utfcode = new StringBuffer();
+        try {
+            for(byte bit : str.getBytes("utf-8")){
+                char hex = (char) (bit & 0xFF);
+                utfcode.append(Integer.toHexString(hex));
+            }
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        String utfCodeStr = utfcode.toString().toUpperCase();
+        return utfCodeStr;
     }
 
 

@@ -7,6 +7,7 @@ import com.device.inspect.common.ftp.FTPStorageManager;
 import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.service.FileUploadService;
 import com.device.inspect.common.service.MessageReceiveService;
+import com.device.inspect.common.service.WriteSerialPort;
 import com.device.inspect.common.setting.GeneralConfig;
 import com.device.inspect.common.util.thread.AppShutdownHook;
 import com.device.inspect.common.util.thread.IoTMessageWorker;
@@ -82,6 +83,10 @@ public class Application {
     {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
+
+        // 打开串口
+        WriteSerialPort.openPort();
+
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
