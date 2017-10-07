@@ -21,7 +21,6 @@ import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.plugin2.message.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
