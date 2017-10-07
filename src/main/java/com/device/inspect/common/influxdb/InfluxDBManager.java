@@ -1852,7 +1852,8 @@ public class InfluxDBManager {
 
     public boolean checkAlertPushStatusExistInLatestUpdates(Integer alertId, Integer userId, String status, int windowSize){
         String dbName = "intelab";
-        String queryString = String.format("SELECT alert_id, status, change From four_weeks.alert_push_status WHERE alert_id='%d' AND user_id='%d' ORDER BY time DESC limit %d",
+        String queryString = String.format("SELECT alert_id, status, change From four_weeks.alert_push_status WHERE " +
+                        "alert_id='%d' AND user_id='%d' ORDER BY time DESC limit %d",
                 alertId, userId, windowSize);
 
 

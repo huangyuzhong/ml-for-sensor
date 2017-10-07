@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.influxdb.impl.TimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
@@ -27,7 +28,7 @@ import java.util.*;
 /**
  * Created by zyclincoln on 4/14/17.
  */
-@Service
+@Component
 public class MessageController {
 
     private static final Logger LOGGER = LogManager.getLogger(MessageController.class);
@@ -70,7 +71,7 @@ public class MessageController {
         DateFormat formatter= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss Z");
         formatter.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
 
-        String message = String.format(powerMsgFormat, device.getCode(), device.getName(), formatter.format(sampleTime));
+        String message = String.format(powerMsgFormat, device.getId(), device.getName(), formatter.format(sampleTime));
         message += getAddressOfDevice(device);
         sendMessage(device, alert, sampleTime, message);
     }
@@ -83,7 +84,7 @@ public class MessageController {
         DateFormat formatter= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss Z");
         formatter.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
 
-        String message = String.format(OffLineMsgFormat, device.getCode(), device.getName(), formatter.format(sampleTime));
+        String message = String.format(OffLineMsgFormat, device.getId(), device.getName(), formatter.format(sampleTime));
         message += getAddressOfDevice(device);
         sendMessage(device, alert, sampleTime, message);
     }
@@ -95,7 +96,7 @@ public class MessageController {
         DateFormat formatter= new SimpleDateFormat("yyyy/MM/dd HH:mm:ss Z");
         formatter.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
 
-        String message = String.format(alertFormat, device.getCode(), device.getName(), formatter.format(sampleTime),
+        String message = String.format(alertFormat, device.getId(), device.getName(), formatter.format(sampleTime),
                 alert.getInspectType().getName());
 
         DeviceInspect doorInspect = deviceInspectRepository.findByInspectTypeIdAndDeviceId(doorInspectId, device.getId());
@@ -218,7 +219,8 @@ public class MessageController {
             // 查看用户是否已经cancel了这台设备的报警推送
 
             // 查看最近的3条信息, 看有没有cancel
-            boolean alertCancelled = Application.influxDBManager.checkAlertPushStatusExistInLatestUpdates(alert.getId(), user.getId(), PUSH_MESSAGE_CANCEL, 3);
+            boolean alertCancelled = Application.influxDBManager.checkAlertPushStatusExistInLatestUpdates(alert.getId(),
+                    user.getId(), PUSH_MESSAGE_CANCEL, 3);
 
             if(!alertCancelled) {
                 try {
@@ -390,6 +392,8 @@ public class MessageController {
 
             for (User user : users) {
                 Date twentyMinutesBefore = DateUtils.addMinutes(new Date(), -20);
+                // TODO:本地调试需要减去8小时
+                // Date eightHoursBefore = DateUtils.addHours(twentyMinutesBefore, -8);
                 List<Integer> alertIdList = Application.influxDBManager.readAlertIdFromPushStatusByUserIdDeviceIdStatusTimeRange(
                         twentyMinutesBefore, user.getId(), deviceId, PUSH_MESSAGE_ACTIVE);
 
