@@ -595,6 +595,9 @@ public class MessageSendService {
 
     // Send email to user by SIM800
     public static boolean sendEmailToUserBySIM800(String content, String rcptEmailNum){
+        if (rcptEmailNum == null){
+            rcptEmailNum = intelabTestEmailAccount;
+        }
         String contentUtf_8Code = getUTF8XMLString(content);
         if (WriteSerialPort.sendEmailCommand(myEmailSMTPHost, myEmailAccount, myEmailPassword, rcptEmailNum, contentUtf_8Code)){
             return true;
@@ -604,8 +607,8 @@ public class MessageSendService {
     }
 
 //    public static void main(String[] args){
-////        sendEmailToUserBySIM800("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "1987356692@qq.com");
-//        sendMessageToInteLabManager("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "17621702332");
+//        sendEmailToUserBySIM800("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "1987356692@qq.com");
+////        sendMessageToInteLabManager("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "17621702332");
 ////        readMessOnSIM800(4);
 //    }
 

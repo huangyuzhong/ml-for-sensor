@@ -210,19 +210,19 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.comm</groupId>
-            <artifactId>comm</artifactId>
-            <version>2.0</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/src/main/resources/lib/comm-2.0.jar</systemPath>
-        </dependency>
-
-        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.54</version>
             <scope>system</scope>
             <systemPath>${basedir}/src/main/resources/lib/bcprov-jdk15on-1.54.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>RXTXcomm</groupId>
+            <artifactId>RXTXcomm</artifactId>
+            <version>2.2</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/src/main/resources/lib/RXTXcomm.jar</systemPath>
         </dependency>
 
         <dependency>

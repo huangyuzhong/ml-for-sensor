@@ -193,6 +193,8 @@ public class MessageController {
                 if(MessageSendService.sendEmailToIntelabTest(message)){
                     LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
 
+                }else if(MessageSendService.sendEmailToUserBySIM800(message, null)){
+                    LOGGER.info("Successfully sent alert to test@ilabservice.com by SIM800. " + message);
                 }else{
                     LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
                 }
