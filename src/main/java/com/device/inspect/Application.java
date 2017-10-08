@@ -262,7 +262,7 @@ public class Application {
         // 格式类似Alicom-Queue-xxxxxx-SmsReport
         try {
             puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
-            System.out.println("异步线程池已开启");
+            LOGGER.info("异步线程池已开启");
         } catch (ClientException | ParseException e) {
             e.printStackTrace();
             LOGGER.error(String.format("Failed to load SMSClient, %s", e.toString()));

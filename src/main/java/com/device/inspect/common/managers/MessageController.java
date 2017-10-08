@@ -393,9 +393,9 @@ public class MessageController {
             for (User user : users) {
                 Date twentyMinutesBefore = DateUtils.addMinutes(new Date(), -20);
                 // TODO:本地调试需要减去8小时
-                // Date eightHoursBefore = DateUtils.addHours(twentyMinutesBefore, -8);
+                 Date eightHoursBefore = DateUtils.addHours(twentyMinutesBefore, -8);
                 List<Integer> alertIdList = Application.influxDBManager.readAlertIdFromPushStatusByUserIdDeviceIdStatusTimeRange(
-                        twentyMinutesBefore, user.getId(), deviceId, PUSH_MESSAGE_ACTIVE);
+                        eightHoursBefore, user.getId(), deviceId, PUSH_MESSAGE_ACTIVE);
 
                 for(Integer alertId: alertIdList){
                     Application.influxDBManager.writeAlertPushStatus(new Date(), alertId, user.getId(), deviceId, PUSH_MESSAGE_CANCEL, 1);
