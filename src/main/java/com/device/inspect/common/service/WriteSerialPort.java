@@ -228,7 +228,9 @@ public class WriteSerialPort {
         byte[] bytes = new byte[200];
 
         try {
-
+            if(serialPort == null){
+                return bytes;
+            }
             in = serialPort.getInputStream();
             while(in.available() > 0){
                 in.read(bytes);
