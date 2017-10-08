@@ -2,6 +2,7 @@ package com.device.inspect.common.model.device;
 
 import javax.persistence.*;
 import java.util.Date;
+import com.device.inspect.common.repository.device.*;
 
 /**
  * Created by Administrator on 2016/8/31.
@@ -92,4 +93,18 @@ public class AlertCount {
     public void setFinish(Date finish) {
         this.finish = finish;
     }
+
+    public static AlertCount createNewAlertAndSave(AlertCountRepository alertCountRepository, Device device, InspectType inspectType, Integer alert_type, String unit, Date deviceSamplingTime){
+        AlertCount newAlert = new AlertCount();
+        newAlert.setDevice(device);
+        newAlert.setInspectType(inspectType);
+        newAlert.setNum(1);
+        newAlert.setType(alert_type);
+        newAlert.setUnit(unit);
+        newAlert.setCreateDate(deviceSamplingTime);
+        newAlert.setFinish(deviceSamplingTime);
+        alertCountRepository.save(newAlert);
+        return newAlert;
+    }
+
 }

@@ -1,9 +1,7 @@
 package com.device.inspect.controller;
 
-import DNA.sdk.info.account.AccountAsset;
 import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -52,7 +50,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.device.inspect.common.setting.Defination.*;
+import static com.device.inspect.common.setting.Constants.*;
 
 /**
  * Created by Administrator on 2016/8/1.
@@ -606,9 +604,9 @@ public class OperateController {
                 List<DeviceInspectRunningStatus> runningStatuses = new ArrayList<>();
                 Set<Integer> statusInPost = new HashSet<>();
                 List<DeviceTypeInspectRunningStatusRequest> runningStatusRequests = inspectTypeRequest.getRunningStatus();
-		if(runningStatusRequests == null){
-			LOGGER.info("device running status is null");
-		}
+                if(runningStatusRequests == null){
+                    LOGGER.debug("device running status is null");
+                }
                 if(runningStatusRequests != null && runningStatusRequests.size() >= 0){
                     Iterable<DeviceInspectRunningStatus> dbStatusList = deviceInspectRunningStatusRepository.findByDeviceInspectId(deviceInspect.getId());
                     for(DeviceTypeInspectRunningStatusRequest status : inspectTypeRequest.getRunningStatus()){
@@ -1339,7 +1337,7 @@ public class OperateController {
         if (mobile.length()!=11)
             return new RestResponse("手机号格式不正确",1005,null);
         //短信发送验证码
-        boolean b=MessageSendService.sendMessage(user,mobile,String.valueOf(verify),0);
+        boolean b=MessageSendService.sendSms(user,mobile,String.valueOf(verify),0);
         if (b)
             messageSend.setEnable(1);
         else{
@@ -1538,7 +1536,7 @@ public class OperateController {
         String number = map.get("number");
         if (number.equals(user.getMobile())&&user.getBindMobile()==1){
             //用户输入手机号，发送短信密码
-            boolean b=MessageSendService.sendMessage(user,number,user.getPassword(),2);
+            boolean b=MessageSendService.sendSms(user,number,user.getPassword(),2);
             if (b){
                 return new RestResponse("密码已经发送到你的手机上！",0,null);
             }else {

@@ -5,29 +5,20 @@ import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.OfflineHourUnit;
 import com.device.inspect.common.repository.device.AlertCountRepository;
 import com.device.inspect.common.repository.device.DeviceInspectRepository;
-import com.device.inspect.common.repository.device.InspectDataRepository;
 import com.device.inspect.common.repository.device.MonitorDeviceRepository;
 import com.device.inspect.common.service.OfflineHourQueue;
-import com.device.inspect.common.util.transefer.InspectProcessTool;
 import com.device.inspect.controller.SocketMessageApi;
-import com.sun.jersey.core.impl.provider.entity.XMLJAXBElementProvider;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * Created by zyclincoln on 4/23/17.
@@ -75,6 +66,9 @@ public class ScanOfflineData{
     public void executeInternal(){
         if(Application.offlineFTPStorageManager == null){
             logger.info(String.format("Begin Scan Offline Data: Off Line FTP is not set, pass   "));
+            return;
+        }
+        if(Application.isTesting){
             return;
         }
         int fileNum = 0;
@@ -133,7 +127,7 @@ public class ScanOfflineData{
 
                     availableFileNum++;
                     for (int index = 0; index < fileStringArray.length - 1; index++) {
-                        DeviceInspect deviceInspect = socketMessageApi.parseInspectAndSave(fileStringArray[index], false);
+                        DeviceInspect deviceInspect = socketMessageApi.parseAndProcessInspectMessage(fileStringArray[index], false);
                         if (deviceInspect != null) {
                             availableMessageNum++;
                         }

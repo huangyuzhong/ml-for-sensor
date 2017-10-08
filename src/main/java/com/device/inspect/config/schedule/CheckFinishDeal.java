@@ -19,14 +19,8 @@ import com.device.inspect.common.service.OnchainService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import static com.device.inspect.common.setting.Defination.*;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.springframework.scheduling.quartz.QuartzJobBean;
+import static com.device.inspect.common.setting.Constants.*;
 
 import java.util.Date;
 import java.util.List;
@@ -96,6 +90,9 @@ public class CheckFinishDeal{
 
 //    @Scheduled(cron = "30 * * * * ?")
     public void executeInternal(){
+        if(Application.isTesting){
+            return;
+        }
         LOGGER.info(String.format("Check Execute Deal: begin checking deal record which meets rent start time at %s", new Date()));
         List<DealRecord> beginRecords = dealRecordRepository.findByStatusAndBeginTimeBefore(ONCHAIN_DEAL_STATUS_DEAL, new Date(new Date().getTime() + 1000*10));
         for(DealRecord record : beginRecords){

@@ -46,7 +46,7 @@ public class MessageSendService {
      * @return
      */
     public static String pushAlertMessge(User user, String verify, String message) {
-        if (MessageSendService.sendMessage(user, verify, message, 1)) {
+        if (MessageSendService.sendSms(user, verify, message, 1)) {
             return "短信推送成功";
         } else if (MessageSendService.sendEmaiToUser(user, verify, message, 1)) {
             return "邮箱推送成功";
@@ -56,7 +56,7 @@ public class MessageSendService {
     }
 
     public static boolean pushAlertMsg(User usr, String message) {
-        if (MessageSendService.sendMessage(usr, "", message, 1)) {
+        if (MessageSendService.sendSms(usr, "", message, 1)) {
             return true;
         } else {
             return false;
@@ -99,6 +99,12 @@ public class MessageSendService {
     // TODO 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
     static final String accessKeyId = "LTAIMmQjearxrjm0";
     static final String accessKeySecret = "OgLonz3aVJSaerzJRjSTHPO5ufUxqY";
+    //验证码短信签名绑定手机号
+    public static final String MessageSign1 = "INTELAB绑定手机";
+    //设备警报短信签名设备警报
+    public static final String MessageSign2 = "INTELAB设备报警";
+    //找回密码短信签名找回密码
+    public static final String MessageSign3 = "INTELAB找回密码";
 
     /**
      * 发送短信
@@ -110,7 +116,7 @@ public class MessageSendService {
      * @return
      * @throws ClientException
      */
-    public static boolean sendSms(User user, String verfyMobile, String message, Integer type) throws ClientException {
+    public static boolean sendSms(User user, String verfyMobile, String message, Integer type) {
 
         //可自助调整超时时间
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
@@ -130,9 +136,9 @@ public class MessageSendService {
                     //必填:待发送手机号
                     request.setPhoneNumbers(user.getMobile());
                     //必填:短信签名-可在短信控制台中找到
-                    request.setSignName(MessageName1);
+                    request.setSignName(MessageSign2);
                     //必填:短信模板-可在短信控制台中找到
-                    request.setTemplateCode("SMS_101150037");
+                    request.setTemplateCode("SMS_101065086");
                     //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
                     request.setTemplateParam("{\"code\":\"" + message + "\"}");
 
@@ -173,7 +179,7 @@ public class MessageSendService {
                 //必填:待发送手机号
                 request.setPhoneNumbers(verfyMobile);
                 //必填:短信签名-可在短信控制台中找到
-                request.setSignName(MessageName0);
+                request.setSignName(MessageSign1);
                 //必填:短信模板-可在短信控制台中找到
                 request.setTemplateCode("SMS_101230023");
                 //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
@@ -210,7 +216,7 @@ public class MessageSendService {
                 //必填:待发送手机号
                 request.setPhoneNumbers(verfyMobile);
                 //必填:短信签名-可在短信控制台中找到
-                request.setSignName(MessageName2);
+                request.setSignName(MessageSign3);
                 //必填:短信模板-可在短信控制台中找到
                 request.setTemplateCode("SMS_101215025");
                 //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为

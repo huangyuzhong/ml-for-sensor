@@ -116,22 +116,22 @@ public class IoTMessageWorker extends Thread {
                     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
                         String message = new String(body, "UTF-8");
 
-                        LOGGER.info(String.format("[IoTMessage Worker] - IoT message Received by consumer %s. Message: %s", this.getConsumerTag(), message));
+                        LOGGER.debug(String.format("[IoTMessage Worker] - IoT message Received by consumer %s. Message: %s", this.getConsumerTag(), message));
                         try {
                             String response_json = doWork(message);
-                            LOGGER.info("[IoTMessage Worker] - HTTP Response : " + response_json);
+                            LOGGER.debug("[IoTMessage Worker] - HTTP Response : " + response_json);
                         } catch (Exception ex) {
                             LOGGER.error("[IoTMessage Worker] - Exception in message process. Err:" + ex.toString());
                         } finally {
                             long deliveryTag = envelope.getDeliveryTag();
-                            LOGGER.info("[IoTMessage Worker] - sending message acknowledge " + deliveryTag);
+                            LOGGER.debug("[IoTMessage Worker] - sending message acknowledge " + deliveryTag);
                             mqChannel.basicAck(deliveryTag, false);
                         }
                     }
                 };
 
                 boolean autoAck = false;
-                LOGGER.info(String.format("[IoTMessage Worker] - %s consuming incoming message", this.getName()));
+                LOGGER.debug(String.format("[IoTMessage Worker] - %s consuming incoming message", this.getName()));
                 mqChannel.basicConsume(queue_name, autoAck, consumer);
 
                 break;
@@ -155,7 +155,7 @@ public class IoTMessageWorker extends Thread {
 
         client.executeMethod(method);
         //打印服务器返回的状态
-        LOGGER.info("insert data api returned HTTP status: " + method.getStatusLine());
+        LOGGER.debug("insert data api returned HTTP status: " + method.getStatusLine());
         InputStream stream = method.getResponseBodyAsStream();
 
         BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
@@ -173,7 +173,7 @@ public class IoTMessageWorker extends Thread {
 
         //释放连接
         method.releaseConnection();
-        LOGGER.info(String.format("Insert data 返回JSON: %s, 数据 %s", response, result));
+        LOGGER.debug(String.format("Insert data 返回JSON: %s, 数据 %s", response, result));
         return result;
     }
 

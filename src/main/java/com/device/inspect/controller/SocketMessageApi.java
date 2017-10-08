@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.device.inspect.Application;
 import com.device.inspect.common.ai.KMeansEmulate;
 import com.device.inspect.common.ai.KMeansUse;
+import com.device.inspect.common.managers.MessageController;
 import com.device.inspect.common.model.charater.User;
 import com.device.inspect.common.model.device.*;
 import com.device.inspect.common.model.record.DealAlertRecord;
@@ -20,6 +21,7 @@ import com.device.inspect.common.restful.tsdata.RestDeviceMonitoringTSData;
 import com.device.inspect.common.restful.tsdata.RestTelemetryTSData;
 import com.device.inspect.common.service.MemoryCacheDevice;
 import com.device.inspect.common.service.OnchainService;
+import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.util.transefer.ByteAndHex;
 import com.device.inspect.common.util.transefer.InspectMessage;
 import com.device.inspect.common.util.transefer.InspectProcessTool;
@@ -35,9 +37,11 @@ import java.io.StringWriter;
 import java.security.Principal;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.List;
 
-import static com.device.inspect.common.setting.Defination.DEAL_STATUS_TRANSFER_MAP;
-import static com.device.inspect.common.setting.Defination.ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT;
+import static com.device.inspect.common.setting.Constants.DEAL_STATUS_TRANSFER_MAP;
+import static com.device.inspect.common.setting.Constants.ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT;
+
 
 /**
  * Created by Administrator on 2016/7/25.
@@ -128,166 +132,118 @@ public class SocketMessageApi {
         return user;
     }
 
+    /**
+     * generate alert description string
+     * @param deviceInspect
+     * @param inspectMessage
+     * @param alertType
+     * @return
+     */
+    private String getAlertMsg(DeviceInspect deviceInspect, InspectMessage inspectMessage, int alertType){
+        String alertMsg = "";
+        if (alertType == Constants.ALERT_CODE_RED) {
+            if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
+                alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                        deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighUp(), inspectMessage.getSamplingTime());
+            } else {
+                alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                        deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighDown(), inspectMessage.getSamplingTime());
+            }
 
+        } else if (alertType == Constants.ALERT_CODE_YELLOW) {
 
-    public DeviceInspect parseInspectAndSave(String inspectMessageString, boolean onlineData) {
-
-        InspectMessage inspectMessage = null;
-        try{
-            inspectMessage = new InspectMessage(inspectMessageString);
-        }catch (Exception parseException){
-            LOGGER.error(String.format("Failed to parse inspect message string %s. Err: %s", inspectMessageString, parseException.getMessage()));
-            return null;
+            // push notification if necessary
+            if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                        deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowUp(), inspectMessage.getSamplingTime());
+            } else {
+                alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
+                        deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowDown(), inspectMessage.getSamplingTime());
+            }
         }
 
-        // Step1: 从数据库读取设备，监控参数信息
-        Device device = null;
-        MonitorDevice monitorDevice = null;
-        InspectType inspectType = null;
+        return alertMsg;
+    }
 
-        DeviceInspect deviceInspect = null;
+    /**
+     * 通过报警类型编码得到报警状态描述字符串
+     * @param alertType
+     * @return
+     */
+    private String getInspectStatusFromAlertType(int alertType){
 
-        try{
-            monitorDevice = monitorDeviceRepository.findByNumber(inspectMessage.getMonitorSN());
-            if (null == monitorDevice)
-                return null;
+        if(Constants.ALERT_CODE_STATUS_MAP.containsKey(alertType)){
+            return Constants.ALERT_CODE_STATUS_MAP.get(alertType);
+        }else{
+            return Constants.UNDEFINED;
+        }
+    }
 
-            device = monitorDevice.getDevice();
-            if (device.getEnable() == 0) {
-                LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
-                return null;
-            }
 
-            inspectType = inspectTypeRepository.findByCode(inspectMessage.getInspectTypeCode());
-            if(inspectType == null){
-                LOGGER.warn("Failed to get inspectType using type code " + inspectMessage.getInspectTypeCode());
-                return null;
-            }
+    /**
+     * 判断报文是否为报警
+     * @param deviceInspect
+     * @param device
+     * @param inspectMessage
+     * @return
+     */
+    private int checkAlertOutofMessage(DeviceInspect deviceInspect, Device device, InspectMessage inspectMessage){
+        int alert_type = Constants.ALERT_CODE_NO_ALERT;
 
-            deviceInspect = deviceInspectRepository.
-                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
+        // alert inspect
+        LOGGER.debug("check data against alert");
+        if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
+            alert_type = Constants.ALERT_CODE_RED;
 
-            if(deviceInspect == null && !inspectMessage.getInspectTypeCode().equals("03")){
-                LOGGER.warn(String.format("Failed to get device inspect by type %s, device %d", inspectType.getName(), device.getId()));
-                return null;
-            }
 
-            if (inspectMessage.getInspectTypeCode().equals("03")) {
-                monitorDevice.setBattery(String.valueOf(Float.valueOf(inspectMessage.getiData()) / 10));
-                // add abstract device inspect for all battery message, used in following alert parse
-                deviceInspect = new DeviceInspect();
-                deviceInspect.setZero(0F);
-                deviceInspect.setId(-1);
-                deviceInspect.setStandard(100F);
-                deviceInspect.setHighDown(0.2F);
-                deviceInspect.setLowDown(0.2F);
-                deviceInspect.setHighUp(110F);
-                deviceInspect.setLowUp(110F);
-                deviceInspect.setInspectPurpose(0);
-                deviceInspect.setName("Remain Battery Percentage");
-                deviceInspect.setInspectType(inspectType);
-                monitorDeviceRepository.save(monitorDevice);
-            }
-        }catch (Exception e){
-            LOGGER.error("Failed to get device/monitor/inspectType from database. Err: " + e.toString());
-            return null;
+        } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
+            alert_type = Constants.ALERT_CODE_YELLOW;
         }
 
-        // Step 2： 把原始监控数值转换为直观数值
 
-        try{
-            InspectProcessTool.calculateInspectValue(inspectMessage, deviceInspect.getZero(), pt100Repository);
-        }catch (Exception e){
-            LOGGER.error("Failed to calculate inspect value. Err: " + e.toString());
-            e.printStackTrace();
-            return null;
-        }
+        return alert_type;
+    }
 
-        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)  //这个判断如果为true的话，表示上面的r值为非法值，则不需要进行一下处理，直接返回。
-            return null;
+    /**
+     * 将报警更新到设备在区块链上的状态
+     * @param alertType
+     * @param inspectMessage
+     * @param device
+     * @param deviceInspect
+     */
+    public void updateAlertToOnchainDevice(int alertType, InspectMessage inspectMessage, Device device, DeviceInspect deviceInspect){
+        if (device.getDeviceChainKey() != null){
+            List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), Constants.ONCHAIN_DEAL_STATUS_EXECUTING);
 
-
-        // 如果是在线数据，更新内存缓存设备的最新活动信息
-        if(onlineData){
-            memoryCacheDevice.updateDeviceActivityTime(device.getId(), inspectMessage.getSamplingTime());
-        }
-
-        // Step 3: 判断监控值是否触发报警
-        if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
-            LOGGER.info(String.format("this inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
-            return deviceInspect;
-        }
-        String alertMsg = new String();
-        String inspectStatus = "normal";
-        int alert_type = 0;
-        if(deviceInspect.getInspectPurpose() == 0) { //inspectPurpse: 0 报警参数， 1， 状态参数
-
-            // alert inspect
-            LOGGER.info("check data against alert");
-            if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
-                inspectStatus = "high";
-                alert_type = 2;
-
-                // push notification if necessary
-                if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
-                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighUp(), inspectMessage.getSamplingTime());
-                } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getHighDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
-                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getHighDown(), inspectMessage.getSamplingTime());
-                }
-
-            } else if (deviceInspect.getLowUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getLowDown()) {
-                inspectStatus = "low";
-                alert_type = 1;
-
-                // push notification if necessary
-                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
-                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowUp(), inspectMessage.getSamplingTime());
-                } else {
-                    messageController.sendAlertMsg(device, deviceInspect, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-                    alertMsg = String.format("inspect %s found value %f exceeded threshold %f at %s.",
-                            deviceInspect.getName(), inspectMessage.getCorrectedValue(), deviceInspect.getLowDown(), inspectMessage.getSamplingTime());
-                }
-            }
-
-
-
-            // update device alert time and alert status
-            if(alert_type != 0 && onlineData){
-                memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alert_type);
-            }
-
-            if (device.getDeviceChainKey() != null && !inspectStatus.equals("normal")){
-                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
-                if(dealRecords != null) {
-                    for (DealRecord dealRecord : dealRecords) {
-                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
-                        try {
-                            dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
-                            BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
-                                    dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
-                                    dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
-                            BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
-                            LOGGER.info(String.format("Change transfer status to alert. %d, %s, %s", dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
-                            onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
-                                    "", JSON.toJSONString(value));
-                            dealRecordRepository.save(dealRecord);
-                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+            if(dealRecords != null) {
+                String alertMsg = getAlertMsg(deviceInspect, inspectMessage, alertType);
+                for (DealRecord dealRecord : dealRecords) {
+                    LOGGER.debug(String.format("found alert [%s] during deal %d.", alertMsg, dealRecord.getId()));
+                    try {
+                        dealRecord.setStatus(ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                        BlockChainDealDetail data = new BlockChainDealDetail(dealRecord.getId(), dealRecord.getDevice().getId(), dealRecord.getLessor(),
+                                dealRecord.getLessee(), dealRecord.getPrice(), dealRecord.getBeginTime().getTime(), dealRecord.getEndTime().getTime(),
+                                dealRecord.getDeviceSerialNumber(), dealRecord.getAggrement(), dealRecord.getStatus());
+                        BlockChainDealRecord value = new BlockChainDealRecord(DEAL_STATUS_TRANSFER_MAP.get(dealRecord.getStatus()), data);
+                        LOGGER.info(String.format("Alert happens in device lease. Change transfer status to alert. lease record %d, alert time %s, alert -- %s",
+                                dealRecord.getId(), inspectMessage.getSamplingTime(), alertMsg));
+                        onchainService.sendStateUpdateTx("deal", String.valueOf(dealRecord.getId()) + String.valueOf(dealRecord.getDevice().getId()),
+                                "", JSON.toJSONString(value));
+                        dealRecordRepository.save(dealRecord);
+                        dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
-                else{
-                    LOGGER.info("no transfer is ongoing when alert happened");
-                }
             }
-            // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
+            else{
+                LOGGER.debug("no transfer is ongoing when alert happened");
+            }
+        }
+
+        // add a new type of alert, just for demo, and hard code the inspect type and threshold value directly into code, which I strongly don't recommend
+        // 以下的code是demo的时候用来模拟设备事故触发报警, 正常运行时候不需要. 报警应该有报警参数的阈值来判断.
+            /*
             if(inspectMessage.getInspectTypeCode().equals("16") && inspectMessage.getCorrectedValue() < 0.01 && device.getDeviceChainKey() != null){
                 LOGGER.info("found currency down to zero, check whether it's in deal and without alert");
                 List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), 2);
@@ -341,15 +297,24 @@ public class SocketMessageApi {
                 else{
                     LOGGER.info("no transfer is ongoing when alert happened");
                 }
+
             }
+            */
+    }
 
-        }
 
-        //for debug
-        LOGGER.info("Inspect data is " + inspectStatus);
-
-        // Step 4: 写入监测数据到 influx DB
+    /**
+     * 将报文写入 influxdb
+     * @param device
+     * @param deviceInspect
+     * @param inspectMessage
+     * @param alertType
+     */
+    private void writeInspectMessageToInflux(Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage, int alertType){
         if(Application.influxDBManager != null){
+
+            String inspectStatus = getInspectStatusFromAlertType(alertType);
+
             try {
                 int retry = 0;
                 int max_try = 3;
@@ -366,7 +331,7 @@ public class SocketMessageApi {
                         retry ++;
                     }
                     else{
-                        LOGGER.info(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
+                        LOGGER.debug(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
                                 device.getId(),
                                 //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
                                 deviceInspect.getInspectType().getMeasurement(),
@@ -392,227 +357,389 @@ public class SocketMessageApi {
             }
         }
 
-        // Step 5: 更新 alert_count 表, 逻辑描述参看 LAB-194
-        if (!inspectStatus.equals("normal")) {
+    }
 
-            // 获取该参数的上一条信息
-            List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(
-                    deviceInspect.getInspectType().getMeasurement(),
-                    device.getId(),
-                    deviceInspect.getId());
+    /**
+     * 当报文为报警时, 更新报警信息表 alert_count
+     * @param device
+     * @param deviceInspect
+     * @param inspectMessage
+     * @param alertType
+     * @return
+     */
+    private AlertCount updateAlertCount(Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage, int alertType){
+        AlertCount liveAlert = null;
+
+        // 获取该参数的上一条信息
+        List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(
+                deviceInspect.getInspectType().getMeasurement(),
+                device.getId(),
+                deviceInspect.getId());
 
 
-            // 判断 是否是新的报警
-            boolean isNewAlert = false;
+        // 判断 是否是新的报警
+        boolean isNewAlert = false;
 
-            long lastInspectTime = 0;
-            String lastInspectStatus = null;
+        long lastInspectTime = 0;
+        String lastInspectStatus = null;
 
-            if(lastInspectRecord==null || lastInspectRecord.size()==0){
+        if(lastInspectRecord==null || lastInspectRecord.size()==0){
+            isNewAlert = true;
+        }else{
+            lastInspectTime = TimeUtil.fromInfluxDBTimeFormat((String)lastInspectRecord.get(0));
+            lastInspectStatus = (String)lastInspectRecord.get(2);
+
+            if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
                 isNewAlert = true;
-            }else{
-                lastInspectTime = TimeUtil.fromInfluxDBTimeFormat((String)lastInspectRecord.get(0));
-                lastInspectStatus = (String)lastInspectRecord.get(2);
-
-                if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
-                    isNewAlert = true;
-                }
-                if(lastInspectStatus.equals("normal")){
-                    isNewAlert = true;
-                }
-
+            }
+            if(lastInspectStatus.equals("normal")){
+                isNewAlert = true;
             }
 
-            if(isNewAlert){
-                // new alert count
-                createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
-                if (device.getDeviceChainKey() != null){
-                    List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
-                    if(dealRecords != null) {
-                        for (DealRecord dealRecord : dealRecords) {
-                            LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
-                            try {
-                                dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+        }
+
+        if(isNewAlert){
+            // new alert count
+            String alertMsg = getAlertMsg(deviceInspect, inspectMessage, alertType);
+            liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+            if (device.getDeviceChainKey() != null){
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                        try {
+                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                 }
-            }else{
+            }
+        }else{
 
-                try {
-                    AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
-                            deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, inspectMessage.getSamplingTime());
-                    AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
-                            deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
+            try {
+                AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, inspectMessage.getSamplingTime());
+                AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
+                        deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
-                    AlertCount liveAlert = null;
-                    if (last_yellow_alert != null && last_yellow_alert.getFinish() != null && lastInspectTime == last_yellow_alert.getFinish().getTime()) {
-                        liveAlert = last_yellow_alert;
+
+                if (last_yellow_alert != null && last_yellow_alert.getFinish() != null && lastInspectTime == last_yellow_alert.getFinish().getTime()) {
+                    liveAlert = last_yellow_alert;
+                }
+                else if (last_red_alert != null && last_red_alert .getFinish() != null && lastInspectTime == last_red_alert.getFinish().getTime()) {
+                    liveAlert = last_red_alert;
+                }
+
+                if (liveAlert == null) {
+                    // if hit this code, there must be something wrong
+                    LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
+                            device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
+
+                    AlertCount newerCount = null;
+                    boolean red_alert_available = (last_red_alert != null) && (last_red_alert.getFinish() != null);
+                    boolean yellow_alert_available = (last_yellow_alert != null) && (last_yellow_alert.getFinish() != null);
+                    if(red_alert_available && yellow_alert_available){
+                        newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
+                                last_red_alert : last_yellow_alert;
                     }
-                    else if (last_red_alert != null && last_red_alert .getFinish() != null && lastInspectTime == last_red_alert.getFinish().getTime()) {
-                        liveAlert = last_red_alert;
+                    else if(red_alert_available){
+                        newerCount = last_red_alert;
                     }
-
-                    if (liveAlert == null) {
-                        LOGGER.warn(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
-                                device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
-
-                        AlertCount newerCount = null;
-                        boolean red_alert_available = (last_red_alert != null) && (last_red_alert.getFinish() != null);
-                        boolean yellow_alert_available = (last_yellow_alert != null) && (last_yellow_alert.getFinish() != null);
-                        if(red_alert_available && yellow_alert_available){
-                            newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
-                                    last_red_alert : last_yellow_alert;
-                        }
-                        else if(red_alert_available){
-                            newerCount = last_red_alert;
-                        }
-                        else if(yellow_alert_available){
-                            newerCount = last_yellow_alert;
-                        }
-
-                        if (newerCount == null || inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
-                            // create a new alert
-                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
-                        } else {
-                            // set newer alert as live alert
-                            liveAlert = newerCount;
-                        }
+                    else if(yellow_alert_available){
+                        newerCount = last_yellow_alert;
                     }
 
-                    // 如果与上一条报警是不同的类型， 处理为新报警。
-                    if (liveAlert != null) {
-                        if (liveAlert.getType() != alert_type) {
-                            // alert type is not equal, create a new alert
-                            createNewAlertAndSave(device, deviceInspect.getInspectType(), alert_type, unit, inspectMessage.getSamplingTime());
-                        } else {
-                            // extend live alert
-                            liveAlert.setNum(liveAlert.getNum() + 1);
-                            liveAlert.setFinish(inspectMessage.getSamplingTime());
-                            alertCountRepository.save(liveAlert);
-                            LOGGER.info("datagram alert type set and updating to db");
-                        }
+                    if (newerCount == null || inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
+                        // create a new alert
+                        AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+                    } else {
+                        // set newer alert as live alert
+                        liveAlert = newerCount;
                     }
-                }catch(Exception e){
-                    StringWriter sw = new StringWriter();
-                    e.printStackTrace(new PrintWriter(sw));
-                    String exceptionAsString = sw.toString();
-                    LOGGER.error("Failed to record alert_count. Err: " + e.toString() + exceptionAsString);
+                }
+
+                // 如果与上一条报警是不同的类型， 处理为新报警。
+                if (liveAlert != null) {
+                    if (liveAlert.getType() != alertType) {
+                        // alert type is not equal, create a new alert
+                        liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+                        LOGGER.info(String.format("new %s alert %d of %s created for device %d", getInspectStatusFromAlertType(alertType), liveAlert.getId(), deviceInspect.getInspectType().getName(), device.getId()));
+                    } else {
+                        // extend live alert
+                        liveAlert.setNum(liveAlert.getNum() + 1);
+                        liveAlert.setFinish(inspectMessage.getSamplingTime());
+                        alertCountRepository.save(liveAlert);
+                        LOGGER.info(String.format("this is existing %s alert %d, updating finish time to db", getInspectStatusFromAlertType(alertType), liveAlert.getId()));
+                    }
+                }
+
+            }catch(Exception e){
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                String exceptionAsString = sw.toString();
+                LOGGER.error(String.format("Failed to update alert_count for device %d, inspect %s. Err: %s ",
+                        device.getId(), deviceInspect.getInspectType().getName(), e.toString() + exceptionAsString));
+                return null;
+            }
+        }
+        return liveAlert;
+    }
+
+    private void pushAlertNotification(AlertCount liveAlert, Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage){
+        if(liveAlert == null){
+            LOGGER.warn("Alert object is null. Something wrong!!!");
+        }
+        else {
+            if (liveAlert.getType() == Constants.ALERT_CODE_RED) {
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
+                    messageController.sendAlertMsg(device, liveAlert, deviceInspect.getHighUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+
+                } else {
+                    messageController.sendAlertMsg(device, liveAlert, deviceInspect.getHighDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+
+                }
+            }
+
+            else if(liveAlert.getType() == Constants.ALERT_CODE_YELLOW) {
+                if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
+                    messageController.sendAlertMsg(device, liveAlert, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+
+                } else {
+                    messageController.sendAlertMsg(device, liveAlert, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+
+                }
+            }
+        }
+    }
+
+    /**
+     * 处理报警参数的报文信息
+     * @param device
+     * @param deviceInspect
+     * @param inspectMessage
+     * @param onlineData
+     * @return
+     */
+    private int processInspectMessageAboutAlert(Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage, boolean onlineData){
+        // 判断监控值是否触发报警
+        if (null == deviceInspect.getStandard() || null == deviceInspect.getHighUp() || null == deviceInspect.getLowDown()) {
+            LOGGER.warn(String.format("This alert inspect %d has no alert parameter, save inspect data and return", deviceInspect.getId()));
+            return Constants.ALERT_CODE_NO_ALERT;
+        }
+
+        int alertType = checkAlertOutofMessage(deviceInspect, device, inspectMessage);
+
+        if(alertType > Constants.ALERT_CODE_NO_ALERT) {
+
+            // alert inspect
+            // update device alert time and alert status
+            if(onlineData){
+                memoryCacheDevice.updateDeviceAlertTimeAndType(device.getId(), inspectMessage.getSamplingTime(), alertType);
+            }
+
+            updateAlertToOnchainDevice(alertType, inspectMessage, device, deviceInspect);
+
+            // 更新 alert_count 表, 逻辑描述参看 LAB-194
+            AlertCount liveAlert = updateAlertCount(device, deviceInspect, inspectMessage, alertType);
+
+            // 发送报警信息到用户
+            pushAlertNotification(liveAlert, device, deviceInspect, inspectMessage);
+        }
+
+        return alertType;
+
+    }
+
+    /**
+     * 处理运行状态参数的报文信息
+     * @param device
+     * @param deviceInspect
+     * @param inspectMessage
+     */
+    private void processInspectMessageAboutOperatingStatus(Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage) {
+        int runningStatus = 0;
+
+        // 通过阈值查看设备当前运行状态
+        if (deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_THRESHOLDS) {
+            LOGGER.debug("check operating status against threshold");
+            List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
+            if (runningStatuses != null && runningStatuses.size() > 0) {
+                for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
+                    if (inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()) {
+                        runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
+                    }
                 }
             }
         }
 
-        if (deviceInspect.getInspectPurpose() == 1 || deviceInspect.getInspectPurpose() == 2){
+        // 通过机器学习模型来判断当前运行状态
+        else if (deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_LEARNING_MODEL) {
+            LOGGER.debug("check operating status against model");
+            if (deviceInspect.getModels() != null) {
+                Models models = deviceInspect.getModels();
+                // 检验UseAML模型里面的数据是否需要更新
+                long beginTimeTest = new Date().getTime();
+                if (deviceInspect.getUseModelTime() == null || ((new Date().getTime() - deviceInspect.getUseModelTime().getTime()) / (60 * 60 * 1000) >= deviceInspect.getLevel().getInterval())) { // 代表之前没用使用过模型去学习数据，判断设备运行状态。
+                    // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
+                    // step 1:
+                    deviceInspect.setUseModelTime(new Date());
 
-            int runningStatus = 0;
+                    // step 2:
+                    Double result = KMeansEmulate.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString(), null, new Date().getTime());
 
-            // step-6: 如果是状态数据，查看设备状态是否发生变化
-            if(deviceInspect.getInspectPurpose() == 1){
-                LOGGER.info("check data against status");
-                runningStatus = 0;
-                List<DeviceInspectRunningStatus> runningStatuses = deviceInspectRunningStatusRepository.findByDeviceInspectIdOrderByThresholdAsc(deviceInspect.getId());
-                if(runningStatuses != null && runningStatuses.size() > 0) {
-                    for (DeviceInspectRunningStatus deviceRunningStatus : runningStatuses) {
-                        if(inspectMessage.getCorrectedValue() > deviceRunningStatus.getThreshold()){
-                            runningStatus = deviceRunningStatus.getDeviceRunningStatus().getLevel();
+                    // step 3:
+                    DecimalFormat df = new DecimalFormat("######0");
+                    int resultInt = Integer.parseInt(df.format(result * 100));
+                    List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAll();
+                    for (OpeModelsLevel opeModelsLevel : opeModelsLevels) {
+                        if (resultInt >= opeModelsLevel.getLevel()) {
+                            deviceInspect.setLevel(opeModelsLevel);
                         }
                     }
+                    // TODO: should avoid writing if there is no change
+                    deviceInspectRepository.save(deviceInspect);
                 }
-            }
 
-            // step-7: 通过机器学习模型来判断当前状态
-            if (deviceInspect.getInspectPurpose() == 2){
-                LOGGER.info("check running status when inspectPurpose is 2");
-                if (deviceInspect.getModels() != null){
-                    Models models = deviceInspect.getModels();
-                    // 检验UseAML模型里面的数据是否需要更新
-                    long beginTimeTest = new Date().getTime();
-                    if (deviceInspect.getUseModelTime() == null || ((new Date().getTime()-deviceInspect.getUseModelTime().getTime())/(60*60*1000) >= deviceInspect.getLevel().getInterval())){ // 代表之前没用使用过模型去学习数据，判断设备运行状态。
-                        // 设置使用模型的时间，使用模型去学习一次，并更新相应的时间间隔等级。
-                        // step 1:
-                        deviceInspect.setUseModelTime(new Date());
-
-                        // step 2:
-                        Double result = KMeansEmulate.doTask(models.getUrl(), models.getApi(), deviceInspect.getInspectType().getMeasurement(), deviceInspect.getDevice().getId().toString(), null, new Date().getTime());
-
-                        // step 3:
-                        DecimalFormat df = new DecimalFormat("######0");
-                        int resultInt = Integer.parseInt(df.format(result*100));
-                        List<OpeModelsLevel> opeModelsLevels = opeModelsLevelRepository.findAll();
-                        for (OpeModelsLevel opeModelsLevel:opeModelsLevels){
-                            if (resultInt >= opeModelsLevel.getLevel()){
-                                deviceInspect.setLevel(opeModelsLevel);
-                            }
-                        }
-                        deviceInspectRepository.save(deviceInspect);
-                    }
-
-                    // 实施数据与UseAML模型比对，生成最新状态。
-                    int result = kMeansUse.doTask(deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
-                    long endTimeTest = new Date().getTime();
-                    System.out.println("************运行模型耗费的时间，单位秒**********：" + (endTimeTest-beginTimeTest)/1000);
-                    if (result == 0)
-                        runningStatus = 0;
-                    else
-                        runningStatus = 20;
-                }
-            }
-
-            if(device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus){
-                device.setLatestRunningStatus(runningStatus);
-                LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
-                try {
-                    deviceRepository.save(device);
-                    boolean isWriteSuccessfully = Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
-                            device.getName(), device.getDeviceType().getName(), runningStatus);
-
-                    if(!isWriteSuccessfully){
-                        LOGGER.error(String.format("Writing device running status history of device %d failed at %s", device.getId(), new Date().toString()));
-                    }
-                }
-                catch (Exception e){
-                    LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
-                            new Date().toString(),
-                            e.toString()));
-                }
+                // 实施数据与UseAML模型比对，生成最新状态。
+                int result = kMeansUse.doTask(deviceInspect.getDevice().getId().toString(), deviceInspect.getInspectType().getMeasurement(), inspectMessage.getCorrectedValue().toString());
+                long endTimeTest = new Date().getTime();
+                LOGGER.debug("************运行模型耗费的时间，单位秒**********：" + (endTimeTest - beginTimeTest) / 1000);
+                // TODO: why there is no idling
+                if (result == 0)
+                    runningStatus = Constants.DEVICE_OPERATING_STATUS_STOPPED;
+                else
+                    runningStatus = Constants.DEVICE_OPERATING_STATUS_RUNNING;
             }
         }
 
+        // 判断运行状态是否改变
+        if (device.getLatestRunningStatus() == null || device.getLatestRunningStatus() != runningStatus) {
+            device.setLatestRunningStatus(runningStatus);
+            LOGGER.info(String.format("Device %d change running status to %d", device.getId(), runningStatus));
+            try {
+                deviceRepository.save(device);
+                if (!Application.influxDBManager.writeDeviceOperatingStatus(inspectMessage.getSamplingTime(), device.getId(),
+                        device.getName(), device.getDeviceType().getName(), runningStatus)) {
+                    LOGGER.error(String.format("Writing operating status change %d of device %d to influxdb failed", runningStatus, device.getId()));
+                }
+            } catch (Exception e) {
+                LOGGER.error(String.format("Failed to write device running status change into database at %s, %s",
+                        new Date().toString(),
+                        e.toString()));
+            }
+        }
+    }
+
+    /**
+     * 解析报文并处理
+     * @param inspectMessageString
+     * @param onlineData
+     * @return
+     */
+    public DeviceInspect parseAndProcessInspectMessage(String inspectMessageString, boolean onlineData) {
+
+        // 解析报文
+        InspectMessage inspectMessage = null;
+        try{
+            inspectMessage = new InspectMessage(inspectMessageString);
+        }catch (Exception parseException){
+            LOGGER.error(String.format("Failed to parse inspect message string %s. Err: %s", inspectMessageString, parseException.getMessage()));
+            return null;
+        }
 
 
-        // LAB-207, comment out, do not write mySQL, instead, getting device status by querying influxdb
+        // 根据解析的报文从数据库读取设备，监控参数信息
+        Device device = null;
+        MonitorDevice monitorDevice = null;
+        InspectType inspectType = null;
 
-        /*
+        DeviceInspect deviceInspect = null;
 
+        try{
+            monitorDevice = monitorDeviceRepository.findByNumber(inspectMessage.getMonitorSN());
+            if (null == monitorDevice)
+                return null;
 
+            device = monitorDevice.getDevice();
+            if (device.getEnable() == 0) {
+                LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
+                return null;
+            }
+
+            inspectType = inspectTypeRepository.findByCode(inspectMessage.getInspectTypeCode());
+            if(inspectType == null){
+                LOGGER.warn("Failed to get inspectType using type code " + inspectMessage.getInspectTypeCode());
+                return null;
+            }
+
+            deviceInspect = deviceInspectRepository.
+                    findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
+
+            if(deviceInspect == null && !inspectMessage.getInspectTypeCode().equals("03")){
+                LOGGER.warn(String.format("Failed to get device inspect by type %s, device %d", inspectType.getName(), device.getId()));
+                return null;
+            }
+
+            // 报文是电池电量, 特殊处理
+            if (inspectMessage.getInspectTypeCode().equals("03")) {
+                monitorDevice.setBattery(String.valueOf(Float.valueOf(inspectMessage.getiData()) / 10));
+                // add abstract device inspect for all battery message, used in following alert parse
+                deviceInspect = new DeviceInspect();
+                deviceInspect.setZero(0F);
+                deviceInspect.setId(-1);
+                deviceInspect.setStandard(100F);
+                deviceInspect.setHighDown(0.2F);
+                deviceInspect.setLowDown(0.2F);
+                deviceInspect.setHighUp(110F);
+                deviceInspect.setLowUp(110F);
+                deviceInspect.setInspectPurpose(0);
+                deviceInspect.setName("Remain Battery Percentage");
+                deviceInspect.setInspectType(inspectType);
+                monitorDeviceRepository.save(monitorDevice);
+            }
+        }catch (Exception e){
+            LOGGER.error("Failed to get device/monitor/inspectType from database. Err: " + e.toString());
+            return null;
+        }
+        // 如果是在线数据，更新内存缓存设备的最新活动信息
         if(onlineData){
-            //因为一个设备可能同时发送多个参数的数据， 所以有多个线程同时update device， 会造成deadlock。
-            //这里加上retry来避免deadlock造成的data丢失
-            int retry = 0;
-            int max_retry = 5;
-            while(retry < max_retry) {
-                try {
-                    deviceRepository.save(device);
-                    break;
-                } catch (Exception e) {
-                    LOGGER.info(String.format("Failed to update device %d, Err: %s", device.getId(), e.toString()));
-
-                    retry ++;
-                    try {
-                        Thread.sleep(random.nextInt(100));
-                    }catch (InterruptedException ie){
-                        LOGGER.warn(String.format("Failed to sleep 0.1 sec. Err: %s", ie.toString()));
-                    }
-                }
-            }
-
-            if(retry >= max_retry) {
-                LOGGER.error(String.format("Aborting update device %d after %d approaches", device.getId(), max_retry));
-            }
+            memoryCacheDevice.updateDeviceActivityTime(device.getId(), inspectMessage.getSamplingTime());
         }
-        */
+
+        // 把原始监控数值转换为直观数值
+
+        try{
+            InspectProcessTool.calculateInspectValue(inspectMessage, deviceInspect.getZero(), pt100Repository);
+        }catch (Exception e){
+            LOGGER.error("Failed to calculate inspect value. Err: " + e.toString());
+            e.printStackTrace();
+            return null;
+        }
+
+        // 判断监控数值是否非法
+        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)  //这个判断如果为true的话，表示上面的r值为非法值，则不需要进行一下处理，直接返回。
+            return null;
+
+
+        ////////////////// 报警参数的处理 ////////////////////
+        int alertType = Constants.ALERT_CODE_NO_ALERT;
+        if(deviceInspect.getInspectPurpose() == 0){
+            alertType = processInspectMessageAboutAlert(device, deviceInspect, inspectMessage, onlineData);
+        }
+
+
+        /////////////////////// 写入监测数据到 influx DB ////////////////
+        writeInspectMessageToInflux(device, deviceInspect, inspectMessage, alertType);
+
+        //////////////////////// 运行状态参数的处理 /////////////////////
+
+        if (deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_THRESHOLDS
+                || deviceInspect.getInspectPurpose() == Constants.INSPECT_PURPOSE_OPERATING_STATUS_BY_LEARNING_MODEL){
+
+            processInspectMessageAboutOperatingStatus(device, deviceInspect, inspectMessage);
+
+        }
 
         return deviceInspect;
 
@@ -630,7 +757,7 @@ public class SocketMessageApi {
                     Thread.sleep(200);
                     retry++;
                 } else {
-                    LOGGER.info(String.format("Successfully write Device [%d] running status %s to influxdb",
+                    LOGGER.debug(String.format("Successfully write Device [%d] running status %s to influxdb",
                             device.getId(), runningStatus));
 
                     break;
@@ -646,19 +773,26 @@ public class SocketMessageApi {
         }
     }
 
-    // this function may need a better place
-    void createNewAlertAndSave(Device device, InspectType inspectType, Integer alert_type, String unit, Date deviceSamplingTime){
-        AlertCount newAlert = new AlertCount();
-        newAlert.setDevice(device);
-        newAlert.setInspectType(inspectType);
-        newAlert.setNum(1);
-        newAlert.setType(alert_type);
-        newAlert.setUnit(unit);
-        newAlert.setCreateDate(deviceSamplingTime);
-        newAlert.setFinish(deviceSamplingTime);
-        alertCountRepository.save(newAlert);
-        LOGGER.info("datagram alert type set and updating to db");
+
+    /**
+     * This is just used for testing the reply sms to cancel alert push
+     * @param params
+     * @return
+     */
+    @RequestMapping(value = "/socket/cancel/push", method = RequestMethod.GET)
+    public RestResponse cancelAlertPush(@RequestParam Map<String, String> params){
+        if(!Application.isTesting){
+            return null;
+        }
+
+        String deviceId = params.get("deviceId");
+        String mobile = params.get("mobile");
+
+        messageController.processReceivedReplyMessage(mobile, deviceId);
+
+        return new RestResponse();
     }
+
 
     /**
      * 更新数据
@@ -667,13 +801,12 @@ public class SocketMessageApi {
     */
     @RequestMapping(value = "/socket/insert/data",method = RequestMethod.GET)
     public RestResponse excuteInspectData(@RequestParam String result) {
-        LOGGER.info(result);
-        DeviceInspect deviceInspect = parseInspectAndSave(result, true);
+        DeviceInspect deviceInspect = parseAndProcessInspectMessage(result, true);
         if(deviceInspect == null) {
             return new RestResponse(null);
         }
 
-        LOGGER.info("add response datagram head");
+        LOGGER.debug("add response datagram head");
         String response = null;
         List<Byte> responseByte = new ArrayList<Byte>();
         responseByte.add((byte)0xEF);

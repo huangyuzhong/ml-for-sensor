@@ -60,6 +60,7 @@ public class Application {
 
     private static  DefaultAlicomMessagePuller puller;
 
+    public static boolean isTesting = false;
 
     public static void Stop(){
         for(IoTMessageWorker worker: ioTMessageWorkers){
@@ -88,6 +89,12 @@ public class Application {
         WriteSerialPort.openPort();
 
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
+
+        if(args.length > 2 && args[1].equals("--test")){
+            Application.isTesting = true;
+
+        }
+
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
         startMessagePuller();
@@ -260,11 +267,10 @@ public class Application {
         // 格式类似Alicom-Queue-xxxxxx-SmsReport
         try {
             puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
-            System.out.println("异步线程池已开启");
-        } catch (ClientException e) {
+            LOGGER.info("异步线程池已开启");
+        } catch (ClientException | ParseException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+            LOGGER.error(String.format("Failed to load SMSClient, %s", e.toString()));
         }
     }
 
