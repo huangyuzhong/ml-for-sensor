@@ -16,7 +16,6 @@ import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
 import com.device.inspect.common.util.CONST;
-import com.sun.tools.internal.jxc.ap.Const;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
