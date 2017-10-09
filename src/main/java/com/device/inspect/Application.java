@@ -8,6 +8,7 @@ import com.device.inspect.common.influxdb.InfluxDBManager;
 import com.device.inspect.common.service.FileUploadService;
 import com.device.inspect.common.service.MessageReceiveService;
 import com.device.inspect.common.service.WriteSerialPort;
+import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.setting.GeneralConfig;
 import com.device.inspect.common.util.thread.AppShutdownHook;
 import com.device.inspect.common.util.thread.IoTMessageWorker;
@@ -62,6 +63,8 @@ public class Application {
 
     public static boolean isTesting = false;
 
+    public static String smsMedia = null;
+
     public static void Stop(){
         for(IoTMessageWorker worker: ioTMessageWorkers){
             worker.Stop();
@@ -85,9 +88,6 @@ public class Application {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
 
-        // 打开串口
-        WriteSerialPort.openPort();
-
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
         if(args.length > 2 && args[1].equals("--test")){
@@ -97,9 +97,25 @@ public class Application {
 
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
-        startMessagePuller();
         startMQWorkers();
         socketServerStart();
+    }
+
+    private static void startSMSReceiver(String mediaType) throws Exception{
+        LOGGER.info("System sending SMS via " + mediaType);
+
+        smsMedia = mediaType;
+
+        if(mediaType.equals(Constants.SMS_MEDIA_TYPE_ALIYUN)){
+            startMessagePuller();
+
+        } else if(mediaType.equals(Constants.SMS_MEDIA_TYPE_MODULE)){
+            // 打开串口
+            WriteSerialPort.openPort();
+
+        } else{
+            throw new Exception("Unknown SMS type " + mediaType);
+        }
     }
 
     private static void loadAppConfig() throws Throwable{
@@ -136,6 +152,16 @@ public class Application {
 
                 intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
             }
+
+            // 判断短信发送接收端口
+            String messageType = Constants.SMS_MEDIA_TYPE_ALIYUN;
+            if(generalConfig.getMessage() != null && generalConfig.getMessage().containsKey("type")){
+                messageType = generalConfig.getMessage().get("type");
+            }
+
+
+            startSMSReceiver(messageType);
+
 
             if(generalConfig.getInfluxdb() != null){
                 String influxDBServerIp = generalConfig.getInfluxdb().get("server_ip");
@@ -249,6 +275,7 @@ public class Application {
      * 开启接收短信回复线程池
      */
     private static void startMessagePuller() {
+        LOGGER.info("Loading aliyun message puller");
         puller = new DefaultAlicomMessagePuller();
 
         //设置异步线程池大小及任务队列的大小，还有无数据线程休眠时间
@@ -267,7 +294,7 @@ public class Application {
         // 格式类似Alicom-Queue-xxxxxx-SmsReport
         try {
             puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
-            LOGGER.info("异步线程池已开启");
+            LOGGER.info("aliyun message puller started");
         } catch (ClientException | ParseException e) {
             e.printStackTrace();
             LOGGER.error(String.format("Failed to load SMSClient, %s", e.toString()));

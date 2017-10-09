@@ -24,10 +24,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.*;
-import javax.mail.*;
-import javax.mail.internet.*;
 
 /**
  * Created by Administrator on 2016/10/29.
@@ -55,7 +51,7 @@ public class MessageSendService {
         }
     }
 
-    public static boolean pushAlertMsg(User usr, String message) {
+    public static boolean pushAlertMsgViaAliyun(User usr, String message) {
         if (MessageSendService.sendSms(usr, "", message, 1)) {
             return true;
         } else {
@@ -63,7 +59,7 @@ public class MessageSendService {
         }
     }
 
-    public static boolean pushAlertMail(User usr, String message) {
+    public static boolean pushAlertMailViaAliyun(User usr, String message) {
         if (MessageSendService.sendEmaiToUser(usr, "", message, 1)) {
             return true;
         } else {
@@ -507,7 +503,7 @@ public class MessageSendService {
      * @param content  短信内容
      * @return
      */
-    public static boolean sendMessageToManager(String content, String receiverNum) {
+    public static boolean sendMessageToUserViaSIM800(String content, String receiverNum) {
         String at_cmgf = "at+cmgf=0";  // 指定机器用中文发送短信
 
         // 以下是把发送内容转化为报文code BEGIN
@@ -534,9 +530,9 @@ public class MessageSendService {
         }
     }
 
-    public static boolean sendMessageToInteLabManager (String str, String receiverNum){
+    public static boolean sendMessageToUserViaSIM800BySize(String str, String receiverNum){
         if (str.length() <= 70){
-            if (!sendMessageToManager(str, receiverNum)){
+            if (!sendMessageToUserViaSIM800(str, receiverNum)){
                 return false;
             }
         }else {
@@ -545,12 +541,12 @@ public class MessageSendService {
             while(str.length()/65 != 0){
                 String subStr = str.substring(0, 65);
                 str = str.substring(65);
-                if (!sendMessageToManager("("+strCount+"/"+strSum+")"+subStr, receiverNum)){
+                if (!sendMessageToUserViaSIM800("("+strCount+"/"+strSum+")"+subStr, receiverNum)){
                     return false;
                 }
                 strCount++;
             }
-            if (!sendMessageToManager("("+strCount+"/"+strSum+")"+str, receiverNum)){
+            if (!sendMessageToUserViaSIM800("("+strCount+"/"+strSum+")"+str, receiverNum)){
                 return false;
             }
         }
@@ -614,9 +610,7 @@ public class MessageSendService {
 
     // Send email to user by SIM800
     public static boolean sendEmailToUserBySIM800(String content, String rcptEmailNum){
-        if (rcptEmailNum == null){
-            rcptEmailNum = intelabTestEmailAccount;
-        }
+
         String contentUtf_8Code = getUTF8XMLString(content);
         if (WriteSerialPort.sendEmailCommand(myEmailSMTPHost, myEmailAccount, myEmailPassword, rcptEmailNum, contentUtf_8Code)){
             return true;
@@ -627,7 +621,7 @@ public class MessageSendService {
 
 //    public static void main(String[] args){
 //        sendEmailToUserBySIM800("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "1987356692@qq.com");
-////        sendMessageToInteLabManager("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "17621702332");
+////        sendMessageToUserViaSIM800BySize("【AD-001-AbstractDevice】于【2017/05/08 11:57:02 +0800】检测到网络异常，请尽快去现场【微软大厦 7楼 Ilabservice】检查。", "17621702332");
 ////        readMessOnSIM800(4);
 //    }
 

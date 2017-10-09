@@ -370,54 +370,38 @@ public class SocketMessageApi {
     private AlertCount updateAlertCount(Device device, DeviceInspect deviceInspect, InspectMessage inspectMessage, int alertType){
         AlertCount liveAlert = null;
 
+        // 判断 是否是新的报警
+        boolean isNewAlert = false;
+
         // 获取该参数的上一条信息
         List<Object> lastInspectRecord = Application.influxDBManager.readLatestTelemetry(
                 deviceInspect.getInspectType().getMeasurement(),
                 device.getId(),
                 deviceInspect.getId());
 
-
-        // 判断 是否是新的报警
-        boolean isNewAlert = false;
-
         long lastInspectTime = 0;
         String lastInspectStatus = null;
 
+        // 如果这是该设备该参数第一条报文, 判断为新报警
         if(lastInspectRecord==null || lastInspectRecord.size()==0){
             isNewAlert = true;
         }else{
+            //如果上一条报文和当前报文的时间戳相隔超过5分钟, 判断为新报警
             lastInspectTime = TimeUtil.fromInfluxDBTimeFormat((String)lastInspectRecord.get(0));
             lastInspectStatus = (String)lastInspectRecord.get(2);
 
             if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
                 isNewAlert = true;
             }
-            if(lastInspectStatus.equals("normal")){
+
+            //如果上一条报文不是报警, 当前报文必定为新报警
+            else if(lastInspectStatus.equals("normal")){
                 isNewAlert = true;
             }
+            else{
+                // 上一条报文是报警
 
-        }
-
-        if(isNewAlert){
-            // new alert count
-            String alertMsg = getAlertMsg(deviceInspect, inspectMessage, alertType);
-            liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
-            if (device.getDeviceChainKey() != null){
-                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
-                if(dealRecords != null) {
-                    for (DealRecord dealRecord : dealRecords) {
-                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
-                        try {
-                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }else{
-
-            try {
+                // 从table alert_count 获取该设备改参数的上一条黄色报警和红色报警, 并通过时间戳和上一条报文的时间戳的比较来确定哪个是正在进行中的报警
                 AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
                         deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, inspectMessage.getSamplingTime());
                 AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
@@ -432,56 +416,71 @@ public class SocketMessageApi {
                 }
 
                 if (liveAlert == null) {
-                    // if hit this code, there must be something wrong
-                    LOGGER.error(String.format("Device id: %d, Inspect id: %d, live alert count not match. Sample Time %s. or found no finish time alert",
-                            device.getId(), deviceInspect.getId(), inspectMessage.getSamplingTime().toString()));
+                    // 上一条报文的时间戳和alert_count里报警的时间戳不匹配. 运行到这里, 必然是因为有错, 可能是因为上一条报文没有写入到influxdb
+                    LOGGER.error(String.format("Device id: %d, Inspect type: %s, last alert timestamp does not match last message. There must be something wrong, maybe "
+                            + " last message not written to influxdb. Sample Time %s. Now, try to find the latest alert from table alert_count and check if it can be live alert",
+                            device.getId(), deviceInspect.getInspectType().getName(), inspectMessage.getSamplingTime().toString()));
 
-                    AlertCount newerCount = null;
+                    // 在上一条红色/黄色报警中找出'最近更新时间'距离当前时间最近的一条
+                    AlertCount latestAlert = null;
                     boolean red_alert_available = (last_red_alert != null) && (last_red_alert.getFinish() != null);
                     boolean yellow_alert_available = (last_yellow_alert != null) && (last_yellow_alert.getFinish() != null);
                     if(red_alert_available && yellow_alert_available){
-                        newerCount = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
+                        latestAlert = last_red_alert.getFinish().getTime() >= last_yellow_alert.getFinish().getTime() ?
                                 last_red_alert : last_yellow_alert;
                     }
                     else if(red_alert_available){
-                        newerCount = last_red_alert;
+                        latestAlert = last_red_alert;
                     }
                     else if(yellow_alert_available){
-                        newerCount = last_yellow_alert;
+                        latestAlert = last_yellow_alert;
                     }
 
-                    if (newerCount == null || inspectMessage.getSamplingTime().getTime() - newerCount.getFinish().getTime() > 5 * 60 * 1000) {
-                        // create a new alert
-                        AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+                    //如果alert_count中没有找到任何一条报警信息, 或者都是5分钟之前的, 判断当前报文是新报警. 否则设定该条报警为当前正在活跃的报警
+                    if (latestAlert == null || inspectMessage.getSamplingTime().getTime() - latestAlert.getFinish().getTime() > 5 * 60 * 1000) {
+                        isNewAlert = true;
                     } else {
                         // set newer alert as live alert
-                        liveAlert = newerCount;
+                        liveAlert = latestAlert;
                     }
                 }
 
-                // 如果与上一条报警是不同的类型， 处理为新报警。
+                // 如果与上一条报警是不同的类型， 处理为新报警
                 if (liveAlert != null) {
                     if (liveAlert.getType() != alertType) {
-                        // alert type is not equal, create a new alert
-                        liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
-                        LOGGER.info(String.format("new %s alert %d of %s created for device %d", getInspectStatusFromAlertType(alertType), liveAlert.getId(), deviceInspect.getInspectType().getName(), device.getId()));
+                        isNewAlert = true;
                     } else {
-                        // extend live alert
+                        // 否则, 判断为旧报警, 更新报警条目的'最近更新时间'
                         liveAlert.setNum(liveAlert.getNum() + 1);
                         liveAlert.setFinish(inspectMessage.getSamplingTime());
                         alertCountRepository.save(liveAlert);
                         LOGGER.info(String.format("this is existing %s alert %d, updating finish time to db", getInspectStatusFromAlertType(alertType), liveAlert.getId()));
                     }
                 }
-
-            }catch(Exception e){
-                StringWriter sw = new StringWriter();
-                e.printStackTrace(new PrintWriter(sw));
-                String exceptionAsString = sw.toString();
-                LOGGER.error(String.format("Failed to update alert_count for device %d, inspect %s. Err: %s ",
-                        device.getId(), deviceInspect.getInspectType().getName(), e.toString() + exceptionAsString));
-                return null;
             }
+
+        }
+
+        if(isNewAlert){
+            // 如果目前判断为新报警, 在alert_count table里新增一条
+            String alertMsg = getAlertMsg(deviceInspect, inspectMessage, alertType);
+            liveAlert = AlertCount.createNewAlertAndSave(alertCountRepository, device, deviceInspect.getInspectType(), alertType, unit, inspectMessage.getSamplingTime());
+
+            // 如果该设备在区块链上
+            if (device.getDeviceChainKey() != null){
+                List<DealRecord> dealRecords = dealRecordRepository.findByDeviceIdAndStatus(device.getId(), ONCHAIN_DEAL_STATUS_EXECUTING_WITH_ALERT);
+                if(dealRecords != null) {
+                    for (DealRecord dealRecord : dealRecords) {
+                        LOGGER.info(String.format("found alert %s during deal %d.", alertMsg, dealRecord.getId()));
+                        try {
+                            dealAlertRecordRepository.save(new DealAlertRecord(inspectMessage.getSamplingTime(), dealRecord.getId(), alertMsg));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
         }
         return liveAlert;
     }

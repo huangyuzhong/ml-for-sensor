@@ -324,6 +324,7 @@ public class WriteSerialPort {
 
     public static void openPort(){
         try {
+            LOGGER.info("Opening SIM800 serial port for message receiving");
             //打开串口COM3,设置超时时限为1000毫秒
             portId = CommPortIdentifier.getPortIdentifier("/dev/ttyUSB0");
             serialPort = (SerialPort) portId.open("WriteSerialPort", 1000);
