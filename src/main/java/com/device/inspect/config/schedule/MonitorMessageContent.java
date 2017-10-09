@@ -18,7 +18,7 @@ public class MonitorMessageContent {
     public void executeInternal(){
         int index = WriteSerialPort.monitorOnSIM800();
         if (index != -1){
-            MessageSendService.readMessOnSIM800(index);  // 返回的内容即短信回复的内容，可以针对这个返回值进行一些处理
+            MessageSendService.readMessOnSIM800(index);  // 返回的内容格式为：手机号码//短信内容。如：18317958912//你好
         }
     }
 }

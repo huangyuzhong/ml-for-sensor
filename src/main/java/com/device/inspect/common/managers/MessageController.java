@@ -198,21 +198,14 @@ public class MessageController {
                     device.getManager().getName()));
 
             // 将所有的报警时间都抄送到test@ilabservice.com这个邮箱，不管用户是否选择报警。
-
-
             if(MessageSendService.sendEmailToIntelabTest(message)){
                 LOGGER.info("Successfully sent alert to test@ilabservice.com. " + message);
 
+            }else if(MessageSendService.sendEmailToUserBySIM800(message, null)){
+                LOGGER.info("Successfully sent alert to test@ilabservice.com by SIM800. " + message);
             }else{
                 LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
             }
-
-            // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
-//            if (device.getManager().getMobile() != null) {
-//                MessageSendService.sendMessageToInteLabManager(message, device.getManager().getMobile());  //因为虚拟机上不存在端口，会抛出相应的异常，所以暂时先将它屏蔽掉。
-//            }else{
-//                LOGGER.warn("The mobile of device owner is null, please complete the information as soon as possible.");
-//            }
 
             // 查看用户是否已经cancel了这台设备的报警推送
 
@@ -223,6 +216,9 @@ public class MessageController {
             if(!alertCancelled) {
                 try {
                     sendAlertMessageToUser(alert, user, message);
+
+                    // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
+                    sendAlertMsgToUsrBySIM800(alert, user, message);
                 } catch (Exception e) {
                     LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
                             device.getId(),
@@ -417,7 +413,7 @@ public class MessageController {
             else {
                 Date startMsgSendTime = new Date();
                 String result;
-                if(MessageSendService.pushAlertMail(user, message)){
+                if(MessageSendService.sendEmailToUserBySIM800(message, user.getEmail())){
                     LOGGER.info("device alert: send email " + message);
                     description = "邮件发送成功";
                     result = MESSAGE_RESULT_SUCCESS;

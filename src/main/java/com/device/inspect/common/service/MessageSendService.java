@@ -569,6 +569,17 @@ public class MessageSendService {
         return sb.toString();
     }
 
+    // 将相应的报文转化为正常的手机号码
+    private static String MessToNum(String receiverNum) {
+        StringBuffer sb = new StringBuffer(receiverNum);
+        for (int i=1; i<sb.length(); i=i+2){
+            char ch = sb.charAt(i);
+            sb.setCharAt(i, sb.charAt(i-1));
+            sb.setCharAt(i-1, ch);
+        }
+        return sb.substring(0, sb.length()-1);
+    }
+
     // 中文转化为Unicode码
     private static String string2Unicode(String string) {
         StringBuffer unicode = new StringBuffer();
@@ -585,7 +596,9 @@ public class MessageSendService {
     }
 
     public static String readMessOnSIM800(Integer index){
-        String content = WriteSerialPort.readOnSIM800(index);
+        String message = WriteSerialPort.readOnSIM800(index);  // 返回的是纯报文形式
+        String content = message.substring(56);
+        String mobileNum = MessToNum(message.substring(26, 38));
         if ("error".equals(content) || "".equals(content.trim())){
             return "error";
         }
@@ -596,7 +609,7 @@ public class MessageSendService {
             char letter = (char) Integer.parseInt(temp, 16);  // 16进制parse整形字符串。
             sb.append(new Character(letter).toString());
         }
-        return sb.toString();
+        return mobileNum+"//"+sb.toString();
     }
 
     // Send email to user by SIM800
