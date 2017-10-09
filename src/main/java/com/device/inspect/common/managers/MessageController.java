@@ -162,6 +162,14 @@ public class MessageController {
         sendMessage(device, alert, sampleTime, message);
     }
 
+    private static boolean interfaceChoice = true;
+    /**
+     * 发送消息
+     * @param device
+     * @param alert
+     * @param sampleTime
+     * @param message
+     */
     private void sendMessage(Device device, AlertCount alert, Date sampleTime, String message){
 
         // get all candidate message receivers
@@ -215,10 +223,12 @@ public class MessageController {
 
             if(!alertCancelled) {
                 try {
-                    sendAlertMessageToUser(alert, user, message);
-
-                    // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
-                    sendAlertMsgToUsrBySIM800(alert, user, message);
+                    if (interfaceChoice) {
+                        sendAlertMessageToUser(alert, user, message);
+                    } else {
+                        // 在没有网的情况下，通过SIM800将报警信息以短信的方式发送给指定的号码
+                        sendAlertMsgToUsrBySIM800(alert, user, message);
+                    }
                 } catch (Exception e) {
                     LOGGER.error(String.format("Exception happens in sending alert for device %d to manager %s, %s",
                             device.getId(),
@@ -234,112 +244,124 @@ public class MessageController {
 
     }
 
+    /**
+     * 使用阿里云接口发送消息给用户
+     * @param alert
+     * @param user
+     * @param message
+     */
     public void sendAlertMessageToUser(AlertCount alert, User user, String message){
-        boolean mailAvailable = false;
-        boolean msgAvailable = false;
-        // check if user set void alert
-        if (user.getRemoveAlert()!=null&&
-                !"".equals(user.getRemoveAlert())&&
-                user.getRemoveAlert().equals("0")){
-            msgAvailable = true;
-            mailAvailable = true;
-            LOGGER.debug(String.format("User %s does not void alert, send both message and email",
-                    user.getName()));
-        }
-        else if(user.getRemoveAlert()!=null&&
-                !"".equals(user.getRemoveAlert())&&
-                user.getRemoveAlert().equals("1")){
-            mailAvailable = true;
-            LOGGER.debug(String.format("User %s set void message, send only email",
-                    user.getName()));
-        }
-        String description;
-
-        boolean smsSuccess = false;
-        // 发送短信
-        if(msgAvailable) {
-            Date startMsgSendTime = new Date();
-            String result;
-
-            if (user.getMobile() == null || user.getBindMobile() == null || user.getBindMobile() != 1) {
-                LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送短信给用户 %d, 用户没有绑定手机",
-                        alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
-
-            } else {
-                if (MessageSendService.pushAlertMsg(user, message)) {
-
-                    description = "短信发送成功";
-                    LOGGER.info("device alert: send message " + message);
-                    result = MESSAGE_RESULT_SUCCESS;
-
-                    smsSuccess = true;
-
-                } else {
-                    description = "短信发送失败";
-                    result = MESSAGE_RESULT_FAILURE;
-
-                }
-
-                Date endMsgSendTime = new Date();
-
-                // 记录短信到influxdb
-                Application.influxDBManager.writeMessage(endMsgSendTime, user.getId(),
-                        alert.getInspectType().getId(),
-                        alert.getDevice().getId(),
-                        MESSAGE_TYPE_ALERT, MESSAGE_MEDIA_SMS, MESSAGE_ACTION_SEND,
-                        result,
-                        message,
-                        description,
-                        Double.valueOf(endMsgSendTime.getTime() - startMsgSendTime.getTime()));
+        try {
+            boolean mailAvailable = false;
+            boolean msgAvailable = false;
+            // check if user set void alert
+            if (user.getRemoveAlert()!=null&&
+                    !"".equals(user.getRemoveAlert())&&
+                    user.getRemoveAlert().equals("0")){
+                msgAvailable = true;
+                mailAvailable = true;
+                LOGGER.debug(String.format("User %s does not void alert, send both message and email",
+                        user.getName()));
             }
-        }
-
-
-        // 发送邮件
-        boolean mailSuccess = false;
-        if(mailAvailable){
-            if (user.getEmail()==null||"".equals(user.getEmail()) || user.getBindEmail() == null || user.getBindEmail() != 1){
-                LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送邮件给用户 %d, 用户没有绑定邮箱",
-                        alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
+            else if(user.getRemoveAlert()!=null&&
+                    !"".equals(user.getRemoveAlert())&&
+                    user.getRemoveAlert().equals("1")){
+                mailAvailable = true;
+                LOGGER.debug(String.format("User %s set void message, send only email",
+                        user.getName()));
             }
-            else {
+            String description;
+
+            boolean smsSuccess = false;
+            // 发送短信
+            if(msgAvailable) {
                 Date startMsgSendTime = new Date();
                 String result;
-                if(MessageSendService.pushAlertMail(user, message)){
-                    LOGGER.info("device alert: send email " + message);
-                    description = "邮件发送成功";
-                    result = MESSAGE_RESULT_SUCCESS;
-                    mailSuccess = true;
+
+                if (user.getMobile() == null || user.getBindMobile() == null || user.getBindMobile() != 1) {
+                    LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送短信给用户 %d, 用户没有绑定手机",
+                            alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
+
+                } else {
+                    if (MessageSendService.pushAlertMsg(user, message)) {
+
+                        description = "短信发送成功";
+                        LOGGER.info("device alert: send message " + message);
+                        result = MESSAGE_RESULT_SUCCESS;
+
+                        smsSuccess = true;
+
+                    } else {
+                        description = "短信发送失败";
+                        result = MESSAGE_RESULT_FAILURE;
+
+                    }
+
+                    Date endMsgSendTime = new Date();
+
+                    // 记录短信到influxdb
+                    Application.influxDBManager.writeMessage(endMsgSendTime, user.getId(),
+                            alert.getInspectType().getId(),
+                            alert.getDevice().getId(),
+                            MESSAGE_TYPE_ALERT, MESSAGE_MEDIA_SMS, MESSAGE_ACTION_SEND,
+                            result,
+                            message,
+                            description,
+                            Double.valueOf(endMsgSendTime.getTime() - startMsgSendTime.getTime()));
                 }
-                else{
-                    description = "邮件发送失败";
-                    result = MESSAGE_RESULT_FAILURE;
-                }
-
-
-                Date endMsgSendTime = new Date();
-
-                // 记录到influxdb
-                Application.influxDBManager.writeMessage(endMsgSendTime, user.getId(),
-                        alert.getInspectType().getId(),
-                        alert.getDevice().getId(),
-                        MESSAGE_TYPE_ALERT, MESSAGE_MEDIA_EMAIL, MESSAGE_ACTION_SEND,
-                        result,
-                        message,
-                        description,
-                        Double.valueOf(endMsgSendTime.getTime() - startMsgSendTime.getTime()));
             }
 
-        }
 
-        if( (smsSuccess || mailSuccess) && Application.influxDBManager != null){
-            Application.influxDBManager.writeAlertPushStatus(new Date(), alert.getId(), user.getId(),
-                    alert.getDevice().getId(), PUSH_MESSAGE_ACTIVE, 1);
-        }
+            // 发送邮件
+            boolean mailSuccess = false;
+            if(mailAvailable){
+                if (user.getEmail()==null||"".equals(user.getEmail()) || user.getBindEmail() == null || user.getBindEmail() != 1){
+                    LOGGER.error( String.format("无法为报警 %d , 设备 %d, 参数 %s 发送邮件给用户 %d, 用户没有绑定邮箱",
+                            alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getId()));
+                }
+                else {
+                    Date startMsgSendTime = new Date();
+                    String result;
+                    if(MessageSendService.pushAlertMail(user, message)){
+                        LOGGER.info("device alert: send email " + message);
+                        description = "邮件发送成功";
+                        result = MESSAGE_RESULT_SUCCESS;
+                        mailSuccess = true;
+                    }
+                    else{
+                        description = "邮件发送失败";
+                        result = MESSAGE_RESULT_FAILURE;
+                    }
 
-        if(!mailAvailable && !msgAvailable){
-            LOGGER.warn( String.format("无法为报警 %d , 设备 %d, 参数 %s 推送给用户 %s, 用户关闭了所有推送",
-                    alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getName()));
+
+                    Date endMsgSendTime = new Date();
+
+                    // 记录到influxdb
+                    Application.influxDBManager.writeMessage(endMsgSendTime, user.getId(),
+                            alert.getInspectType().getId(),
+                            alert.getDevice().getId(),
+                            MESSAGE_TYPE_ALERT, MESSAGE_MEDIA_EMAIL, MESSAGE_ACTION_SEND,
+                            result,
+                            message,
+                            description,
+                            Double.valueOf(endMsgSendTime.getTime() - startMsgSendTime.getTime()));
+                }
+
+            }
+
+            if( (smsSuccess || mailSuccess) && Application.influxDBManager != null){
+                Application.influxDBManager.writeAlertPushStatus(new Date(), alert.getId(), user.getId(),
+                        alert.getDevice().getId(), PUSH_MESSAGE_ACTIVE, 1);
+            }
+
+            if(!mailAvailable && !msgAvailable){
+                LOGGER.warn( String.format("无法为报警 %d , 设备 %d, 参数 %s 推送给用户 %s, 用户关闭了所有推送",
+                        alert.getId(), alert.getDevice().getId(), alert.getInspectType().getName(), user.getName()));
+            }
+            interfaceChoice = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            interfaceChoice = false;
         }
 
     }

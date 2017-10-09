@@ -14,6 +14,8 @@ public class GeneralConfig {
 
     private Map<String, String> rabbitmq;
 
+    private Map<String, String> message;
+
     public void setStorage(Map<String, String> mediaStorage){
         this.storage = mediaStorage;
     }
@@ -34,4 +36,11 @@ public class GeneralConfig {
 
     public void setRabbitmq(Map<String, String> rabbitmq) { this.rabbitmq = rabbitmq; }
 
+    public Map<String, String> getMessage() {
+        return message;
+    }
+
+    public void setMessage(Map<String, String> message) {
+        this.message = message;
+    }
 }

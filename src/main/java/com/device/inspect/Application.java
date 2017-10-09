@@ -85,9 +85,6 @@ public class Application {
 	    LOGGER.info("[NOTICE] backend start");
         loadAppConfig();
 
-        // 打开串口
-        WriteSerialPort.openPort();
-
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
         if(args.length > 2 && args[1].equals("--test")){
@@ -97,7 +94,6 @@ public class Application {
 
         Runtime.getRuntime().addShutdownHook(new AppShutdownHook());
 
-        startMessagePuller();
         startMQWorkers();
         socketServerStart();
     }
@@ -135,6 +131,19 @@ public class Application {
                 LOGGER.info(String.format("Loaded ftp config -- %s",ReflectionToStringBuilder.toString(ftpConfig,ToStringStyle.MULTI_LINE_STYLE)));
 
                 intelabStorageManager = new FTPStorageManager(ftpConfig.getFtp());
+            }
+
+            // 判断短信发送接收端口
+            String messageType = generalConfig.getMessage().get("type");
+            LOGGER.info("Message Type " + messageType);
+
+            if(messageType.equals("aliyun")){
+                startMessagePuller();
+                LOGGER.info("Loading aliyun interface");
+            } else if(messageType.equals("module")){
+                // 打开串口
+                WriteSerialPort.openPort();
+                LOGGER.info("Loading module interface");
             }
 
             if(generalConfig.getInfluxdb() != null){
