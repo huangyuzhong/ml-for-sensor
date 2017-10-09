@@ -39,6 +39,9 @@ public class Constants {
 
     };
 
+    public static final String SMS_MEDIA_TYPE_ALIYUN = "aliyun";
+    public static final String SMS_MEDIA_TYPE_MODULE = "module";
+
     public static final Integer INSPECT_PURPOSE_ALERT = 0;
     public static final Integer INSPECT_PURPOSE_OPERATING_STATUS_BY_THRESHOLDS = 1;
     public static final Integer INSPECT_PURPOSE_OPERATING_STATUS_BY_LEARNING_MODEL = 2;
