@@ -334,7 +334,9 @@ public class WriteSerialPort {
                     SerialPort.PARITY_NONE); // 校验位
             outputStream = serialPort.getOutputStream();
         }catch (Exception e){
-            LOGGER.error(e.getMessage());
+            LOGGER.error(String.format("Failed to open SIM800 port. Err: %s; Err msg: %s", e.toString(), e.getMessage()));
+            e.printStackTrace();
+
         }
     }
 
@@ -343,6 +345,7 @@ public class WriteSerialPort {
             outputStream.close();
             serialPort.close();
         } catch (IOException e) {
+            LOGGER.error(String.format("Failed to close SIM800 serial port. Err: %s; Err msg: %s", e.toString(), e.getMessage()));
             e.printStackTrace();
         }
     }

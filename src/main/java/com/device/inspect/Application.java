@@ -16,6 +16,7 @@ import com.device.inspect.common.util.thread.SocketServerThread;
 import com.device.inspect.common.azure.AzureConfig;
 import com.device.inspect.common.azure.AzureStorageManager;
 import com.device.inspect.common.util.CONST;
+import com.sun.tools.internal.jxc.ap.Const;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.boot.SpringApplication;
@@ -59,15 +60,19 @@ public class Application {
     private static List<IoTMessageWorker> ioTMessageWorkers = null;
     private static final int IoTWorkerNumber = 4;
 
-    private static  DefaultAlicomMessagePuller puller;
+    private static  DefaultAlicomMessagePuller alicomMessagePuller;
 
     public static boolean isTesting = false;
 
     public static String smsMedia = null;
 
     public static void Stop(){
-        for(IoTMessageWorker worker: ioTMessageWorkers){
-            worker.Stop();
+        try {
+            for (IoTMessageWorker worker : ioTMessageWorkers) {
+                worker.Stop();
+            }
+        }catch (Exception iotEx){
+            LOGGER.error("Failed to stop IoTMessageWorker. Err: " + iotEx.toString());
         }
 
         try{
@@ -77,10 +82,24 @@ public class Application {
                     LOGGER.warn(String.format("IoT message worker %s is still alive", worker.getName()));
                 }
             }
-            puller.stop();
+
         }catch (Exception ex){
             LOGGER.error("Exception in stopping intelab-wbe. Err:" + ex.getMessage());
         }
+
+        try{
+            if (smsMedia.equals(Constants.SMS_MEDIA_TYPE_ALIYUN)) {
+                alicomMessagePuller.stop();
+            }
+            else{
+                WriteSerialPort.closePort();
+            }
+        }catch (Exception msgReciverEx){
+            LOGGER.error("Failed to stop message receiver. Err: " + msgReciverEx.toString());
+            msgReciverEx.printStackTrace();
+        }
+
+
     }
 
     public static void main(String[] args) throws Throwable
@@ -275,16 +294,16 @@ public class Application {
      * 开启接收短信回复线程池
      */
     private static void startMessagePuller() {
-        LOGGER.info("Loading aliyun message puller");
-        puller = new DefaultAlicomMessagePuller();
+        LOGGER.info("Loading aliyun message alicomMessagePuller");
+        alicomMessagePuller = new DefaultAlicomMessagePuller();
 
         //设置异步线程池大小及任务队列的大小，还有无数据线程休眠时间
-        puller.setConsumeMinThreadSize(6);
-        puller.setConsumeMaxThreadSize(16);
-        puller.setThreadQueueSize(200);
-        puller.setPullMsgThreadSize(1);
+        alicomMessagePuller.setConsumeMinThreadSize(6);
+        alicomMessagePuller.setConsumeMaxThreadSize(16);
+        alicomMessagePuller.setThreadQueueSize(200);
+        alicomMessagePuller.setPullMsgThreadSize(1);
         //和服务端联调问题时开启,平时无需开启，消耗性能
-        puller.openDebugLog(false);
+        alicomMessagePuller.openDebugLog(false);
 
         String accessKeyId="LTAIMmQjearxrjm0";
         String accessKeySecret="OgLonz3aVJSaerzJRjSTHPO5ufUxqY";
@@ -293,11 +312,11 @@ public class Application {
         String queueName="Alicom-Queue-1856701573729509-SmsUp";//在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName,
         // 格式类似Alicom-Queue-xxxxxx-SmsReport
         try {
-            puller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
-            LOGGER.info("aliyun message puller started");
+            alicomMessagePuller.startReceiveMsg(accessKeyId,accessKeySecret, messageType, queueName, new MessageReceiveService.MyMessageListener());
+            LOGGER.info("aliyun message receiver started");
         } catch (ClientException | ParseException e) {
             e.printStackTrace();
-            LOGGER.error(String.format("Failed to load SMSClient, %s", e.toString()));
+            LOGGER.error(String.format("Failed to load aliyun message receiver SMSClient, %s", e.toString()));
         }
     }
 
