@@ -27,7 +27,7 @@ public class WriteSerialPort {
             String sendEmailCommand4 = "AT+SMTPSRV=\""+smtpServerAddress+"\",25" + "\n";
             String sendEmailCommand5 = "AT+SMTPAUTH=1,\"%s\",\"%s\"" + "\n";
             sendEmailCommand5 = String.format(sendEmailCommand5, fromEmailUsername, fromEmailPassword);
-            String sendEmailCommand6 = "AT+SMTPFROM=\"%s\",\"Intelab模块\"" + "\n";
+            String sendEmailCommand6 = "AT+SMTPFROM=\"%s\",\"Intelab Cloud Service\"" + "\n";
             sendEmailCommand6 = String.format(sendEmailCommand6, fromEmailUsername);
             String sendEmailCommand7 = "AT+SMTPRCPT=0,0,\"%s\",\"\"" + "\n";
             sendEmailCommand7 = String.format(sendEmailCommand7, rcptEmailNum);
