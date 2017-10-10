@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.*;
 
 /**
  * Created by fgz on 2017/7/10.
@@ -338,6 +339,26 @@ public class WriteSerialPort {
             e.printStackTrace();
 
         }
+    }
+
+    public static Vector<String> getPortList() {
+        Enumeration<CommPortIdentifier> portList;
+        Vector<String> portVect = new Vector<String>();
+        portList = CommPortIdentifier.getPortIdentifiers();
+
+        CommPortIdentifier portId;
+        while (portList.hasMoreElements()) {
+            portId = (CommPortIdentifier) portList.nextElement();
+            if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+                portVect.add(portId.getName());
+            }
+        }
+        LOGGER.info("DEBUGGING: found the following ports:");
+        for (int i = 0; i < portVect.size(); i++) {
+            LOGGER.info("DEBUGGING -- " + portVect.elementAt(i));
+        }
+
+        return portVect;
     }
 
     public static void closePort() {

@@ -129,6 +129,7 @@ public class Application {
 
         } else if(mediaType.equals(Constants.SMS_MEDIA_TYPE_MODULE)){
             // 打开串口
+            WriteSerialPort.getPortList(); // debug,  comment later
             WriteSerialPort.openPort();
 
         } else{
