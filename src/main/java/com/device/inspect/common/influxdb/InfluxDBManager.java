@@ -1596,7 +1596,7 @@ public class InfluxDBManager {
         String queryString;
         if(inspectTypeId >= 0){
             queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_type_id = '%d' " +
-                            "AND device_model = '%s' AND monitor_type_id = '%d' AND time >= %s AND time < %s GROUP BY" +
+                            "AND device_model = '%s' AND monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY" +
                             " alert_type, time(24h) limit %d offset %d",
                     deviceTypeId, deviceModel, inspectTypeId, startStr, endStr, limit, offset);
         }else{
@@ -1693,7 +1693,7 @@ public class InfluxDBManager {
         String queryString;
         if(inspectTypeId >= 0){
             queryString = String.format("SELECT SUM(alert_count) FROM report.daily_alert WHERE device_id = '%d' AND " +
-                            "monitor_type_id = '%d' AND time >= %s AND time < %s GROUP BY alert_type, time(24h) limit" +
+                            "monitor_type_id = '%d' AND time >= '%s' AND time < '%s' GROUP BY alert_type, time(24h) limit" +
                             " %d offset %d",
                     deviceId, inspectTypeId, startStr, endStr, limit, offset);
         }else{
