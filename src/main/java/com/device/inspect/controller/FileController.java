@@ -1168,7 +1168,7 @@ public class FileController {
                 // 创建公司管理员账号
                 firmManager = new User();
                 firmManager.setName(param.get("account"));
-                firmManager.setPassword(null==param.get("password")?"123":param.get("password"));
+                firmManager.setPassword(null==param.get("password")?"ilabservice":param.get("password"));
                 firmManager.setUserName(param.get("userName"));
                 firmManager.setCompany(company);
                 firmManager.setCreateDate(new Date());

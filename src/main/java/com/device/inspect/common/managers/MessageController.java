@@ -241,7 +241,7 @@ public class MessageController {
     }
 
     /**
-     * 使用阿里云接口发送消息给用户
+     * 发送消息给用户
      * @param alert
      * @param user
      * @param message
