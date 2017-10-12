@@ -3,25 +3,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.device.inspect.Application;
-import com.device.inspect.common.model.charater.User;
+import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.util.transefer.UrlParse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.device.inspect.common.repository.charater.UserRepository;
 
 /**
  * Created by gxu on 6/5/17.
@@ -35,7 +30,6 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
 
 
         request.setAttribute("startTime", System.currentTimeMillis());
-
 
         return true;
     }
@@ -61,7 +55,7 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
 
         if(principal != null){
             userName = principal.getName();
-            logger.info("got principal --- " + userName);
+            logger.debug("got principal --- " + userName);
         }
 
         String requestUrl = request.getRequestURI().toString();
@@ -77,7 +71,7 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
 
         List<String> repeatApis = new ArrayList<String>();
 
-        repeatApis.add("/api/rest/firm/buildings/");
+        repeatApis.add("/api/rest/firm/buildings");
         repeatApis.add("/api/rest/firm/device/runningStatusHistory");
         repeatApis.add("/api/rest/firm/dealHistory");
         repeatApis.add("/api/rest/device/current/data");
@@ -95,54 +89,57 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         String paramId = null;
         if (url_parts.length > 0) {
             String url_last_part = url_parts[url_parts.length - 1];
-            try{
-                Integer.parseInt(url_last_part);
+            if(url_last_part.matches("[0-9]+") && !url_last_part.isEmpty()){
                 paramId = url_last_part;
                 requestUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/"));
-            }catch (Exception e){
 
             }
 
         }
+
 
         String jsonRequestParam =  "";
 
-        if ("POST".equalsIgnoreCase(request.getMethod())){
-            // 因为一些api使用不规范, 导致一些post的方法错误的把 body放到的api的参数部分.
-            // 所以在此处, 先查看是否有api 参数, 如果没有才获取api的body
-            // TODO:之后的工作规范的api之后, 这里的逻辑会修改
-            Map<String, String[]> paramMap = request.getParameterMap();
-            if (paramMap != null && !paramMap.isEmpty()){
-                try{
-                    if(paramId != null) {
-                        paramMap.put("parameter_id", new String[]{paramId});
-                    }
-                    jsonRequestParam = new ObjectMapper().writeValueAsString(request.getParameterMap());
-                }catch (Exception ex){
-                    logger.warn("Failed to parse http request parameters to json string. Err: " + ex.toString());
-                }
-            }
-            else {
-                try {
-                    Scanner s = new Scanner(request.getInputStream(), "UTF-8").useDelimiter("\\A");
-                    jsonRequestParam = s.hasNext() ? s.next() : "";
 
-                } catch (IOException ex) {
-                    logger.warn("Failed parse http POST request body. Err: " + ex.toString());
-                }
-            }
-        }else{
+        // we can only get request.inputstream once, for post data, we can only get once. Thus we cannot read it here, otherwise,
+        // we cannot get the post data in controllers. Thus, we do not read POST method. Currently we only record GET method in the interceptor
+        // POST method will be recorded in controllers
+        if ("GET".equalsIgnoreCase(request.getMethod())){
+            Map<String, String[]> allParameters = null;
             try{
                 Map<String, String[]> paramMap = request.getParameterMap();
+
                 if(paramId != null) {
-                    paramMap.put("parameter_id", new String[]{paramId});
+                    // since paramMap is locked, we need to clone it
+                    Map<String, String[]> cloneMap = new HashMap<>();
+                    for(String key: paramMap.keySet()){
+                        cloneMap.put(key, paramMap.get(key));
+                    }
+                    cloneMap.put("urlParameterId", new String[]{paramId});
+                    allParameters = cloneMap;
                 }
-                jsonRequestParam = new ObjectMapper().writeValueAsString(request.getParameterMap());
+                else{
+                    allParameters = paramMap;
+                }
+                jsonRequestParam = new ObjectMapper().writeValueAsString(allParameters);
             }catch (Exception ex){
                 logger.warn("Failed to parse http request parameters to json string. Err: " + ex.toString());
             }
-        }
 
+        }else if ("POST".equalsIgnoreCase(request.getMethod())){
+            // 因为一些api使用不规范, 导致一些post的方法错误的把 body放到的api的参数部分.
+            // 目前的做法是在每一个post的api的controller method里获取参数和body然后得带一个map放到request的attribute "postBody"
+            // TODO:之后的工作规范的api之后, 这里的逻辑会修改
+            try{
+                Object postBodyObj = request.getAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY);
+                if(postBodyObj != null){
+                    jsonRequestParam = new ObjectMapper().writeValueAsString(postBodyObj);
+                }
+            }catch (Exception ex){
+                logger.info("Failed to get postBody in POST http request, the controller method may forget adding it. Err:" + ex.toString());
+            }
+
+        }
 
         // 只记录UI api操作， 不记录终端数据的api
         // TODO: investigate why receved another api /error after login failure.
@@ -154,6 +151,7 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         if (UrlParse.urlUserOperationMap.containsKey(requestUrl)){
             apiType = UrlParse.API_TYPE_USER_OPERATION;
         }
+
 
         if(Application.influxDBManager.writeAPIOperation(startTime, userName, requestUrl, request.getMethod(), apiType, jsonRequestParam, response.getStatus(), executeTime)){
             logger.info(String.format("+++ successfully write to influxdb -- Executing %s takes %d ms, return code: %d", requestUrl, executeTime, response.getStatus()));

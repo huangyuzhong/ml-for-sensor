@@ -41,6 +41,7 @@ import com.device.inspect.common.restful.version.RestDeviceVersion;
 import com.device.inspect.common.service.GetCameraAccessToken;
 import com.device.inspect.common.service.GetDeviceAddress;
 import com.device.inspect.common.service.MKTCalculator;
+import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.util.time.MyCalendar;
 import com.device.inspect.common.util.transefer.UrlParse;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
@@ -57,6 +58,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
@@ -1138,9 +1140,7 @@ public class SelectApiController {
     public RestResponse getReportDailyAlert(Principal principal, @RequestParam Map<String, String> requestParam){
 
         //判断用户是否登录
-        User user = judgeByPrincipal(principal);
-        if(user == null)
-            return new RestResponse("用户未登陆",1005,null);
+        judgeByPrincipal(principal);
 
         //获取参数
         Date beginTime, endTime;
@@ -1306,9 +1306,7 @@ public class SelectApiController {
     public RestResponse getReportDailyMonitoring(Principal principal, @RequestParam Map<String, String> requestParam){
 
         //判断用户是否登录
-        User user = judgeByPrincipal(principal);
-        if(user == null)
-            return new RestResponse("用户未登陆",1005,null);
+        judgeByPrincipal(principal);
 
         //获取参数
         Date beginTime, endTime;
@@ -1750,10 +1748,11 @@ public class SelectApiController {
      * http://localhost/api/rest/firm/device/monitorData
      */
     @RequestMapping(value = "/device/monitorData", method = RequestMethod.POST)
-    public RestResponse getMonitorData(Principal principal, @RequestBody MonitorDataOfDeviceRequest requestParam) {
-//        User user = judgeByPrincipal(principal);
-//        if(user == null)
-//            return new RestResponse("用户未登陆",1005,null);
+    public RestResponse getMonitorData(Principal principal, @RequestBody MonitorDataOfDeviceRequest requestParam, HttpServletRequest request) {
+        judgeByPrincipal(principal);
+
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, requestParam);
+
         if (requestParam.getDeviceId() == null) {
             return new RestResponse("设备id为空", 1006, null);
         }
