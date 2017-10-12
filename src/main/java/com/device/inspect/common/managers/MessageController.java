@@ -156,6 +156,7 @@ public class MessageController {
 
         // get location of the device
         message += getAddressOfDevice(device);
+        LOGGER.info("message is ready");
 
         // get most recent notification sent to the device manager
         sendMessage(device, alert, sampleTime, message);
@@ -176,6 +177,7 @@ public class MessageController {
         userList.add(device.getManager());
 
         List<ScientistDevice> scientistList = scientistDeviceRepository.findByDeviceId(device.getId());
+        LOGGER.info("scientistList");
 
         for(ScientistDevice scientist : scientistList){
             userList.add(scientist.getScientist());
@@ -186,11 +188,12 @@ public class MessageController {
         for(User user : userList){
             // get latest successfully sent alert message of this device, this inspect type
             List<Object> latestMessage = Application.influxDBManager.readLatestMessageByUserIdInspectIdDeviceIdActionResult(user.getId(), alert.getInspectType().getId(), device.getId(), MESSAGE_ACTION_SEND, "OK");
-
+            LOGGER.info("latestMessage");
             if(latestMessage != null && !latestMessage.isEmpty()){
                 // if last sent message is in 5 min, skip
                 if(sampleTime.getTime() - TimeUtil.fromInfluxDBTimeFormat((String)latestMessage.get(0)) < 5*60*1000){
-                    LOGGER.debug(String.format("Device %d, alert message about %s has been sent to manager at %s within 5 minutes skip this time.",
+                    LOGGER.info(String.format("Device %d, alert message about %s has been sent to manager at %s " +
+                                    "within 5 minutes skip this time.",
                             device.getId(),
                             alert.getInspectType().getName(),
                             latestMessage.get(0)));
@@ -199,7 +202,8 @@ public class MessageController {
             }
 
 
-            LOGGER.debug(String.format("Device %d, last alert is sent more than 5 minutes away, sending alert to manager %s",
+            LOGGER.info(String.format("Device %d, last alert is sent more than 5 minutes away, sending alert to " +
+                            "manager %s",
                     device.getId(),
                     device.getManager().getName()));
 
@@ -256,14 +260,14 @@ public class MessageController {
                     user.getRemoveAlert().equals("0")){
                 msgAvailable = true;
                 mailAvailable = true;
-                LOGGER.debug(String.format("User %s does not void alert, send both message and email",
+                LOGGER.info(String.format("User %s does not void alert, send both message and email",
                         user.getName()));
             }
             else if(user.getRemoveAlert()!=null&&
                     !"".equals(user.getRemoveAlert())&&
                     user.getRemoveAlert().equals("1")){
                 mailAvailable = true;
-                LOGGER.debug(String.format("User %s set void message, send only email",
+                LOGGER.info(String.format("User %s set void message, send only email",
                         user.getName()));
             }
             String description;

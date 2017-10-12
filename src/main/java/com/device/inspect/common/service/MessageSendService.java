@@ -408,8 +408,10 @@ public class MessageSendService {
 
             // 7. 关闭连接
             transport.close();
+            LOGGER.info("Send Email success.");
             return true;
         }catch (Exception e){
+            LOGGER.error("Send Email failed.");
             e.printStackTrace();
             return false;
         }
@@ -613,8 +615,10 @@ public class MessageSendService {
 
         String contentUtf_8Code = getUTF8XMLString(content);
         if (WriteSerialPort.sendEmailCommand(myEmailSMTPHost, myEmailAccount, myEmailPassword, rcptEmailNum, contentUtf_8Code)){
+            LOGGER.info("Send Email by SIM800 success.");
             return true;
         } else{
+            LOGGER.error("Send Email by SIM800 failed.");
             return false;
         }
     }

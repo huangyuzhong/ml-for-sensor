@@ -497,9 +497,10 @@ public class SocketMessageApi {
             if (liveAlert.getType() == Constants.ALERT_CODE_RED) {
                 if (inspectMessage.getCorrectedValue() > deviceInspect.getHighUp()) {
                     messageController.sendAlertMsg(device, liveAlert, deviceInspect.getHighUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-
+                    LOGGER.info("High red alert");
                 } else {
                     messageController.sendAlertMsg(device, liveAlert, deviceInspect.getHighDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
+                    LOGGER.info("Low red alert");
 
                 }
             }
@@ -507,10 +508,10 @@ public class SocketMessageApi {
             else if(liveAlert.getType() == Constants.ALERT_CODE_YELLOW) {
                 if (inspectMessage.getCorrectedValue() > deviceInspect.getLowUp()) {
                     messageController.sendAlertMsg(device, liveAlert, deviceInspect.getLowUp(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-
+                    LOGGER.info("High yellow alert");
                 } else {
                     messageController.sendAlertMsg(device, liveAlert, deviceInspect.getLowDown(), inspectMessage.getCorrectedValue(), inspectMessage.getSamplingTime());
-
+                    LOGGER.info("Low yellow alert");
                 }
             }
         }
@@ -546,9 +547,11 @@ public class SocketMessageApi {
 
             // 更新 alert_count 表, 逻辑描述参看 LAB-194
             AlertCount liveAlert = updateAlertCount(device, deviceInspect, inspectMessage, alertType);
+            LOGGER.info("updateAlertCount");
 
             // 发送报警信息到用户
             pushAlertNotification(liveAlert, device, deviceInspect, inspectMessage);
+            LOGGER.info("pushAlertNotification");
         }
 
         return alertType;
