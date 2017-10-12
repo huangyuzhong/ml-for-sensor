@@ -385,6 +385,7 @@ public class SocketMessageApi {
         // 如果这是该设备该参数第一条报文, 判断为新报警
         if(lastInspectRecord==null || lastInspectRecord.size()==0){
             isNewAlert = true;
+            LOGGER.info("Is new alert 01");
         }else{
             //如果上一条报文和当前报文的时间戳相隔超过5分钟, 判断为新报警
             lastInspectTime = TimeUtil.fromInfluxDBTimeFormat((String)lastInspectRecord.get(0));
@@ -392,18 +393,21 @@ public class SocketMessageApi {
 
             if(inspectMessage.getSamplingTime().getTime() - lastInspectTime > 5 * 60 * 1000){
                 isNewAlert = true;
+                LOGGER.info("Is new alert 02");
             }
 
             //如果上一条报文不是报警, 当前报文必定为新报警
             else if(lastInspectStatus.equals("normal")){
                 isNewAlert = true;
+                LOGGER.info("Is new alert 03");
             }
             else{
                 // 上一条报文是报警
-
+                LOGGER.info("Start querying lastYellowAlert");
                 // 从table alert_count 获取该设备改参数的上一条黄色报警和红色报警, 并通过时间戳和上一条报文的时间戳的比较来确定哪个是正在进行中的报警
                 AlertCount last_yellow_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
                         deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 1, inspectMessage.getSamplingTime());
+                LOGGER.info("Start querying lastRedAlert");
                 AlertCount last_red_alert = alertCountRepository.findTopByDeviceIdAndInspectTypeIdAndTypeAndFinishBeforeOrderByFinishDesc(
                         deviceInspect.getDevice().getId(), deviceInspect.getInspectType().getId(), 2, inspectMessage.getSamplingTime());
 
