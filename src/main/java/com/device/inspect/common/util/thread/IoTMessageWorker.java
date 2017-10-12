@@ -151,8 +151,9 @@ public class IoTMessageWorker extends Thread {
 
     private String doWork(String message) throws Exception {
         HttpClient client = new HttpClient();
-        GetMethod method = new GetMethod(serverHost+
-                message);
+        LOGGER.info("Create new HTTPClient.");
+        GetMethod method = new GetMethod(serverHost+ message);
+        LOGGER.info("Create new GetMethod: %s:" + serverHost+ message);
 
         client.executeMethod(method);
         //打印服务器返回的状态

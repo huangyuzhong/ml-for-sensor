@@ -642,6 +642,7 @@ public class SocketMessageApi {
         InspectMessage inspectMessage = null;
         try{
             inspectMessage = new InspectMessage(inspectMessageString);
+            LOGGER.info("Parsing inspect message.");
         }catch (Exception parseException){
             LOGGER.error(String.format("Failed to parse inspect message string %s. Err: %s", inspectMessageString, parseException.getMessage()));
             return null;
@@ -805,7 +806,7 @@ public class SocketMessageApi {
             return new RestResponse(null);
         }
 
-        LOGGER.debug("add response datagram head");
+        LOGGER.info("add response datagram head");
         String response = null;
         List<Byte> responseByte = new ArrayList<Byte>();
         responseByte.add((byte)0xEF);
