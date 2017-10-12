@@ -191,7 +191,7 @@ public class SocketMessageApi {
         int alert_type = Constants.ALERT_CODE_NO_ALERT;
 
         // alert inspect
-        LOGGER.debug("check data against alert");
+        LOGGER.info("check data against alert");
         if (deviceInspect.getHighUp() < inspectMessage.getCorrectedValue() || inspectMessage.getCorrectedValue() < deviceInspect.getHighDown()) {
             alert_type = Constants.ALERT_CODE_RED;
 
@@ -538,6 +538,7 @@ public class SocketMessageApi {
             }
 
             updateAlertToOnchainDevice(alertType, inspectMessage, device, deviceInspect);
+            LOGGER.info("updateAlertToOnchainDevice");
 
             // 更新 alert_count 表, 逻辑描述参看 LAB-194
             AlertCount liveAlert = updateAlertCount(device, deviceInspect, inspectMessage, alertType);
@@ -658,28 +659,32 @@ public class SocketMessageApi {
 
         try{
             monitorDevice = monitorDeviceRepository.findByNumber(inspectMessage.getMonitorSN());
-            if (null == monitorDevice)
+            if (null == monitorDevice) {
                 return null;
+            }
+            LOGGER.info("monitorDevice");
 
             device = monitorDevice.getDevice();
             if (device.getEnable() == 0) {
                 LOGGER.warn(String.format("This device %d is disabled. Should not receive data from disabled device.", device.getId()));
                 return null;
             }
+            LOGGER.info("Device");
 
             inspectType = inspectTypeRepository.findByCode(inspectMessage.getInspectTypeCode());
             if(inspectType == null){
                 LOGGER.warn("Failed to get inspectType using type code " + inspectMessage.getInspectTypeCode());
                 return null;
             }
+            LOGGER.info("InspectType");
 
             deviceInspect = deviceInspectRepository.
                     findByInspectTypeIdAndDeviceId(inspectType.getId(), device.getId());
-
             if(deviceInspect == null && !inspectMessage.getInspectTypeCode().equals("03")){
                 LOGGER.warn(String.format("Failed to get device inspect by type %s, device %d", inspectType.getName(), device.getId()));
                 return null;
             }
+            LOGGER.info("DeviceInspect");
 
             // 报文是电池电量, 特殊处理
             if (inspectMessage.getInspectTypeCode().equals("03")) {
@@ -697,6 +702,7 @@ public class SocketMessageApi {
                 deviceInspect.setName("Remain Battery Percentage");
                 deviceInspect.setInspectType(inspectType);
                 monitorDeviceRepository.save(monitorDevice);
+                LOGGER.info("InspectMessage equals battery.");
             }
         }catch (Exception e){
             LOGGER.error("Failed to get device/monitor/inspectType from database. Err: " + e.toString());
@@ -705,12 +711,14 @@ public class SocketMessageApi {
         // 如果是在线数据，更新内存缓存设备的最新活动信息
         if(onlineData){
             memoryCacheDevice.updateDeviceActivityTime(device.getId(), inspectMessage.getSamplingTime());
+            LOGGER.info("OnlineData");
         }
 
         // 把原始监控数值转换为直观数值
 
         try{
             InspectProcessTool.calculateInspectValue(inspectMessage, deviceInspect.getZero(), pt100Repository);
+            LOGGER.info("Calculate inspect value.");
         }catch (Exception e){
             LOGGER.error("Failed to calculate inspect value. Err: " + e.toString());
             e.printStackTrace();
@@ -718,8 +726,11 @@ public class SocketMessageApi {
         }
 
         // 判断监控数值是否非法
-        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f)  //这个判断如果为true的话，表示上面的r值为非法值，则不需要进行一下处理，直接返回。
+        if (inspectMessage.getOriginalValue() == -200f && inspectMessage.getCorrectedValue() == -300f){
+            //这个判断如果为true的话，表示上面的r值为非法值，则不需要进行一下处理，直接返回。
+            LOGGER.warn("Monitoring illegal value");
             return null;
+        }
 
 
         ////////////////// 报警参数的处理 ////////////////////
