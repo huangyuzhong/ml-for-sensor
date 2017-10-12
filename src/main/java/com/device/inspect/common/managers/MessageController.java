@@ -216,7 +216,7 @@ public class MessageController {
                 sendDebugEmailSuccess = MessageSendService.sendEmailToUserBySIM800(message, MessageSendService.intelabTestEmailAccount);
             }
             if(!sendDebugEmailSuccess){
-                LOGGER.warn("Failed to sent alert to test@ilabservice.com. "  + message);
+                LOGGER.error("Failed to sent alert to test@ilabservice.com. "  + message);
             }
 
             // 查看用户是否已经cancel了这台设备的报警推送
@@ -227,6 +227,7 @@ public class MessageController {
 
             if(!alertCancelled) {
                 try {
+                    LOGGER.info("Alert is not cancelled.");
                     sendAlertMessageToUser(alert, user, message);
 
                 } catch (Exception e) {
@@ -302,7 +303,7 @@ public class MessageController {
                     } else {
                         description = "短信发送失败";
                         result = MESSAGE_RESULT_FAILURE;
-
+                        LOGGER.error("Send message by SIM800 failed");
                     }
 
                     Date endMsgSendTime = new Date();

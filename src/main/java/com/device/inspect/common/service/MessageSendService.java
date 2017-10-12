@@ -614,6 +614,7 @@ public class MessageSendService {
     public static boolean sendEmailToUserBySIM800(String content, String rcptEmailNum){
 
         String contentUtf_8Code = getUTF8XMLString(content);
+        LOGGER.info("contentUtf_8Code");
         if (WriteSerialPort.sendEmailCommand(myEmailSMTPHost, myEmailAccount, myEmailPassword, rcptEmailNum, contentUtf_8Code)){
             LOGGER.info("Send Email by SIM800 success.");
             return true;
