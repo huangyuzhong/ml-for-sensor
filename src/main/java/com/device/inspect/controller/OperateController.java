@@ -37,6 +37,7 @@ import com.device.inspect.controller.request.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -148,6 +149,9 @@ public class OperateController {
 
     @Autowired
     private ModelsRepository modelsRepository;
+
+    @Autowired
+    private Environment env;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -1733,13 +1737,30 @@ public class OperateController {
      }
 
      @RequestMapping(value = "/is/login")
-    public RestResponse  isLogin(Principal principal){
+     public RestResponse  isLogin(Principal principal){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(auth.getName());
         User user = judgeByPrincipal(principal);
 
         return new RestResponse(new RestUser(user));
 
+     }
+
+     @RequestMapping(value="/deployment")
+     public RestResponse getDeployment(){
+
+        String deployment = env.getProperty("system.deployment");
+
+        if(deployment == null){
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_CLOUD);
+        }
+        else if(deployment.equals(Constants.SYSTEM_DEPLOYMENT_LOCAL)){
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_LOCAL);
+
+        }
+        else{
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_CLOUD);
+        }
      }
 
     /**

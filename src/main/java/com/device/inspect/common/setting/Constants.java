@@ -88,4 +88,7 @@ public class Constants {
     }};
 
     public static final String HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY = "postBody";
+
+    public static final String SYSTEM_DEPLOYMENT_CLOUD = "cloud";
+    public static final String SYSTEM_DEPLOYMENT_LOCAL = "local";
 }
