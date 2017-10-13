@@ -33,9 +33,11 @@ import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.config.OpeDeviceDisableTime;
 import com.device.inspect.controller.request.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -147,6 +149,9 @@ public class OperateController {
 
     @Autowired
     private ModelsRepository modelsRepository;
+
+    @Autowired
+    private Environment env;
 
     private User judgeByPrincipal(Principal principal){
         if (null == principal||null==principal.getName())
@@ -388,8 +393,10 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/device/{deviceId}")
-    public RestResponse operateDevice(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map){
+    public RestResponse operateDevice(Principal principal,@PathVariable Integer deviceId,@RequestParam Map<String,String> map, HttpServletRequest request){
         User user1=judgeByPrincipal(principal);
+        map.put("deviceId", String.valueOf(deviceId));
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, map);
         if (user1==null)
             return new RestResponse("用户未登陆",1005,null);
         Device device = deviceRepository.findOne(deviceId);
@@ -573,9 +580,11 @@ public class OperateController {
      * http://localhost/api/rest/operate/device/parameter/215
     */
 
-    @RequestMapping(value = "/device/parameter/{deviceId}")
-    public RestResponse operateDeviceData(Principal principal,@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest request){
+    @RequestMapping(value = "/device/parameter/{deviceId}", method = RequestMethod.POST)
+    public RestResponse operateDeviceData(Principal principal,@PathVariable Integer deviceId,@RequestBody DeviceTypeRequest deviceMonitoringParameters, HttpServletRequest request){
         User user=judgeByPrincipal(principal);
+        deviceMonitoringParameters.setId(deviceId);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, deviceMonitoringParameters);
         if (user==null)
             return new RestResponse("用户未登录",1005,null);
         Device device = deviceRepository.findOne(deviceId);
@@ -583,8 +592,8 @@ public class OperateController {
             return new RestResponse("设备信息出错！",1005,null);
         if (device.getManager()!=null&&device.getManager()!=user)
             return new RestResponse("非设备管理员不能修改设备报警参数",1005,null);
-        if (null!=request.getList()&&request.getList().size()>0){
-            for (InspectTypeRequest inspectTypeRequest:request.getList()){
+        if (null!=deviceMonitoringParameters.getList()&&deviceMonitoringParameters.getList().size()>0){
+            for (InspectTypeRequest inspectTypeRequest:deviceMonitoringParameters.getList()){
                 DeviceInspect deviceInspect = deviceInspectRepository.
                         findByInspectTypeIdAndDeviceId(inspectTypeRequest.getId(), deviceId);
                 if (null!=inspectTypeRequest.getStandard())
@@ -775,11 +784,12 @@ public class OperateController {
      */
 
     @RequestMapping(value = "/create/camera", method = RequestMethod.POST)
-    public RestResponse createCamera(Principal principal, @RequestBody Map<String, String> param){
-//        User user = judgeByPrincipal(principal);
-//        if(null == user){
-//            return new RestResponse("用户信息错误", 1006, null);
-//        }
+    public RestResponse createCamera(Principal principal, @RequestBody Map<String, String> param, HttpServletRequest request){
+        User user = judgeByPrincipal(principal);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, param);
+        if(null == user){
+            return new RestResponse("用户信息错误", 1006, null);
+        }
         if(param.get("deviceId") == null){
             return new RestResponse("设备id不能为空", 1006, null);
         }
@@ -892,18 +902,19 @@ public class OperateController {
      */
 
     @RequestMapping(value = "/deviceType")
-    public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeReq){
+    public RestResponse operateDeviceType(Principal principal,@RequestBody DeviceTypeRequest deviceTypeData, HttpServletRequest request){
         User user = judgeByPrincipal(principal);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, deviceTypeData);
         if (null == user)
             return new RestResponse("手机号出错！", null);
         DeviceType deviceType = new DeviceType();
         List<DeviceTypeInspect> deviceTypeInspects = new ArrayList<DeviceTypeInspect>();
         List<DeviceTypeInspectRunningStatus> runningStatuses = new ArrayList<>();
         if (UserRoleDifferent.userFirmManagerConfirm(user)||UserRoleDifferent.userStartWithService(user)) {
-            if (deviceTypeReq.getName()==null||"".equals(deviceTypeReq.getName()))
+            if (deviceTypeData.getName()==null||"".equals(deviceTypeData.getName()))
                 return new RestResponse("设备种类名称不能为空",1005,null);
-            if (null != deviceTypeReq.getId()) {
-                deviceType = deviceTypeRepository.findOne(deviceTypeReq.getId());
+            if (null != deviceTypeData.getId()) {
+                deviceType = deviceTypeRepository.findOne(deviceTypeData.getId());
                 if (null==deviceType)
                     return new RestResponse("当前设备不存在！",1005,null);
                 if (deviceType.getCompany()==null&&!UserRoleDifferent.userStartWithService(user)){
@@ -917,7 +928,7 @@ public class OperateController {
                     list=deviceTypeRepository.findAll();
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getCompany()==null&&deviceType1.getName()!=null&&!deviceType1.getId().equals(deviceTypeReq.getId()) &&deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (deviceType1.getCompany()==null&&deviceType1.getName()!=null&&!deviceType1.getId().equals(deviceTypeData.getId()) &&deviceType1.getName().equals(deviceTypeData.getName())){
                                     return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
@@ -929,16 +940,16 @@ public class OperateController {
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (!deviceType1.getId().equals(deviceTypeReq.getId())&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (!deviceType1.getId().equals(deviceTypeData.getId())&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeData.getName())){
                                     return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
                     }
                 }
-                deviceType.setName(deviceTypeReq.getName());
+                deviceType.setName(deviceTypeData.getName());
                 deviceTypeRepository.save(deviceType);
-                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                if (null != deviceTypeData && deviceTypeData.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeData.getList()) {
                         if (inspectTypeRequest.isChosed()){
                             InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
                             DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.
@@ -960,8 +971,8 @@ public class OperateController {
                 }
                 deviceTypeInspectRepository.save(deviceTypeInspects);
 
-                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                if (null != deviceTypeData && deviceTypeData.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeData.getList()) {
                         if (inspectTypeRequest.isChosed()) {
                             if (null != inspectTypeRequest.getRunningStatus() && inspectTypeRequest.getRunningStatus().size() > 0) {
                                 runningStatuses.clear();
@@ -972,7 +983,7 @@ public class OperateController {
                                         statusInPost.add(status.getId());
                                     }
                                 }
-                                DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findByDeviceTypeIdAndInspectTypeId(deviceTypeReq.getId(), inspectTypeRequest.getId());
+                                DeviceTypeInspect deviceTypeInspect = deviceTypeInspectRepository.findByDeviceTypeIdAndInspectTypeId(deviceTypeData.getId(), inspectTypeRequest.getId());
                                 if(deviceTypeInspect == null){
                                     continue;
                                 }
@@ -1011,7 +1022,7 @@ public class OperateController {
                     list=deviceTypeRepository.findAll();
                     if (list!=null&&list.size()>0) {
                         for (DeviceType deviceType1 : list) {
-                            if (deviceType1.getCompany() == null&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())) {
+                            if (deviceType1.getCompany() == null&&deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeData.getName())) {
                                     return new RestResponse("该设备种类名称已存在", 1005, null);
                             }
                         }
@@ -1023,7 +1034,7 @@ public class OperateController {
                     list=deviceTypeRepository.findByCompanyId(Integer.valueOf(company.getId()));
                     if (list!=null&&list.size()>0){
                         for (DeviceType deviceType1:list){
-                            if (deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeReq.getName())){
+                            if (deviceType1.getName()!=null&&deviceType1.getName().equals(deviceTypeData.getName())){
                                 return new RestResponse("该设备种类名称已存在",1005,null);
                             }
                         }
@@ -1032,11 +1043,11 @@ public class OperateController {
                 deviceType.setEnable(1);
                 if (UserRoleDifferent.userFirmManagerConfirm(user))
                     deviceType.setCompany(user.getCompany());
-                deviceType.setName(deviceTypeReq.getName());
+                deviceType.setName(deviceTypeData.getName());
                 deviceTypeRepository.save(deviceType);
-                System.out.println("deviceTypeReq.getList().size()："+deviceTypeReq.getList().size());
-                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                System.out.println("deviceTypeReq.getList().size()："+deviceTypeData.getList().size());
+                if (null != deviceTypeData && deviceTypeData.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeData.getList()) {
                         if (inspectTypeRequest.isChosed()){
                             InspectType inspectType = inspectTypeRepository.findOne(inspectTypeRequest.getId());
                             DeviceTypeInspect deviceTypeInspect = new DeviceTypeInspect();
@@ -1072,8 +1083,8 @@ public class OperateController {
                     }
                 }
 
-                if (null != deviceTypeReq && deviceTypeReq.getList().size() > 0) {
-                    for (InspectTypeRequest inspectTypeRequest : deviceTypeReq.getList()) {
+                if (null != deviceTypeData && deviceTypeData.getList().size() > 0) {
+                    for (InspectTypeRequest inspectTypeRequest : deviceTypeData.getList()) {
                         if (inspectTypeRequest.isChosed()) {
                         }
                     }
@@ -1236,9 +1247,18 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/manager/device/type/{typeId}")
-    public RestResponse managerOperateDeviceTypeById(Principal principal,@PathVariable Integer typeId,@RequestParam Integer enable){
+    public RestResponse managerOperateDeviceTypeById(Principal principal,@PathVariable Integer typeId,@RequestParam Integer enable,HttpServletRequest request){
         User user = judgeByPrincipal(principal);
+        Map<String, String> postBodyMap = new HashMap<>();
+        postBodyMap.put("typeId", String.valueOf(typeId));
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, postBodyMap);
+
         DeviceType deviceType = deviceTypeRepository.findOne(typeId);
+        if (deviceType == null){
+            return new RestResponse("无法找到设备种类id " + String.valueOf(typeId), 1005, null);
+        }
+        postBodyMap.put("typeName", deviceType.getName());
+
         if (null==deviceType.getCompany()){
             if (UserRoleDifferent.userStartWithService(user)){
                 deviceType.setEnable(enable);
@@ -1377,8 +1397,10 @@ public class OperateController {
      */
     @RequestMapping(value = "/send/email/verify",method = RequestMethod.POST)
     public RestResponse sendVerifyForEmail(Principal principal,
-                                           @RequestBody Map<String,String> map){
+                                           @RequestBody Map<String,String> map, HttpServletRequest request){
         User user = judgeByPrincipal(principal);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, map);
+
         Double password = Math.random() * 9000 + 1000;
         int verify = password.intValue();
         MessageSend messageSend = new MessageSend();
@@ -1417,7 +1439,8 @@ public class OperateController {
     @RequestMapping(value = "/update/mobile/{mobile}")
     public RestResponse updateMobileByMobile(Principal principal,@PathVariable String mobile,@RequestParam String verify){
         User user = judgeByPrincipal(principal);
-        if (!user.getVerify().toString().equals(verify))
+
+        if (user.getVerify() == null || !user.getVerify().toString().equals(verify))
             return new RestResponse("绑定参数出错！",1005,null);
         user.setBindMobile(1);
         List<User> userList = userRepository.findByMobile(mobile);
@@ -1437,15 +1460,17 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value = "/update/email",method = RequestMethod.POST)
-    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map){
+    public RestResponse updateEmailByEmail(Principal principal,@RequestBody Map<String,String> map, HttpServletRequest request){
         User user = judgeByPrincipal(principal);
-        if(map ==null||null==map.get("email")||null==map.get("verify")||"".equals(map.get("email"))||"".equals(map.get("verify")))
-            return new RestResponse("邮箱或者验证码为空！",1005,null);
-        if (!user.getVerify().toString().equals(map.get("verify")))
-            return new RestResponse("验证码不正确！",1005,null);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, map);
+        if (map == null || null == map.get("email") || null == map.get("verify") || "".equals(map.get("email")) || "".equals(map.get("verify")))
+            return new RestResponse("邮箱或者验证码为空！", 1005, null);
+        if (user.getVerify() == null || !user.getVerify().toString().equals(map.get("verify")))
+            return new RestResponse("验证码不正确！", 1005, null);
         user.setBindEmail(1);
         user.setEmail(map.get("email"));
         userRepository.save(user);
+
         return new RestResponse("邮箱绑定成功", new RestUser(user));
     }
 
@@ -1525,9 +1550,11 @@ public class OperateController {
      * @return
      */
     @RequestMapping(value="/forget/find/password/{name}",method = RequestMethod.POST)
-    public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map){
+    public RestResponse findPassword(@PathVariable String name,@RequestBody Map<String,String> map, HttpServletRequest request){
         if (map==null)
             return new RestResponse("输入有误",1005,null);
+        map.put("name", name);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, map);
         //根据用户名找回密码
         User user=null;
         //判断是否是平台人员
@@ -1717,13 +1744,30 @@ public class OperateController {
      }
 
      @RequestMapping(value = "/is/login")
-    public RestResponse  isLogin(Principal principal){
+     public RestResponse  isLogin(Principal principal){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         System.out.println(auth.getName());
         User user = judgeByPrincipal(principal);
 
         return new RestResponse(new RestUser(user));
 
+     }
+
+     @RequestMapping(value="/deployment")
+     public RestResponse getDeployment(){
+
+        String deployment = env.getProperty("system.deployment");
+
+        if(deployment == null){
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_CLOUD);
+        }
+        else if(deployment.equals(Constants.SYSTEM_DEPLOYMENT_LOCAL)){
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_LOCAL);
+
+        }
+        else{
+            return new RestResponse(Constants.SYSTEM_DEPLOYMENT_CLOUD);
+        }
      }
 
     /**
@@ -1787,7 +1831,11 @@ public class OperateController {
      * 申请链上交易
      */
     @RequestMapping(value = "/device/makeChainDeal", method = RequestMethod.POST)
-    public RestResponse makeChainDeal(Principal principal, @RequestBody makeChainDealRequest requestParam){
+    public RestResponse makeChainDeal(Principal principal, @RequestBody makeChainDealRequest requestParam, HttpServletRequest request){
+        judgeByPrincipal(principal);
+
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, requestParam);
+
         // check parameter is validate
         if(requestParam.getLesseeId() == null){
             return new RestResponse(("租用者id不能为空"), 1006, null);
@@ -1916,16 +1964,19 @@ public class OperateController {
      * 确认交易完成
      */
     @RequestMapping(value = "/device/finishChainDeal", method = RequestMethod.POST)
-    public RestResponse finishChainDeal(Principal principal, @RequestBody finishChainDealRequest requestPapram){
-        Integer dealId = requestPapram.getDealId();
+    public RestResponse finishChainDeal(Principal principal, @RequestBody finishChainDealRequest requestParams, HttpServletRequest request){
+        judgeByPrincipal(principal);
+        request.setAttribute(Constants.HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY, requestParams);
+
+        Integer dealId = requestParams.getDealId();
         if(dealId == null){
             return new RestResponse(("交易id不能为空"), 1006, null);
         }
-        Integer operatorId = requestPapram.getOperateUserId();
+        Integer operatorId = requestParams.getOperateUserId();
         if(operatorId == null){
             return new RestResponse(("操作申请者id不能为空"), 1006, null);
         }
-        String operation = requestPapram.getOperation();
+        String operation = requestParams.getOperation();
         if(operation == null){
             return new RestResponse(("操作不能为空"), 1006, null);
         }

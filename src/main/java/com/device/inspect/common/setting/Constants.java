@@ -86,4 +86,9 @@ public class Constants {
         put(ONCHAIN_DEAL_STATUS_WAITING_LESSEE_CONFIRM_WITH_ALERT, "Device alert, waiting lessee confirm");
         put(ONCHAIN_DEAL_STATUS_FINISH_WITH_ALERT, "Device alert, deal finished");
     }};
+
+    public static final String HTTP_REQUEST_CUSTOM_ATTRIBUTE_POST_BODY = "postBody";
+
+    public static final String SYSTEM_DEPLOYMENT_CLOUD = "cloud";
+    public static final String SYSTEM_DEPLOYMENT_LOCAL = "local";
 }
