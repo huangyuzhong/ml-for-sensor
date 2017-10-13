@@ -2,6 +2,7 @@ package com.device.inspect.controller;
 
 import DNA.sdk.wallet.UserWalletManager;
 import com.alibaba.fastjson.JSON;
+import com.device.inspect.Application;
 import com.device.inspect.common.model.charater.Role;
 import com.device.inspect.common.model.charater.RoleAuthority;
 import com.device.inspect.common.model.charater.User;
@@ -28,6 +29,7 @@ import com.device.inspect.common.service.InitWallet;
 import com.device.inspect.common.service.MessageSendService;
 import com.device.inspect.common.service.OnchainService;
 import com.device.inspect.common.service.TemporalStrategyChecker;
+import com.device.inspect.common.setting.Constants;
 import com.device.inspect.common.util.transefer.UserRoleDifferent;
 import com.device.inspect.config.OpeDeviceDisableTime;
 import com.device.inspect.controller.request.*;
@@ -1337,8 +1339,15 @@ public class OperateController {
         if (mobile.length()!=11)
             return new RestResponse("手机号格式不正确",1005,null);
         //短信发送验证码
-        boolean b=MessageSendService.sendSms(user,mobile,String.valueOf(verify),0);
-        if (b)
+        boolean sendSMSSuccess;
+        if(Application.smsMedia == Constants.SMS_MEDIA_TYPE_ALIYUN){
+            sendSMSSuccess = MessageSendService.sendSms(user,mobile,String.valueOf(verify),0);
+        }
+        else{
+            //通过SIM800发送信息给用户
+            sendSMSSuccess = MessageSendService.sendMessageToUserViaSIM800BySize(String.valueOf(verify), mobile);
+        }
+        if (sendSMSSuccess)
             messageSend.setEnable(1);
         else{
             messageSend.setEnable(0);

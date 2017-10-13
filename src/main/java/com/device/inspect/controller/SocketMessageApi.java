@@ -331,7 +331,7 @@ public class SocketMessageApi {
                         retry ++;
                     }
                     else{
-                        LOGGER.debug(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
+                        LOGGER.info(String.format("Successfully write Device [%d] telemetry %s (%s) to influxdb",
                                 device.getId(),
                                 //InspectProcessTool.getMeasurementByCode(inspectMessage.getInspectTypeCode()),
                                 deviceInspect.getInspectType().getMeasurement(),
