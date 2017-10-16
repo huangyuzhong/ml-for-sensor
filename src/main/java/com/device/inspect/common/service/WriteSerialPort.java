@@ -168,7 +168,6 @@ public class WriteSerialPort {
 
             if (strb.contains("OK")){
                 strb = strb.split("\r\n")[2];
-                strb = strb.substring(56);
                 return strb;
             } else{
                 return "error";

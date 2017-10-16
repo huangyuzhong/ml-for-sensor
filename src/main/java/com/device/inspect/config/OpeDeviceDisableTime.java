@@ -7,6 +7,7 @@ import java.util.Date;
  */
 public class OpeDeviceDisableTime {
 
+    // 将租赁时间段按时间先后进行排序
     public static String SortAndJudgeOnDeviceDisableTime(String content){
         if (content == null || content.isEmpty())
             return null;
@@ -51,6 +52,7 @@ public class OpeDeviceDisableTime {
         return contentSort;
     }
 
+    // 删除已经过去的预约租赁时间段
     public static String modifyOnDeviceDisableTime(String content){
         if (content == null || content.isEmpty())
             return null;
@@ -76,4 +78,9 @@ public class OpeDeviceDisableTime {
             return null;
         return contentSort;
     }
+
+//    public static void main(String[] args){
+//        String temp = modifyOnDeviceDisableTime("1505701068000,1505960268000;1506476760000,1506476880000;1506477600000,1506477660000;1506478500000,1506478620000;1506479040000,1506479100000;1506479880000,1506479940000;1506480060000,1506480120000;1506480960000,1506481020000;1506482100000,1506482160000;1506497460000,1506497520000;1506678780000,1506693120000;1507620420000,1507620660000;1507681260000,1507681380000;1507784520000,1507784580000;1507785060000,1507871340000");
+//        System.out.println("删除后留下的是未开始的租赁时间段："+temp);
+//    }
 }
