@@ -739,9 +739,9 @@ public class OperateController {
         child.setRemoveAlert("0");
 
         // 新增用户前，给该用户上链
-        UserWalletManager wallet = InitWallet.getWallet();
-        String address = wallet.createAccount();
-        child.setAccountAddress(address);
+//        UserWalletManager wallet = InitWallet.getWallet();
+//        String address = wallet.createAccount();
+//        child.setAccountAddress(address);
 
         userRepository.save(child);
         if (roleAuthorityList.size()==1){

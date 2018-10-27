@@ -40,8 +40,8 @@ public class OnchainService {
         isEnable = enable;
         if(isEnable.equals("true")){
             LOGGER.info("[BlockChain] enable block chain service");
-            wallet = InitWallet.getWallet();
-            wallet.startSyncBlock();
+//            wallet = InitWallet.getWallet();
+//            wallet.startSyncBlock();
         }
         else{
             LOGGER.info("[BlockChain] disable block chain service");

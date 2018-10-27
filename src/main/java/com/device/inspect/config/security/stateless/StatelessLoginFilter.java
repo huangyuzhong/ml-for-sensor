@@ -74,24 +74,24 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 			long authCost = endTime - startTime;
 
 
-			if(Application.influxDBManager.writeAPIOperation(startTime, authenticatedUser.getUsername(), loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 200, authCost)){
-				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, authenticatedUser.getUsername(), authCost, 200));
-			}
-			else{
-				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, authenticatedUser.getUsername(), authCost, 200));
-			}
+//			if(Application.influxDBManager.writeAPIOperation(startTime, authenticatedUser.getUsername(), loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 200, authCost)){
+//				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, authenticatedUser.getUsername(), authCost, 200));
+//			}
+//			else{
+//				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, authenticatedUser.getUsername(), authCost, 200));
+//			}
 
 			return userAuthentication;
 		}catch (Exception e){
 			long endTime = System.currentTimeMillis();
 
 			long authCost = endTime - startTime;
-        	if(Application.influxDBManager.writeAPIOperation(startTime, name, loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 401, authCost)){
-				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, name, authCost, 401));
-			}
-			else{
-				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, name, authCost, 401));
-			}
+//        	if(Application.influxDBManager.writeAPIOperation(startTime, name, loginRequestUri, request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", 401, authCost)){
+//				logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, name, authCost, 401));
+//			}
+//			else{
+//				logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", loginRequestUri, name, authCost, 401));
+//			}
         	throw e;
 		}
 

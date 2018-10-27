@@ -40,12 +40,12 @@ public class CustomLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler im
         }
 
 
-        if(Application.influxDBManager.writeAPIOperation(System.currentTimeMillis(), userName, request.getRequestURI().toString(), request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", response.getStatus(), 0)){
-            logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURI().toString(), userName, 0, response.getStatus()));
-        }
-        else{
-            logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURI().toString(), userName, 0, response.getStatus()));
-        }
+//        if(Application.influxDBManager.writeAPIOperation(System.currentTimeMillis(), userName, request.getRequestURI().toString(), request.getMethod(), UrlParse.API_TYPE_USER_OPERATION, "", response.getStatus(), 0)){
+//            logger.info(String.format("+++ successfully write to influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURI().toString(), userName, 0, response.getStatus()));
+//        }
+//        else{
+//            logger.warn(String.format("+++ Failed to write influxdb -- Executing %s [%s] takes %d ms, return code: %d", request.getRequestURI().toString(), userName, 0, response.getStatus()));
+//        }
 
         super.onLogoutSuccess(request, response, authentication);
     }

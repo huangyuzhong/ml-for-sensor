@@ -153,12 +153,12 @@ public class ApiInterceptor extends HandlerInterceptorAdapter{
         }
 
 
-        if(Application.influxDBManager.writeAPIOperation(startTime, userName, requestUrl, request.getMethod(), apiType, jsonRequestParam, response.getStatus(), executeTime)){
-            logger.info(String.format("+++ successfully write to influxdb -- Executing %s takes %d ms, return code: %d", requestUrl, executeTime, response.getStatus()));
-        }
-        else{
-            logger.warn(String.format("+++ Failed to write influxdb -- Executing %s takes %d ms, return code: %d", requestUrl, executeTime, response.getStatus()));
-        }
+//        if(Application.influxDBManager.writeAPIOperation(startTime, userName, requestUrl, request.getMethod(), apiType, jsonRequestParam, response.getStatus(), executeTime)){
+//            logger.info(String.format("+++ successfully write to influxdb -- Executing %s takes %d ms, return code: %d", requestUrl, executeTime, response.getStatus()));
+//        }
+//        else{
+//            logger.warn(String.format("+++ Failed to write influxdb -- Executing %s takes %d ms, return code: %d", requestUrl, executeTime, response.getStatus()));
+//        }
 
 
     }

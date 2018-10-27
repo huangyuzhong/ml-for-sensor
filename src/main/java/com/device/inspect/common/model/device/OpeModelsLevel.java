@@ -24,7 +24,7 @@ public class OpeModelsLevel {
         this.id = id;
     }
 
-    @Column(name = "level")
+    @Column(name = "ope_level")
     public Integer getLevel() {
         return level;
     }
@@ -33,7 +33,7 @@ public class OpeModelsLevel {
         this.level = level;
     }
 
-    @Column(name = "interval")
+    @Column(name = "ope_interval")
     public Integer getInterval() {
         return interval;
     }

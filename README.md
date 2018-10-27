@@ -1,43 +1,26 @@
-##后端开发
-1. IDE， Intellij
-2. JAVA  1.8 +
+Project name - Device sharing system based on IOT and Block chain
 
-##后端运行步骤
+The project is a device sharing system based on IoT and block chaining. The back-end framework uses 
+the Spring Boot micro framework. The main logic is that the terminal detects the corresponding parameter 
+changes through the sensor, and then the parameter data is packaged in the frame data of a specific 
+protocol and transmitted to the back-end through the HTTP protocol, then the back-end parses the data and 
+compares the data. Thus, the used state of the equipment is detected intelligently. And through some third 
+party data analysis software powerBI, data analysis is generated and the report is displayed on the front page.
+After the back-end gets the data, because there are many kinds of sensors and the data is transmitted in real 
+time, the amount of data is very large. Therefore, when setting the alarm threshold of parameters, the KMeans 
+clustering algorithm in machine learning is used to process, and the center of mass and distance of five clusters 
+are obtained, so the parameters alarm threshold can be set dynamically. Block chain is a new Internet technology, 
+in the process of equipment leasing, the need for equipment transactions, equipment status (may fail), leasing costs 
+of the transfer certificate. Block chains can ensure that data is not tampered with, so that equipment leasing keep 
+going in a reliable, safe and convenient environment. 
 
-1. 设置环境变量为环境名称， 对应为config的名字。 例如， 产品环境为prod， 测试环境为test。 注意，本地测试只能使用test。在linux里， 在~/.bash_profile里加入
 
-  ```
-  export INTELAB_ENV={azure intelab env name}
-  ```
+项目名称 - 基于IOT和区块链的设备共享系统
 
- * 重新打开shell。
-
-
-2. 克隆代码 包括两个repo。 intelab-wbe, intelab-configs。 其中intelab-configs要clone到环境变量HOME所在的目录。
-  
-  ```
-  cd /*the directory you want to put the code*/
-  ```
-
-3. 编译生成运行包
-  
-  ```
-  mvn package
-  ```
-
-4. 进入target目录并运行
-  
-  ```
-  cd ./target
-  nohup java -jar /*target .jar file*/ &
-  ```
-  
-  使用nohup可以使退出ssh时后端依然在运行
-
-5. 改动
-  改动文件之后，需要将原先的进程关闭，然后重新启动
-
-##数据库迁移步骤
-1. 由于azure.cn中的数据库服务默认不允许外网访问，所以需要在manage.windowsazure.cn中，将mysql database里的ilb-dev-db数据库配置中加上自己的ip，方可访问。
-2. 使用workbench添加源数据库和目标数据库的链接，使用migrate wizard拷贝数据库
-3. azure上的数据库用户名ils-dev-db%iLS_Dev_DB， 密码iLabService123
+项目基于IOT和区块链的设备共享系统，后端框架用的是Spring Boot微框架。主要逻辑是终端通过传感器检测到相
+应的参数变化，然后将参数数据打包在特定协议的帧数据里通过http协议传到后端，后端再进行解析数据，数据比
+对。从而智能地检测到设备的使用状态。再通过一些第三方数据分析软件OpowerBI对数据分析生成报表显示在前端
+页面。其中后端在获取到数据后，由于传感器种类特别多，并且数据是实时传输的，所以数据量非常大，因此在设置
+参数报警阈值时，采用KMeans聚类方法去处理，得到五类簇中心点以及质心距离，从而动态设置参数报警阈值。而
+区块链是一种新的互联网技术，在设备租用的过程中，需要对设备交易，设备状态(可能出现故障)，租赁产生费用的
+转账进行存证。区块链能保证数据不被篡改，从而使得设备的租赁能在可靠、安全、便捷的环境下继续进行下去。

@@ -79,7 +79,7 @@ public class ScanOfflineData{
         FTPFile[] fileList = null;
 
         try {
-            fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitoring");
+//            fileList = Application.offlineFTPStorageManager.getFileListOnDirectory("monitoring");
 
         }catch (Exception e) {
             logger.error(String.format("Failed to get file from ftp server: ", e.toString()));

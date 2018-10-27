@@ -161,7 +161,7 @@ public class Application {
                 azureConfig = mapper.readValue(new File(configFilePath), AzureConfig.class);
                 LOGGER.info(String.format("Loaded azure config -- %s",ReflectionToStringBuilder.toString(azureConfig,ToStringStyle.MULTI_LINE_STYLE)));
 
-                intelabStorageManager = new AzureStorageManager(CONST.azureMediaStorageBlobContainerName, azureConfig.getStorage());
+//                intelabStorageManager = new AzureStorageManager(CONST.azureMediaStorageBlobContainerName, azureConfig.getStorage());
             }
             else if(storageType.equals("ftp")){
                 String configFilePath = String.format("%s/intelab-configs/%s/ftp.yaml", homePath, intelabEnvironmentName);
